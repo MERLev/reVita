@@ -131,7 +131,7 @@ void applyRemap(SceCtrlData *ctrl, uint8_t j){
 					new_map += btns[btn_mask[btn_idx]];
 				}
 			}
-		}else if (rear.report[i].x <= 960 && rear.report[i].y <= 544) { // Top Right
+		}else if (rear.report[i].x > 960 && rear.report[i].y <= 544) { // Top Right
 			btn_idx = PHYS_BUTTONS_NUM + 5;
 			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
 				if (!(new_map & btns[btn_mask[btn_idx]])) {
@@ -188,14 +188,14 @@ void applyRemapNegative(SceCtrlData *ctrl, uint8_t j){
 					new_map -= btns[btn_mask[btn_idx]];
 				}
 			}
-		}else if (front.report[i].x > 960 && front.report[i].y <= 544) { // Bot Left
+		}else if (front.report[i].x <= 960 && front.report[i].y > 544) { // Bot Left
 			btn_idx = PHYS_BUTTONS_NUM + 2;
 			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
 				if (new_map & btns[btn_mask[btn_idx]]) {
 					new_map -= btns[btn_mask[btn_idx]];
 				}
 			}
-		}else if (front.report[i].x <= 960 && front.report[i].y > 544) { // Top Right
+		}else if (front.report[i].x > 960 && front.report[i].y <= 544) { // Top Right
 			btn_idx = PHYS_BUTTONS_NUM + 1;
 			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
 				if (new_map & btns[btn_mask[btn_idx]]) {
@@ -216,28 +216,28 @@ void applyRemapNegative(SceCtrlData *ctrl, uint8_t j){
 	for (i=0;i<rear.reportNum;i++){
 		uint8_t btn_idx;
 		if (rear.report[i].x > 960 && rear.report[i].y > 544) { // Bot Right
-			btn_idx = PHYS_BUTTONS_NUM + 3;
+			btn_idx = PHYS_BUTTONS_NUM + 7;
 			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
 				if (new_map & btns[btn_mask[btn_idx]]) {
 					new_map -= btns[btn_mask[btn_idx]];
 				}
 			}
-		}else if (rear.report[i].x > 960 && rear.report[i].y <= 544) { // Bot Left
-			btn_idx = PHYS_BUTTONS_NUM + 2;
+		}else if (rear.report[i].x <= 960 && rear.report[i].y > 544) { // Bot Left
+			btn_idx = PHYS_BUTTONS_NUM + 6;
 			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
 				if (new_map & btns[btn_mask[btn_idx]]) {
 					new_map -= btns[btn_mask[btn_idx]];
 				}
 			}
-		}else if (rear.report[i].x <= 960 && rear.report[i].y > 544) { // Top Right
-			btn_idx = PHYS_BUTTONS_NUM + 1;
+		}else if (rear.report[i].x > 960 && rear.report[i].y <= 544) { // Top Right
+			btn_idx = PHYS_BUTTONS_NUM + 5;
 			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
 				if (new_map & btns[btn_mask[btn_idx]]) {
 					new_map -= btns[btn_mask[btn_idx]];
 				}
 			}
 		}else if (rear.report[i].x <= 960 && rear.report[i].y <= 544) { // Top Left
-			btn_idx = PHYS_BUTTONS_NUM;
+			btn_idx = PHYS_BUTTONS_NUM + 4;
 			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
 				if (new_map & btns[btn_mask[btn_idx]]) {
 					new_map -= btns[btn_mask[btn_idx]];
