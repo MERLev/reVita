@@ -9,6 +9,11 @@
 #define BUTTONS_NUM       24 // Supported buttons num
 #define MENU_ENTRIES      25 // Config menu entries num
 
+#ifndef max
+# define max(a,b) (((a)>(b))?(a):(b))
+#endif
+
+static int screen_h = 272;
 static uint8_t show_menu = 0;
 static uint8_t current_hook = 0;
 static SceUID hooks[HOOKS_NUM];
@@ -42,14 +47,18 @@ void drawConfigMenu(){
 	drawString(5, 10, "Thanks to Tain Sueiras, nobodywasishere and RaveHeart");
 	drawString(5, 30, "for their awesome support on Patreon");
 	drawString(5, 50, "remaPSV v.1.0 - CONFIG MENU");
-	int i;
-	for (i = 0; i < BUTTONS_NUM; i++){
+	int i, y = 70;
+	int screen_entries = (screen_h - 50) / 20;
+	for (i = max(0, cfg_i - (screen_entries - 2)); i < BUTTONS_NUM; i++){
 		(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
-		if (i > 12) drawStringF(480, 70 + (i-13)*20, "%s -> %s", str_btns[i], str_btns[btn_mask[i]]);
-		else drawStringF(5, 70 + i*20, "%s -> %s", str_btns[i], str_btns[btn_mask[i]]);
+		drawStringF(5, y, "%s -> %s", str_btns[i], str_btns[btn_mask[i]]);
+		y += 20;
+		if (y + 20 > screen_h) break;
 	}
-	(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
-	drawString(480, 70 + (BUTTONS_NUM-13)*20, "Close Config Menu");
+	if (y + 20 <= screen_h){
+		(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
+		drawString(5, y, "Close Config Menu");
+	}
 	setTextColor(0x00FF00FF);
 }
 
@@ -501,6 +510,7 @@ int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs){
 
 int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
 	if (show_menu){
+		screen_h = pParam->height;
 		updateFramebuf(pParam);
 		drawConfigMenu();
 	}
