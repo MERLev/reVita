@@ -23,6 +23,7 @@ static uint32_t old_buttons;
 static char titleid[16];
 static char fname[128];
 static uint8_t internal_touch_call = 0;
+static uint8_t new_frame = 1;
 static uint8_t btn_mask[BUTTONS_NUM] = {
 	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 16, 16, 16, 16, 16, 16, 16
 };
@@ -46,7 +47,7 @@ static char* str_btns[BUTTONS_NUM] = {
 void drawConfigMenu(){
 	drawString(5, 10, "Thanks to Tain Sueiras, nobodywasishere and RaveHeart");
 	drawString(5, 30, "for their awesome support on Patreon");
-	drawString(5, 50, "remaPSV v.1.0 - CONFIG MENU");
+	drawString(5, 50, "remaPSV v.1.1 - CONFIG MENU");
 	int i, y = 70;
 	int screen_entries = (screen_h - 50) / 20;
 	for (i = max(0, cfg_i - (screen_entries - 2)); i < BUTTONS_NUM; i++){
@@ -289,50 +290,62 @@ void loadConfig(void){
 
 // Input Handler for the Config Menu
 void configInputHandler(SceCtrlData *ctrl){
-	if ((ctrl->buttons & SCE_CTRL_DOWN) && (!(old_buttons & SCE_CTRL_DOWN))){
-		cfg_i++;
-		if (cfg_i >= MENU_ENTRIES) cfg_i = 0;
-	}else if ((ctrl->buttons & SCE_CTRL_UP) && (!(old_buttons & SCE_CTRL_UP))){
-		cfg_i--;
-		if (cfg_i < 0) cfg_i = MENU_ENTRIES-1;
-	}else if ((ctrl->buttons & SCE_CTRL_RIGHT) && (!(old_buttons & SCE_CTRL_RIGHT))){
-		if (cfg_i != MENU_ENTRIES-1) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % (PHYS_BUTTONS_NUM + 1);
-	}else if ((ctrl->buttons & SCE_CTRL_LEFT) && (!(old_buttons & SCE_CTRL_LEFT))){
-		if (cfg_i != MENU_ENTRIES-1) {
-			if (btn_mask[cfg_i] == 0) btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
-			else btn_mask[cfg_i]--;
-		}
-	}else if ((ctrl->buttons & SCE_CTRL_CROSS) && (!(old_buttons & SCE_CTRL_CROSS))){
-		if (cfg_i == MENU_ENTRIES-1){
+	if (new_frame){
+		if ((ctrl->buttons & SCE_CTRL_DOWN) && (!(old_buttons & SCE_CTRL_DOWN))){
+			cfg_i++;
+			if (cfg_i >= MENU_ENTRIES) cfg_i = 0;
+		}else if ((ctrl->buttons & SCE_CTRL_UP) && (!(old_buttons & SCE_CTRL_UP))){
+			cfg_i--;
+			if (cfg_i < 0) cfg_i = MENU_ENTRIES-1;
+		}else if ((ctrl->buttons & SCE_CTRL_RIGHT) && (!(old_buttons & SCE_CTRL_RIGHT))){
+			if (cfg_i != MENU_ENTRIES-1) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % (PHYS_BUTTONS_NUM + 1);
+		}else if ((ctrl->buttons & SCE_CTRL_LEFT) && (!(old_buttons & SCE_CTRL_LEFT))){
+			if (cfg_i != MENU_ENTRIES-1) {
+				if (btn_mask[cfg_i] == 0) btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
+				else btn_mask[cfg_i]--;
+			}
+		}else if ((ctrl->buttons & SCE_CTRL_CROSS) && (!(old_buttons & SCE_CTRL_CROSS))){
+			if (cfg_i == MENU_ENTRIES-1){
+				show_menu = 0;
+				saveConfig();
+			}
+		}else if ((ctrl->buttons & SCE_CTRL_SELECT) && (!(old_buttons & SCE_CTRL_SELECT))){
 			show_menu = 0;
 			saveConfig();
 		}
 	}
+	new_frame = 0;
 	old_buttons = ctrl->buttons;
 	ctrl->buttons = 0; // Nulling returned buttons
 }
 
 // Input Handler for the Config Menu (negative logic)
 void configInputHandlerNegative(SceCtrlData *ctrl){
-	if ((old_buttons & SCE_CTRL_DOWN) && (!(ctrl->buttons & SCE_CTRL_DOWN))){
-		cfg_i++;
-		if (cfg_i >= MENU_ENTRIES) cfg_i = 0;
-	}else if ((old_buttons & SCE_CTRL_UP) && (!(ctrl->buttons & SCE_CTRL_UP))){
-		cfg_i--;
-		if (cfg_i < 0) cfg_i = MENU_ENTRIES-1;
-	}else if ((old_buttons & SCE_CTRL_RIGHT) && (!(ctrl->buttons & SCE_CTRL_RIGHT))){
-		if (cfg_i != MENU_ENTRIES-1) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % (PHYS_BUTTONS_NUM + 1);
-	}else if ((old_buttons & SCE_CTRL_LEFT) && (!(ctrl->buttons & SCE_CTRL_LEFT))){
-		if (cfg_i != MENU_ENTRIES-1) {
-			if (btn_mask[cfg_i] == 0) btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
-			else btn_mask[cfg_i]--;
-		}
-	}else if ((old_buttons & SCE_CTRL_CROSS) && (!(ctrl->buttons & SCE_CTRL_CROSS))){
-		if (cfg_i == MENU_ENTRIES-1){
+	if (new_frame){
+		if ((old_buttons & SCE_CTRL_DOWN) && (!(ctrl->buttons & SCE_CTRL_DOWN))){
+			cfg_i++;
+			if (cfg_i >= MENU_ENTRIES) cfg_i = 0;
+		}else if ((old_buttons & SCE_CTRL_UP) && (!(ctrl->buttons & SCE_CTRL_UP))){
+			cfg_i--;
+			if (cfg_i < 0) cfg_i = MENU_ENTRIES-1;
+		}else if ((old_buttons & SCE_CTRL_RIGHT) && (!(ctrl->buttons & SCE_CTRL_RIGHT))){
+			if (cfg_i != MENU_ENTRIES-1) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % (PHYS_BUTTONS_NUM + 1);
+		}else if ((old_buttons & SCE_CTRL_LEFT) && (!(ctrl->buttons & SCE_CTRL_LEFT))){
+			if (cfg_i != MENU_ENTRIES-1) {
+				if (btn_mask[cfg_i] == 0) btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
+				else btn_mask[cfg_i]--;
+			}		
+		}else if ((old_buttons & SCE_CTRL_CROSS) && (!(ctrl->buttons & SCE_CTRL_CROSS))){
+			if (cfg_i == MENU_ENTRIES-1){
+				show_menu = 0;
+				saveConfig();
+			}
+		}else if ((old_buttons & SCE_CTRL_SELECT) && (!(ctrl->buttons & SCE_CTRL_SELECT))){
 			show_menu = 0;
 			saveConfig();
-		}
+		}	
 	}
+	new_frame = 0;
 	old_buttons = ctrl->buttons;
 	ctrl->buttons = 0xFFFFFFFF; // Nulling returned buttons
 }
@@ -510,6 +523,7 @@ int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs){
 
 int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
 	if (show_menu){
+		new_frame = 1;
 		screen_h = pParam->height;
 		updateFramebuf(pParam);
 		drawConfigMenu();
