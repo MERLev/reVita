@@ -7,11 +7,17 @@
 #define HOOKS_NUM         17 // Hooked functions num
 #define PHYS_BUTTONS_NUM  16 // Supported physical buttons num
 #define BUTTONS_NUM       24 // Supported buttons num
-#define MENU_ENTRIES      25 // Config menu entries num
+#define MENU_MODES        3  // Menu modes num
 
 #ifndef max
 # define max(a,b) (((a)>(b))?(a):(b))
 #endif
+
+enum{
+	MAIN_MENU = 0,
+	REMAP_MENU,
+	FUNCS_LIST
+};
 
 static int screen_h = 272;
 static uint8_t show_menu = 0;
@@ -19,6 +25,8 @@ static uint8_t current_hook = 0;
 static SceUID hooks[HOOKS_NUM];
 static tai_hook_ref_t refs[HOOKS_NUM];
 static int cfg_i = 0;
+static int menu_i = MAIN_MENU;
+static int model;
 static uint32_t old_buttons;
 static char titleid[16];
 static char fname[128];
@@ -26,6 +34,36 @@ static uint8_t internal_touch_call = 0;
 static uint8_t new_frame = 1;
 static uint8_t btn_mask[BUTTONS_NUM] = {
 	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 16, 16, 16, 16, 16, 16, 16
+};
+static uint8_t used_funcs[HOOKS_NUM-1];
+
+static char* str_menus[MENU_MODES] = {
+	"MAIN MENU", "REMAP MENU", "USED FUNCTIONS"
+};
+
+static char* str_main_menu[] = {
+	"Change remap settings",
+	"Show imported functions",
+	"Return to the game"
+};
+
+static char* str_funcs[HOOKS_NUM-1] = {
+	"sceCtrlPeekBufferPositive",
+	"sceCtrlPeekBufferPositive2",
+	"sceCtrlReadBufferPositive",
+	"sceCtrlReadBufferPositive2",
+	"sceCtrlPeekBufferPositiveExt",
+	"sceCtrlPeekBufferPositiveExt2",
+	"sceCtrlReadBufferPositiveExt",
+	"sceCtrlReadBufferPositiveExt2",
+	"sceCtrlPeekBufferNegative",
+	"sceCtrlPeekBufferNegative2",
+	"sceCtrlReadBufferNegative",
+	"sceCtrlReadBufferNegative2",
+	"sceTouchRead",
+	"sceTouchRead2",
+	"sceTouchPeek",
+	"sceTouchPeek2"
 };
 
 static uint32_t btns[BUTTONS_NUM] = {
@@ -47,23 +85,49 @@ static char* str_btns[BUTTONS_NUM] = {
 void drawConfigMenu(){
 	drawString(5, 10, "Thanks to Tain Sueiras, nobodywasishere and RaveHeart");
 	drawString(5, 30, "for their awesome support on Patreon");
-	drawString(5, 50, "remaPSV v.1.1 - CONFIG MENU");
+	drawStringF(5, 50, "remaPSV v.1.1 - %s", str_menus[menu_i]);
 	int i, y = 70;
 	int screen_entries = (screen_h - 50) / 20;
-	for (i = max(0, cfg_i - (screen_entries - 2)); i < BUTTONS_NUM; i++){
-		(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
-		drawStringF(5, y, "%s -> %s", str_btns[i], str_btns[btn_mask[i]]);
-		y += 20;
-		if (y + 20 > screen_h) break;
-	}
-	if (y + 20 <= screen_h){
-		(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
-		drawString(5, y, "Close Config Menu");
+	switch (menu_i){
+	case MAIN_MENU:
+		for (i = max(0, cfg_i - (screen_entries - 2)); i < sizeof(str_main_menu)/sizeof(char*); i++){
+			(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
+			drawStringF(5, y, "%s", str_main_menu[i]);
+			y += 20;
+			if (y + 20 > screen_h) break;
+		}
+		break;
+	case REMAP_MENU:
+		for (i = max(0, cfg_i - (screen_entries - 2)); i < BUTTONS_NUM; i++){
+			(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
+			drawStringF(5, y, "%s -> %s", str_btns[i], str_btns[btn_mask[i]]);
+			y += 20;
+			if (y + 20 > screen_h) break;
+		}
+		if (y + 20 <= screen_h){
+			(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
+			drawString(5, y, "Return to Main Menu");
+		}
+		break;
+	case FUNCS_LIST:
+		for (i = max(0, cfg_i - (screen_entries - 2)); i < HOOKS_NUM - 1; i++){
+			(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
+			drawStringF(5, y, "%s : %s", str_funcs[i], used_funcs[i] ? "Yes" : "No");
+			y += 20;
+			if (y + 20 > screen_h) break;
+		}
+		if (y + 20 <= screen_h){
+			(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
+			drawString(5, y, "Return to Main Menu");
+		}
+		break;
+	default:
+		break;
 	}
 	setTextColor(0x00FF00FF);
 }
 
-void applyRemap(SceCtrlData *ctrl, uint8_t j){
+void applyRemap(SceCtrlData *ctrl){
 	
 	// Checking for menu triggering
 	if ((ctrl->buttons & SCE_CTRL_START) && (ctrl->buttons & SCE_CTRL_SQUARE)){
@@ -161,7 +225,7 @@ void applyRemap(SceCtrlData *ctrl, uint8_t j){
 	ctrl->buttons = new_map;
 }
 
-void applyRemapNegative(SceCtrlData *ctrl, uint8_t j){
+void applyRemapNegative(SceCtrlData *ctrl){
 	
 	// Checking for menu triggering
 	if ((!(ctrl->buttons & SCE_CTRL_START)) && (!(ctrl->buttons & SCE_CTRL_SQUARE))){
@@ -291,27 +355,54 @@ void loadConfig(void){
 // Input Handler for the Config Menu
 void configInputHandler(SceCtrlData *ctrl){
 	if (new_frame){
+		int menu_entries = 0;
+		switch (menu_i){
+		case MAIN_MENU:
+			menu_entries = sizeof(str_main_menu)/sizeof(char*);
+			break;
+		case REMAP_MENU:
+			menu_entries = BUTTONS_NUM + 1;
+			break;
+		case FUNCS_LIST:
+			menu_entries = HOOKS_NUM;
+			break;
+		default:
+			break;
+		}
 		if ((ctrl->buttons & SCE_CTRL_DOWN) && (!(old_buttons & SCE_CTRL_DOWN))){
 			cfg_i++;
-			if (cfg_i >= MENU_ENTRIES) cfg_i = 0;
+			if (cfg_i >= menu_entries) cfg_i = 0;
 		}else if ((ctrl->buttons & SCE_CTRL_UP) && (!(old_buttons & SCE_CTRL_UP))){
 			cfg_i--;
-			if (cfg_i < 0) cfg_i = MENU_ENTRIES-1;
+			if (cfg_i < 0) cfg_i = menu_entries-1;
 		}else if ((ctrl->buttons & SCE_CTRL_RIGHT) && (!(old_buttons & SCE_CTRL_RIGHT))){
-			if (cfg_i != MENU_ENTRIES-1) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % (PHYS_BUTTONS_NUM + 1);
+			if ((menu_i == REMAP_MENU) && (cfg_i != menu_entries-1)) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % (PHYS_BUTTONS_NUM + 1);
 		}else if ((ctrl->buttons & SCE_CTRL_LEFT) && (!(old_buttons & SCE_CTRL_LEFT))){
-			if (cfg_i != MENU_ENTRIES-1) {
+			if ((menu_i == REMAP_MENU) && (cfg_i != menu_entries-1)) {
 				if (btn_mask[cfg_i] == 0) btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
 				else btn_mask[cfg_i]--;
 			}
 		}else if ((ctrl->buttons & SCE_CTRL_CROSS) && (!(old_buttons & SCE_CTRL_CROSS))){
-			if (cfg_i == MENU_ENTRIES-1){
-				show_menu = 0;
-				saveConfig();
+			if (cfg_i == menu_entries-1){
+				if (menu_i == MAIN_MENU){
+					show_menu = 0;
+					saveConfig();
+				}else{
+					menu_i = MAIN_MENU;
+					cfg_i = 0;
+				}
+			} else if (menu_i == MAIN_MENU){
+				menu_i = cfg_i + 1;
+				cfg_i = 0;
 			}
 		}else if ((ctrl->buttons & SCE_CTRL_SELECT) && (!(old_buttons & SCE_CTRL_SELECT))){
-			show_menu = 0;
-			saveConfig();
+			if (menu_i == MAIN_MENU){
+				show_menu = 0;
+				saveConfig();
+			}else{
+				menu_i = MAIN_MENU;
+				cfg_i = 0;
+			}
 		}
 	}
 	new_frame = 0;
@@ -321,33 +412,8 @@ void configInputHandler(SceCtrlData *ctrl){
 
 // Input Handler for the Config Menu (negative logic)
 void configInputHandlerNegative(SceCtrlData *ctrl){
-	if (new_frame){
-		if ((old_buttons & SCE_CTRL_DOWN) && (!(ctrl->buttons & SCE_CTRL_DOWN))){
-			cfg_i++;
-			if (cfg_i >= MENU_ENTRIES) cfg_i = 0;
-		}else if ((old_buttons & SCE_CTRL_UP) && (!(ctrl->buttons & SCE_CTRL_UP))){
-			cfg_i--;
-			if (cfg_i < 0) cfg_i = MENU_ENTRIES-1;
-		}else if ((old_buttons & SCE_CTRL_RIGHT) && (!(ctrl->buttons & SCE_CTRL_RIGHT))){
-			if (cfg_i != MENU_ENTRIES-1) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % (PHYS_BUTTONS_NUM + 1);
-		}else if ((old_buttons & SCE_CTRL_LEFT) && (!(ctrl->buttons & SCE_CTRL_LEFT))){
-			if (cfg_i != MENU_ENTRIES-1) {
-				if (btn_mask[cfg_i] == 0) btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
-				else btn_mask[cfg_i]--;
-			}		
-		}else if ((old_buttons & SCE_CTRL_CROSS) && (!(ctrl->buttons & SCE_CTRL_CROSS))){
-			if (cfg_i == MENU_ENTRIES-1){
-				show_menu = 0;
-				saveConfig();
-			}
-		}else if ((old_buttons & SCE_CTRL_SELECT) && (!(ctrl->buttons & SCE_CTRL_SELECT))){
-			show_menu = 0;
-			saveConfig();
-		}	
-	}
-	new_frame = 0;
-	old_buttons = ctrl->buttons;
-	ctrl->buttons = 0xFFFFFFFF; // Nulling returned buttons
+	ctrl->buttons = 0xFFFFFFFF - ctrl->buttons;
+	configInputHandler(ctrl);
 }
 
 // Simplified generic hooking function
@@ -358,85 +424,139 @@ void hookFunction(uint32_t nid, const void *func){
 
 int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, count);
-	if (!show_menu) applyRemap(ctrl, 0);
-	else configInputHandler(ctrl);
+	switch (model){
+		case SCE_KERNEL_MODEL_VITATV:
+			sceCtrlPeekBufferPositiveExt2(port, ctrl, count);
+			break;
+		default:
+			if (!show_menu) applyRemap(ctrl);
+			else configInputHandler(ctrl);
+			used_funcs[0] = 1;
+			break;
+	}
 	return ret;
 }
 
 int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, count);
-	if (!show_menu) applyRemap(ctrl, 1);
-	else configInputHandler(ctrl);
+	switch (model){
+		case SCE_KERNEL_MODEL_VITATV:
+			sceCtrlPeekBufferPositiveExt2(port, ctrl, count);
+			break;
+		default:
+			if (!show_menu) applyRemap(ctrl);
+			else configInputHandler(ctrl);
+			used_funcs[1] = 1;
+			break;
+	}
 	return ret;
 }
 
 int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, count);
-	if (!show_menu) applyRemap(ctrl, 2);
-	else configInputHandler(ctrl);
+	switch (model){
+		case SCE_KERNEL_MODEL_VITATV:
+			sceCtrlReadBufferPositiveExt2(port, ctrl, count);
+			break;
+		default:
+			if (!show_menu) applyRemap(ctrl);
+			else configInputHandler(ctrl);
+			used_funcs[2] = 1;
+			break;
+	}
 	return ret;
 }
 
 int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, count);
-	if (!show_menu) applyRemap(ctrl, 3);
-	else configInputHandler(ctrl);
+	switch (model){
+		case SCE_KERNEL_MODEL_VITATV:
+			sceCtrlReadBufferPositiveExt2(port, ctrl, count);
+			break;
+		default:
+			if (!show_menu) applyRemap(ctrl);
+			else configInputHandler(ctrl);
+			used_funcs[3] = 1;
+			break;
+	}
 	return ret;
 }
 
 int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[4], port, ctrl, count);
-	if (!show_menu) applyRemap(ctrl, 4);
-	else configInputHandler(ctrl);
+	switch (model){
+		case SCE_KERNEL_MODEL_VITATV:
+			sceCtrlPeekBufferPositiveExt2(port, ctrl, count);
+			break;
+		default:
+			if (!show_menu) applyRemap(ctrl);
+			else configInputHandler(ctrl);
+			used_funcs[4] = 1;
+			break;
+	}
 	return ret;
 }
 
 int sceCtrlPeekBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[5], port, ctrl, count);
-	if (!show_menu) applyRemap(ctrl, 5);
+	if (!show_menu) applyRemap(ctrl);
 	else configInputHandler(ctrl);
+	used_funcs[5] = 1;
 	return ret;
 }
 
 int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[6], port, ctrl, count);
-	if (!show_menu) applyRemap(ctrl, 6);
-	else configInputHandler(ctrl);
+	switch (model){
+		case SCE_KERNEL_MODEL_VITATV:
+			sceCtrlReadBufferPositiveExt2(port, ctrl, count);
+			break;
+		default:
+			if (!show_menu) applyRemap(ctrl);
+			else configInputHandler(ctrl);
+			used_funcs[6] = 1;
+			break;
+	}
 	return ret;
 }
 
 int sceCtrlReadBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[7], port, ctrl, count);
-	if (!show_menu) applyRemap(ctrl, 7);
+	if (!show_menu) applyRemap(ctrl);
 	else configInputHandler(ctrl);
+	used_funcs[7] = 1;
 	return ret;
 }
 
 int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[8], port, ctrl, count);
-	if (!show_menu) applyRemapNegative(ctrl, 8);
+	if (!show_menu) applyRemapNegative(ctrl);
 	else configInputHandlerNegative(ctrl);
+	used_funcs[8] = 1;
 	return ret;
 }
 
 int sceCtrlPeekBufferNegative2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[9], port, ctrl, count);
-	if (!show_menu) applyRemapNegative(ctrl, 9);
+	if (!show_menu) applyRemapNegative(ctrl);
 	else configInputHandlerNegative(ctrl);
+	used_funcs[9] = 1;
 	return ret;
 }
 
 int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[10], port, ctrl, count);
-	if (!show_menu) applyRemapNegative(ctrl, 10);
+	if (!show_menu) applyRemapNegative(ctrl);
 	else configInputHandlerNegative(ctrl);
+	used_funcs[10] = 1;
 	return ret;
 }
 
 int sceCtrlReadBufferNegative2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[11], port, ctrl, count);
-	if (!show_menu) applyRemapNegative(ctrl, 11);
+	if (!show_menu) applyRemapNegative(ctrl);
 	else configInputHandlerNegative(ctrl);
+	used_funcs[11] = 1;
 	return ret;
 }
 
@@ -457,6 +577,7 @@ int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs){
 			pData->reportNum = 0;
 		}
 	}
+	used_funcs[12] = 1;
 	return ret;
 }
 
@@ -477,6 +598,7 @@ int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs){
 			pData->reportNum = 0;
 		}
 	}
+	used_funcs[13] = 1;
 	return ret;
 }
 
@@ -498,6 +620,7 @@ int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs){
 			pData->reportNum = 0;
 		}
 	}
+	used_funcs[14] = 1;
 	return ret;
 }
 
@@ -518,6 +641,7 @@ int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs){
 			pData->reportNum = 0;
 		}
 	}
+	used_funcs[15] = 1;
 	return ret;
 }
 
@@ -536,6 +660,13 @@ int module_start(SceSize argc, const void *args) {
 	
 	// Setup stuffs
 	loadConfig();
+	model = sceKernelGetModel();
+	
+	// Initializing used funcs table
+	int i;
+	for (i = 0; i < HOOKS_NUM - 1; i++) {
+		used_funcs[i] = 0;
+	}
 	
 	// Enabling both touch panels sampling
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
