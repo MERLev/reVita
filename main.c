@@ -32,6 +32,7 @@ static char titleid[16];
 static char fname[128];
 static uint8_t internal_touch_call = 0;
 static uint8_t new_frame = 1;
+static SceCtrlData pstv_fakepad;
 static uint8_t btn_mask[BUTTONS_NUM] = {
 	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 16, 16, 16, 16, 16, 16, 16
 };
@@ -226,101 +227,9 @@ void applyRemap(SceCtrlData *ctrl){
 }
 
 void applyRemapNegative(SceCtrlData *ctrl){
-	
-	// Checking for menu triggering
-	if ((!(ctrl->buttons & SCE_CTRL_START)) && (!(ctrl->buttons & SCE_CTRL_SQUARE))){
-		show_menu = 1;
-		cfg_i = 0;
-		return;
-	}
-	
-	// Gathering real touch data
-	SceTouchData front, rear;
-	internal_touch_call = 1;
-	sceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
-	sceTouchPeek(SCE_TOUCH_PORT_BACK, &rear, 1);
-	internal_touch_call = 0;
-	
-	// Applying remap rules for physical buttons
-	int i;
-	uint32_t new_map = 0xFFFFFFFF;
-	for (i=0;i<BUTTONS_NUM;i++){
-		if (!(ctrl->buttons & btns[i])){
-			if (new_map & btns[btn_mask[i]]) {
-				new_map -= btns[btn_mask[i]];
-			}
-		}
-	}
-	
-	// Applying remap rules for front virtual buttons
-	for (i=0;i<front.reportNum;i++){
-		uint8_t btn_idx;
-		if (front.report[i].x > 960 && front.report[i].y > 544) { // Bot Right
-			btn_idx = PHYS_BUTTONS_NUM + 3;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (new_map & btns[btn_mask[btn_idx]]) {
-					new_map -= btns[btn_mask[btn_idx]];
-				}
-			}
-		}else if (front.report[i].x <= 960 && front.report[i].y > 544) { // Bot Left
-			btn_idx = PHYS_BUTTONS_NUM + 2;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (new_map & btns[btn_mask[btn_idx]]) {
-					new_map -= btns[btn_mask[btn_idx]];
-				}
-			}
-		}else if (front.report[i].x > 960 && front.report[i].y <= 544) { // Top Right
-			btn_idx = PHYS_BUTTONS_NUM + 1;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (new_map & btns[btn_mask[btn_idx]]) {
-					new_map -= btns[btn_mask[btn_idx]];
-				}
-			}
-		}else if (front.report[i].x <= 960 && front.report[i].y <= 544) { // Top Left
-			btn_idx = PHYS_BUTTONS_NUM;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (new_map & btns[btn_mask[btn_idx]]) {
-					new_map -= btns[btn_mask[btn_idx]];
-				}
-			}
-		}
-	}
-	
-	// Applying remap rules for rear virtual buttons
-	for (i=0;i<rear.reportNum;i++){
-		uint8_t btn_idx;
-		if (rear.report[i].x > 960 && rear.report[i].y > 544) { // Bot Right
-			btn_idx = PHYS_BUTTONS_NUM + 7;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (new_map & btns[btn_mask[btn_idx]]) {
-					new_map -= btns[btn_mask[btn_idx]];
-				}
-			}
-		}else if (rear.report[i].x <= 960 && rear.report[i].y > 544) { // Bot Left
-			btn_idx = PHYS_BUTTONS_NUM + 6;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (new_map & btns[btn_mask[btn_idx]]) {
-					new_map -= btns[btn_mask[btn_idx]];
-				}
-			}
-		}else if (rear.report[i].x > 960 && rear.report[i].y <= 544) { // Top Right
-			btn_idx = PHYS_BUTTONS_NUM + 5;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (new_map & btns[btn_mask[btn_idx]]) {
-					new_map -= btns[btn_mask[btn_idx]];
-				}
-			}
-		}else if (rear.report[i].x <= 960 && rear.report[i].y <= 544) { // Top Left
-			btn_idx = PHYS_BUTTONS_NUM + 4;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (new_map & btns[btn_mask[btn_idx]]) {
-					new_map -= btns[btn_mask[btn_idx]];
-				}
-			}
-		}
-	}
-	
-	ctrl->buttons = new_map;
+	ctrl->buttons = 0xFFFFFFFF - ctrl->buttons;
+	applyRemap(ctrl);
+	ctrl->buttons = 0xFFFFFFFF - ctrl->buttons;
 }
 
 void saveConfig(void){
@@ -426,8 +335,8 @@ int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, count);
 	switch (model){
 		case SCE_KERNEL_MODEL_VITATV:
-			sceCtrlPeekBufferPositiveExt2(port, ctrl, count);
-			break;
+			sceCtrlPeekBufferPositiveExt2(port, &pstv_fakepad, count);
+			ctrl->buttons = pstv_fakepad.buttons;
 		default:
 			if (!show_menu) applyRemap(ctrl);
 			else configInputHandler(ctrl);
@@ -441,8 +350,8 @@ int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, count);
 	switch (model){
 		case SCE_KERNEL_MODEL_VITATV:
-			sceCtrlPeekBufferPositiveExt2(port, ctrl, count);
-			break;
+			sceCtrlPeekBufferPositiveExt2(port, &pstv_fakepad, count);
+			ctrl->buttons = pstv_fakepad.buttons;
 		default:
 			if (!show_menu) applyRemap(ctrl);
 			else configInputHandler(ctrl);
@@ -456,8 +365,8 @@ int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, count);
 	switch (model){
 		case SCE_KERNEL_MODEL_VITATV:
-			sceCtrlReadBufferPositiveExt2(port, ctrl, count);
-			break;
+			sceCtrlReadBufferPositiveExt2(port, &pstv_fakepad, count);
+			ctrl->buttons = pstv_fakepad.buttons;
 		default:
 			if (!show_menu) applyRemap(ctrl);
 			else configInputHandler(ctrl);
@@ -471,8 +380,8 @@ int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, count);
 	switch (model){
 		case SCE_KERNEL_MODEL_VITATV:
-			sceCtrlReadBufferPositiveExt2(port, ctrl, count);
-			break;
+			sceCtrlReadBufferPositiveExt2(port, &pstv_fakepad, count);
+			ctrl->buttons = pstv_fakepad.buttons;
 		default:
 			if (!show_menu) applyRemap(ctrl);
 			else configInputHandler(ctrl);
@@ -486,8 +395,8 @@ int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 	int ret = TAI_CONTINUE(int, refs[4], port, ctrl, count);
 	switch (model){
 		case SCE_KERNEL_MODEL_VITATV:
-			sceCtrlPeekBufferPositiveExt2(port, ctrl, count);
-			break;
+			sceCtrlPeekBufferPositiveExt2(port, &pstv_fakepad, count);
+			ctrl->buttons = pstv_fakepad.buttons;
 		default:
 			if (!show_menu) applyRemap(ctrl);
 			else configInputHandler(ctrl);
@@ -509,8 +418,8 @@ int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 	int ret = TAI_CONTINUE(int, refs[6], port, ctrl, count);
 	switch (model){
 		case SCE_KERNEL_MODEL_VITATV:
-			sceCtrlReadBufferPositiveExt2(port, ctrl, count);
-			break;
+			sceCtrlReadBufferPositiveExt2(port, &pstv_fakepad, count);
+			ctrl->buttons = pstv_fakepad.buttons;
 		default:
 			if (!show_menu) applyRemap(ctrl);
 			else configInputHandler(ctrl);
