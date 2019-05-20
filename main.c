@@ -155,6 +155,14 @@ void drawConfigMenu() {
 	setTextColor(0x00FF00FF);
 }
 
+void applyRemapRule(uint8_t btn_idx, uint32_t *map) {
+	if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
+		if (!(*map & btns[btn_mask[btn_idx]])) {
+			*map += btns[btn_mask[btn_idx]];
+		}
+	}
+}
+
 void applyRemap(SceCtrlData *ctrl) {
 	
 	// Checking for menu triggering
@@ -175,142 +183,57 @@ void applyRemap(SceCtrlData *ctrl) {
 	int i;
 	uint32_t new_map = 0;
 	for (i=0;i<PHYS_BUTTONS_NUM;i++) {
-		if (ctrl->buttons & btns[i]) {
-			if (!(new_map & btns[btn_mask[i]])) {
-				new_map += btns[btn_mask[i]];
-			}
-		}
+		if (ctrl->buttons & btns[i]) applyRemapRule(i, &new_map);
 	}
 	
 	// Applying remap rules for front virtual buttons
-	uint8_t btn_idx;
 	for (i=0;i<front.reportNum;i++) {
 		if (front.report[i].x > 960 && front.report[i].y > 544) { // Bot Right
-			btn_idx = PHYS_BUTTONS_NUM + 3;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (!(new_map & btns[btn_mask[btn_idx]])) {
-					new_map += btns[btn_mask[btn_idx]];
-				}
-			}
+			applyRemapRule(PHYS_BUTTONS_NUM + 3, &new_map);
 		}else if (front.report[i].x <= 960 && front.report[i].y > 544) { // Bot Left
-			btn_idx = PHYS_BUTTONS_NUM + 2;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (!(new_map & btns[btn_mask[btn_idx]])) {
-					new_map += btns[btn_mask[btn_idx]];
-				}
-			}
+			applyRemapRule(PHYS_BUTTONS_NUM + 2, &new_map);
 		}else if (front.report[i].x > 960 && front.report[i].y <= 544) { // Top Right
-			btn_idx = PHYS_BUTTONS_NUM + 1;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (!(new_map & btns[btn_mask[btn_idx]])) {
-					new_map += btns[btn_mask[btn_idx]];
-				}
-			}
+			applyRemapRule(PHYS_BUTTONS_NUM + 1, &new_map);
 		}else if (front.report[i].x <= 960 && front.report[i].y <= 544) { // Top Left
-			btn_idx = PHYS_BUTTONS_NUM;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (!(new_map & btns[btn_mask[btn_idx]])) {
-					new_map += btns[btn_mask[btn_idx]];
-				}
-			}
+			applyRemapRule(PHYS_BUTTONS_NUM, &new_map);
 		}
 	}
 	
 	// Applying remap rules for rear virtual buttons
 	for (i=0;i<rear.reportNum;i++) {
 		if (rear.report[i].x > 960 && rear.report[i].y > 544) { // Bot Right
-			btn_idx = PHYS_BUTTONS_NUM + 7;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (!(new_map & btns[btn_mask[btn_idx]])) {
-					new_map += btns[btn_mask[btn_idx]];
-				}
-			}
+			applyRemapRule(PHYS_BUTTONS_NUM + 7, &new_map);
 		}else if (rear.report[i].x <= 960 && rear.report[i].y > 544) { // Bot Left
-			btn_idx = PHYS_BUTTONS_NUM + 6;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (!(new_map & btns[btn_mask[btn_idx]])) {
-					new_map += btns[btn_mask[btn_idx]];
-				}
-			}
+			applyRemapRule(PHYS_BUTTONS_NUM + 6, &new_map);
 		}else if (rear.report[i].x > 960 && rear.report[i].y <= 544) { // Top Right
-			btn_idx = PHYS_BUTTONS_NUM + 5;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (!(new_map & btns[btn_mask[btn_idx]])) {
-					new_map += btns[btn_mask[btn_idx]];
-				}
-			}
+			applyRemapRule(PHYS_BUTTONS_NUM + 5, &new_map);
 		}else if (rear.report[i].x <= 960 && rear.report[i].y <= 544) { // Top Left
-			btn_idx = PHYS_BUTTONS_NUM + 4;
-			if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-				if (!(new_map & btns[btn_mask[btn_idx]])) {
-					new_map += btns[btn_mask[btn_idx]];
-				}
-			}
+			applyRemapRule(PHYS_BUTTONS_NUM + 4, &new_map);
 		}
 	}
 	
 	// Applying remap rules for left analog
 	if (ctrl->lx < 127 - analogs_deadzone[0]) { // Left
-		btn_idx = PHYS_BUTTONS_NUM + 8;
-		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-			if (!(new_map & btns[btn_mask[btn_idx]])) {
-				new_map += btns[btn_mask[btn_idx]];
-			}
-		}
+		applyRemapRule(PHYS_BUTTONS_NUM + 8, &new_map);
 	} else if (ctrl->lx > 127 + analogs_deadzone[0]) { // Right
-		btn_idx = PHYS_BUTTONS_NUM + 9;
-		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-			if (!(new_map & btns[btn_mask[btn_idx]])) {
-				new_map += btns[btn_mask[btn_idx]];
-			}
-		}
+		applyRemapRule(PHYS_BUTTONS_NUM + 9, &new_map);
 	}
 	if (ctrl->ly < 127 - analogs_deadzone[1]) { // Up
-		btn_idx = PHYS_BUTTONS_NUM + 10;
-		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-			if (!(new_map & btns[btn_mask[btn_idx]])) {
-				new_map += btns[btn_mask[btn_idx]];
-			}
-		}
+		applyRemapRule(PHYS_BUTTONS_NUM + 10, &new_map);
 	} else if (ctrl->ly > 127 + analogs_deadzone[1]) { // Down
-		btn_idx = PHYS_BUTTONS_NUM + 11;
-		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-			if (!(new_map & btns[btn_mask[btn_idx]])) {
-				new_map += btns[btn_mask[btn_idx]];
-			}
-		}
+		applyRemapRule(PHYS_BUTTONS_NUM + 11, &new_map);
 	}
 	
 	// Applying remap rules for right analog
 	if (ctrl->rx < 127 - analogs_deadzone[2]) { // Left
-		btn_idx = PHYS_BUTTONS_NUM + 12;
-		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-			if (!(new_map & btns[btn_mask[btn_idx]])) {
-				new_map += btns[btn_mask[btn_idx]];
-			}
-		}
+		applyRemapRule(PHYS_BUTTONS_NUM + 12, &new_map);
 	} else if (ctrl->rx > 127 + analogs_deadzone[2]) { // Right
-		btn_idx = PHYS_BUTTONS_NUM + 13;
-		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-			if (!(new_map & btns[btn_mask[btn_idx]])) {
-				new_map += btns[btn_mask[btn_idx]];
-			}
-		}
+		applyRemapRule(PHYS_BUTTONS_NUM + 13, &new_map);
 	}
 	if (ctrl->ry < 127 - analogs_deadzone[3]) { // Up
-		btn_idx = PHYS_BUTTONS_NUM + 14;
-		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-			if (!(new_map & btns[btn_mask[btn_idx]])) {
-				new_map += btns[btn_mask[btn_idx]];
-			}
-		}
+		applyRemapRule(PHYS_BUTTONS_NUM + 14, &new_map);
 	} else if (ctrl->ry > 127 + analogs_deadzone[3]) { // Down
-		btn_idx = PHYS_BUTTONS_NUM + 15;
-		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
-			if (!(new_map & btns[btn_mask[btn_idx]])) {
-				new_map += btns[btn_mask[btn_idx]];
-			}
-		}
+		applyRemapRule(PHYS_BUTTONS_NUM + 15, &new_map);
 	}
 	
 	// Nulling analogs if they're remapped
