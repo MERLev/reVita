@@ -82,11 +82,17 @@ static char* str_btns[BUTTONS_NUM] = {
 	"Rear (TL)", "Rear (TR)", "Rear (BL)", "Rear (BR)"
 };
 
+static char* target_btns[BUTTONS_NUM] = {
+	"Cross", "Circle", "Triangle", "Square", "Start",
+	"Select", "L Trigger (L2)", "R Trigger (R2)", "Up",
+	"Right", "Left", "Down", "L1", "R1", "L3", "R3", "Original"
+};
+
 // Config Menu Renderer
 void drawConfigMenu(){
 	drawString(5, 10, "Thanks to Tain Sueiras, nobodywasishere and RaveHeart");
 	drawString(5, 30, "for their awesome support on Patreon");
-	drawStringF(5, 50, "remaPSV v.1.1 - %s", str_menus[menu_i]);
+	drawStringF(5, 50, "remaPSV v.1.2 - %s", str_menus[menu_i]);
 	int i, y = 70;
 	int screen_entries = (screen_h - 50) / 20;
 	switch (menu_i){
@@ -101,7 +107,7 @@ void drawConfigMenu(){
 	case REMAP_MENU:
 		for (i = max(0, cfg_i - (screen_entries - 2)); i < BUTTONS_NUM; i++){
 			(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
-			drawStringF(5, y, "%s -> %s", str_btns[i], str_btns[btn_mask[i]]);
+			drawStringF(5, y, "%s -> %s", str_btns[i], target_btns[btn_mask[i]]);
 			y += 20;
 			if (y + 20 > screen_h) break;
 		}
@@ -580,6 +586,10 @@ int module_start(SceSize argc, const void *args) {
 	// Enabling both touch panels sampling
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
+	
+	// Enabling analogs sampling
+	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+	sceCtrlSetSamplingModeExT(SCE_CTRL_MODE_ANALOG_WIDE);
 	
 	// Hooking functions
 	hookFunction(0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
