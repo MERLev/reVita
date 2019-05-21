@@ -161,6 +161,10 @@ void applyRemapRule(uint8_t btn_idx, uint32_t *map) {
 		if (!(*map & btns[btn_mask[btn_idx]])) {
 			*map += btns[btn_mask[btn_idx]];
 		}
+	} else if (btn_idx < PHYS_BUTTONS_NUM) {
+		if (!(*map & btns[btn_idx])) {
+			*map += btns[btn_idx];
+		}
 	}
 }
 
