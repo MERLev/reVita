@@ -6,6 +6,7 @@
 
 #define HOOKS_NUM         17 // Hooked functions num
 #define PHYS_BUTTONS_NUM  16 // Supported physical buttons num
+#define TARGET_REMAPS     18 // Supported target remaps num
 #define BUTTONS_NUM       32 // Supported buttons num
 #define MENU_MODES        4  // Menu modes num
 
@@ -90,10 +91,11 @@ static char* str_btns[BUTTONS_NUM] = {
 	"Right Analog (U)", "Right Analog (D)"
 };
 
-static char* target_btns[BUTTONS_NUM] = {
+static char* target_btns[TARGET_REMAPS] = {
 	"Cross", "Circle", "Triangle", "Square", "Start",
 	"Select", "L Trigger (L2)", "R Trigger (R2)", "Up",
-	"Right", "Left", "Down", "L1", "R1", "L3", "R3", "Original"
+	"Right", "Left", "Down", "L1", "R1", "L3", "R3",
+	"Original", "Disable"
 };
 
 // Config Menu Renderer
@@ -157,13 +159,15 @@ void drawConfigMenu() {
 }
 
 void applyRemapRule(uint8_t btn_idx, uint32_t *map) {
-	if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) {
+	if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) { // Remap to physical
 		if (!(*map & btns[btn_mask[btn_idx]])) {
 			*map += btns[btn_mask[btn_idx]];
 		}
-	} else if (btn_idx < PHYS_BUTTONS_NUM) {
-		if (!(*map & btns[btn_idx])) {
-			*map += btns[btn_idx];
+	} else if (btn_mask[btn_idx] == PHYS_BUTTONS_NUM) { // Original remap
+		if (btn_idx < PHYS_BUTTONS_NUM) {
+			if (!(*map & btns[btn_idx])) {
+				*map += btns[btn_idx];
+			}
 		}
 	}
 }
@@ -337,11 +341,11 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 			cfg_i--;
 			if (cfg_i < 0) cfg_i = menu_entries-1;
 		}else if ((ctrl->buttons & SCE_CTRL_RIGHT) && (!(old_buttons & SCE_CTRL_RIGHT))) {
-			if ((menu_i == REMAP_MENU) && (cfg_i != menu_entries-1)) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % (PHYS_BUTTONS_NUM + 1);
+			if ((menu_i == REMAP_MENU) && (cfg_i != menu_entries-1)) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % TARGET_REMAPS;
 			else if ((menu_i == ANALOG_MENU) && (cfg_i != menu_entries-1)) analogs_deadzone[cfg_i] = (analogs_deadzone[cfg_i] + 1) % 128;
 		}else if ((ctrl->buttons & SCE_CTRL_LEFT) && (!(old_buttons & SCE_CTRL_LEFT))) {
 			if ((menu_i == REMAP_MENU) && (cfg_i != menu_entries-1)) {
-				if (btn_mask[cfg_i] == 0) btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
+				if (btn_mask[cfg_i] == 0) btn_mask[cfg_i] = TARGET_REMAPS - 1;
 				else btn_mask[cfg_i]--;
 			} else if ((menu_i == ANALOG_MENU) && (cfg_i != menu_entries-1)) {
 				if (analogs_deadzone[cfg_i] == 0) analogs_deadzone[cfg_i] = 127;
