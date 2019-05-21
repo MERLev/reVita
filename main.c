@@ -164,7 +164,7 @@ void applyRemapRule(uint8_t btn_idx, uint32_t *map) {
 	}
 }
 
-void applyRemap(SceCtrlData *ctrl) {
+void applyRemap(SceCtrlData *ctrl, int count) {
 	
 	// Checking for menu triggering
 	if ((ctrl->buttons & SCE_CTRL_START) && (ctrl->buttons & SCE_CTRL_SQUARE)) {
@@ -242,22 +242,31 @@ void applyRemap(SceCtrlData *ctrl) {
 		(btn_mask[PHYS_BUTTONS_NUM+9] != PHYS_BUTTONS_NUM) ||
 		(btn_mask[PHYS_BUTTONS_NUM+10] != PHYS_BUTTONS_NUM) ||
 		(btn_mask[PHYS_BUTTONS_NUM+11] != PHYS_BUTTONS_NUM)) {
-		ctrl->lx = ctrl->ly = 127;
+		for (i = 0; i < count; i++) {
+			ctrl[i].lx = ctrl[i].ly = 127;
+		}
 	}
 	if ((btn_mask[PHYS_BUTTONS_NUM+12] != PHYS_BUTTONS_NUM) ||
 		(btn_mask[PHYS_BUTTONS_NUM+13] != PHYS_BUTTONS_NUM) ||
 		(btn_mask[PHYS_BUTTONS_NUM+14] != PHYS_BUTTONS_NUM) ||
 		(btn_mask[PHYS_BUTTONS_NUM+15] != PHYS_BUTTONS_NUM)) {
-		ctrl->rx = ctrl->ry = 127;
+		for (i = 0; i < count; i++) {
+			ctrl[i].rx = ctrl[i].ry = 127;
+		}
 	}
 	
-	ctrl->buttons = new_map;
+	for (i = 0; i < count; i++) {
+		ctrl[i].buttons = new_map;
+	}
 }
 
-void applyRemapNegative(SceCtrlData *ctrl) {
+void applyRemapNegative(SceCtrlData *ctrl, int count) {
 	ctrl->buttons = 0xFFFFFFFF - ctrl->buttons;
-	applyRemap(ctrl);
-	ctrl->buttons = 0xFFFFFFFF - ctrl->buttons;
+	applyRemap(ctrl, count);
+	int i;
+	for (i = 0; i < count; i++) {
+		ctrl[i].buttons = 0xFFFFFFFF - ctrl[i].buttons;
+	}
 }
 
 void saveConfig(void) {
@@ -298,10 +307,10 @@ void loadConfig(void) {
 }
 
 // Input Handler for the Config Menu
-void configInputHandler(SceCtrlData *ctrl) {
-	if (new_frame){
+void configInputHandler(SceCtrlData *ctrl, int count) {
+	if (new_frame) {
 		int menu_entries = 0;
-		switch (menu_i){
+		switch (menu_i) {
 		case MAIN_MENU:
 			menu_entries = sizeof(str_main_menu) / sizeof(char*);
 			break;
@@ -325,13 +334,12 @@ void configInputHandler(SceCtrlData *ctrl) {
 			if (cfg_i < 0) cfg_i = menu_entries-1;
 		}else if ((ctrl->buttons & SCE_CTRL_RIGHT) && (!(old_buttons & SCE_CTRL_RIGHT))) {
 			if ((menu_i == REMAP_MENU) && (cfg_i != menu_entries-1)) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % (PHYS_BUTTONS_NUM + 1);
-			if ((menu_i == ANALOG_MENU) && (cfg_i != menu_entries-1)) analogs_deadzone[cfg_i] = (analogs_deadzone[cfg_i] + 1) % 128;
+			else if ((menu_i == ANALOG_MENU) && (cfg_i != menu_entries-1)) analogs_deadzone[cfg_i] = (analogs_deadzone[cfg_i] + 1) % 128;
 		}else if ((ctrl->buttons & SCE_CTRL_LEFT) && (!(old_buttons & SCE_CTRL_LEFT))) {
 			if ((menu_i == REMAP_MENU) && (cfg_i != menu_entries-1)) {
 				if (btn_mask[cfg_i] == 0) btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
 				else btn_mask[cfg_i]--;
-			}
-			if ((menu_i == ANALOG_MENU) && (cfg_i != menu_entries-1)) {
+			} else if ((menu_i == ANALOG_MENU) && (cfg_i != menu_entries-1)) {
 				if (analogs_deadzone[cfg_i] == 0) analogs_deadzone[cfg_i] = 127;
 				else analogs_deadzone[cfg_i]--;
 			}
@@ -340,7 +348,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 				if (menu_i == MAIN_MENU) {
 					show_menu = 0;
 					saveConfig();
-				}else {
+				} else {
 					menu_i = MAIN_MENU;
 					cfg_i = 0;
 				}
@@ -352,7 +360,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 			if (menu_i == MAIN_MENU) {
 				show_menu = 0;
 				saveConfig();
-			}else {
+			} else {
 				menu_i = MAIN_MENU;
 				cfg_i = 0;
 			}
@@ -360,14 +368,21 @@ void configInputHandler(SceCtrlData *ctrl) {
 	}
 	new_frame = 0;
 	old_buttons = ctrl->buttons;
-	ctrl->buttons = 0; // Nulling returned buttons
+	
+	int i;
+	for (i = 0; i < count; i++) {
+		ctrl[i].buttons = 0; // Nulling returned buttons
+	}
 }
 
 // Input Handler for the Config Menu (negative logic)
-void configInputHandlerNegative(SceCtrlData *ctrl) {
+void configInputHandlerNegative(SceCtrlData *ctrl, int count) {
 	ctrl->buttons = 0xFFFFFFFF - ctrl->buttons;
-	configInputHandler(ctrl);
-	ctrl->buttons = 0xFFFFFFFF;
+	configInputHandler(ctrl, count);
+	int i;
+	for (i = 0; i < count; i++) {
+		ctrl[i].buttons = 0xFFFFFFFF; // Nulling returned buttons
+	}
 }
 
 // Simplified generic hooking function
@@ -385,8 +400,8 @@ int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 			ctrl->buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
-			if (!show_menu) applyRemap(ctrl);
-			else configInputHandler(ctrl);
+			if (!show_menu) applyRemap(ctrl, count);
+			else configInputHandler(ctrl, count);
 			used_funcs[0] = 1;
 			break;
 	}
@@ -402,8 +417,8 @@ int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 			ctrl->buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
-			if (!show_menu) applyRemap(ctrl);
-			else configInputHandler(ctrl);
+			if (!show_menu) applyRemap(ctrl, count);
+			else configInputHandler(ctrl, count);
 			used_funcs[1] = 1;
 			break;
 	}
@@ -419,8 +434,8 @@ int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 			ctrl->buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
-			if (!show_menu) applyRemap(ctrl);
-			else configInputHandler(ctrl);
+			if (!show_menu) applyRemap(ctrl, count);
+			else configInputHandler(ctrl, count);
 			used_funcs[2] = 1;
 			break;
 	}
@@ -436,8 +451,8 @@ int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 			ctrl->buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
-			if (!show_menu) applyRemap(ctrl);
-			else configInputHandler(ctrl);
+			if (!show_menu) applyRemap(ctrl, count);
+			else configInputHandler(ctrl, count);
 			used_funcs[3] = 1;
 			break;
 	}
@@ -453,8 +468,8 @@ int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 			ctrl->buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
-			if (!show_menu) applyRemap(ctrl);
-			else configInputHandler(ctrl);
+			if (!show_menu) applyRemap(ctrl, count);
+			else configInputHandler(ctrl, count);
 			used_funcs[4] = 1;
 			break;
 	}
@@ -464,8 +479,8 @@ int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 int sceCtrlPeekBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[5], port, ctrl, count);
 	if (internal_ext_call) return ret;
-	if (!show_menu) applyRemap(ctrl);
-	else configInputHandler(ctrl);
+	if (!show_menu) applyRemap(ctrl, count);
+	else configInputHandler(ctrl, count);
 	used_funcs[5] = 1;
 	return ret;
 }
@@ -479,8 +494,8 @@ int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 			ctrl->buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
-			if (!show_menu) applyRemap(ctrl);
-			else configInputHandler(ctrl);
+			if (!show_menu) applyRemap(ctrl, count);
+			else configInputHandler(ctrl, count);
 			used_funcs[6] = 1;
 			break;
 	}
@@ -490,40 +505,40 @@ int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 int sceCtrlReadBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[7], port, ctrl, count);
 	if (internal_ext_call) return ret;
-	if (!show_menu) applyRemap(ctrl);
-	else configInputHandler(ctrl);
+	if (!show_menu) applyRemap(ctrl, count);
+	else configInputHandler(ctrl, count);
 	used_funcs[7] = 1;
 	return ret;
 }
 
 int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[8], port, ctrl, count);
-	if (!show_menu) applyRemapNegative(ctrl);
-	else configInputHandlerNegative(ctrl);
+	if (!show_menu) applyRemapNegative(ctrl, count);
+	else configInputHandlerNegative(ctrl, count);
 	used_funcs[8] = 1;
 	return ret;
 }
 
 int sceCtrlPeekBufferNegative2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[9], port, ctrl, count);
-	if (!show_menu) applyRemapNegative(ctrl);
-	else configInputHandlerNegative(ctrl);
+	if (!show_menu) applyRemapNegative(ctrl, count);
+	else configInputHandlerNegative(ctrl, count);
 	used_funcs[9] = 1;
 	return ret;
 }
 
 int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[10], port, ctrl, count);
-	if (!show_menu) applyRemapNegative(ctrl);
-	else configInputHandlerNegative(ctrl);
+	if (!show_menu) applyRemapNegative(ctrl, count);
+	else configInputHandlerNegative(ctrl, count);
 	used_funcs[10] = 1;
 	return ret;
 }
 
 int sceCtrlReadBufferNegative2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[11], port, ctrl, count);
-	if (!show_menu) applyRemapNegative(ctrl);
-	else configInputHandlerNegative(ctrl);
+	if (!show_menu) applyRemapNegative(ctrl, count);
+	else configInputHandlerNegative(ctrl, count);
 	used_funcs[11] = 1;
 	return ret;
 }
