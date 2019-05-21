@@ -32,6 +32,7 @@ static uint32_t old_buttons;
 static char titleid[16];
 static char fname[128];
 static uint8_t internal_touch_call = 0;
+static uint8_t internal_ext_call = 0;
 static uint8_t new_frame = 1;
 static SceCtrlData pstv_fakepad;
 static uint8_t analogs_deadzone[] = {50, 50, 50, 50};
@@ -42,7 +43,7 @@ static uint8_t btn_mask[BUTTONS_NUM] = {
 static uint8_t used_funcs[HOOKS_NUM-1];
 
 static char* str_menus[MENU_MODES] = {
-	"MAIN MENU", "REMAP MENU", "ANALOG_MENU", "USED FUNCTIONS"
+	"MAIN MENU", "REMAP MENU", "ANALOG MENU", "USED FUNCTIONS"
 };
 
 static char* str_main_menu[] = {
@@ -127,13 +128,13 @@ void drawConfigMenu() {
 		drawString(5, 80, "Left Analog:");
 		drawString(5, 150, "Right Analog:");
 		(0 == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
-		drawStringF(5, 100, "X Axis Deadzone: %i", analogs_deadzone[0]);
+		drawStringF(5, 100, "X Axis Deadzone: %hhu", analogs_deadzone[0]);
 		(1 == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
-		drawStringF(5, 120, "Y Axis Deadzone: %i", analogs_deadzone[1]);
+		drawStringF(5, 120, "Y Axis Deadzone: %hhu", analogs_deadzone[1]);
 		(2 == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
-		drawStringF(5, 170, "X Axis Deadzone: %i", analogs_deadzone[2]);
+		drawStringF(5, 170, "X Axis Deadzone: %hhu", analogs_deadzone[2]);
 		(3 == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
-		drawStringF(5, 190, "Y Axis Deadzone: %i", analogs_deadzone[3]);
+		drawStringF(5, 190, "Y Axis Deadzone: %hhu", analogs_deadzone[3]);
 		(4 == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
 		drawString(5, 230, "Return to Main Menu");
 		break;
@@ -260,7 +261,6 @@ void applyRemapNegative(SceCtrlData *ctrl) {
 }
 
 void saveConfig(void) {
-	
 	// Opening config file for the running app
 	sprintf(fname, "ux0:/data/remaPSV/%s.bin", titleid);
 	SceUID fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
@@ -367,6 +367,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 void configInputHandlerNegative(SceCtrlData *ctrl) {
 	ctrl->buttons = 0xFFFFFFFF - ctrl->buttons;
 	configInputHandler(ctrl);
+	ctrl->buttons = 0xFFFFFFFF;
 }
 
 // Simplified generic hooking function
@@ -379,8 +380,10 @@ int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, count);
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
+			internal_ext_call = 1;
 			sceCtrlPeekBufferPositiveExt2(port, &pstv_fakepad, count);
 			ctrl->buttons = pstv_fakepad.buttons;
+			internal_ext_call = 0;
 		default:
 			if (!show_menu) applyRemap(ctrl);
 			else configInputHandler(ctrl);
@@ -394,8 +397,10 @@ int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, count);
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
+			internal_ext_call = 1;
 			sceCtrlPeekBufferPositiveExt2(port, &pstv_fakepad, count);
 			ctrl->buttons = pstv_fakepad.buttons;
+			internal_ext_call = 0;
 		default:
 			if (!show_menu) applyRemap(ctrl);
 			else configInputHandler(ctrl);
@@ -409,8 +414,10 @@ int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, count);
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
+			internal_ext_call = 1;
 			sceCtrlReadBufferPositiveExt2(port, &pstv_fakepad, count);
 			ctrl->buttons = pstv_fakepad.buttons;
+			internal_ext_call = 0;
 		default:
 			if (!show_menu) applyRemap(ctrl);
 			else configInputHandler(ctrl);
@@ -424,8 +431,10 @@ int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, count);
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
+			internal_ext_call = 1;
 			sceCtrlReadBufferPositiveExt2(port, &pstv_fakepad, count);
 			ctrl->buttons = pstv_fakepad.buttons;
+			internal_ext_call = 0;
 		default:
 			if (!show_menu) applyRemap(ctrl);
 			else configInputHandler(ctrl);
@@ -439,8 +448,10 @@ int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 	int ret = TAI_CONTINUE(int, refs[4], port, ctrl, count);
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
+			internal_ext_call = 1;
 			sceCtrlPeekBufferPositiveExt2(port, &pstv_fakepad, count);
 			ctrl->buttons = pstv_fakepad.buttons;
+			internal_ext_call = 0;
 		default:
 			if (!show_menu) applyRemap(ctrl);
 			else configInputHandler(ctrl);
@@ -452,6 +463,7 @@ int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 
 int sceCtrlPeekBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[5], port, ctrl, count);
+	if (internal_ext_call) return ret;
 	if (!show_menu) applyRemap(ctrl);
 	else configInputHandler(ctrl);
 	used_funcs[5] = 1;
@@ -462,8 +474,10 @@ int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 	int ret = TAI_CONTINUE(int, refs[6], port, ctrl, count);
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
+			internal_ext_call = 1;
 			sceCtrlReadBufferPositiveExt2(port, &pstv_fakepad, count);
 			ctrl->buttons = pstv_fakepad.buttons;
+			internal_ext_call = 0;
 		default:
 			if (!show_menu) applyRemap(ctrl);
 			else configInputHandler(ctrl);
@@ -475,6 +489,7 @@ int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 
 int sceCtrlReadBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[7], port, ctrl, count);
+	if (internal_ext_call) return ret;
 	if (!show_menu) applyRemap(ctrl);
 	else configInputHandler(ctrl);
 	used_funcs[7] = 1;
