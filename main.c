@@ -98,6 +98,11 @@ static char* target_btns[TARGET_REMAPS] = {
 	"Original", "Disable"
 };
 
+// Buttons to activate the remap menu, defaults to START + SQUARE
+static uint8_t menuActivator_mask[2] = {
+	4, 3
+};
+
 // Config Menu Renderer
 void drawConfigMenu() {
 	drawString(5, 10, "Thanks to Tain Sueiras, nobodywasishere and RaveHeart");
@@ -175,7 +180,7 @@ void applyRemapRule(uint8_t btn_idx, uint32_t *map) {
 void applyRemap(SceCtrlData *ctrl, int count) {
 	
 	// Checking for menu triggering
-	if ((ctrl->buttons & SCE_CTRL_START) && (ctrl->buttons & SCE_CTRL_SQUARE)) {
+	if ((ctrl->buttons & btns[menuActivator_mask[0]]) && (ctrl->buttons & btns[menuActivator_mask[1]])) {
 		show_menu = 1;
 		cfg_i = 0;
 		return;
@@ -305,6 +310,16 @@ void loadConfig(void) {
 		sceIoRead(fd, btn_mask, BUTTONS_NUM);
 		sceIoClose(fd);
 	}
+	
+	// Loading menu activator config file
+	fd = sceIoOpen("ux0:/data/remaPSV/menuactivator.bin", SCE_O_RDONLY, 0777);
+		if(fd >= 0){
+			uint8_t temp;
+			sceIoRead(fd, &temp, 1);
+			menuActivator_mask[0] = (temp >> 4) & 0x0F;
+			menuActivator_mask[1] = temp & 0x0F;
+			sceIoClose(fd);
+		}
 	
 	// Loading analog config file
 	fd = sceIoOpen("ux0:/data/remaPSV/analogs.bin", SCE_O_RDONLY, 0777);
@@ -652,6 +667,16 @@ int module_start(SceSize argc, const void *args) {
 	// Setup stuffs
 	loadConfig();
 	model = sceKernelGetModel();
+	
+	// For some reason, Adrenaline refuses to start 
+	// if this plugin is active; so stop the
+	// initialization of the module.
+	
+	//Bypass for Adrenaline (NPXS10028)
+	if(!(strcmp(titleid, "NPXS10028")))
+	{
+	   return SCE_KERNEL_START_SUCCESS;
+	}
 	
 	// Initializing used funcs table
 	int i;
