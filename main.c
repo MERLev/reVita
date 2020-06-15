@@ -124,11 +124,6 @@ static uint8_t menuActivator_mask[2] = {
 	4, 3
 };
 
-// Buttons to activate the remap menu, defaults to START + SQUARE
-static uint8_t menuActivator_mask[2] = {
-	4, 3
-};
-
 // Config Menu Renderer
 void drawConfigMenu() {
 	drawString(5, 10, "Thanks to Tain Sueiras, nobodywasishere and RaveHeart");
