@@ -14,6 +14,11 @@
 # define max(a,b) (((a)>(b))?(a):(b))
 #endif
 
+static uint32_t color_default = 0x00FFFFFF;
+static uint32_t color_header = 0x00FF00FF;
+static uint32_t color_cursor = 0x0000FF00;
+static uint32_t color_active = 0x000000FF;
+
 enum{
 	MAIN_MENU = 0,
 	REMAP_MENU,
@@ -36,11 +41,9 @@ static uint8_t internal_touch_call = 0;
 static uint8_t internal_ext_call = 0;
 static uint8_t new_frame = 1;
 static SceCtrlData pstv_fakepad;
-static uint8_t analogs_deadzone[] = {50, 50, 50, 50};
-static uint8_t btn_mask[BUTTONS_NUM] = {
-	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-	16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16
-};
+static uint8_t const analogs_deadzone_def = 50;
+static uint8_t analogs_deadzone[4];
+static uint8_t btn_mask[BUTTONS_NUM];
 static uint8_t used_funcs[HOOKS_NUM-1];
 
 static char* str_menus[MENU_MODES] = {
@@ -124,8 +127,21 @@ static uint8_t menuActivator_mask[2] = {
 	4, 3
 };
 
+void resetRemaps(){
+	for (int i = 0; i < BUTTONS_NUM; i++) {
+		btn_mask[i] = PHYS_BUTTONS_NUM;
+	}
+}
+
+void resetAnalogs(){
+	for (int i = 0; i < 4; i++) {
+		analogs_deadzone[i] = analogs_deadzone_def;
+	}
+}
+
 // Config Menu Renderer
 void drawConfigMenu() {
+	setTextColor(color_header);
 	drawString(5, 10, "Thanks to Tain Sueiras, nobodywasishere and RaveHeart");
 	drawString(5, 30, "for their awesome support on Patreon");
 	drawStringF(5, 50, "remaPSV v.1.2 - %s", str_menus[menu_i]);
@@ -133,55 +149,53 @@ void drawConfigMenu() {
 	int screen_entries = (screen_h - 50) / 20;
 	switch (menu_i){
 	case MAIN_MENU:
-		for (i = max(0, cfg_i - (screen_entries - 2)); i < sizeof(str_main_menu)/sizeof(char*); i++) {
-			(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
+		for (i = max(0, cfg_i - (screen_entries - 3)); i < sizeof(str_main_menu)/sizeof(char*); i++) {
+			setTextColor((i == cfg_i) ? color_cursor : color_default);
 			drawStringF(5, y, "%s", str_main_menu[i]);
 			y += 20;
-			if (y + 20 > screen_h) break;
+			if (y + 40 > screen_h) break;
 		}
+		setTextColor(color_header);
+		drawString(5, 520, "[X]: select   [select] or [O]: save and close");
 		break;
 	case REMAP_MENU:
-		for (i = max(0, cfg_i - (screen_entries - 2)); i < BUTTONS_NUM; i++) {
-			(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
+		for (i = max(0, cfg_i - (screen_entries - 3)); i < BUTTONS_NUM; i++) {
+			setTextColor((i == cfg_i) ? color_cursor : color_default);
+			setTextColor((i == cfg_i) ? color_cursor : ((btn_mask[i] != PHYS_BUTTONS_NUM) ? color_active : color_default));
 			drawStringF(5, y, "%s -> %s", str_btns[i], target_btns[btn_mask[i]]);
 			y += 20;
-			if (y + 20 > screen_h) break;
+			if (y + 40 > screen_h) break;
 		}
-		if (y + 20 <= screen_h) {
-			(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
-			drawString(5, y, "Return to Main Menu");
-		}
+		setTextColor(color_header);
+		drawString(5, 520, "[<] or [>]: change    [[]]: reset   [start]: reset all   [select] or [O]: back");
 		break;
 	case ANALOG_MENU:
 		drawString(5, 80, "Left Analog:");
 		drawString(5, 150, "Right Analog:");
-		(0 == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
+		setTextColor((0 == cfg_i) ? color_cursor : ((analogs_deadzone[0] != analogs_deadzone_def) ? color_active : color_default));
 		drawStringF(5, 100, "X Axis Deadzone: %hhu", analogs_deadzone[0]);
-		(1 == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
+		setTextColor((1 == cfg_i) ? color_cursor : ((analogs_deadzone[1] != analogs_deadzone_def) ? color_active : color_default));
 		drawStringF(5, 120, "Y Axis Deadzone: %hhu", analogs_deadzone[1]);
-		(2 == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
+		setTextColor((2 == cfg_i) ? color_cursor : ((analogs_deadzone[2] != analogs_deadzone_def) ? color_active : color_default));
 		drawStringF(5, 170, "X Axis Deadzone: %hhu", analogs_deadzone[2]);
-		(3 == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
+		setTextColor((3 == cfg_i) ? color_cursor : ((analogs_deadzone[3] != analogs_deadzone_def) ? color_active : color_default));
 		drawStringF(5, 190, "Y Axis Deadzone: %hhu", analogs_deadzone[3]);
-		(4 == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
-		drawString(5, 230, "Return to Main Menu");
+		setTextColor(color_header);
+		drawString(5, 520, "[<] or [>]: change    [[]]: reset   [start]: reset all    [select] or [O]: back");
 		break;
 	case FUNCS_LIST:
-		for (i = max(0, cfg_i - (screen_entries - 2)); i < HOOKS_NUM - 1; i++) {
-			(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
+		for (i = max(0, cfg_i - (screen_entries - 3)); i < HOOKS_NUM - 1; i++) {
+			setTextColor((i == cfg_i) ? color_cursor : color_default);
 			drawStringF(5, y, "%s : %s", str_funcs[i], used_funcs[i] ? "Yes" : "No");
 			y += 20;
-			if (y + 20 > screen_h) break;
+			if (y + 40 > screen_h) break;
 		}
-		if (y + 20 <= screen_h) {
-			(i == cfg_i) ? setTextColor(0x0000FF00) : setTextColor(0x00FFFFFF);
-			drawString(5, y, "Return to Main Menu");
-		}
+		setTextColor(color_header);
+		drawString(5, 520, "[select] or [O]: back");
 		break;
 	default:
 		break;
 	}
-	setTextColor(0x00FF00FF);
 }
 
 void applyRemapRule(uint8_t btn_idx, uint32_t* map, uint8_t* stkpos) {
@@ -344,6 +358,9 @@ void saveConfig(void) {
 }
 
 void loadConfig(void) {
+	resetRemaps();
+	resetAnalogs();
+	
 	sceIoMkdir("ux0:/data/remaPSV", 0777); // Just in case the folder doesn't exist
 	
 	// Getting game Title ID
@@ -384,13 +401,13 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 			menu_entries = sizeof(str_main_menu) / sizeof(char*);
 			break;
 		case REMAP_MENU:
-			menu_entries = BUTTONS_NUM + 1;
+			menu_entries = BUTTONS_NUM;
 			break;
 		case ANALOG_MENU:
-			menu_entries = 5;
+			menu_entries = 4;
 			break;
 		case FUNCS_LIST:
-			menu_entries = HOOKS_NUM;
+			menu_entries = HOOKS_NUM - 1;
 			break;
 		default:
 			break;
@@ -402,30 +419,34 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 			cfg_i--;
 			if (cfg_i < 0) cfg_i = menu_entries-1;
 		}else if ((ctrl->buttons & SCE_CTRL_RIGHT) && (!(old_buttons & SCE_CTRL_RIGHT))) {
-			if ((menu_i == REMAP_MENU) && (cfg_i != menu_entries-1)) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % TARGET_REMAPS;
-			else if ((menu_i == ANALOG_MENU) && (cfg_i != menu_entries-1)) analogs_deadzone[cfg_i] = (analogs_deadzone[cfg_i] + 1) % 128;
+			if (menu_i == REMAP_MENU) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % TARGET_REMAPS;
+			else if (menu_i == ANALOG_MENU) analogs_deadzone[cfg_i] = (analogs_deadzone[cfg_i] + 1) % 128;
 		}else if ((ctrl->buttons & SCE_CTRL_LEFT) && (!(old_buttons & SCE_CTRL_LEFT))) {
-			if ((menu_i == REMAP_MENU) && (cfg_i != menu_entries-1)) {
+			if (menu_i == REMAP_MENU) {
 				if (btn_mask[cfg_i] == 0) btn_mask[cfg_i] = TARGET_REMAPS - 1;
 				else btn_mask[cfg_i]--;
-			} else if ((menu_i == ANALOG_MENU) && (cfg_i != menu_entries-1)) {
+			} else if (menu_i == ANALOG_MENU) {
 				if (analogs_deadzone[cfg_i] == 0) analogs_deadzone[cfg_i] = 127;
 				else analogs_deadzone[cfg_i]--;
 			}
+		}else if ((ctrl->buttons & SCE_CTRL_SQUARE) && (!(old_buttons & SCE_CTRL_SQUARE))) {
+			if (menu_i == REMAP_MENU) btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
+			else if (menu_i == ANALOG_MENU) analogs_deadzone[cfg_i] = analogs_deadzone_def;
+		}else if ((ctrl->buttons & SCE_CTRL_START) && (!(old_buttons & SCE_CTRL_START))) {
+			if (menu_i == REMAP_MENU) resetRemaps();
+			else if (menu_i == ANALOG_MENU) resetAnalogs();
 		}else if ((ctrl->buttons & SCE_CTRL_CROSS) && (!(old_buttons & SCE_CTRL_CROSS))) {
-			if (cfg_i == menu_entries-1) {
-				if (menu_i == MAIN_MENU) {
+			if (menu_i == MAIN_MENU) {
+				if (cfg_i == menu_entries-1) {
 					show_menu = 0;
 					saveConfig();
-				} else {
-					menu_i = MAIN_MENU;
+				} else {					
+					menu_i = cfg_i + 1;
 					cfg_i = 0;
 				}
-			} else if (menu_i == MAIN_MENU) {
-				menu_i = cfg_i + 1;
-				cfg_i = 0;
 			}
-		}else if ((ctrl->buttons & SCE_CTRL_SELECT) && (!(old_buttons & SCE_CTRL_SELECT))) {
+		}else if (((ctrl->buttons & SCE_CTRL_SELECT) && (!(old_buttons & SCE_CTRL_SELECT)))
+			||((ctrl->buttons & SCE_CTRL_CIRCLE) && (!(old_buttons & SCE_CTRL_CIRCLE)))) {
 			if (menu_i == MAIN_MENU) {
 				show_menu = 0;
 				saveConfig();
