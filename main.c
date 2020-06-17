@@ -1,28 +1,33 @@
 #include <vitasdk.h>
 #include <taihen.h>
+#include <psp2/motion.h> 
 #include <libk/string.h>
 #include <libk/stdio.h>
+#include <stdlib.h>
 #include "renderer.h"
 
 #define HOOKS_NUM         17 // Hooked functions num
 #define PHYS_BUTTONS_NUM  16 // Supported physical buttons num
 #define TARGET_REMAPS     26 // Supported target remaps num
-#define BUTTONS_NUM       32 // Supported buttons num
-#define MENU_MODES        4  // Menu modes num
+#define BUTTONS_NUM       36 // Supported buttons num
+#define MENU_MODES        5  // Menu modes num
+#define COLOR_DEFAULT     0x00FFFFFF
+#define COLOR_HEADER      0x00FF00FF
+#define COLOR_CURSOR      0x0000FF00
+#define COLOR_ACTIVE      0x000000FF
+#define ANALOGS_DEADZONE_DEF      30
+#define GYRO_SENS_DEF             127
+#define GYRO_DEADZONE_DEF         15
 
 #ifndef max
 # define max(a,b) (((a)>(b))?(a):(b))
 #endif
 
-static uint32_t color_default = 0x00FFFFFF;
-static uint32_t color_header = 0x00FF00FF;
-static uint32_t color_cursor = 0x0000FF00;
-static uint32_t color_active = 0x000000FF;
-
 enum{
 	MAIN_MENU = 0,
 	REMAP_MENU,
 	ANALOG_MENU,
+	GYRO_MENU,
 	FUNCS_LIST
 };
 
@@ -41,18 +46,19 @@ static uint8_t internal_touch_call = 0;
 static uint8_t internal_ext_call = 0;
 static uint8_t new_frame = 1;
 static SceCtrlData pstv_fakepad;
-static uint8_t const analogs_deadzone_def = 50;
 static uint8_t analogs_deadzone[4];
+static uint8_t gyro_options[4];
 static uint8_t btn_mask[BUTTONS_NUM];
 static uint8_t used_funcs[HOOKS_NUM-1];
 
 static char* str_menus[MENU_MODES] = {
-	"MAIN MENU", "REMAP MENU", "ANALOG MENU", "USED FUNCTIONS"
+	"MAIN MENU", "REMAP MENU", "ANALOG MENU", "GYRO_MENU", "USED FUNCTIONS"
 };
 
 static char* str_main_menu[] = {
 	"Change remap settings",
 	"Change analog remap settings",
+	"Change gyro remap settings",
 	"Show imported functions",
 	"Return to the game"
 };
@@ -85,22 +91,26 @@ static uint32_t btns[BUTTONS_NUM] = {
 
 static char* str_btns[BUTTONS_NUM] = {
 	"Cross", "Circle", "Triangle", "Square",
-	"Start", "Select", "L Trigger (L2)", "R Trigger (R2)",
-	"Up", "Right", "Left", "Down", "L1", "R1", "L3", "R3",
+	"Start", "Select", 
+	"L Trigger (L2)", "R Trigger (R2)",
+	"Up", "Right", "Left", "Down", 
+	"L1", "R1", "L3", "R3",
 	"Touch (TL)", "Touch (TR)", "Touch (BL)", "Touch (BR)",
 	"Rear (TL)", "Rear (TR)", "Rear (BL)", "Rear (BR)",
-	"Left Analog (L)", "Left Analog (R)", "Left Analog (U)",
-	"Left Analog (D)", "Right Analog (L)", "Right Analog (R)",
-	"Right Analog (U)", "Right Analog (D)"
+	"Left Analog (L)", "Left Analog (R)", "Left Analog (U)", "Left Analog (D)", 
+	"Right Analog (L)", "Right Analog (R)", "Right Analog (U)", "Right Analog (D)",
+	"Gyro (L)", "Gyro (R)", "Gyro (U)", "Gyro (D)"
 };
 
 static char* target_btns[TARGET_REMAPS] = {
-	"Cross", "Circle", "Triangle", "Square", "Start",
-	"Select", "L Trigger (L2)", "R Trigger (R2)", "Up",
-	"Right", "Left", "Down", "L1", "R1", "L3", "R3", "Original", "Disable",
-	"Left Analog (L)", "Left Analog (R)", "Left Analog (U)",
-	"Left Analog (D)", "Right Analog (L)", "Right Analog (R)",
-	"Right Analog (U)", "Right Analog (D)"
+	"Cross", "Circle", "Triangle", "Square", 
+	"Start", "Select", 
+	"L Trigger (L2)", "R Trigger (R2)", 
+	"Up", "Right", "Left", "Down", 
+	"L1", "R1", "L3", "R3", 
+	"Original", "Disable",
+	"Left Analog (L)", "Left Analog (R)", "Left Analog (U)", "Left Analog (D)", 
+	"Right Analog (L)", "Right Analog (R)", "Right Analog (U)", "Right Analog (D)"
 };
 
 // Generic clamp function
@@ -108,18 +118,6 @@ int32_t clamp(int32_t value, int32_t mini, int32_t maxi) {
 	if (value < mini) { return mini; }
 	if (value > maxi) { return maxi; }
 	return value;
-}
-
-uint8_t checkStkMapNotUsed(uint8_t array[], uint8_t size)
-{
-	for (int i = 0; i < size; i++)
-	{
-		if (array[i] != 0) {
-			return 0;
-		}
-	}
-
-	return 1;
 }
 
 // Buttons to activate the remap menu, defaults to START + SQUARE
@@ -135,13 +133,20 @@ void resetRemaps(){
 
 void resetAnalogs(){
 	for (int i = 0; i < 4; i++) {
-		analogs_deadzone[i] = analogs_deadzone_def;
+		analogs_deadzone[i] = ANALOGS_DEADZONE_DEF;
 	}
+}
+
+void resetGyro(){
+	gyro_options[0] = GYRO_SENS_DEF;
+	gyro_options[1] = GYRO_SENS_DEF;
+	gyro_options[2] = GYRO_DEADZONE_DEF;
+	gyro_options[3] = GYRO_DEADZONE_DEF;
 }
 
 // Config Menu Renderer
 void drawConfigMenu() {
-	setTextColor(color_header);
+	setTextColor(COLOR_HEADER);
 	drawString(5, 10, "Thanks to Tain Sueiras, nobodywasishere and RaveHeart");
 	drawString(5, 30, "for their awesome support on Patreon");
 	drawStringF(5, 50, "remaPSV v.1.2 - %s", str_menus[menu_i]);
@@ -150,72 +155,106 @@ void drawConfigMenu() {
 	switch (menu_i){
 	case MAIN_MENU:
 		for (i = max(0, cfg_i - (screen_entries - 3)); i < sizeof(str_main_menu)/sizeof(char*); i++) {
-			setTextColor((i == cfg_i) ? color_cursor : color_default);
+			setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_DEFAULT);
 			drawStringF(5, y, "%s", str_main_menu[i]);
 			y += 20;
 			if (y + 40 > screen_h) break;
 		}
-		setTextColor(color_header);
-		drawString(5, 520, "[X]: select   [select] or [O]: save and close");
+		setTextColor(COLOR_HEADER);
+		drawString(5, 520, "(X): select   (select) or (O): save and close");
 		break;
 	case REMAP_MENU:
 		for (i = max(0, cfg_i - (screen_entries - 3)); i < BUTTONS_NUM; i++) {
-			setTextColor((i == cfg_i) ? color_cursor : color_default);
-			setTextColor((i == cfg_i) ? color_cursor : ((btn_mask[i] != PHYS_BUTTONS_NUM) ? color_active : color_default));
+			setTextColor((i == cfg_i) ? COLOR_CURSOR : ((btn_mask[i] != PHYS_BUTTONS_NUM) ? COLOR_ACTIVE : COLOR_DEFAULT));
 			drawStringF(5, y, "%s -> %s", str_btns[i], target_btns[btn_mask[i]]);
 			y += 20;
 			if (y + 40 > screen_h) break;
 		}
-		setTextColor(color_header);
-		drawString(5, 520, "[<] or [>]: change    [[]]: reset   [start]: reset all   [select] or [O]: back");
+		setTextColor(COLOR_HEADER);
+		drawString(5, 520, "(<) or (>): change    ([]): reset   (start): reset all   (select) or (O): back");
 		break;
 	case ANALOG_MENU:
+		setTextColor(COLOR_DEFAULT);
 		drawString(5, 80, "Left Analog:");
-		drawString(5, 150, "Right Analog:");
-		setTextColor((0 == cfg_i) ? color_cursor : ((analogs_deadzone[0] != analogs_deadzone_def) ? color_active : color_default));
+		setTextColor((0 == cfg_i) ? COLOR_CURSOR : ((analogs_deadzone[0] != ANALOGS_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
 		drawStringF(5, 100, "X Axis Deadzone: %hhu", analogs_deadzone[0]);
-		setTextColor((1 == cfg_i) ? color_cursor : ((analogs_deadzone[1] != analogs_deadzone_def) ? color_active : color_default));
+		setTextColor((1 == cfg_i) ? COLOR_CURSOR : ((analogs_deadzone[1] != ANALOGS_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
 		drawStringF(5, 120, "Y Axis Deadzone: %hhu", analogs_deadzone[1]);
-		setTextColor((2 == cfg_i) ? color_cursor : ((analogs_deadzone[2] != analogs_deadzone_def) ? color_active : color_default));
+		setTextColor(COLOR_DEFAULT);
+		drawString(5, 150, "Right Analog:");
+		setTextColor((2 == cfg_i) ? COLOR_CURSOR : ((analogs_deadzone[2] != ANALOGS_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
 		drawStringF(5, 170, "X Axis Deadzone: %hhu", analogs_deadzone[2]);
-		setTextColor((3 == cfg_i) ? color_cursor : ((analogs_deadzone[3] != analogs_deadzone_def) ? color_active : color_default));
+		setTextColor((3 == cfg_i) ? COLOR_CURSOR : ((analogs_deadzone[3] != ANALOGS_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
 		drawStringF(5, 190, "Y Axis Deadzone: %hhu", analogs_deadzone[3]);
-		setTextColor(color_header);
-		drawString(5, 520, "[<] or [>]: change    [[]]: reset   [start]: reset all    [select] or [O]: back");
+		setTextColor(COLOR_HEADER);
+		drawString(5, 520, "(<) or (>): change    ([]): reset   (start): reset all    (select) or (O): back");
+		break;
+	case GYRO_MENU:
+		setTextColor((0 == cfg_i) ? COLOR_CURSOR : ((gyro_options[0] != GYRO_SENS_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
+		drawStringF(5, 80, "X Axis Sensivity: %hhu", gyro_options[0]);
+		setTextColor((1 == cfg_i) ? COLOR_CURSOR : ((gyro_options[1] != GYRO_SENS_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
+		drawStringF(5, 100, "Y Axis Sensivity: %hhu", gyro_options[1]);
+		setTextColor(COLOR_DEFAULT);
+		drawString(5, 130, "Deadzone for digital remaps:");
+		setTextColor((2 == cfg_i) ? COLOR_CURSOR : ((gyro_options[2] != GYRO_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
+		drawStringF(5, 150, "X Axis Deadzone: %hhu", gyro_options[2]);
+		setTextColor((3 == cfg_i) ? COLOR_CURSOR : ((gyro_options[3] != GYRO_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
+		drawStringF(5, 170, "Y Axis Deadzone: %hhu", gyro_options[3]);
+		setTextColor(COLOR_HEADER);
+		drawString(5, 520, "(<) or (>): change    ([]): reset   (start): reset all    (select) or (O): back");
 		break;
 	case FUNCS_LIST:
 		for (i = max(0, cfg_i - (screen_entries - 3)); i < HOOKS_NUM - 1; i++) {
-			setTextColor((i == cfg_i) ? color_cursor : color_default);
+			setTextColor((i == cfg_i) ? COLOR_CURSOR : (used_funcs[i] ? COLOR_ACTIVE : COLOR_DEFAULT));
 			drawStringF(5, y, "%s : %s", str_funcs[i], used_funcs[i] ? "Yes" : "No");
 			y += 20;
 			if (y + 40 > screen_h) break;
 		}
-		setTextColor(color_header);
-		drawString(5, 520, "[select] or [O]: back");
+		setTextColor(COLOR_HEADER);
+		drawString(5, 520, "(select) or (O): back");
 		break;
 	default:
 		break;
 	}
 }
 
-void applyRemapRule(uint8_t btn_idx, uint32_t* map, uint8_t* stkpos) {
-	if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) { // Remap to physical
+void applyRemapRule(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos) {
+	if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) { // Btn -> Btn
 		if (!(*map & btns[btn_mask[btn_idx]])) {
 			*map += btns[btn_mask[btn_idx]];
 		}
 
-	}
-	else if (btn_mask[btn_idx] == PHYS_BUTTONS_NUM) { // Original remap
+	} else if (btn_mask[btn_idx] == PHYS_BUTTONS_NUM) { // Btn -> Original
 		if (btn_idx < PHYS_BUTTONS_NUM) {
 			if (!(*map & btns[btn_idx])) {
 				*map += btns[btn_idx];
 			}
 		}
+	} else if (PHYS_BUTTONS_NUM + 1 < btn_mask[btn_idx] && btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 10) { 
+		// Btn -> Analog
+		stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] += 127;
 	}
-	else if (btn_mask[btn_idx] > PHYS_BUTTONS_NUM + 1) { // Remap to non physical
-		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 10) { // Remap analog stick direction digitally
-			stkpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] = 127;
-		}
+}
+
+void applyRemapRuleForAnalog(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos, uint8_t stickposval) {
+	if (PHYS_BUTTONS_NUM + 1 < btn_mask[btn_idx] && btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 10) {
+		// Analog -> Analog
+		stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] += 127 - stickposval;
+	} else {
+		// Analog -> Btn
+		applyRemapRule(btn_idx, map, stickpos);
+	}
+}
+
+void applyRemapRuleForGyro(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos, float gyroval){
+	if (PHYS_BUTTONS_NUM + 1 < btn_mask[btn_idx] && btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 10) {
+		// Gyro -> Analog remap
+		stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] += gyroval;
+	} else {
+		// Gyro -> Btn remap
+		if ((((btn_idx == PHYS_BUTTONS_NUM + 16 || btn_idx == PHYS_BUTTONS_NUM + 17)) && gyroval > gyro_options[2] * 10) ||
+			(((btn_idx == PHYS_BUTTONS_NUM + 18 || btn_idx == PHYS_BUTTONS_NUM + 19)) && gyroval > gyro_options[3] * 10))
+			applyRemapRule(btn_idx, map, stickpos);
 	}
 }
 
@@ -235,101 +274,114 @@ void applyRemap(SceCtrlData *ctrl, int count) {
 	sceTouchPeek(SCE_TOUCH_PORT_BACK, &rear, 1);
 	internal_touch_call = 0;
 	
+	// Gathering gyro data	
+	SceMotionState motionstate;
+    sceMotionGetState(&motionstate);
+	
 	// Applying remap rules for physical buttons
 	int i;
 	uint32_t new_map = 0;
-	uint8_t stickpos[8] = { };
+	uint32_t stickpos[8] = { };
 	for (i=0;i<PHYS_BUTTONS_NUM;i++) {
 		if (ctrl->buttons & btns[i]) applyRemapRule(i, &new_map, stickpos);
 	}
 	
 	// Applying remap rules for front virtual buttons
 	for (i=0;i<front.reportNum;i++) {
-		if (front.report[i].x > 960 && front.report[i].y > 544) { // Bot Right
+		if (front.report[i].x > 960 && front.report[i].y > 544)       // Bot Right
 			applyRemapRule(PHYS_BUTTONS_NUM + 3, &new_map, stickpos);
-		}else if (front.report[i].x <= 960 && front.report[i].y > 544) { // Bot Left
+		else if (front.report[i].x <= 960 && front.report[i].y > 544) // Bot Left
 			applyRemapRule(PHYS_BUTTONS_NUM + 2, &new_map, stickpos);
-		}else if (front.report[i].x > 960 && front.report[i].y <= 544) { // Top Right
+		else if (front.report[i].x > 960 && front.report[i].y <= 544) // Top Right
 			applyRemapRule(PHYS_BUTTONS_NUM + 1, &new_map, stickpos);
-		}else if (front.report[i].x <= 960 && front.report[i].y <= 544) { // Top Left
+		else if (front.report[i].x <= 960 && front.report[i].y <= 544)// Top Left
 			applyRemapRule(PHYS_BUTTONS_NUM, &new_map, stickpos);
-		}
 	}
 	
 	// Applying remap rules for rear virtual buttons
 	for (i=0;i<rear.reportNum;i++) {
-		if (rear.report[i].x > 960 && rear.report[i].y > 544) { // Bot Right
+		if (rear.report[i].x > 960 && rear.report[i].y > 544)        // Bot Right
 			applyRemapRule(PHYS_BUTTONS_NUM + 7, &new_map, stickpos);
-		}else if (rear.report[i].x <= 960 && rear.report[i].y > 544) { // Bot Left
+		else if (rear.report[i].x <= 960 && rear.report[i].y > 544)  // Bot Left
 			applyRemapRule(PHYS_BUTTONS_NUM + 6, &new_map, stickpos);
-		}else if (rear.report[i].x > 960 && rear.report[i].y <= 544) { // Top Right
+		else if (rear.report[i].x > 960 && rear.report[i].y <= 544)  // Top Right
 			applyRemapRule(PHYS_BUTTONS_NUM + 5, &new_map, stickpos);
-		}else if (rear.report[i].x <= 960 && rear.report[i].y <= 544) { // Top Left
+		else if (rear.report[i].x <= 960 && rear.report[i].y <= 544) // Top Left
 			applyRemapRule(PHYS_BUTTONS_NUM + 4, &new_map, stickpos);
-		}
 	}
 	
 	// Applying remap rules for left analog
-	if (ctrl->lx < 127 - analogs_deadzone[0]) { // Left
-		applyRemapRule(PHYS_BUTTONS_NUM + 8, &new_map, stickpos);
-	} else if (ctrl->lx > 127 + analogs_deadzone[0]) { // Right
-		applyRemapRule(PHYS_BUTTONS_NUM + 9, &new_map, stickpos);
-	}
-	if (ctrl->ly < 127 - analogs_deadzone[1]) { // Up
-		applyRemapRule(PHYS_BUTTONS_NUM + 10, &new_map, stickpos);
-	} else if (ctrl->ly > 127 + analogs_deadzone[1]) { // Down
-		applyRemapRule(PHYS_BUTTONS_NUM + 11, &new_map, stickpos);
-	}
+	if (ctrl->lx < 127 - analogs_deadzone[0])			// Left
+		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 8, &new_map, stickpos, ctrl->lx);
+	else if (ctrl->lx > 127 + analogs_deadzone[0])		// Right
+		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 9, &new_map, stickpos, 255 - ctrl->lx);
+	if (ctrl->ly < 127 - analogs_deadzone[1])			// Up
+		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 10, &new_map, stickpos, ctrl->ly);
+	else if (ctrl->ly > 127 + analogs_deadzone[1])	// Down
+		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 11, &new_map, stickpos, 255 - ctrl->ly);
 	
 	// Applying remap rules for right analog
-	if (ctrl->rx < 127 - analogs_deadzone[2]) { // Left
-		applyRemapRule(PHYS_BUTTONS_NUM + 12, &new_map, stickpos);
-	} else if (ctrl->rx > 127 + analogs_deadzone[2]) { // Right
-		applyRemapRule(PHYS_BUTTONS_NUM + 13, &new_map, stickpos);
-	}
-	if (ctrl->ry < 127 - analogs_deadzone[3]) { // Up
-		applyRemapRule(PHYS_BUTTONS_NUM + 14, &new_map, stickpos);
-	} else if (ctrl->ry > 127 + analogs_deadzone[3]) { // Down
-		applyRemapRule(PHYS_BUTTONS_NUM + 15, &new_map, stickpos);
-	}
+	if (ctrl->rx < 127 - analogs_deadzone[2])	 		// Left
+		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 12, &new_map, stickpos, ctrl->rx);
+	else if (ctrl->rx > 127 + analogs_deadzone[2])		// Right
+		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 13, &new_map, stickpos, 255 - ctrl->rx);
+	if (ctrl->ry < 127 - analogs_deadzone[3])			// Up
+		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 14, &new_map, stickpos, ctrl->ry);
+	else if (ctrl->ry > 127 + analogs_deadzone[3])		// Down
+		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 15, &new_map, stickpos, 255 - ctrl->ry);
+	
+	// Applying remap for gyro
+	if (motionstate.angularVelocity.y > 0)
+		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 16,  &new_map, stickpos, 
+			motionstate.angularVelocity.y * gyro_options[0]);
+	if (motionstate.angularVelocity.y < 0)
+		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 17,  &new_map, stickpos, 
+			-motionstate.angularVelocity.y * gyro_options[0]);
+	if (motionstate.angularVelocity.x > 0)
+		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 18,  &new_map, stickpos, 
+			motionstate.angularVelocity.x * gyro_options[1]);
+	if (motionstate.angularVelocity.x < 0)
+		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 19,  &new_map, stickpos, 
+			-motionstate.angularVelocity.x * gyro_options[1]);
 	
 	// Nulling analogs if they're remapped
-	if ((btn_mask[PHYS_BUTTONS_NUM+8] != PHYS_BUTTONS_NUM) ||
-		(btn_mask[PHYS_BUTTONS_NUM+9] != PHYS_BUTTONS_NUM) ||
-		(btn_mask[PHYS_BUTTONS_NUM+10] != PHYS_BUTTONS_NUM) ||
-		(btn_mask[PHYS_BUTTONS_NUM+11] != PHYS_BUTTONS_NUM)) {
-		for (i = 0; i < count; i++) {
-			ctrl[i].lx = ctrl[i].ly = 127;
-		}
-	}
-	if ((btn_mask[PHYS_BUTTONS_NUM+12] != PHYS_BUTTONS_NUM) ||
-		(btn_mask[PHYS_BUTTONS_NUM+13] != PHYS_BUTTONS_NUM) ||
-		(btn_mask[PHYS_BUTTONS_NUM+14] != PHYS_BUTTONS_NUM) ||
-		(btn_mask[PHYS_BUTTONS_NUM+15] != PHYS_BUTTONS_NUM)) {
-		for (i = 0; i < count; i++) {
-			ctrl[i].rx = ctrl[i].ry = 127;
-		}
+	for (i = 0; i < count; i++) {				
+		if ((ctrl[i].lx < 127 && btn_mask[PHYS_BUTTONS_NUM+8] != PHYS_BUTTONS_NUM) ||
+			(ctrl[i].lx > 127 && btn_mask[PHYS_BUTTONS_NUM+9] != PHYS_BUTTONS_NUM))
+			ctrl[i].lx = 127;
+		if ((ctrl[i].ly < 127 && btn_mask[PHYS_BUTTONS_NUM+10] != PHYS_BUTTONS_NUM) ||
+			(ctrl[i].ly > 127 && btn_mask[PHYS_BUTTONS_NUM+11] != PHYS_BUTTONS_NUM))
+			ctrl[i].ly = 127;
+		if ((ctrl[i].rx < 127 && btn_mask[PHYS_BUTTONS_NUM+12] != PHYS_BUTTONS_NUM) ||
+			(ctrl[i].rx > 127 && btn_mask[PHYS_BUTTONS_NUM+13] != PHYS_BUTTONS_NUM))
+			ctrl[i].rx = 127;
+		if ((ctrl[i].ry < 127 && btn_mask[PHYS_BUTTONS_NUM+14] != PHYS_BUTTONS_NUM) ||
+			(ctrl[i].ry > 127 && btn_mask[PHYS_BUTTONS_NUM+15] != PHYS_BUTTONS_NUM))
+			ctrl[i].ry = 127;	
 	}
 	
-	uint8_t smNused = checkStkMapNotUsed(stickpos, 8);
-	if (smNused == 0) { // Remove minimal drift if digital remap for stick directions is used
-		for (i = 0; i < count; i++)
-		{
-			if (ctrl[i].lx < 148 && ctrl[i].lx > 108) { ctrl[i].lx = 127; }
-			if (ctrl[i].ly < 148 && ctrl[i].ly > 108) { ctrl[i].ly = 127; }
-			if (ctrl[i].rx < 148 && ctrl[i].rx > 108) { ctrl[i].rx = 127; }
-			if (ctrl[i].ry < 148 && ctrl[i].ry > 108) { ctrl[i].ry = 127; }
-		}
+	// Remove minimal drift if digital remap for stick directions is used
+	for (i = 0; i < count; i++)
+	{
+		if (((stickpos[0] || stickpos[1]) && abs(ctrl[i].lx - 127) < analogs_deadzone[0]) || 
+			((stickpos[2] || stickpos[3]) && abs(ctrl[i].ly - 127) < analogs_deadzone[1]))
+			ctrl[i].lx = ctrl[i].ly = 127; 
+		if (((stickpos[4] || stickpos[5]) && abs(ctrl[i].rx - 127) < analogs_deadzone[2]) || 
+			((stickpos[6] || stickpos[7]) && abs(ctrl[i].ry - 127) < analogs_deadzone[3])) 
+			ctrl[i].rx = ctrl[i].ry = 127;
 	}
 
+	// Apply digital remap for stick directions if used
 	for (i = 0; i < count; i++) {
 		ctrl[i].buttons = new_map;
-		if (smNused == 0) { // Apply digital remap for stick directions if used
-			ctrl[i].lx = clamp((ctrl[i].lx - stickpos[0]) + stickpos[1], 0, 255);
-			ctrl[i].ly = clamp((ctrl[i].ly - stickpos[2]) + stickpos[3], 0, 255);
-			ctrl[i].rx = clamp((ctrl[i].rx - stickpos[4]) + stickpos[5], 0, 255);
-			ctrl[i].ry = clamp((ctrl[i].ry - stickpos[6]) + stickpos[7], 0, 255);
-		}
+		if (stickpos[0] || stickpos[1])
+			ctrl[i].lx = clamp(ctrl[i].lx - stickpos[0] + stickpos[1], 0, 255);
+		if (stickpos[2] || stickpos[3])
+			ctrl[i].ly = clamp(ctrl[i].ly - stickpos[2] + stickpos[3], 0, 255);
+		if (stickpos[4] || stickpos[5])
+			ctrl[i].rx = clamp(ctrl[i].rx - stickpos[4] + stickpos[5], 0, 255);
+		if (stickpos[6] || stickpos[7])
+			ctrl[i].ry = clamp(ctrl[i].ry - stickpos[6] + stickpos[7], 0, 255);
 	}
 }
 
@@ -355,11 +407,17 @@ void saveConfig(void) {
 	fd = sceIoOpen("ux0:/data/remaPSV/analogs.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 	sceIoWrite(fd, analogs_deadzone, 4);
 	sceIoClose(fd);
+	
+	// Opening analog config file and saving the config
+	fd = sceIoOpen("ux0:/data/remaPSV/gyro.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	sceIoWrite(fd, gyro_options, 4);
+	sceIoClose(fd);
 }
 
 void loadConfig(void) {
 	resetRemaps();
 	resetAnalogs();
+	resetGyro();
 	
 	sceIoMkdir("ux0:/data/remaPSV", 0777); // Just in case the folder doesn't exist
 	
@@ -376,13 +434,13 @@ void loadConfig(void) {
 	
 	// Loading menu activator config file
 	fd = sceIoOpen("ux0:/data/remaPSV/menuactivator.bin", SCE_O_RDONLY, 0777);
-		if(fd >= 0){
-			uint8_t temp;
-			sceIoRead(fd, &temp, 1);
-			menuActivator_mask[0] = (temp >> 4) & 0x0F;
-			menuActivator_mask[1] = temp & 0x0F;
-			sceIoClose(fd);
-		}
+	if(fd >= 0){
+		uint8_t temp;
+		sceIoRead(fd, &temp, 1);
+		menuActivator_mask[0] = (temp >> 4) & 0x0F;
+		menuActivator_mask[1] = temp & 0x0F;
+		sceIoClose(fd);
+	}
 	
 	// Loading analog config file
 	fd = sceIoOpen("ux0:/data/remaPSV/analogs.bin", SCE_O_RDONLY, 0777);
@@ -390,7 +448,15 @@ void loadConfig(void) {
 		sceIoRead(fd, analogs_deadzone, 4);
 		sceIoClose(fd);
 	}
+	
+	// Loading gyro config file
+	fd = sceIoOpen("ux0:/data/remaPSV/gyro.bin", SCE_O_RDONLY, 0777);
+	if (fd >= 0){
+		sceIoRead(fd, gyro_options, 4);
+		sceIoClose(fd);
+	}
 }
+
 
 // Input Handler for the Config Menu
 void configInputHandler(SceCtrlData *ctrl, int count) {
@@ -406,6 +472,9 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 		case ANALOG_MENU:
 			menu_entries = 4;
 			break;
+		case GYRO_MENU:
+			menu_entries = 4;
+			break;
 		case FUNCS_LIST:
 			menu_entries = HOOKS_NUM - 1;
 			break;
@@ -413,14 +482,13 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 			break;
 		}
 		if ((ctrl->buttons & SCE_CTRL_DOWN) && (!(old_buttons & SCE_CTRL_DOWN))) {
-			cfg_i++;
-			if (cfg_i >= menu_entries) cfg_i = 0;
+			if (++cfg_i >= menu_entries) cfg_i = 0;
 		}else if ((ctrl->buttons & SCE_CTRL_UP) && (!(old_buttons & SCE_CTRL_UP))) {
-			cfg_i--;
-			if (cfg_i < 0) cfg_i = menu_entries-1;
+			if (--cfg_i < 0) cfg_i = menu_entries-1;
 		}else if ((ctrl->buttons & SCE_CTRL_RIGHT) && (!(old_buttons & SCE_CTRL_RIGHT))) {
 			if (menu_i == REMAP_MENU) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % TARGET_REMAPS;
 			else if (menu_i == ANALOG_MENU) analogs_deadzone[cfg_i] = (analogs_deadzone[cfg_i] + 1) % 128;
+			else if (menu_i == GYRO_MENU) {if (gyro_options[cfg_i] < 200) gyro_options[cfg_i]++; else gyro_options[cfg_i] = 0;}
 		}else if ((ctrl->buttons & SCE_CTRL_LEFT) && (!(old_buttons & SCE_CTRL_LEFT))) {
 			if (menu_i == REMAP_MENU) {
 				if (btn_mask[cfg_i] == 0) btn_mask[cfg_i] = TARGET_REMAPS - 1;
@@ -428,13 +496,17 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 			} else if (menu_i == ANALOG_MENU) {
 				if (analogs_deadzone[cfg_i] == 0) analogs_deadzone[cfg_i] = 127;
 				else analogs_deadzone[cfg_i]--;
+			} else if (menu_i == GYRO_MENU) {
+				if (gyro_options[cfg_i] > 0) gyro_options[cfg_i]--; else gyro_options[cfg_i] = 200;
 			}
 		}else if ((ctrl->buttons & SCE_CTRL_SQUARE) && (!(old_buttons & SCE_CTRL_SQUARE))) {
 			if (menu_i == REMAP_MENU) btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
-			else if (menu_i == ANALOG_MENU) analogs_deadzone[cfg_i] = analogs_deadzone_def;
+			else if (menu_i == ANALOG_MENU) analogs_deadzone[cfg_i] = ANALOGS_DEADZONE_DEF;
+			else if (menu_i == GYRO_MENU) gyro_options[cfg_i] = GYRO_SENS_DEF;
 		}else if ((ctrl->buttons & SCE_CTRL_START) && (!(old_buttons & SCE_CTRL_START))) {
 			if (menu_i == REMAP_MENU) resetRemaps();
 			else if (menu_i == ANALOG_MENU) resetAnalogs();
+			else if (menu_i == GYRO_MENU) resetGyro();
 		}else if ((ctrl->buttons & SCE_CTRL_CROSS) && (!(old_buttons & SCE_CTRL_CROSS))) {
 			if (menu_i == MAIN_MENU) {
 				if (cfg_i == menu_entries-1) {
@@ -739,8 +811,8 @@ int module_start(SceSize argc, const void *args) {
 	// if this plugin is active; so stop the
 	// initialization of the module.
 	
-	//Bypass for Adrenaline (NPXS10028)
-	if(!(strcmp(titleid, "NPXS10028")))
+	//Bypass for Adrenaline (NPXS10028) and ABM Bubbles (PSPEMUXXX)
+	if(!strcmp(titleid, "NPXS10028") && !strstr(titleid, "PSPEMU"))
 	{
 	   return SCE_KERNEL_START_SUCCESS;
 	}
@@ -758,6 +830,10 @@ int module_start(SceSize argc, const void *args) {
 	// Enabling analogs sampling
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
 	sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
+	
+	// Enabling gyro sampling
+	sceMotionReset();
+	sceMotionStartSampling();
 	
 	// Hooking functions
 	hookFunction(0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
