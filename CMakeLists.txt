@@ -38,7 +38,6 @@ target_link_libraries(remaPSV
   SceDisplay_stub_weak
   SceSysmem_stub_weak
   SceMotion_stub 
-  SceRtc_stub 
   k
   gcc
 )

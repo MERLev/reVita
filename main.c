@@ -132,14 +132,6 @@ static uint8_t menuActivator_mask[2] = {
 	4, 3
 };
 
-uint64_t getTick(){
-	SceDateTime time_utc;
-	sceRtcGetCurrentClock(&time_utc, 0);
-	SceRtcTick tick;
-	sceRtcGetTick(&time_utc, &tick);
-	return tick.tick;
-}
-
 void resetRemaps(){
 	for (int i = 0; i < BUTTONS_NUM; i++) {
 		btn_mask[i] = PHYS_BUTTONS_NUM;
@@ -528,7 +520,8 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 		default:
 			break;
 		}
-		tick = getTick();
+		//tick = getTick();
+		tick = sceKernelGetProcessTimeWide();
 		curr_buttons = ctrl->buttons;
 		for (int i = 0; i < PHYS_BUTTONS_NUM; i++){
 			if ((curr_buttons & btns[i]) && !(old_buttons & btns[i]))
