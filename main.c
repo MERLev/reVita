@@ -9,7 +9,7 @@
 #define HOOKS_NUM         17 // Hooked functions num
 #define PHYS_BUTTONS_NUM  16 // Supported physical buttons num
 #define TARGET_REMAPS     26 // Supported target remaps num
-#define BUTTONS_NUM       36 // Supported buttons num
+#define BUTTONS_NUM       38 // Supported buttons num
 #define MENU_MODES        5  // Menu modes num
 #define COLOR_DEFAULT     0x00FFFFFF
 #define COLOR_HEADER      0x00FF00FF
@@ -20,7 +20,7 @@
 #define ANOLOGS_OPTIONS_NUM			8
 #define GYRO_SENS_DEF				127
 #define GYRO_DEADZONE_DEF			15
-#define GYRO_OPTIONS_NUM			4
+#define GYRO_OPTIONS_NUM			6
 
 #ifndef max
 # define max(a,b) (((a)>(b))?(a):(b))
@@ -102,7 +102,7 @@ static char* str_btns[BUTTONS_NUM] = {
 	"Rear (TL)", "Rear (TR)", "Rear (BL)", "Rear (BR)",
 	"Left Analog (L)", "Left Analog (R)", "Left Analog (U)", "Left Analog (D)", 
 	"Right Analog (L)", "Right Analog (R)", "Right Analog (U)", "Right Analog (D)",
-	"Gyro (L)", "Gyro (R)", "Gyro (U)", "Gyro (D)"
+	"Gyro (L)", "Gyro (R)", "Gyro (U)", "Gyro (D)", "Gyro (Roll Left)", "Gyro (Roll Right)"
 };
 
 static char* target_btns[TARGET_REMAPS] = {
@@ -140,10 +140,8 @@ void resetAnalogs(){
 }
 
 void resetGyro(){
-	gyro_options[0] = GYRO_SENS_DEF;
-	gyro_options[1] = GYRO_SENS_DEF;
-	gyro_options[2] = GYRO_DEADZONE_DEF;
-	gyro_options[3] = GYRO_DEADZONE_DEF;
+	for (int i = 0; i < GYRO_OPTIONS_NUM; i++)
+		gyro_options[i] = i < 3 ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF;
 }
 
 // Config Menu Renderer
@@ -208,12 +206,16 @@ void drawConfigMenu() {
 		drawStringF(15, y+=20, "X Axis: %hhu", gyro_options[0]);
 		setTextColor((1 == cfg_i) ? COLOR_CURSOR : ((gyro_options[1] != GYRO_SENS_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
 		drawStringF(15, y+=20, "Y Axis: %hhu", gyro_options[1]);
+		setTextColor((2 == cfg_i) ? COLOR_CURSOR : ((gyro_options[2] != GYRO_SENS_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
+		drawStringF(15, y+=20, "Z Axis: %hhu", gyro_options[2]);
 		setTextColor(COLOR_DEFAULT);
 		drawString(5, y+=20, "Deadzone for digital mode:");
-		setTextColor((2 == cfg_i) ? COLOR_CURSOR : ((gyro_options[2] != GYRO_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "X Axis Deadzone: %hhu", gyro_options[2]);
 		setTextColor((3 == cfg_i) ? COLOR_CURSOR : ((gyro_options[3] != GYRO_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Y Axis Deadzone: %hhu", gyro_options[3]);
+		drawStringF(15, y+=20, "X Axis: %hhu", gyro_options[3]);
+		setTextColor((4 == cfg_i) ? COLOR_CURSOR : ((gyro_options[4] != GYRO_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
+		drawStringF(15, y+=20, "Y Axis: %hhu", gyro_options[4]);
+		setTextColor((5 == cfg_i) ? COLOR_CURSOR : ((gyro_options[5] != GYRO_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
+		drawStringF(15, y+=20, "Z Axis: %hhu", gyro_options[5]);
 		setTextColor(COLOR_HEADER);
 		drawString(5, 520, "(<) or (>): change    ([]): reset   (start): reset all    (select) or (O): back");
 		break;
@@ -251,9 +253,8 @@ void applyRemapRule(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos) {
 }
 
 void applyRemapRuleForAnalog(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos, uint8_t stickposval) {
-	uint8_t optionNum = 4 + (int) ((btn_idx - PHYS_BUTTONS_NUM - 8) / 2);
 	if (PHYS_BUTTONS_NUM + 1 < btn_mask[btn_idx] && btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 10
-		&& !analogs_options[optionNum]) {
+		&& !analogs_options[4 + (int) ((btn_idx - PHYS_BUTTONS_NUM - 8) / 2)]) {
 		// Analog -> Analog [ANALOG MODE]
 		stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] += 127 - stickposval;
 	} else {
@@ -268,8 +269,9 @@ void applyRemapRuleForGyro(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos, f
 		stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] += gyroval;
 	} else {
 		// Gyro -> Btn remap
-		if ((((btn_idx == PHYS_BUTTONS_NUM + 16 || btn_idx == PHYS_BUTTONS_NUM + 17)) && gyroval > gyro_options[2] * 10) ||
-			(((btn_idx == PHYS_BUTTONS_NUM + 18 || btn_idx == PHYS_BUTTONS_NUM + 19)) && gyroval > gyro_options[3] * 10))
+		if ((((btn_idx == PHYS_BUTTONS_NUM + 16 || btn_idx == PHYS_BUTTONS_NUM + 17)) && gyroval > gyro_options[3] * 10) ||
+			(((btn_idx == PHYS_BUTTONS_NUM + 18 || btn_idx == PHYS_BUTTONS_NUM + 19)) && gyroval > gyro_options[4] * 10) ||
+			(((btn_idx == PHYS_BUTTONS_NUM + 20 || btn_idx == PHYS_BUTTONS_NUM + 21)) && gyroval > gyro_options[5] * 10))
 			applyRemapRule(btn_idx, map, stickpos);
 	}
 }
@@ -359,6 +361,12 @@ void applyRemap(SceCtrlData *ctrl, int count) {
 	if (motionstate.angularVelocity.x < 0)
 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 19,  &new_map, stickpos, 
 			-motionstate.angularVelocity.x * gyro_options[1]);
+	if (motionstate.angularVelocity.z > 0)
+		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 20,  &new_map, stickpos, 
+			motionstate.angularVelocity.z * gyro_options[2]);
+	if (motionstate.angularVelocity.z < 0)
+		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 21,  &new_map, stickpos, 
+			-motionstate.angularVelocity.z * gyro_options[2]);
 	
 	// Nulling analogs if they're remapped
 	for (i = 0; i < count; i++) {				
