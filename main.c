@@ -500,17 +500,6 @@ uint8_t isBtnActive(uint8_t btnNum){
 
 // Input Handler for the Config Menu
 void configInputHandler(SceCtrlData *ctrl, int count) {
-	tick = getTick();
-	
-	curr_buttons = ctrl->buttons;
-	//Saving onPress ticks for long press calculations
-	for (int i = 0; i < PHYS_BUTTONS_NUM; i++){
-		if ((ctrl->buttons & btns[i]) && !(old_buttons & btns[i]))
-			pressedTicks[i] = tick;
-		else if (!(ctrl->buttons & btns[i]) && (old_buttons & btns[i]))
-			pressedTicks[i] = 0;
-	}
-		
 	if (new_frame) {
 		int menu_entries = 0;
 		switch (menu_i) {
@@ -532,65 +521,80 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 		default:
 			break;
 		}
+		tick = getTick();
+		curr_buttons = ctrl->buttons;
 		for (int i = 0; i < PHYS_BUTTONS_NUM; i++){
-			if (isBtnActive(i)){
-				if (btns[i] == SCE_CTRL_DOWN) {
-					if (++cfg_i >= menu_entries) cfg_i = 0;
-				}else if (btns[i] == SCE_CTRL_UP) {
-					if (--cfg_i < 0) cfg_i = menu_entries-1;
-				}else if (btns[i] == SCE_CTRL_RIGHT) {
-					if (menu_i == REMAP_MENU) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % TARGET_REMAPS;
-					else if (menu_i == ANALOG_MENU) analogs_options[cfg_i] = (analogs_options[cfg_i] + 1) % 128;
-					else if (menu_i == GYRO_MENU) {if (gyro_options[cfg_i] < 200) gyro_options[cfg_i]++; else gyro_options[cfg_i] = 0;}
-				}else if (btns[i] == SCE_CTRL_LEFT) {
-					if (menu_i == REMAP_MENU) {
-						if (btn_mask[cfg_i] == 0) btn_mask[cfg_i] = TARGET_REMAPS - 1;
-						else btn_mask[cfg_i]--;
-					} else if (menu_i == ANALOG_MENU) {
-						if (cfg_i < 4){
-							if (analogs_options[cfg_i] == 0) analogs_options[cfg_i] = 127;
-							else analogs_options[cfg_i]--;
-						} else analogs_options[cfg_i] = !analogs_options[cfg_i];
-					} else if (menu_i == GYRO_MENU) {
-						if (gyro_options[cfg_i] > 0) gyro_options[cfg_i]--; else gyro_options[cfg_i] = 200;
-					}
-				}else if (btns[i] == SCE_CTRL_SQUARE) {
-					if (menu_i == REMAP_MENU) btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
-					else if (menu_i == ANALOG_MENU) analogs_options[cfg_i] = ANALOGS_DEADZONE_DEF;
-					else if (menu_i == GYRO_MENU) gyro_options[cfg_i] = GYRO_SENS_DEF;
-				}else if (btns[i] == SCE_CTRL_START) {
-					if (menu_i == REMAP_MENU) resetRemaps();
-					else if (menu_i == ANALOG_MENU) resetAnalogs();
-					else if (menu_i == GYRO_MENU) resetGyro();
-				}else if (btns[i] == SCE_CTRL_CROSS) {
-					if (menu_i == MAIN_MENU) {
-						if (cfg_i == menu_entries-1) {
-							show_menu = 0;
-							saveConfig();
-						} else {					
-							menu_i = cfg_i + 1;
-							cfg_i = 0;
-						}
-					}
-				}else if (btns[i] == SCE_CTRL_SELECT || btns[i] == SCE_CTRL_CIRCLE) {
-					if (menu_i == MAIN_MENU) {
+			if ((curr_buttons & btns[i]) && !(old_buttons & btns[i]))
+				pressedTicks[i] = tick;
+			else if (!(curr_buttons & btns[i]) && (old_buttons & btns[i]))
+				pressedTicks[i] = 0;
+			
+			if (!isBtnActive(i))
+				continue;
+			
+			switch (btns[i]) {
+			case SCE_CTRL_DOWN:
+				if (++cfg_i >= menu_entries) cfg_i = 0;
+				break;
+			case SCE_CTRL_UP:
+				if (--cfg_i < 0) cfg_i = menu_entries-1;
+				break;
+			case SCE_CTRL_RIGHT:
+				if (menu_i == REMAP_MENU) btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % TARGET_REMAPS;
+				else if (menu_i == ANALOG_MENU) analogs_options[cfg_i] = (analogs_options[cfg_i] + 1) % 128;
+				else if (menu_i == GYRO_MENU) {if (gyro_options[cfg_i] < 200) gyro_options[cfg_i]++; else gyro_options[cfg_i] = 0;}
+				break;
+			case SCE_CTRL_LEFT:
+				if (menu_i == REMAP_MENU) {
+					if (btn_mask[cfg_i] == 0) btn_mask[cfg_i] = TARGET_REMAPS - 1;
+					else btn_mask[cfg_i]--;
+				} else if (menu_i == ANALOG_MENU) {
+					if (cfg_i < 4){
+						if (analogs_options[cfg_i] == 0) analogs_options[cfg_i] = 127;
+						else analogs_options[cfg_i]--;
+					} else analogs_options[cfg_i] = !analogs_options[cfg_i];
+				} else if (menu_i == GYRO_MENU) {
+					if (gyro_options[cfg_i] > 0) gyro_options[cfg_i]--; else gyro_options[cfg_i] = 200;
+				}
+				break;
+			case SCE_CTRL_SQUARE:
+				if (menu_i == REMAP_MENU) btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
+				else if (menu_i == ANALOG_MENU) analogs_options[cfg_i] = ANALOGS_DEADZONE_DEF;
+				else if (menu_i == GYRO_MENU) gyro_options[cfg_i] = GYRO_SENS_DEF;
+				break;
+			case SCE_CTRL_START:
+				if (menu_i == REMAP_MENU) resetRemaps();
+				else if (menu_i == ANALOG_MENU) resetAnalogs();
+				else if (menu_i == GYRO_MENU) resetGyro();
+				break;
+			case SCE_CTRL_CROSS:
+				if (menu_i == MAIN_MENU) {
+					if (cfg_i == menu_entries-1) {
 						show_menu = 0;
 						saveConfig();
-					} else {
-						menu_i = MAIN_MENU;
+					} else {					
+						menu_i = cfg_i + 1;
 						cfg_i = 0;
 					}
 				}
+				break;
+			case SCE_CTRL_SELECT:
+			case SCE_CTRL_CIRCLE:
+				if (menu_i == MAIN_MENU) {
+					show_menu = 0;
+					saveConfig();
+				} else {
+					menu_i = MAIN_MENU;
+					cfg_i = 0;
+				}
+				break;
 			}
 		}
+		old_buttons = curr_buttons;
+		for (int i = 0; i < count; i++)
+			ctrl[i].buttons = 0; // Nulling returned buttons
 	}
 	new_frame = 0;
-	old_buttons = curr_buttons;
-	
-	int i;
-	for (i = 0; i < count; i++) {
-		ctrl[i].buttons = 0; // Nulling returned buttons
-	}
 }
 
 // Input Handler for the Config Menu (negative logic)
