@@ -399,12 +399,18 @@ void applyRemap(SceCtrlData *ctrl, int count) {
 	// Remove minimal drift if digital remap for stick directions is used
 	for (i = 0; i < count; i++)
 	{
-		if (((stickpos[0] || stickpos[1]) && abs(ctrl[i].lx - 127) < analogs_options[0]) || 
-			((stickpos[2] || stickpos[3]) && abs(ctrl[i].ly - 127) < analogs_options[1]))
-			ctrl[i].lx = ctrl[i].ly = 127; 
-		if (((stickpos[4] || stickpos[5]) && abs(ctrl[i].rx - 127) < analogs_options[2]) || 
-			((stickpos[6] || stickpos[7]) && abs(ctrl[i].ry - 127) < analogs_options[3])) 
-			ctrl[i].rx = ctrl[i].ry = 127;
+		if (stickpos[0] || stickpos[1] || stickpos[2] || stickpos[3]){
+			if (abs(ctrl[i].lx - 127) < analogs_options[0]) 
+				ctrl[i].lx = 127;
+			if (abs(ctrl[i].ly - 127) < analogs_options[1]) 
+				ctrl[i].ly = 127;
+		}
+		if (stickpos[4] || stickpos[5] || stickpos[6] || stickpos[7]){
+			if (abs(ctrl[i].rx - 127) < analogs_options[2]) 
+				ctrl[i].rx = 127;
+			if (abs(ctrl[i].ry - 127) < analogs_options[3]) 
+				ctrl[i].ry = 127;
+		}
 	}
 
 	// Apply digital remap for stick directions if used
@@ -621,9 +627,9 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 			}
 		}
 		old_buttons = curr_buttons;
-		for (int i = 0; i < count; i++)
-			ctrl[i].buttons = 0; // Nulling returned buttons
 	}
+	for (int i = 0; i < count; i++)
+		ctrl[i].buttons = 0; // Nulling returned buttons
 }
 
 // Input Handler for the Config Menu (negative logic)
