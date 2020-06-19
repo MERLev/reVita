@@ -23,8 +23,10 @@
 #define GYRO_SENS_DEF				127
 #define GYRO_DEADZONE_DEF			15
 #define GYRO_OPTIONS_NUM			6
-#define MULTITOUCH_NUM				4
-#define TOUCH_OPTIONS_NUM			16
+#define MULTITOUCH_FRONT_NUM		6
+#define MULTITOUCH_REAR_NUM			4
+#define TOUCH_OPTIONS_NUM			18
+#define TOUCH_MODE_DEF				1
 static uint16_t TOUCH_POINTS_DEF[8] = {
 	300, 136,	//TL
 	640, 136,	//TR
@@ -68,8 +70,8 @@ static uint8_t gyro_options[GYRO_OPTIONS_NUM];
 static uint16_t touch_options[TOUCH_OPTIONS_NUM];
 uint8_t touchPointsFrontNum;
 uint8_t touchPointsRearNum;
-uint16_t touchPointsFront[MULTITOUCH_NUM * 2];
-uint16_t touchPointsRear[MULTITOUCH_NUM * 2]; 
+uint16_t touchPointsFront[MULTITOUCH_FRONT_NUM * 2];
+uint16_t touchPointsRear[MULTITOUCH_REAR_NUM * 2]; 
 static uint8_t btn_mask[BUTTONS_NUM];
 static uint8_t used_funcs[HOOKS_NUM-1];
 
@@ -84,6 +86,10 @@ static char* str_main_menu[] = {
 	"Change gyro remap settings",
 	"Show imported functions",
 	"Return to the game"
+};
+
+static char* str_touch_mode[3] = {
+	"Always on", "Disable if remapped", "Disable"
 };
 
 static char* str_funcs[HOOKS_NUM-1] = {
@@ -162,8 +168,10 @@ void resetAnalogs(){
 }
 
 void resetTouch(){
-	for (int i = 0; i < TOUCH_OPTIONS_NUM; i++)
+	for (int i = 0; i < TOUCH_OPTIONS_NUM - 2; i++)
 		touch_options[i] = TOUCH_POINTS_DEF[i % 8];
+	touch_options[16] = TOUCH_MODE_DEF;
+	touch_options[17] = TOUCH_MODE_DEF;
 }
 
 void resetGyro(){
@@ -251,7 +259,7 @@ void drawConfigMenu() {
 		setTextColor((6 == cfg_i) ? COLOR_CURSOR : ((touch_options[6] != TOUCH_POINTS_DEF[6]) ? COLOR_ACTIVE : COLOR_DEFAULT));
 		drawStringF(15, y+=20, "Point [D] x: %hu", touch_options[6]);
 		setTextColor((7 == cfg_i) ? COLOR_CURSOR : ((touch_options[7] != TOUCH_POINTS_DEF[7]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [D] Y: %hu", touch_options[7]);
+		drawStringF(15, y+=20, "Point [D] y: %hu", touch_options[7]);
 		setTextColor(COLOR_DEFAULT);
 		drawString(5, y+=20, "Rear touch:");
 		setTextColor((8  == cfg_i) ? COLOR_CURSOR : ((touch_options[8] != TOUCH_POINTS_DEF[0]) ? COLOR_ACTIVE : COLOR_DEFAULT));
@@ -269,7 +277,25 @@ void drawConfigMenu() {
 		setTextColor((14 == cfg_i) ? COLOR_CURSOR : ((touch_options[14] != TOUCH_POINTS_DEF[6]) ? COLOR_ACTIVE : COLOR_DEFAULT));
 		drawStringF(15, y+=20, "Point [D] x: %hu", touch_options[14]);
 		setTextColor((15 == cfg_i) ? COLOR_CURSOR : ((touch_options[15] != TOUCH_POINTS_DEF[7]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [D] Y: %hu", touch_options[15]);
+		drawStringF(15, y+=20, "Point [D] y: %hu", touch_options[15]);
+		if (16 == cfg_i)
+				setTextColor(COLOR_CURSOR);
+		else if (touch_options[16] == TOUCH_MODE_DEF)
+			setTextColor(COLOR_DEFAULT);
+		else if (touch_options[16] == 2)
+			setTextColor(COLOR_DISABLE);
+		else
+			setTextColor(COLOR_ACTIVE);
+		drawStringF(5, y+=20, "Front Touch Mode : %s", str_touch_mode[touch_options[16]]);
+		if (17 == cfg_i)
+				setTextColor(COLOR_CURSOR);
+		else if (touch_options[17] == TOUCH_MODE_DEF)
+			setTextColor(COLOR_DEFAULT);
+		else if (touch_options[17] == 2)
+			setTextColor(COLOR_DISABLE);
+		else
+			setTextColor(COLOR_ACTIVE);
+		drawStringF(5, y+=20, "Rear Touch Mode : %s", str_touch_mode[touch_options[17]]);
 		setTextColor(COLOR_HEADER);
 		drawString(5, 520, "(<)(>):change  ([]):reset  (start):reset all                           (O):back");
 		break;
@@ -325,29 +351,29 @@ void applyRemapRule(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos) {
 		stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] += 127;
 	} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 24){	// -> Touch
 		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 14){		//Front touch default
-			if (touchPointsFrontNum == MULTITOUCH_NUM) return;
+			if (touchPointsFrontNum == MULTITOUCH_FRONT_NUM) return;
 			touchPointsFront[touchPointsFrontNum*2] = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2] * 2;
 			touchPointsFront[touchPointsFrontNum*2+1] = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2 + 1] * 2;
 			touchPointsFrontNum++;
 		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 18){	//Front touch custom
-			if (touchPointsFrontNum == MULTITOUCH_NUM) return;
+			if (touchPointsFrontNum == MULTITOUCH_FRONT_NUM) return;
 			touchPointsFront[touchPointsFrontNum*2] = touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2] * 2;
 			touchPointsFront[touchPointsFrontNum*2+1] = touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2 + 1] * 2;
 			touchPointsFrontNum++;
 		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 22){	//Rear  touch default
-			if (touchPointsRearNum == MULTITOUCH_NUM) return;
+			if (touchPointsRearNum == MULTITOUCH_REAR_NUM) return;
 			touchPointsRear[touchPointsRearNum*2] = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2] * 2;
 			touchPointsRear[touchPointsRearNum*2+1] = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2 + 1] * 2;
 			touchPointsRearNum++;
 		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 26){	//Rear touch custom
-			if (touchPointsRearNum == MULTITOUCH_NUM) return;
+			if (touchPointsRearNum == MULTITOUCH_REAR_NUM) return;
 			touchPointsRear[touchPointsRearNum*2] = touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2] * 2;
 			touchPointsRear[touchPointsRearNum*2+1] = touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2 + 1] * 2;
 			touchPointsRearNum++;
 		}
 	}
 }
-//
+
 void applyRemapRuleForAnalog(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos, uint8_t stickposval) {
 	if (PHYS_BUTTONS_NUM + 1 < btn_mask[btn_idx] && btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 10
 		&& !analogs_options[4 + (int) ((btn_idx - PHYS_BUTTONS_NUM - 8) / 2)]) {
@@ -514,23 +540,36 @@ void applyRemap(SceCtrlData *ctrl, int count) {
 	}
 }
 
-void applyRemapToTouch(SceUInt32 port, SceTouchData *pData){	
+void addVirtualTouches(SceTouchData *pData, uint16_t* touchPoints, 
+		uint8_t touchPointsNum, uint8_t touchPointsMaxNum){
+	int touchIdx = 0;
+	while (touchIdx < touchPointsNum && pData->reportNum < touchPointsMaxNum){
+		pData->report[pData->reportNum].x = touchPoints[touchIdx*2];
+		pData->report[pData->reportNum].y = touchPoints[touchIdx*2 + 1];
+		pData->reportNum ++;
+		touchIdx ++;
+	}
+}
+
+void updateTouchInfo(SceUInt32 port, SceTouchData *pData){	
 	if (port == SCE_TOUCH_PORT_FRONT) {
-		int touchIdx = 0;
-		while (touchIdx < touchPointsFrontNum && pData->reportNum < MULTITOUCH_NUM){
-			pData->report[pData->reportNum].x = touchPointsFront[touchIdx*2];
-			pData->report[pData->reportNum].y = touchPointsFront[touchIdx*2 + 1];
-			pData->reportNum ++;
-			touchIdx ++;
-		}
-	}else {
-		int touchIdx = 0;
-		while (touchIdx < touchPointsRearNum && pData->reportNum < MULTITOUCH_NUM){	
-			pData->report[pData->reportNum].x = touchPointsRear[touchIdx*2];
-			pData->report[pData->reportNum].y = touchPointsRear[touchIdx*2 + 1];
-			pData->reportNum ++;
-			touchIdx ++;
-		}
+		if (touch_options[16] == 2 || 
+			(touch_options[16] == 1 &&
+				((btn_mask[PHYS_BUTTONS_NUM] != PHYS_BUTTONS_NUM) ||
+				(btn_mask[PHYS_BUTTONS_NUM+1] != PHYS_BUTTONS_NUM) ||
+				(btn_mask[PHYS_BUTTONS_NUM+2] != PHYS_BUTTONS_NUM) ||
+				(btn_mask[PHYS_BUTTONS_NUM+3] != PHYS_BUTTONS_NUM))))
+			pData->reportNum = 0; //Disable pad
+		addVirtualTouches(pData, touchPointsFront, touchPointsFrontNum, MULTITOUCH_FRONT_NUM);
+	} else {
+		if (touch_options[17] == 2 || 
+			(touch_options[17] == 1 &&
+				((btn_mask[PHYS_BUTTONS_NUM+4] != PHYS_BUTTONS_NUM) ||
+				(btn_mask[PHYS_BUTTONS_NUM+5] != PHYS_BUTTONS_NUM) ||
+				(btn_mask[PHYS_BUTTONS_NUM+6] != PHYS_BUTTONS_NUM) ||
+				(btn_mask[PHYS_BUTTONS_NUM+7] != PHYS_BUTTONS_NUM))))
+			pData->reportNum = 0; //Disable pad
+		addVirtualTouches(pData, touchPointsRear, touchPointsRearNum, MULTITOUCH_REAR_NUM);
 	}
 }
 
@@ -680,7 +719,10 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 					else analogs_options[cfg_i] = !analogs_options[cfg_i];
 					break;
 				case TOUCH_MENU:
-					touch_options[cfg_i] = (touch_options[cfg_i] + 1) % ((cfg_i % 2) ? 544 : 960);
+					if (cfg_i < 16)
+						touch_options[cfg_i] = (touch_options[cfg_i] + 1) % ((cfg_i % 2) ? 544 : 960);
+					else
+						touch_options[cfg_i] = (touch_options[cfg_i] + 1) % 3;
 					break;
 				case GYRO_MENU:
 					gyro_options[cfg_i] = (gyro_options[cfg_i] + 1) % 200;
@@ -704,8 +746,12 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 				case TOUCH_MENU:
 					if (touch_options[cfg_i]) 	
 						touch_options[cfg_i]--;
-					else
-						touch_options[cfg_i] = ((cfg_i % 2) ? 543 : 959);
+					else {
+						if (cfg_i < 16)
+							touch_options[cfg_i] = ((cfg_i % 2) ? 543 : 959);
+						else 
+							touch_options[cfg_i] = 2;
+					}
 					break;
 				case GYRO_MENU:
 					if (gyro_options[cfg_i]) 	
@@ -716,7 +762,6 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 				}
 				break;
 			case SCE_CTRL_LTRIGGER:
-			//0, 16, 17, 18, 22
 				if (menu_i == REMAP_MENU){
 					if (btn_mask[cfg_i] < 16)
 						btn_mask[cfg_i] = 38;	//Rear touch custom
@@ -769,7 +814,10 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 					analogs_options[cfg_i] = (cfg_i < 4) ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF;
 					break;
 				case TOUCH_MENU: 
-					touch_options[cfg_i] = TOUCH_POINTS_DEF[cfg_i % 8];
+					if (cfg_i < 16)
+						touch_options[cfg_i] = TOUCH_POINTS_DEF[cfg_i % 8];
+					else 
+						touch_options[cfg_i] = TOUCH_MODE_DEF;
 					break;
 				case GYRO_MENU: 
 					gyro_options[cfg_i] = (cfg_i < 3) ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF;
@@ -996,44 +1044,14 @@ int sceCtrlReadBufferNegative2_patched(int port, SceCtrlData *ctrl, int count) {
 
 int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[12], port, pData, nBufs);
-	if (port == SCE_TOUCH_PORT_FRONT) {
-		if ((btn_mask[PHYS_BUTTONS_NUM] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+1] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+2] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+3] != PHYS_BUTTONS_NUM)) {
-			//pData->reportNum = 0;
-		}
-	}else {
-		if ((btn_mask[PHYS_BUTTONS_NUM+4] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+5] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+6] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+7] != PHYS_BUTTONS_NUM)) {
-			//pData->reportNum = 0;
-		}
-	}
-	applyRemapToTouch(port, pData);
+	updateTouchInfo(port, pData);
 	used_funcs[12] = 1;
 	return ret;
 }
 
 int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[13], port, pData, nBufs);
-	if (port == SCE_TOUCH_PORT_FRONT) {
-		if ((btn_mask[PHYS_BUTTONS_NUM] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+1] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+2] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+3] != PHYS_BUTTONS_NUM)) {
-			//pData->reportNum = 0;
-		}
-	}else {
-		if ((btn_mask[PHYS_BUTTONS_NUM+4] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+5] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+6] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+7] != PHYS_BUTTONS_NUM)) {
-			//pData->reportNum = 0;
-		}
-	}
-	applyRemapToTouch(port, pData);
+	updateTouchInfo(port, pData);
 	used_funcs[13] = 1;
 	return ret;
 }
@@ -1041,44 +1059,14 @@ int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) 
 int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[14], port, pData, nBufs);
 	if (internal_touch_call) return ret;
-	if (port == SCE_TOUCH_PORT_FRONT) {
-		if ((btn_mask[PHYS_BUTTONS_NUM] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+1] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+2] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+3] != PHYS_BUTTONS_NUM)) {
-			//pData->reportNum = 0;
-		}
-	}else {
-		if ((btn_mask[PHYS_BUTTONS_NUM+4] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+5] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+6] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+7] != PHYS_BUTTONS_NUM)) {
-			//pData->reportNum = 0;
-		}
-	}
-	applyRemapToTouch(port, pData);
+	updateTouchInfo(port, pData);
 	used_funcs[14] = 1;
 	return ret;
 }
 
 int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[15], port, pData, nBufs);
-	if (port == SCE_TOUCH_PORT_FRONT){
-		if ((btn_mask[PHYS_BUTTONS_NUM] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+1] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+2] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+3] != PHYS_BUTTONS_NUM)) {
-			//pData->reportNum = 0;
-		}
-	}else {
-		if ((btn_mask[PHYS_BUTTONS_NUM+4] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+5] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+6] != PHYS_BUTTONS_NUM) ||
-			(btn_mask[PHYS_BUTTONS_NUM+7] != PHYS_BUTTONS_NUM)) {
-			//pData->reportNum = 0;
-		}
-	}
-	applyRemapToTouch(port, pData);
+	updateTouchInfo(port, pData);
 	used_funcs[15] = 1;
 	return ret;
 }
