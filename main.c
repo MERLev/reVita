@@ -15,7 +15,8 @@
 #define COLOR_DEFAULT     0x00FFFFFF
 #define COLOR_HEADER      0x00FF00FF
 #define COLOR_CURSOR      0x0000FF00
-#define COLOR_ACTIVE      0x000000FF
+#define COLOR_ACTIVE      0x00FF0000
+#define COLOR_DISABLE     0x000000FF
 #define ANALOGS_DEADZONE_DEF		30
 #define ANALOGS_FORCE_DIGITAL_DEF	0
 #define ANOLOGS_OPTIONS_NUM			8
@@ -88,7 +89,6 @@ static char* str_funcs[HOOKS_NUM-1] = {
 	"sceTouchPeek",
 	"sceTouchPeek2"
 };
-
 static uint32_t btns[BUTTONS_NUM] = {
 	SCE_CTRL_CROSS, SCE_CTRL_CIRCLE, SCE_CTRL_TRIANGLE, SCE_CTRL_SQUARE,
 	SCE_CTRL_START, SCE_CTRL_SELECT, SCE_CTRL_LTRIGGER, SCE_CTRL_RTRIGGER,
@@ -108,7 +108,6 @@ static char* str_btns[BUTTONS_NUM] = {
 	"Right Analog (L)", "Right Analog (R)", "Right Analog (U)", "Right Analog (D)",
 	"Gyro (L)", "Gyro (R)", "Gyro (U)", "Gyro (D)", "Gyro (Roll Left)", "Gyro (Roll Right)"
 };
-
 static char* target_btns[TARGET_REMAPS] = {
 	"Cross", "Circle", "Triangle", "Square", 
 	"Start", "Select", 
@@ -165,17 +164,24 @@ void drawConfigMenu() {
 			if (y + 40 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, 520, "(X): select   (select) or (O): save and close");
+		drawString(5, 520, "(X):select                                     (select) or (O) : save and close");
 		break;
 	case REMAP_MENU:
 		for (i = max(0, cfg_i - (screen_entries - 3)); i < BUTTONS_NUM; i++) {
-			setTextColor((i == cfg_i) ? COLOR_CURSOR : ((btn_mask[i] != PHYS_BUTTONS_NUM) ? COLOR_ACTIVE : COLOR_DEFAULT));
+			if (i == cfg_i)
+				setTextColor(COLOR_CURSOR);
+			else if (btn_mask[i] == PHYS_BUTTONS_NUM)
+				setTextColor(COLOR_DEFAULT);
+			else if (btn_mask[i] == PHYS_BUTTONS_NUM + 1)
+				setTextColor(COLOR_DISABLE);
+			else
+				setTextColor(COLOR_ACTIVE);
 			drawStringF(5, y, "%s -> %s", str_btns[i], target_btns[btn_mask[i]]);
 			y += 20;
 			if (y + 40 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, 520, "(<) or (>): change    ([]): reset   (start): reset all   (select) or (O): back");
+		drawString(5, 520, "(<)(>):change  (LT)(RT):section  ([]):reset  (start):reset all         (O):back");
 		break;
 	case ANALOG_MENU:
 		y -= 20;
@@ -200,7 +206,7 @@ void drawConfigMenu() {
 		setTextColor((7 == cfg_i) ? COLOR_CURSOR : ((analogs_options[7] != ANALOGS_FORCE_DIGITAL_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
 		drawStringF(15, y+=20, "Right Analog [Y Axis]: %s", analogs_options[7] ? "Yes" : "No");
 		setTextColor(COLOR_HEADER);
-		drawString(5, 520, "(<) or (>): change    ([]): reset   (start): reset all    (select) or (O): back");
+		drawString(5, 520, "(<)(>):change  ([]):reset  (start):reset all                           (O):back");
 		break;
 	case GYRO_MENU:
 		y -= 20;
@@ -221,7 +227,7 @@ void drawConfigMenu() {
 		setTextColor((5 == cfg_i) ? COLOR_CURSOR : ((gyro_options[5] != GYRO_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
 		drawStringF(15, y+=20, "Z Axis: %hhu", gyro_options[5]);
 		setTextColor(COLOR_HEADER);
-		drawString(5, 520, "(<) or (>): change    ([]): reset   (start): reset all    (select) or (O): back");
+		drawString(5, 520, "(<)(>):change  ([]):reset  (start):reset all                          (O): back");
 		break;
 	case FUNCS_LIST:
 		for (i = max(0, cfg_i - (screen_entries - 3)); i < HOOKS_NUM - 1; i++) {
@@ -231,7 +237,7 @@ void drawConfigMenu() {
 			if (y + 40 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, 520, "(select) or (O): back");
+		drawString(5, 520, "                                                                       (O):back");
 		break;
 	default:
 		break;
@@ -570,6 +576,35 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 					break;
 				}
 				break;
+			case SCE_CTRL_LTRIGGER:
+			//0, 16, 17, 18, 22
+				if (menu_i == REMAP_MENU){
+					if (btn_mask[cfg_i] < 16)
+						btn_mask[cfg_i] = 22;	//Left stick
+					else if (btn_mask[cfg_i] < 17)
+						btn_mask[cfg_i] = 0;	//HW Buttons
+					else if (btn_mask[cfg_i] < 18)
+						btn_mask[cfg_i] = 16;	//Original
+					else if (btn_mask[cfg_i] < 22)
+						btn_mask[cfg_i] = 17;	//Disabled
+					else 
+						btn_mask[cfg_i] = 18; //Right stick
+				}
+				break;
+			case SCE_CTRL_RTRIGGER:
+				if (menu_i == REMAP_MENU){
+					if (btn_mask[cfg_i] < 16)
+						btn_mask[cfg_i] = 16;	//Original
+					else if (btn_mask[cfg_i] < 17)
+						btn_mask[cfg_i] = 17;	//Disabled
+					else if (btn_mask[cfg_i] < 18)
+						btn_mask[cfg_i] = 18; //Left stick
+					else if (btn_mask[cfg_i] < 22)
+						btn_mask[cfg_i] = 22; //Right stick
+					else 
+						btn_mask[cfg_i] = 0;	//HW Buttons
+				}
+				break;
 			case SCE_CTRL_SQUARE:
 				switch (menu_i){
 				case REMAP_MENU: 
@@ -608,6 +643,11 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 				}
 				break;
 			case SCE_CTRL_SELECT:
+				if (menu_i == MAIN_MENU) {
+					show_menu = 0;
+					saveConfig();
+				}
+				break;
 			case SCE_CTRL_CIRCLE:
 				if (menu_i == MAIN_MENU) {
 					show_menu = 0;
