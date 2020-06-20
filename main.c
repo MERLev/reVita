@@ -17,6 +17,7 @@
 #define COLOR_CURSOR      0x0000FF00
 #define COLOR_ACTIVE      0x00FF0000
 #define COLOR_DISABLE     0x000000FF
+#define BUFFERS_NUM      255
 #define ANALOGS_DEADZONE_DEF		30
 #define ANALOGS_FORCE_DIGITAL_DEF	0
 #define ANOLOGS_OPTIONS_NUM			8
@@ -27,6 +28,8 @@
 #define MULTITOUCH_REAR_NUM			4
 #define TOUCH_OPTIONS_NUM			18
 #define TOUCH_MODE_DEF				1
+//Front resolution : 960x544
+//Rear resolution: 960x445
 static uint16_t TOUCH_POINTS_DEF[8] = {
 	300, 136,	//TL
 	640, 136,	//TR
@@ -36,6 +39,7 @@ static uint16_t TOUCH_POINTS_DEF[8] = {
 
 #ifndef max
 # define max(a,b) (((a)>(b))?(a):(b))
+# define min(a,b) (((a)<(b))?(a):(b))
 #endif
 
 enum{
@@ -47,32 +51,43 @@ enum{
 	FUNCS_LIST
 };
 
+enum{
+	POSITIVE = 0,
+	NEGATIVE
+};
+
+static uint8_t btn_mask[BUTTONS_NUM];
+static SceCtrlData remappedBuffers[HOOKS_NUM][BUFFERS_NUM];
+static int remappedBuffersSizes[HOOKS_NUM];
+static int remappedBuffersIdxs[HOOKS_NUM];
+static SceCtrlData pstv_fakepad;
+static uint8_t touchPointsFrontNum;
+static uint8_t touchPointsRearNum;
+static uint16_t touchPointsFront[MULTITOUCH_FRONT_NUM * 2];
+static uint16_t touchPointsRear[MULTITOUCH_REAR_NUM * 2]; 
+
+static uint8_t new_frame = 1;
 static int screen_h = 272;
 static uint8_t show_menu = 0;
-static uint8_t current_hook = 0;
-static SceUID hooks[HOOKS_NUM];
-static tai_hook_ref_t refs[HOOKS_NUM];
 static int cfg_i = 0;
 static int menu_i = MAIN_MENU;
-static int model;
 static uint32_t curr_buttons;
 static uint32_t old_buttons;
 static uint64_t tick;
 static uint64_t pressedTicks[PHYS_BUTTONS_NUM];
+
+static uint8_t current_hook = 0;
+static SceUID hooks[HOOKS_NUM];
+static tai_hook_ref_t refs[HOOKS_NUM];
+static int model;
 static char titleid[16];
 static char fname[128];
 static uint8_t internal_touch_call = 0;
 static uint8_t internal_ext_call = 0;
-static uint8_t new_frame = 1;
-static SceCtrlData pstv_fakepad;
+
 static uint8_t analogs_options[ANOLOGS_OPTIONS_NUM];
 static uint8_t gyro_options[GYRO_OPTIONS_NUM];
 static uint16_t touch_options[TOUCH_OPTIONS_NUM];
-uint8_t touchPointsFrontNum;
-uint8_t touchPointsRearNum;
-uint16_t touchPointsFront[MULTITOUCH_FRONT_NUM * 2];
-uint16_t touchPointsRear[MULTITOUCH_REAR_NUM * 2]; 
-static uint8_t btn_mask[BUTTONS_NUM];
 static uint8_t used_funcs[HOOKS_NUM-1];
 
 static char* str_menus[MENU_MODES] = {
@@ -398,19 +413,10 @@ void applyRemapRuleForGyro(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos, f
 	}
 }
 
-void applyRemap(SceCtrlData *ctrl, int count) {
-	
-	// Checking for menu triggering
-	if ((ctrl->buttons & btns[menuActivator_mask[0]]) && (ctrl->buttons & btns[menuActivator_mask[1]])) {
-		show_menu = 1;
-		cfg_i = 0;
-		return;
-	}
-	
+void applyRemap(SceCtrlData *ctrl) {
+	// Gathering real touch data
 	touchPointsFrontNum = 0;
 	touchPointsRearNum = 0;
-	
-	// Gathering real touch data
 	SceTouchData front, rear;
 	internal_touch_call = 1;
 	sceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
@@ -452,7 +458,7 @@ void applyRemap(SceCtrlData *ctrl, int count) {
 		else if (rear.report[i].x <= 960 && rear.report[i].y <= 544) // Top Left
 			applyRemapRule(PHYS_BUTTONS_NUM + 4, &new_map, stickpos);
 	}
-	
+
 	// Applying remap rules for left analog
 	if (ctrl->lx < 127 - analogs_options[0])			// Left
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 8, &new_map, stickpos, ctrl->lx);
@@ -493,51 +499,47 @@ void applyRemap(SceCtrlData *ctrl, int count) {
 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 21,  &new_map, stickpos, 
 			-motionstate.angularVelocity.z * gyro_options[2]);
 	
-	// Nulling analogs if they're remapped
-	for (i = 0; i < count; i++) {				
-		if ((ctrl[i].lx < 127 && btn_mask[PHYS_BUTTONS_NUM+8] != PHYS_BUTTONS_NUM) ||
-			(ctrl[i].lx > 127 && btn_mask[PHYS_BUTTONS_NUM+9] != PHYS_BUTTONS_NUM))
-			ctrl[i].lx = 127;
-		if ((ctrl[i].ly < 127 && btn_mask[PHYS_BUTTONS_NUM+10] != PHYS_BUTTONS_NUM) ||
-			(ctrl[i].ly > 127 && btn_mask[PHYS_BUTTONS_NUM+11] != PHYS_BUTTONS_NUM))
-			ctrl[i].ly = 127;
-		if ((ctrl[i].rx < 127 && btn_mask[PHYS_BUTTONS_NUM+12] != PHYS_BUTTONS_NUM) ||
-			(ctrl[i].rx > 127 && btn_mask[PHYS_BUTTONS_NUM+13] != PHYS_BUTTONS_NUM))
-			ctrl[i].rx = 127;
-		if ((ctrl[i].ry < 127 && btn_mask[PHYS_BUTTONS_NUM+14] != PHYS_BUTTONS_NUM) ||
-			(ctrl[i].ry > 127 && btn_mask[PHYS_BUTTONS_NUM+15] != PHYS_BUTTONS_NUM))
-			ctrl[i].ry = 127;	
-	}
+	// Nulling analogs if they're remapped		
+	if ((ctrl->lx < 127 && btn_mask[PHYS_BUTTONS_NUM+8] != PHYS_BUTTONS_NUM) ||
+		(ctrl->lx > 127 && btn_mask[PHYS_BUTTONS_NUM+9] != PHYS_BUTTONS_NUM))
+		ctrl->lx = 127;
+	if ((ctrl->ly < 127 && btn_mask[PHYS_BUTTONS_NUM+10] != PHYS_BUTTONS_NUM) ||
+		(ctrl->ly > 127 && btn_mask[PHYS_BUTTONS_NUM+11] != PHYS_BUTTONS_NUM))
+		ctrl->ly = 127;
+	if ((ctrl->rx < 127 && btn_mask[PHYS_BUTTONS_NUM+12] != PHYS_BUTTONS_NUM) ||
+		(ctrl->rx > 127 && btn_mask[PHYS_BUTTONS_NUM+13] != PHYS_BUTTONS_NUM))
+		ctrl->rx = 127;
+	if ((ctrl->ry < 127 && btn_mask[PHYS_BUTTONS_NUM+14] != PHYS_BUTTONS_NUM) ||
+		(ctrl->ry > 127 && btn_mask[PHYS_BUTTONS_NUM+15] != PHYS_BUTTONS_NUM))
+		ctrl->ry = 127;	
+	
 	
 	// Remove minimal drift if digital remap for stick directions is used
-	for (i = 0; i < count; i++)
-	{
-		if (stickpos[0] || stickpos[1] || stickpos[2] || stickpos[3]){
-			if (abs(ctrl[i].lx - 127) < analogs_options[0]) 
-				ctrl[i].lx = 127;
-			if (abs(ctrl[i].ly - 127) < analogs_options[1]) 
-				ctrl[i].ly = 127;
-		}
-		if (stickpos[4] || stickpos[5] || stickpos[6] || stickpos[7]){
-			if (abs(ctrl[i].rx - 127) < analogs_options[2]) 
-				ctrl[i].rx = 127;
-			if (abs(ctrl[i].ry - 127) < analogs_options[3]) 
-				ctrl[i].ry = 127;
-		}
+	if (stickpos[0] || stickpos[1] || stickpos[2] || stickpos[3]){
+		if (abs(ctrl->lx - 127) < analogs_options[0]) 
+			ctrl->lx = 127;
+		if (abs(ctrl->ly - 127) < analogs_options[1]) 
+			ctrl->ly = 127;
 	}
-
-	// Apply digital remap for stick directions if used
-	for (i = 0; i < count; i++) {
-		ctrl[i].buttons = new_map;
-		if (stickpos[0] || stickpos[1])
-			ctrl[i].lx = clamp(ctrl[i].lx - stickpos[0] + stickpos[1], 0, 255);
-		if (stickpos[2] || stickpos[3])
-			ctrl[i].ly = clamp(ctrl[i].ly - stickpos[2] + stickpos[3], 0, 255);
-		if (stickpos[4] || stickpos[5])
-			ctrl[i].rx = clamp(ctrl[i].rx - stickpos[4] + stickpos[5], 0, 255);
-		if (stickpos[6] || stickpos[7])
-			ctrl[i].ry = clamp(ctrl[i].ry - stickpos[6] + stickpos[7], 0, 255);
+	if (stickpos[4] || stickpos[5] || stickpos[6] || stickpos[7]){
+		if (abs(ctrl->rx - 127) < analogs_options[2]) 
+			ctrl->rx = 127;
+		if (abs(ctrl->ry - 127) < analogs_options[3]) 
+			ctrl->ry = 127;
 	}
+	
+	//Storing remap for analog axises
+	if (stickpos[0] || stickpos[1])
+		ctrl->lx = clamp(ctrl->lx - stickpos[0] + stickpos[1], 0, 255);
+	if (stickpos[2] || stickpos[3])
+		ctrl->ly = clamp(ctrl->ly - stickpos[2] + stickpos[3], 0, 255);
+	if (stickpos[4] || stickpos[5])
+		ctrl->rx = clamp(ctrl->rx - stickpos[4] + stickpos[5], 0, 255);
+	if (stickpos[6] || stickpos[7])
+		ctrl->ry = clamp(ctrl->ry - stickpos[6] + stickpos[7], 0, 255);
+	
+	//Storing remap for HW buttons
+	ctrl->buttons = new_map;
 }
 
 void addVirtualTouches(SceTouchData *pData, uint16_t* touchPoints, 
@@ -570,15 +572,6 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				(btn_mask[PHYS_BUTTONS_NUM+7] != PHYS_BUTTONS_NUM))))
 			pData->reportNum = 0; //Disable pad
 		addVirtualTouches(pData, touchPointsRear, touchPointsRearNum, MULTITOUCH_REAR_NUM);
-	}
-}
-
-void applyRemapNegative(SceCtrlData *ctrl, int count) {
-	ctrl->buttons = 0xFFFFFFFF - ctrl->buttons;
-	applyRemap(ctrl, count);
-	int i;
-	for (i = 0; i < count; i++) {
-		ctrl[i].buttons = 0xFFFFFFFF - ctrl[i].buttons;
 	}
 }
 
@@ -690,9 +683,8 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 		default:
 			break;
 		}
-		//tick = getTick();
-		tick = sceKernelGetProcessTimeWide();
-		curr_buttons = ctrl->buttons;
+		tick = ctrl[count - 1].timeStamp;
+		curr_buttons = ctrl[count - 1].buttons;
 		for (int i = 0; i < PHYS_BUTTONS_NUM; i++){
 			if ((curr_buttons & btns[i]) && !(old_buttons & btns[i]))
 				pressedTicks[i] = tick;
@@ -870,18 +862,52 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 		}
 		old_buttons = curr_buttons;
 	}
-	for (int i = 0; i < count; i++)
-		ctrl[i].buttons = 0; // Nulling returned buttons
 }
 
-// Input Handler for the Config Menu (negative logic)
-void configInputHandlerNegative(SceCtrlData *ctrl, int count) {
-	ctrl->buttons = 0xFFFFFFFF - ctrl->buttons;
-	configInputHandler(ctrl, count);
-	int i;
-	for (i = 0; i < count; i++) {
-		ctrl[i].buttons = 0xFFFFFFFF; // Nulling returned buttons
+void remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
+	
+	//Nothing to do here
+	if (count < 1)
+		return;
+	
+	if (logic == NEGATIVE)
+		ctrl[count - 1].buttons = 0xFFFFFFFF - ctrl[count - 1].buttons;
+	
+	//Checking for menu triggering
+	if (!show_menu 
+			&& (ctrl[count - 1].buttons & btns[menuActivator_mask[0]]) 
+			&& (ctrl[count-1].buttons & btns[menuActivator_mask[1]])) {
+		show_menu = 1;
+		cfg_i = 0;
+		//ToDo clear buffers
+		remappedBuffersIdxs[hookId] = 0;
+		remappedBuffersSizes[hookId] = 0;
 	}
+	if (show_menu){
+		configInputHandler(&ctrl[count - 1], count);
+		for (int i = 0; i < count; i++)
+			ctrl[i].buttons = (logic == POSITIVE) ? 0 : 0xFFFFFFFF;
+		return;
+	}
+	
+	int buffIdx = (remappedBuffersIdxs[hookId] + 1) % BUFFERS_NUM;
+	
+	//Storing copy of latest buffer
+	remappedBuffersIdxs[hookId] = buffIdx;
+	remappedBuffersSizes[hookId] = min(remappedBuffersSizes[hookId] + 1, BUFFERS_NUM);
+	remappedBuffers[hookId][buffIdx] = ctrl[count-1]; 
+	
+	//Applying remap to latest buffer
+	applyRemap(&remappedBuffers[hookId][buffIdx]);
+	
+	if (logic == NEGATIVE)
+		remappedBuffers[hookId][buffIdx].buttons = 
+			0xFFFFFFFF - remappedBuffers[hookId][buffIdx].buttons;
+	
+	//Restoring stored buffers
+	for (int i = 0; i < count; i++)
+		ctrl[i] = remappedBuffers[hookId]
+			[(BUFFERS_NUM + buffIdx - count + i + 1) % BUFFERS_NUM];
 }
 
 // Simplified generic hooking function
@@ -899,8 +925,7 @@ int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 			ctrl->buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
-			if (!show_menu) applyRemap(ctrl, count);
-			else configInputHandler(ctrl, count);
+			remap(ctrl, ret, 0, POSITIVE);
 			used_funcs[0] = 1;
 			break;
 	}
@@ -916,8 +941,7 @@ int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 			ctrl->buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
-			if (!show_menu) applyRemap(ctrl, count);
-			else configInputHandler(ctrl, count);
+			remap(ctrl, ret, 1, POSITIVE);
 			used_funcs[1] = 1;
 			break;
 	}
@@ -933,8 +957,7 @@ int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 			ctrl->buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
-			if (!show_menu) applyRemap(ctrl, count);
-			else configInputHandler(ctrl, count);
+			remap(ctrl, ret, 2, POSITIVE);
 			used_funcs[2] = 1;
 			break;
 	}
@@ -950,8 +973,7 @@ int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 			ctrl->buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
-			if (!show_menu) applyRemap(ctrl, count);
-			else configInputHandler(ctrl, count);
+			remap(ctrl, ret, 3, POSITIVE);
 			used_funcs[3] = 1;
 			break;
 	}
@@ -967,8 +989,7 @@ int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 			ctrl->buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
-			if (!show_menu) applyRemap(ctrl, count);
-			else configInputHandler(ctrl, count);
+			remap(ctrl, ret, 4, POSITIVE);
 			used_funcs[4] = 1;
 			break;
 	}
@@ -978,8 +999,7 @@ int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 int sceCtrlPeekBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[5], port, ctrl, count);
 	if (internal_ext_call) return ret;
-	if (!show_menu) applyRemap(ctrl, count);
-	else configInputHandler(ctrl, count);
+	remap(ctrl, ret, 5, POSITIVE);
 	used_funcs[5] = 1;
 	return ret;
 }
@@ -993,8 +1013,7 @@ int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 			ctrl->buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
-			if (!show_menu) applyRemap(ctrl, count);
-			else configInputHandler(ctrl, count);
+			remap(ctrl, ret, 6, POSITIVE);
 			used_funcs[6] = 1;
 			break;
 	}
@@ -1004,54 +1023,49 @@ int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 int sceCtrlReadBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[7], port, ctrl, count);
 	if (internal_ext_call) return ret;
-	if (!show_menu) applyRemap(ctrl, count);
-	else configInputHandler(ctrl, count);
+	remap(ctrl, ret, 7, POSITIVE);
 	used_funcs[7] = 1;
 	return ret;
 }
 
 int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[8], port, ctrl, count);
-	if (!show_menu) applyRemapNegative(ctrl, count);
-	else configInputHandlerNegative(ctrl, count);
+	remap(ctrl, ret, 8, NEGATIVE);
 	used_funcs[8] = 1;
 	return ret;
 }
 
 int sceCtrlPeekBufferNegative2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[9], port, ctrl, count);
-	if (!show_menu) applyRemapNegative(ctrl, count);
-	else configInputHandlerNegative(ctrl, count);
+	remap(ctrl, ret, 9, NEGATIVE);
 	used_funcs[9] = 1;
 	return ret;
 }
 
 int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[10], port, ctrl, count);
-	if (!show_menu) applyRemapNegative(ctrl, count);
-	else configInputHandlerNegative(ctrl, count);
+	remap(ctrl, ret, 10, NEGATIVE);
 	used_funcs[10] = 1;
 	return ret;
 }
 
 int sceCtrlReadBufferNegative2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[11], port, ctrl, count);
-	if (!show_menu) applyRemapNegative(ctrl, count);
-	else configInputHandlerNegative(ctrl, count);
+	remap(ctrl, ret, 11, NEGATIVE);
 	used_funcs[11] = 1;
 	return ret;
 }
 
 int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[12], port, pData, nBufs);
-	updateTouchInfo(port, pData);
+	if (!show_menu) updateTouchInfo(port, pData);
 	used_funcs[12] = 1;
 	return ret;
 }
 
 int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[13], port, pData, nBufs);
-	updateTouchInfo(port, pData);
+	if (!show_menu) updateTouchInfo(port, pData);
 	used_funcs[13] = 1;
 	return ret;
 }
@@ -1059,14 +1073,14 @@ int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) 
 int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[14], port, pData, nBufs);
 	if (internal_touch_call) return ret;
-	updateTouchInfo(port, pData);
+	if (!show_menu) updateTouchInfo(port, pData);
 	used_funcs[14] = 1;
 	return ret;
 }
 
 int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[15], port, pData, nBufs);
-	updateTouchInfo(port, pData);
+	if (!show_menu) updateTouchInfo(port, pData);
 	used_funcs[15] = 1;
 	return ret;
 }
@@ -1078,7 +1092,6 @@ int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
 		updateFramebuf(pParam);
 		drawConfigMenu();
 	} 
-	
 	return TAI_CONTINUE(int, refs[16], pParam, sync);
 }	
 
