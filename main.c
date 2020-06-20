@@ -10,14 +10,14 @@
 #define PHYS_BUTTONS_NUM  16 // Supported physical buttons num
 #define TARGET_REMAPS     42 // Supported target remaps num
 #define BUTTONS_NUM       38 // Supported buttons num
-#define MENU_MODES        6  // Menu modes num
+#define MENU_MODES        7  // Menu modes num
 #define LONG_PRESS_TIME   400000
 #define COLOR_DEFAULT     0x00FFFFFF
 #define COLOR_HEADER      0x00FF00FF
 #define COLOR_CURSOR      0x0000FF00
 #define COLOR_ACTIVE      0x00FF0000
 #define COLOR_DISABLE     0x000000FF
-#define BUFFERS_NUM      255
+#define BUFFERS_NUM      			64
 #define ANALOGS_DEADZONE_DEF		30
 #define ANALOGS_FORCE_DIGITAL_DEF	0
 #define ANOLOGS_OPTIONS_NUM			8
@@ -28,6 +28,7 @@
 #define MULTITOUCH_REAR_NUM			4
 #define TOUCH_OPTIONS_NUM			18
 #define TOUCH_MODE_DEF				1
+#define CONN_CTRLS_NUM				5
 //Front resolution : 960x544
 //Rear resolution: 960x445
 static uint16_t TOUCH_POINTS_DEF[8] = {
@@ -48,7 +49,8 @@ enum{
 	ANALOG_MENU,
 	TOUCH_MENU,
 	GYRO_MENU,
-	FUNCS_LIST
+	FUNCS_LIST,
+	CONN_CTRLS
 };
 
 enum{
@@ -57,7 +59,7 @@ enum{
 };
 
 static uint8_t btn_mask[BUTTONS_NUM];
-static SceCtrlData remappedBuffers[HOOKS_NUM][BUFFERS_NUM];
+static SceCtrlData remappedBuffers[HOOKS_NUM-5][BUFFERS_NUM];
 static int remappedBuffersSizes[HOOKS_NUM];
 static int remappedBuffersIdxs[HOOKS_NUM];
 static SceCtrlData pstv_fakepad;
@@ -91,7 +93,7 @@ static uint16_t touch_options[TOUCH_OPTIONS_NUM];
 static uint8_t used_funcs[HOOKS_NUM-1];
 
 static char* str_menus[MENU_MODES] = {
-	"MAIN MENU", "REMAP MENU", "ANALOG MENU", "TOUCH MENU", "GYRO_MENU", "USED FUNCTIONS"
+	"MAIN MENU", "REMAP MENU", "ANALOG MENU", "TOUCH MENU", "GYRO_MENU", "USED FUNCTIONS", "CONNECTED CONTROLLERS"
 };
 
 static char* str_main_menu[] = {
@@ -100,6 +102,7 @@ static char* str_main_menu[] = {
 	"Change touch remap settings",
 	"Change gyro remap settings",
 	"Show imported functions",
+	"Show connected gamepads",
 	"Return to the game"
 };
 
@@ -194,20 +197,29 @@ void resetGyro(){
 		gyro_options[i] = i < 3 ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF;
 }
 
+char* getControllerName(int id){
+	if 		(id == 	SCE_CTRL_TYPE_UNPAIRED) return "Unpaired controller";
+	else if (id == 	SCE_CTRL_TYPE_PHY) 		return "Physical controller for VITA";
+	else if (id == 	SCE_CTRL_TYPE_VIRT) 	return "Virtual controller for PSTV";
+	else if (id == 	SCE_CTRL_TYPE_DS3) 		return "DualShock 3";
+	else if (id == 	SCE_CTRL_TYPE_DS4) 		return "DualShock 4";
+	else 									return "Unknown controller";
+}
+
 // Config Menu Renderer
 void drawConfigMenu() {
 	setTextColor(COLOR_HEADER);
 	drawString(5, 10, "Thanks to Tain Sueiras, nobodywasishere and RaveHeart");
 	drawString(5, 30, "for their awesome support on Patreon");
 	drawStringF(5, 50, "remaPSV v.1.2 - %s", str_menus[menu_i]);
-	int i, y = 70;
+		
+	int i, y = 50;
 	int screen_entries = (screen_h - 50) / 20;
 	switch (menu_i){
 	case MAIN_MENU:
 		for (i = max(0, cfg_i - (screen_entries - 3)); i < sizeof(str_main_menu)/sizeof(char*); i++) {
 			setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_DEFAULT);
-			drawStringF(5, y, "%s", str_main_menu[i]);
-			y += 20;
+			drawStringF(5, y += 20, "%s", str_main_menu[i]);
 			if (y + 40 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
@@ -223,15 +235,13 @@ void drawConfigMenu() {
 				setTextColor(COLOR_DISABLE);
 			else
 				setTextColor(COLOR_ACTIVE);
-			drawStringF(5, y, "%s -> %s", str_btns[i], target_btns[btn_mask[i]]);
-			y += 20;
+			drawStringF(5, y += 20, "%s -> %s", str_btns[i], target_btns[btn_mask[i]]);
 			if (y + 40 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
 		drawString(5, 520, "(<)(>):change  (LT)(RT):section  ([]):reset  (start):reset all         (O):back");
 		break;
 	case ANALOG_MENU:
-		y -= 20;
 		setTextColor(COLOR_DEFAULT);
 		drawString(5, y+=20, "Deadzone:");
 		setTextColor((0 == cfg_i) ? COLOR_CURSOR : ((analogs_options[0] != ANALOGS_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
@@ -256,7 +266,6 @@ void drawConfigMenu() {
 		drawString(5, 520, "(<)(>):change  ([]):reset  (start):reset all                           (O):back");
 		break;
 	case TOUCH_MENU:
-		y -= 20;
 		setTextColor(COLOR_DEFAULT);
 		drawString(5, y+=20, "Front touch:");
 		setTextColor((0 == cfg_i) ? COLOR_CURSOR : ((touch_options[0] != TOUCH_POINTS_DEF[0]) ? COLOR_ACTIVE : COLOR_DEFAULT));
@@ -315,7 +324,6 @@ void drawConfigMenu() {
 		drawString(5, 520, "(<)(>):change  ([]):reset  (start):reset all                           (O):back");
 		break;
 	case GYRO_MENU:
-		y -= 20;
 		setTextColor(COLOR_DEFAULT);
 		drawString(5, y+=20, "Sensivity:");
 		setTextColor((0 == cfg_i) ? COLOR_CURSOR : ((gyro_options[0] != GYRO_SENS_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
@@ -338,13 +346,23 @@ void drawConfigMenu() {
 	case FUNCS_LIST:
 		for (i = max(0, cfg_i - (screen_entries - 3)); i < HOOKS_NUM - 1; i++) {
 			setTextColor((i == cfg_i) ? COLOR_CURSOR : (used_funcs[i] ? COLOR_ACTIVE : COLOR_DEFAULT));
-			drawStringF(5, y, "%s : %s", str_funcs[i], used_funcs[i] ? "Yes" : "No");
-			y += 20;
+			drawStringF(5, y += 20, "%s : %s", str_funcs[i], used_funcs[i] ? "Yes" : "No");
 			if (y + 40 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
 		drawString(5, 520, "                                                                       (O):back");
 		break;
+	case CONN_CTRLS:;
+		SceCtrlPortInfo pi;
+		int res = sceCtrlGetControllerPortInfo(&pi);
+		if (res != 0)
+			drawString(5, y+= 20, "Error getting port info");
+		else
+			for (int i = 0; i < 5; i++){
+				setTextColor((5 == cfg_i) ? COLOR_CURSOR : ((pi.port[i] != SCE_CTRL_TYPE_UNPAIRED) ? COLOR_ACTIVE : COLOR_DEFAULT));
+				drawStringF(5, y += 20, "Port %i: %s", i, getControllerName(pi.port[i]));
+			}		
+		drawString(5, 520, "                                                                       (O):back");
 	default:
 		break;
 	}
@@ -657,7 +675,7 @@ uint8_t isBtnActive(uint8_t btnNum){
 }
 
 // Input Handler for the Config Menu
-void configInputHandler(SceCtrlData *ctrl, int count) {
+void configInputHandler(SceCtrlData *ctrl) {
 	if (new_frame) {
 		new_frame = 0;
 		int menu_entries = 0;
@@ -680,11 +698,14 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 		case FUNCS_LIST:
 			menu_entries = HOOKS_NUM - 1;
 			break;
+		case CONN_CTRLS:
+			menu_entries = CONN_CTRLS_NUM;
+			break;
 		default:
 			break;
 		}
-		tick = ctrl[count - 1].timeStamp;
-		curr_buttons = ctrl[count - 1].buttons;
+		tick = ctrl->timeStamp;
+		curr_buttons = ctrl->buttons;
 		for (int i = 0; i < PHYS_BUTTONS_NUM; i++){
 			if ((curr_buttons & btns[i]) && !(old_buttons & btns[i]))
 				pressedTicks[i] = tick;
@@ -754,6 +775,7 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 				}
 				break;
 			case SCE_CTRL_LTRIGGER:
+			case SCE_CTRL_L1:
 				if (menu_i == REMAP_MENU){
 					if (btn_mask[cfg_i] < 16)
 						btn_mask[cfg_i] = 38;	//Rear touch custom
@@ -776,6 +798,7 @@ void configInputHandler(SceCtrlData *ctrl, int count) {
 				}
 				break;
 			case SCE_CTRL_RTRIGGER:
+			case SCE_CTRL_R1:
 				if (menu_i == REMAP_MENU){
 					if (btn_mask[cfg_i] < 16)
 						btn_mask[cfg_i] = 16;	//Original
@@ -884,7 +907,7 @@ void remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 		remappedBuffersSizes[hookId] = 0;
 	}
 	if (show_menu){
-		configInputHandler(&ctrl[count - 1], count);
+		configInputHandler(&ctrl[count - 1]);
 		for (int i = 0; i < count; i++)
 			ctrl[i].buttons = (logic == POSITIVE) ? 0 : 0xFFFFFFFF;
 		return;
@@ -908,6 +931,7 @@ void remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 	for (int i = 0; i < count; i++)
 		ctrl[i] = remappedBuffers[hookId]
 			[(BUFFERS_NUM + buffIdx - count + i + 1) % BUFFERS_NUM];
+	ctrl[count-1] = remappedBuffers[hookId][buffIdx];
 }
 
 // Simplified generic hooking function
@@ -921,8 +945,9 @@ int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
 			internal_ext_call = 1;
-			sceCtrlPeekBufferPositiveExt2(port, &pstv_fakepad, count);
-			ctrl->buttons = pstv_fakepad.buttons;
+			sceCtrlPeekBufferPositiveExt2(1, &pstv_fakepad, 1);
+			
+			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
 			remap(ctrl, ret, 0, POSITIVE);
@@ -937,8 +962,8 @@ int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
 			internal_ext_call = 1;
-			sceCtrlPeekBufferPositiveExt2(port, &pstv_fakepad, count);
-			ctrl->buttons = pstv_fakepad.buttons;
+			sceCtrlPeekBufferPositiveExt2(1, &pstv_fakepad, 1);
+			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
 			remap(ctrl, ret, 1, POSITIVE);
@@ -953,8 +978,8 @@ int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
 			internal_ext_call = 1;
-			sceCtrlReadBufferPositiveExt2(port, &pstv_fakepad, count);
-			ctrl->buttons = pstv_fakepad.buttons;
+			sceCtrlReadBufferPositiveExt2(1, &pstv_fakepad, 1);
+			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
 			remap(ctrl, ret, 2, POSITIVE);
@@ -969,8 +994,8 @@ int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
 			internal_ext_call = 1;
-			sceCtrlReadBufferPositiveExt2(port, &pstv_fakepad, count);
-			ctrl->buttons = pstv_fakepad.buttons;
+			sceCtrlReadBufferPositiveExt2(1, &pstv_fakepad, 1);
+			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
 			remap(ctrl, ret, 3, POSITIVE);
@@ -985,8 +1010,8 @@ int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
 			internal_ext_call = 1;
-			sceCtrlPeekBufferPositiveExt2(port, &pstv_fakepad, count);
-			ctrl->buttons = pstv_fakepad.buttons;
+			sceCtrlPeekBufferPositiveExt2(1, &pstv_fakepad, 1);
+			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
 			remap(ctrl, ret, 4, POSITIVE);
@@ -1009,8 +1034,8 @@ int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
 			internal_ext_call = 1;
-			sceCtrlReadBufferPositiveExt2(port, &pstv_fakepad, count);
-			ctrl->buttons = pstv_fakepad.buttons;
+			sceCtrlReadBufferPositiveExt2(1, &pstv_fakepad, 1);
+			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
 			remap(ctrl, ret, 6, POSITIVE);
