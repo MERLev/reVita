@@ -29,19 +29,20 @@
 #define TOUCH_OPTIONS_NUM			18
 #define TOUCH_MODE_DEF				1
 #define CONN_CTRLS_NUM				5
-//Front resolution : 960x544
-//Rear resolution: 960x445
-static uint16_t TOUCH_POINTS_DEF[8] = {
-	300, 136,	//TL
-	640, 136,	//TR
-	300, 408,	//BL
-	640, 408	//BR
-};
 
 #ifndef max
 # define max(a,b) (((a)>(b))?(a):(b))
 # define min(a,b) (((a)<(b))?(a):(b))
 #endif
+
+//Front resolution : 960x544
+//Rear resolution: 960x445
+static const uint16_t TOUCH_POINTS_DEF[8] = {
+	300, 136,	//TL
+	640, 136,	//TR
+	300, 408,	//BL
+	640, 408	//BR
+};
 
 enum{
 	MAIN_MENU = 0,
@@ -70,6 +71,7 @@ static uint16_t touchPointsRear[MULTITOUCH_REAR_NUM * 2];
 
 static uint8_t new_frame = 1;
 static int screen_h = 272;
+static int screen_w = 480;
 static uint8_t show_menu = 0;
 static int cfg_i = 0;
 static int menu_i = MAIN_MENU;
@@ -206,6 +208,12 @@ char* getControllerName(int id){
 	else 									return "Unknown controller";
 }
 
+int calcStartingIndex(int idx, int entriesNum, int screenEntries){
+	int bottom_l = 3;
+	if (idx < screenEntries + 1 - bottom_l) return 0;
+	else if (idx < entriesNum - 1 - bottom_l) return idx - (screenEntries + 1 - bottom_l);
+	else return entriesNum - screenEntries + 1 - bottom_l;
+}
 // Config Menu Renderer
 void drawConfigMenu() {
 	setTextColor(COLOR_HEADER);
@@ -215,9 +223,10 @@ void drawConfigMenu() {
 		
 	int i, y = 50;
 	int screen_entries = (screen_h - 50) / 20;
+	int avaliable_entries = screen_entries - 3 - 1;
 	switch (menu_i){
 	case MAIN_MENU:
-		for (i = max(0, cfg_i - (screen_entries - 3)); i < sizeof(str_main_menu)/sizeof(char*); i++) {
+		for (i = calcStartingIndex(cfg_i, sizeof(str_main_menu)/sizeof(char*), avaliable_entries); i < sizeof(str_main_menu)/sizeof(char*); i++) {
 			setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_DEFAULT);
 			drawStringF(5, y += 20, "%s", str_main_menu[i]);
 			if (y + 40 > screen_h) break;
@@ -226,22 +235,43 @@ void drawConfigMenu() {
 		drawString(5, 520, "(X):select                                     (select) or (O) : save and close");
 		break;
 	case REMAP_MENU:
-		for (i = max(0, cfg_i - (screen_entries - 3)); i < BUTTONS_NUM; i++) {
-			if (i == cfg_i)
-				setTextColor(COLOR_CURSOR);
-			else if (btn_mask[i] == PHYS_BUTTONS_NUM)
-				setTextColor(COLOR_DEFAULT);
-			else if (btn_mask[i] == PHYS_BUTTONS_NUM + 1)
-				setTextColor(COLOR_DISABLE);
-			else
-				setTextColor(COLOR_ACTIVE);
+		for (i = calcStartingIndex(cfg_i, BUTTONS_NUM, avaliable_entries); i < BUTTONS_NUM; i++) {
+			if (i == cfg_i) setTextColor(COLOR_CURSOR);
+			else if (btn_mask[i] == PHYS_BUTTONS_NUM) setTextColor(COLOR_DEFAULT);
+			else if (btn_mask[i] == PHYS_BUTTONS_NUM + 1) setTextColor(COLOR_DISABLE);
+			else setTextColor(COLOR_ACTIVE);
 			drawStringF(5, y += 20, "%s -> %s", str_btns[i], target_btns[btn_mask[i]]);
-			if (y + 40 > screen_h) break;
+			if (y + 60 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
 		drawString(5, 520, "(<)(>):change  (LT)(RT):section  ([]):reset  (start):reset all         (O):back");
 		break;
 	case ANALOG_MENU:
+		for (i = calcStartingIndex(cfg_i, ANOLOGS_OPTIONS_NUM + 2, avaliable_entries); i < ANOLOGS_OPTIONS_NUM + 2; i++) {				
+			if (y + 60 > screen_h) break;
+			
+			if (!(i % 5)){	//Headers
+				setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_DEFAULT);
+				drawString(5, y+=20, (i == 0) ? "Deadzone:" : "Force digital output:");
+				continue;
+			}
+			
+			int o_idx = (i < 5) ? i - 1 : i - 2; //Index in options file
+			if (i == cfg_i) setTextColor(COLOR_CURSOR);
+			else if (analogs_options[o_idx] != ((o_idx < 4) ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF)) 
+				setTextColor(COLOR_ACTIVE);
+			else setTextColor(COLOR_DEFAULT);
+			if (o_idx < 4)
+				drawStringF(15, y+=20, "%s [%s axis]: %hhu", 
+					((o_idx / 2) % 2 ) ? "Right Analog" : "Left Analog ",
+					(o_idx % 2) ? "Y" : "X",
+					analogs_options[o_idx]);
+			else 
+				drawStringF(15, y+=20, "%s [%s axis]: %s", 
+					((o_idx / 2) % 2 ) ? "Right Analog" : "Left Analog ",
+					(o_idx % 2) ? "Y" : "X",
+					analogs_options[o_idx] ? "Yes" : "No");	
+		}/*
 		setTextColor(COLOR_DEFAULT);
 		drawString(5, y+=20, "Deadzone:");
 		setTextColor((0 == cfg_i) ? COLOR_CURSOR : ((analogs_options[0] != ANALOGS_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
@@ -263,7 +293,7 @@ void drawConfigMenu() {
 		setTextColor((7 == cfg_i) ? COLOR_CURSOR : ((analogs_options[7] != ANALOGS_FORCE_DIGITAL_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
 		drawStringF(15, y+=20, "Right Analog [Y Axis]: %s", analogs_options[7] ? "Yes" : "No");
 		setTextColor(COLOR_HEADER);
-		drawString(5, 520, "(<)(>):change  ([]):reset  (start):reset all                           (O):back");
+		drawString(5, 520, "(<)(>):change  ([]):reset  (start):reset all                           (O):back");*/
 		break;
 	case TOUCH_MENU:
 		setTextColor(COLOR_DEFAULT);
@@ -344,7 +374,7 @@ void drawConfigMenu() {
 		drawString(5, 520, "(<)(>):change  ([]):reset  (start):reset all                          (O): back");
 		break;
 	case FUNCS_LIST:
-		for (i = max(0, cfg_i - (screen_entries - 3)); i < HOOKS_NUM - 1; i++) {
+		for (i = calcStartingIndex(cfg_i, HOOKS_NUM - 1, avaliable_entries); i < HOOKS_NUM - 1; i++) {
 			setTextColor((i == cfg_i) ? COLOR_CURSOR : (used_funcs[i] ? COLOR_ACTIVE : COLOR_DEFAULT));
 			drawStringF(5, y += 20, "%s : %s", str_funcs[i], used_funcs[i] ? "Yes" : "No");
 			if (y + 40 > screen_h) break;
@@ -358,9 +388,10 @@ void drawConfigMenu() {
 		if (res != 0)
 			drawString(5, y+= 20, "Error getting port info");
 		else
-			for (int i = 0; i < 5; i++){
+			for (int i = max(0, cfg_i - (avaliable_entries + 1)); i < 5; i++){
 				setTextColor((5 == cfg_i) ? COLOR_CURSOR : ((pi.port[i] != SCE_CTRL_TYPE_UNPAIRED) ? COLOR_ACTIVE : COLOR_DEFAULT));
 				drawStringF(5, y += 20, "Port %i: %s", i, getControllerName(pi.port[i]));
+				if (y + 40 > screen_h) break;
 			}		
 		drawString(5, 520, "                                                                       (O):back");
 	default:
@@ -687,7 +718,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 			menu_entries = BUTTONS_NUM;
 			break;
 		case ANALOG_MENU:
-			menu_entries = ANOLOGS_OPTIONS_NUM;
+			menu_entries = ANOLOGS_OPTIONS_NUM + 2;
 			break;
 		case TOUCH_MENU:
 			menu_entries = TOUCH_OPTIONS_NUM;
@@ -727,9 +758,11 @@ void configInputHandler(SceCtrlData *ctrl) {
 				case REMAP_MENU: 
 					btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % TARGET_REMAPS;
 					break;
-				case ANALOG_MENU: 
-					if (cfg_i < 4) analogs_options[cfg_i] = (analogs_options[cfg_i] + 1) % 128;
-					else analogs_options[cfg_i] = !analogs_options[cfg_i];
+				case ANALOG_MENU:
+					if (!(cfg_i % 5)) break;//Skip headers
+					int o_idx = (cfg_i < 5) ? cfg_i - 1 : cfg_i - 2;
+					if (o_idx < 4) analogs_options[o_idx] = (analogs_options[o_idx] + 1) % 128;
+					else analogs_options[o_idx] = !analogs_options[o_idx];
 					break;
 				case TOUCH_MENU:
 					if (cfg_i < 16)
@@ -751,10 +784,12 @@ void configInputHandler(SceCtrlData *ctrl) {
 						btn_mask[cfg_i] = TARGET_REMAPS - 1;
 					break;
 				case ANALOG_MENU:
-					if (analogs_options[cfg_i]) 	
-						analogs_options[cfg_i]--;
+					if (!(cfg_i % 5)) break;//Skip headers
+					int o_idx = (cfg_i < 5) ? cfg_i - 1 : cfg_i - 2;
+					if (analogs_options[o_idx]) 	
+						analogs_options[o_idx]--;
 					else
-						analogs_options[cfg_i] = cfg_i < 4 ? 127 : 1;
+						analogs_options[o_idx] = o_idx < 4 ? 127 : 1;
 					break;
 				case TOUCH_MENU:
 					if (touch_options[cfg_i]) 	
@@ -826,7 +861,9 @@ void configInputHandler(SceCtrlData *ctrl) {
 					btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
 					break;
 				case ANALOG_MENU:
-					analogs_options[cfg_i] = (cfg_i < 4) ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF;
+					if (!(cfg_i % 5)) break;//Skip headers
+					int o_idx = (cfg_i < 5) ? cfg_i - 1 : cfg_i - 2;
+					analogs_options[o_idx] = (o_idx) ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF;
 					break;
 				case TOUCH_MENU: 
 					if (cfg_i < 16)
@@ -945,8 +982,8 @@ int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
 			internal_ext_call = 1;
+			sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
 			sceCtrlPeekBufferPositiveExt2(1, &pstv_fakepad, 1);
-			
 			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
 		default:
@@ -962,6 +999,7 @@ int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
 			internal_ext_call = 1;
+			sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
 			sceCtrlPeekBufferPositiveExt2(1, &pstv_fakepad, 1);
 			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
@@ -978,6 +1016,7 @@ int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
 			internal_ext_call = 1;
+			sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
 			sceCtrlReadBufferPositiveExt2(1, &pstv_fakepad, 1);
 			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
@@ -994,6 +1033,7 @@ int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
 			internal_ext_call = 1;
+			sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
 			sceCtrlReadBufferPositiveExt2(1, &pstv_fakepad, 1);
 			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
@@ -1010,6 +1050,7 @@ int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
 			internal_ext_call = 1;
+			sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
 			sceCtrlPeekBufferPositiveExt2(1, &pstv_fakepad, 1);
 			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
@@ -1034,6 +1075,7 @@ int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 	switch (model) {
 		case SCE_KERNEL_MODEL_VITATV:
 			internal_ext_call = 1;
+			sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
 			sceCtrlReadBufferPositiveExt2(1, &pstv_fakepad, 1);
 			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
 			internal_ext_call = 0;
@@ -1114,6 +1156,7 @@ int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
 	if (show_menu) {
 		new_frame = 1;
 		screen_h = pParam->height;
+		screen_w = pParam->width;
 		updateFramebuf(pParam);
 		drawConfigMenu();
 	} 
