@@ -232,7 +232,7 @@ void drawConfigMenu() {
 			if (y + 40 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, 520, "(X):select                                     (select) or (O) : save and close");
+		drawString(5, screen_h - 24, "(X):select                                     (select) or (O) : save and close");
 		break;
 	case REMAP_MENU:
 		for (i = calcStartingIndex(cfg_i, BUTTONS_NUM, avaliable_entries); i < BUTTONS_NUM; i++) {
@@ -244,7 +244,7 @@ void drawConfigMenu() {
 			if (y + 60 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, 520, "(<)(>):change  (LT)(RT):section  ([]):reset  (start):reset all         (O):back");
+		drawString(5, screen_h - 24, "(<)(>):change  (LT)(RT):section  ([]):reset  (start):reset all         (O):back");
 		break;
 	case ANALOG_MENU:
 		for (i = calcStartingIndex(cfg_i, ANOLOGS_OPTIONS_NUM + 2, avaliable_entries); i < ANOLOGS_OPTIONS_NUM + 2; i++) {				
@@ -271,29 +271,9 @@ void drawConfigMenu() {
 					((o_idx / 2) % 2 ) ? "Right Analog" : "Left Analog ",
 					(o_idx % 2) ? "Y" : "X",
 					analogs_options[o_idx] ? "Yes" : "No");	
-		}/*
-		setTextColor(COLOR_DEFAULT);
-		drawString(5, y+=20, "Deadzone:");
-		setTextColor((0 == cfg_i) ? COLOR_CURSOR : ((analogs_options[0] != ANALOGS_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Left Analog  [X Axis]: %hhu", analogs_options[0]);
-		setTextColor((1 == cfg_i) ? COLOR_CURSOR : ((analogs_options[1] != ANALOGS_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Left Analog  [Y Axis]: %hhu", analogs_options[1]);
-		setTextColor((2 == cfg_i) ? COLOR_CURSOR : ((analogs_options[2] != ANALOGS_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Right Analog [X Axis]: %hhu", analogs_options[2]);
-		setTextColor((3 == cfg_i) ? COLOR_CURSOR : ((analogs_options[3] != ANALOGS_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Right Analog [Y Axis]: %hhu", analogs_options[3]);
-		setTextColor(COLOR_DEFAULT);
-		drawString(5, y+=20, "Force digital output:");
-		setTextColor((4 == cfg_i) ? COLOR_CURSOR : ((analogs_options[4] != ANALOGS_FORCE_DIGITAL_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Left Analog  [X Axis]: %s", analogs_options[4] ? "Yes" : "No");
-		setTextColor((5 == cfg_i) ? COLOR_CURSOR : ((analogs_options[5] != ANALOGS_FORCE_DIGITAL_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Left Analog  [Y Axis]: %s", analogs_options[5] ? "Yes" : "No");
-		setTextColor((6 == cfg_i) ? COLOR_CURSOR : ((analogs_options[6] != ANALOGS_FORCE_DIGITAL_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Right Analog [X Axis]: %s", analogs_options[6] ? "Yes" : "No");
-		setTextColor((7 == cfg_i) ? COLOR_CURSOR : ((analogs_options[7] != ANALOGS_FORCE_DIGITAL_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Right Analog [Y Axis]: %s", analogs_options[7] ? "Yes" : "No");
+		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, 520, "(<)(>):change  ([]):reset  (start):reset all                           (O):back");*/
+		drawString(5, screen_h - 24, "(<)(>):change  ([]):reset  (start):reset all                           (O):back");
 		break;
 	case TOUCH_MENU:
 		setTextColor(COLOR_DEFAULT);
@@ -332,46 +312,43 @@ void drawConfigMenu() {
 		drawStringF(15, y+=20, "Point [D] x: %hu", touch_options[14]);
 		setTextColor((15 == cfg_i) ? COLOR_CURSOR : ((touch_options[15] != TOUCH_POINTS_DEF[7]) ? COLOR_ACTIVE : COLOR_DEFAULT));
 		drawStringF(15, y+=20, "Point [D] y: %hu", touch_options[15]);
-		if (16 == cfg_i)
-				setTextColor(COLOR_CURSOR);
-		else if (touch_options[16] == TOUCH_MODE_DEF)
-			setTextColor(COLOR_DEFAULT);
-		else if (touch_options[16] == 2)
-			setTextColor(COLOR_DISABLE);
-		else
-			setTextColor(COLOR_ACTIVE);
+		
+		if (16 == cfg_i) setTextColor(COLOR_CURSOR);
+		else if (touch_options[16] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
+		else if (touch_options[16] == 2) setTextColor(COLOR_DISABLE);
+		else setTextColor(COLOR_ACTIVE);
 		drawStringF(5, y+=20, "Front Touch Mode : %s", str_touch_mode[touch_options[16]]);
-		if (17 == cfg_i)
-				setTextColor(COLOR_CURSOR);
-		else if (touch_options[17] == TOUCH_MODE_DEF)
-			setTextColor(COLOR_DEFAULT);
-		else if (touch_options[17] == 2)
-			setTextColor(COLOR_DISABLE);
-		else
-			setTextColor(COLOR_ACTIVE);
-		drawStringF(5, y+=20, "Rear Touch Mode : %s", str_touch_mode[touch_options[17]]);
+		
+		if (17 == cfg_i) setTextColor(COLOR_CURSOR);
+		else if (touch_options[17] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
+		else if (touch_options[17] == 2) setTextColor(COLOR_DISABLE);
+		else setTextColor(COLOR_ACTIVE);
+		drawStringF(5, y+=20, "Rear  Touch Mode : %s", str_touch_mode[touch_options[17]]);
+		
 		setTextColor(COLOR_HEADER);
-		drawString(5, 520, "(<)(>):change  ([]):reset  (start):reset all                           (O):back");
+		drawString(5, screen_h - 24, "(<)(>):change  ([]):reset  (start):reset all                           (O):back");
 		break;
 	case GYRO_MENU:
-		setTextColor(COLOR_DEFAULT);
-		drawString(5, y+=20, "Sensivity:");
-		setTextColor((0 == cfg_i) ? COLOR_CURSOR : ((gyro_options[0] != GYRO_SENS_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "X Axis: %hhu", gyro_options[0]);
-		setTextColor((1 == cfg_i) ? COLOR_CURSOR : ((gyro_options[1] != GYRO_SENS_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Y Axis: %hhu", gyro_options[1]);
-		setTextColor((2 == cfg_i) ? COLOR_CURSOR : ((gyro_options[2] != GYRO_SENS_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Z Axis: %hhu", gyro_options[2]);
-		setTextColor(COLOR_DEFAULT);
-		drawString(5, y+=20, "Deadzone for digital mode:");
-		setTextColor((3 == cfg_i) ? COLOR_CURSOR : ((gyro_options[3] != GYRO_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "X Axis: %hhu", gyro_options[3]);
-		setTextColor((4 == cfg_i) ? COLOR_CURSOR : ((gyro_options[4] != GYRO_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Y Axis: %hhu", gyro_options[4]);
-		setTextColor((5 == cfg_i) ? COLOR_CURSOR : ((gyro_options[5] != GYRO_DEADZONE_DEF) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Z Axis: %hhu", gyro_options[5]);
+		for (i = calcStartingIndex(cfg_i, GYRO_OPTIONS_NUM + 2, avaliable_entries); i < GYRO_OPTIONS_NUM + 2; i++) {				
+			if (y + 60 > screen_h) break;
+			
+			if (!(i % 4)){	//Headers
+				setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_DEFAULT);
+				drawString(5, y+=20, (i == 0) ? "Sensivity:" : "Deadzone for digital mode:");
+				continue;
+			}
+			
+			int o_idx = (i < 4) ? i - 1 : i - 2; //Index in options file
+			if (i == cfg_i) setTextColor(COLOR_CURSOR);
+			else if (gyro_options[o_idx] != ((o_idx < 4) ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF)) 
+				setTextColor(COLOR_ACTIVE);
+			else setTextColor(COLOR_DEFAULT);
+			drawStringF(15, y+=20, "%s axis: %hhu", 
+				((o_idx % 3) == 2) ? "Z" : ((o_idx % 3) ? "Y" : "X"),
+				gyro_options[o_idx]);
+		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, 520, "(<)(>):change  ([]):reset  (start):reset all                          (O): back");
+		drawString(5, screen_h - 24, "(<)(>):change  ([]):reset  (start):reset all                          (O): back");
 		break;
 	case FUNCS_LIST:
 		for (i = calcStartingIndex(cfg_i, HOOKS_NUM - 1, avaliable_entries); i < HOOKS_NUM - 1; i++) {
@@ -380,7 +357,7 @@ void drawConfigMenu() {
 			if (y + 40 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, 520, "                                                                       (O):back");
+		drawString(5, screen_h - 24, "                                                                       (O):back");
 		break;
 	case CONN_CTRLS:;
 		SceCtrlPortInfo pi;
@@ -393,7 +370,8 @@ void drawConfigMenu() {
 				drawStringF(5, y += 20, "Port %i: %s", i, getControllerName(pi.port[i]));
 				if (y + 40 > screen_h) break;
 			}		
-		drawString(5, 520, "                                                                       (O):back");
+		setTextColor(COLOR_HEADER);
+		drawString(5, screen_h - 24, "                                                                       (O):back");
 	default:
 		break;
 	}
@@ -724,7 +702,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 			menu_entries = TOUCH_OPTIONS_NUM;
 			break;
 		case GYRO_MENU:
-			menu_entries = GYRO_OPTIONS_NUM;
+			menu_entries = GYRO_OPTIONS_NUM + 2;
 			break;
 		case FUNCS_LIST:
 			menu_entries = HOOKS_NUM - 1;
@@ -737,6 +715,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 		}
 		tick = ctrl->timeStamp;
 		curr_buttons = ctrl->buttons;
+		int o_idx; //optins file real index
 		for (int i = 0; i < PHYS_BUTTONS_NUM; i++){
 			if ((curr_buttons & btns[i]) && !(old_buttons & btns[i]))
 				pressedTicks[i] = tick;
@@ -760,7 +739,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 					break;
 				case ANALOG_MENU:
 					if (!(cfg_i % 5)) break;//Skip headers
-					int o_idx = (cfg_i < 5) ? cfg_i - 1 : cfg_i - 2;
+					o_idx = (cfg_i < 5) ? cfg_i - 1 : cfg_i - 2;
 					if (o_idx < 4) analogs_options[o_idx] = (analogs_options[o_idx] + 1) % 128;
 					else analogs_options[o_idx] = !analogs_options[o_idx];
 					break;
@@ -771,7 +750,9 @@ void configInputHandler(SceCtrlData *ctrl) {
 						touch_options[cfg_i] = (touch_options[cfg_i] + 1) % 3;
 					break;
 				case GYRO_MENU:
-					gyro_options[cfg_i] = (gyro_options[cfg_i] + 1) % 200;
+					if (!(cfg_i % 4)) break;//Skip headers
+					o_idx = (cfg_i < 4) ? cfg_i - 1 : cfg_i - 2;
+					gyro_options[o_idx] = (gyro_options[o_idx] + 1) % 200;
 					break;
 				}
 				break;
@@ -785,7 +766,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 					break;
 				case ANALOG_MENU:
 					if (!(cfg_i % 5)) break;//Skip headers
-					int o_idx = (cfg_i < 5) ? cfg_i - 1 : cfg_i - 2;
+					o_idx = (cfg_i < 5) ? cfg_i - 1 : cfg_i - 2;
 					if (analogs_options[o_idx]) 	
 						analogs_options[o_idx]--;
 					else
@@ -802,10 +783,12 @@ void configInputHandler(SceCtrlData *ctrl) {
 					}
 					break;
 				case GYRO_MENU:
-					if (gyro_options[cfg_i]) 	
-						gyro_options[cfg_i]--;
+					if (!(cfg_i % 4)) break;//Skip headers
+					o_idx = (cfg_i < 4) ? cfg_i - 1 : cfg_i - 2;
+					if (gyro_options[o_idx]) 	
+						gyro_options[o_idx]--;
 					else
-						gyro_options[cfg_i] = 199;
+						gyro_options[o_idx] = 199;
 					break;
 				}
 				break;
@@ -862,7 +845,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 					break;
 				case ANALOG_MENU:
 					if (!(cfg_i % 5)) break;//Skip headers
-					int o_idx = (cfg_i < 5) ? cfg_i - 1 : cfg_i - 2;
+					o_idx = (cfg_i < 5) ? cfg_i - 1 : cfg_i - 2;
 					analogs_options[o_idx] = (o_idx) ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF;
 					break;
 				case TOUCH_MENU: 
@@ -871,8 +854,10 @@ void configInputHandler(SceCtrlData *ctrl) {
 					else 
 						touch_options[cfg_i] = TOUCH_MODE_DEF;
 					break;
-				case GYRO_MENU: 
-					gyro_options[cfg_i] = (cfg_i < 3) ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF;
+				case GYRO_MENU:
+					if (!(cfg_i % 4)) break;//Skip headers
+					o_idx = (cfg_i < 4) ? cfg_i - 1 : cfg_i - 2; 
+					gyro_options[o_idx] = (o_idx < 3) ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF;
 					break;
 				}
 				break;
