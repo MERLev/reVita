@@ -11,7 +11,7 @@
 #define TARGET_REMAPS     42 // Supported target remaps num
 #define BUTTONS_NUM       38 // Supported buttons num
 #define MENU_MODES        7  // Menu modes num
-#define LONG_PRESS_TIME   400000
+#define LONG_PRESS_TIME   350000	//0.35sec
 #define COLOR_DEFAULT     0x00FFFFFF
 #define COLOR_HEADER      0x00FF00FF
 #define COLOR_CURSOR      0x0000FF00
@@ -59,19 +59,16 @@ enum{
 	NEGATIVE
 };
 
-
 static uint8_t btn_mask[BUTTONS_NUM];
 static SceCtrlData remappedBuffers[HOOKS_NUM-5][BUFFERS_NUM];
 static int remappedBuffersSizes[HOOKS_NUM];
 static int remappedBuffersIdxs[HOOKS_NUM];
-static SceCtrlData pstv_fakepad;
-
+//static SceCtrlData pstv_fakepad;
 
 typedef struct EmulatedTouch{
 	SceTouchReport reports[MULTITOUCH_FRONT_NUM];
 	uint8_t num;
 }EmulatedTouch;
-
 EmulatedTouch etFront, etRear, prevEtFront, prevEtRear;
 static uint8_t etFrontIdCounter = 64;
 static uint8_t etRearIdCounter = 64;
@@ -99,6 +96,8 @@ static uint8_t internal_ext_call = 0;
 static uint8_t analogs_options[ANOLOGS_OPTIONS_NUM];
 static uint8_t gyro_options[GYRO_OPTIONS_NUM];
 static uint16_t touch_options[TOUCH_OPTIONS_NUM];
+static uint16_t controller_options[1] = {0};
+static uint16_t options[1] = {0};
 static uint8_t used_funcs[HOOKS_NUM-1];
 
 static char* str_menus[MENU_MODES] = {
@@ -384,6 +383,15 @@ void drawConfigMenu() {
 	}
 }
 
+void storeTouchPoint(EmulatedTouch *et, uint16_t x, uint16_t y){
+	for (int i = 0; i < et->num; i++)
+		if (et->reports[i].x == x && et->reports[i].y == y)
+			return;
+	et->reports[et->num].x = x;
+	et->reports[et->num].y = y;
+	et->num++;
+}
+
 void applyRemapRule(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos) {
 	if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) { // -> Btn
 		if (!(*map & btns[btn_mask[btn_idx]])) {
@@ -400,25 +408,25 @@ void applyRemapRule(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos) {
 		stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] += 127;
 	} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 24){	// -> Touch
 		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 14){		//Front touch default
-			if (etFront.num == MULTITOUCH_FRONT_NUM) return;		
-			etFront.reports[etFront.num].x = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2] * 2;
-			etFront.reports[etFront.num].y = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2 + 1] * 2;
-			etFront.num++;
+			if (etFront.num == MULTITOUCH_FRONT_NUM) return;
+			storeTouchPoint(&etFront,
+				TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2] * 2,
+				TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2 + 1] * 2);
 		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 18){	//Front touch custom
 			if (etFront.num == MULTITOUCH_FRONT_NUM) return;
-			etFront.reports[etFront.num].x = touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2] * 2;
-			etFront.reports[etFront.num].y = touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2 + 1] * 2;
-			etFront.num++;
+			storeTouchPoint(&etFront,
+				touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2] * 2,
+				touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2 + 1] * 2);
 		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 22){	//Rear  touch default
 			if (etRear.num == MULTITOUCH_REAR_NUM) return;
-			etRear.reports[etRear.num].x = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2] * 2;
-			etRear.reports[etRear.num].y = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2 + 1] * 2;
-			etRear.num++;
+			storeTouchPoint(&etRear,
+				TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2] * 2,
+				TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2 + 1] * 2);
 		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 26){	//Rear touch custom
 			if (etRear.num == MULTITOUCH_REAR_NUM) return;
-			etRear.reports[etRear.num].x = touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2] * 2;
-			etRear.reports[etRear.num].y = touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2 + 1] * 2;
-			etRear.num++;
+			storeTouchPoint(&etRear,
+				touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2] * 2,
+				touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2 + 1] * 2);
 		}
 	}
 }
@@ -449,10 +457,6 @@ void applyRemapRuleForGyro(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos, f
 
 void applyRemap(SceCtrlData *ctrl) {
 	// Gathering real touch data
-	prevEtFront = etFront;
-	prevEtRear = etRear;
-	etFront.num = 0;
-	etRear.num = 0;
 	SceTouchData front, rear;
 	internal_touch_call = 1;
 	sceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
@@ -595,14 +599,16 @@ uint8_t generateTouchId(int x, int y, int panel){
 }
 
 
-void addVirtualTouches(SceTouchData *pData, EmulatedTouch et, 
+void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et, 
 		uint8_t touchPointsMaxNum, int panel){
 	int touchIdx = 0;
-	while (touchIdx < et.num && pData->reportNum < touchPointsMaxNum){
-		pData->report[pData->reportNum].x = et.reports[touchIdx].x;
-		pData->report[pData->reportNum].y = et.reports[touchIdx].y;
-		/*pData->report[pData->reportNum].id = generateTouchId(
-			touchPoints[touchIdx*2], touchPoints[touchIdx*2]+ 1, panel);*/
+	while (touchIdx < et->num && pData->reportNum < touchPointsMaxNum){
+		pData->report[pData->reportNum].x = et->reports[touchIdx].x;
+		pData->report[pData->reportNum].y = et->reports[touchIdx].y;
+		et->reports[touchIdx].id = generateTouchId(
+			et->reports[touchIdx].x, et->reports[touchIdx].y, panel);
+		pData->report[pData->reportNum].id = et->reports[touchIdx].id;
+		et->reports[touchIdx].id = pData->report[pData->reportNum].id;
 		pData->reportNum ++;
 		touchIdx ++;
 	}
@@ -617,8 +623,10 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				(btn_mask[PHYS_BUTTONS_NUM+2] != PHYS_BUTTONS_NUM) ||
 				(btn_mask[PHYS_BUTTONS_NUM+3] != PHYS_BUTTONS_NUM))))
 			pData->reportNum = 0; //Disable pad
-		addVirtualTouches(pData, etFront, 
+		addVirtualTouches(pData, &etFront, 
 			MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
+		prevEtFront = etFront;
+		etFront.num = 0;
 	} else {
 		if (touch_options[17] == 2 || 
 			(touch_options[17] == 1 &&
@@ -627,8 +635,10 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				(btn_mask[PHYS_BUTTONS_NUM+6] != PHYS_BUTTONS_NUM) ||
 				(btn_mask[PHYS_BUTTONS_NUM+7] != PHYS_BUTTONS_NUM))))
 			pData->reportNum = 0; //Disable pad
-		addVirtualTouches(pData, etRear, 
+		addVirtualTouches(pData, &etRear, 
 			MULTITOUCH_REAR_NUM, SCE_TOUCH_PORT_BACK);
+		prevEtRear = etRear;
+		etRear.num = 0;
 	}
 }
 
@@ -986,6 +996,47 @@ void remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 	ctrl[count-1] = remappedBuffers[hookId][buffIdx];
 }
 
+int patchReadToExt(int port, SceCtrlData *ctrl, int count){
+	if (controller_options[0] <= 0 || controller_options[0] == port)
+		return count;
+	//sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
+	internal_ext_call = 1;
+	SceCtrlData pstv_fakepad[count];
+	int ret = sceCtrlReadBufferPositiveExt2(controller_options[0], &pstv_fakepad[0], count);
+	internal_ext_call = 0;
+	if (ret < 0)
+		return count;
+	//ToDo R1 <> RT mby ?
+	for (int i = 0; i < ret; i++)
+		ctrl[i].buttons = pstv_fakepad->buttons;
+	return ret;
+}
+
+int patchPeekToExt(int port, SceCtrlData *ctrl, int count){
+	if (controller_options[0] <= 0 || controller_options[0] == port)
+		return count;
+	//sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
+	internal_ext_call = 1;
+	SceCtrlData pstv_fakepad[count];
+	int ret = sceCtrlPeekBufferPositiveExt2(controller_options[0], &pstv_fakepad[0], count);
+	internal_ext_call = 0;
+	if (ret < 0)
+		return count;
+	//ToDo R1 <> RT mby ?
+	for (int i = 0; i < ret; i++)
+		ctrl[i].buttons = pstv_fakepad->buttons;
+	return ret;
+}
+
+int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs){
+	if (nBufs && !show_menu) updateTouchInfo(port, &pData[nBufs - 1]);
+	if (options[0]){//Compability mode - return only one buffer
+		pData[0] = pData[nBufs - 1];
+		return 1;
+	}
+	return nBufs;
+}
+
 // Simplified generic hooking function
 void hookFunction(uint32_t nid, const void *func) {
 	hooks[current_hook] = taiHookFunctionImport(&refs[current_hook],TAI_MAIN_MODULE,TAI_ANY_LIBRARY,nid,func);
@@ -994,86 +1045,41 @@ void hookFunction(uint32_t nid, const void *func) {
 
 int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, count);
-	switch (model) {
-		case SCE_KERNEL_MODEL_VITATV:
-			internal_ext_call = 1;
-			sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
-			sceCtrlPeekBufferPositiveExt2(1, &pstv_fakepad, 1);
-			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
-			internal_ext_call = 0;
-		default:
-			remap(ctrl, ret, 0, POSITIVE);
-			used_funcs[0] = 1;
-			break;
-	}
+	ret = patchPeekToExt(port, ctrl, count);
+	remap(ctrl, ret, 0, POSITIVE);
+	used_funcs[0] = 1;
 	return ret;
 }
 
 int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, count);
-	switch (model) {
-		case SCE_KERNEL_MODEL_VITATV:
-			internal_ext_call = 1;
-			sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
-			sceCtrlPeekBufferPositiveExt2(1, &pstv_fakepad, 1);
-			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
-			internal_ext_call = 0;
-		default:
-			remap(ctrl, ret, 1, POSITIVE);
-			used_funcs[1] = 1;
-			break;
-	}
+	ret = patchPeekToExt(port, ctrl, count);
+	remap(ctrl, ret, 1, POSITIVE);
+	used_funcs[1] = 1;
 	return ret;
 }
 
 int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, count);
-	switch (model) {
-		case SCE_KERNEL_MODEL_VITATV:
-			internal_ext_call = 1;
-			sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
-			sceCtrlReadBufferPositiveExt2(1, &pstv_fakepad, 1);
-			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
-			internal_ext_call = 0;
-		default:
-			remap(ctrl, ret, 2, POSITIVE);
-			used_funcs[2] = 1;
-			break;
-	}
+	ret = patchReadToExt(port, ctrl, count);
+	remap(ctrl, ret, 2, POSITIVE);
+	used_funcs[2] = 1;
 	return ret;
 }
 
 int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, count);
-	switch (model) {
-		case SCE_KERNEL_MODEL_VITATV:
-			internal_ext_call = 1;
-			sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
-			sceCtrlReadBufferPositiveExt2(1, &pstv_fakepad, 1);
-			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
-			internal_ext_call = 0;
-		default:
-			remap(ctrl, ret, 3, POSITIVE);
-			used_funcs[3] = 1;
-			break;
-	}
+	ret = patchReadToExt(port, ctrl, count);
+	remap(ctrl, ret, 3, POSITIVE);
+	used_funcs[3] = 1;
 	return ret;
 }
 
 int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[4], port, ctrl, count);
-	switch (model) {
-		case SCE_KERNEL_MODEL_VITATV:
-			internal_ext_call = 1;
-			sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
-			sceCtrlPeekBufferPositiveExt2(1, &pstv_fakepad, 1);
-			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
-			internal_ext_call = 0;
-		default:
-			remap(ctrl, ret, 4, POSITIVE);
-			used_funcs[4] = 1;
-			break;
-	}
+	ret = patchPeekToExt(port, ctrl, count);
+	remap(ctrl, ret, 4, POSITIVE);
+	used_funcs[4] = 1;
 	return ret;
 }
 
@@ -1087,18 +1093,9 @@ int sceCtrlPeekBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count
 
 int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[6], port, ctrl, count);
-	switch (model) {
-		case SCE_KERNEL_MODEL_VITATV:
-			internal_ext_call = 1;
-			sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
-			sceCtrlReadBufferPositiveExt2(1, &pstv_fakepad, 1);
-			ctrl[ret - 1].buttons = pstv_fakepad.buttons;
-			internal_ext_call = 0;
-		default:
-			remap(ctrl, ret, 6, POSITIVE);
-			used_funcs[6] = 1;
-			break;
-	}
+	ret = patchReadToExt(port, ctrl, count);
+	remap(ctrl, ret, 6, POSITIVE);
+	used_funcs[6] = 1;
 	return ret;
 }
 
@@ -1140,41 +1137,26 @@ int sceCtrlReadBufferNegative2_patched(int port, SceCtrlData *ctrl, int count) {
 
 int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[12], port, pData, nBufs);
-	if (!show_menu) updateTouchInfo(port, &pData[ret - 1]);
-	/*for (int i = 0; i < pData[ret - 1].reportNum; i++)
-		pData[ret - 1].report[i].id = 0;*/
 	used_funcs[12] = 1;
-	return ret;
+	return onTouch(port, pData, ret);
 }
 
 int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[13], port, pData, nBufs);
-	if (!show_menu) updateTouchInfo(port, &pData[ret - 1]);
-	/*for (int i = 0; i < pData[ret - 1].reportNum; i++)
-		pData[ret - 1].report[i].id = 0;*/
-	pData[0] = pData[ret - 1];
-	
 	used_funcs[13] = 1;
-	return 1;
+	return onTouch(port, pData, ret);
 }
 
 int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[14], port, pData, nBufs);
-	if (internal_touch_call) return ret;
-	if (!show_menu) updateTouchInfo(port, &pData[ret - 1]);
-	/*for (int i = 0; i < pData[ret - 1].reportNum; i++)
-		pData[ret - 1].report[i].id = 0;*/
 	used_funcs[14] = 1;
-	return ret;
+	return onTouch(port, pData, ret);
 }
 
 int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[15], port, pData, nBufs);
-	if (!show_menu) updateTouchInfo(port, &pData[ret - 1]);
-	/*for (int i = 0; i < pData[ret - 1].reportNum; i++)
-		pData[ret - 1].report[i].id = 0;*/
 	used_funcs[15] = 1;
-	return ret;
+	return onTouch(port, pData, ret);
 }
 
 int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
