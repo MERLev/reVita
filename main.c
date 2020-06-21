@@ -59,15 +59,22 @@ enum{
 	NEGATIVE
 };
 
+
 static uint8_t btn_mask[BUTTONS_NUM];
 static SceCtrlData remappedBuffers[HOOKS_NUM-5][BUFFERS_NUM];
 static int remappedBuffersSizes[HOOKS_NUM];
 static int remappedBuffersIdxs[HOOKS_NUM];
 static SceCtrlData pstv_fakepad;
-static uint8_t touchPointsFrontNum;
-static uint8_t touchPointsRearNum;
-static uint16_t touchPointsFront[MULTITOUCH_FRONT_NUM * 2];
-static uint16_t touchPointsRear[MULTITOUCH_REAR_NUM * 2]; 
+
+
+typedef struct EmulatedTouch{
+	SceTouchReport reports[MULTITOUCH_FRONT_NUM];
+	uint8_t num;
+}EmulatedTouch;
+
+EmulatedTouch etFront, etRear, prevEtFront, prevEtRear;
+static uint8_t etFrontIdCounter = 64;
+static uint8_t etRearIdCounter = 64;
 
 static uint8_t new_frame = 1;
 static int screen_h = 272;
@@ -393,25 +400,25 @@ void applyRemapRule(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos) {
 		stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] += 127;
 	} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 24){	// -> Touch
 		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 14){		//Front touch default
-			if (touchPointsFrontNum == MULTITOUCH_FRONT_NUM) return;
-			touchPointsFront[touchPointsFrontNum*2] = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2] * 2;
-			touchPointsFront[touchPointsFrontNum*2+1] = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2 + 1] * 2;
-			touchPointsFrontNum++;
+			if (etFront.num == MULTITOUCH_FRONT_NUM) return;		
+			etFront.reports[etFront.num].x = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2] * 2;
+			etFront.reports[etFront.num].y = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2 + 1] * 2;
+			etFront.num++;
 		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 18){	//Front touch custom
-			if (touchPointsFrontNum == MULTITOUCH_FRONT_NUM) return;
-			touchPointsFront[touchPointsFrontNum*2] = touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2] * 2;
-			touchPointsFront[touchPointsFrontNum*2+1] = touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2 + 1] * 2;
-			touchPointsFrontNum++;
+			if (etFront.num == MULTITOUCH_FRONT_NUM) return;
+			etFront.reports[etFront.num].x = touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2] * 2;
+			etFront.reports[etFront.num].y = touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2 + 1] * 2;
+			etFront.num++;
 		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 22){	//Rear  touch default
-			if (touchPointsRearNum == MULTITOUCH_REAR_NUM) return;
-			touchPointsRear[touchPointsRearNum*2] = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2] * 2;
-			touchPointsRear[touchPointsRearNum*2+1] = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2 + 1] * 2;
-			touchPointsRearNum++;
+			if (etRear.num == MULTITOUCH_REAR_NUM) return;
+			etRear.reports[etRear.num].x = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2] * 2;
+			etRear.reports[etRear.num].y = TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2 + 1] * 2;
+			etRear.num++;
 		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 26){	//Rear touch custom
-			if (touchPointsRearNum == MULTITOUCH_REAR_NUM) return;
-			touchPointsRear[touchPointsRearNum*2] = touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2] * 2;
-			touchPointsRear[touchPointsRearNum*2+1] = touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2 + 1] * 2;
-			touchPointsRearNum++;
+			if (etRear.num == MULTITOUCH_REAR_NUM) return;
+			etRear.reports[etRear.num].x = touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2] * 2;
+			etRear.reports[etRear.num].y = touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2 + 1] * 2;
+			etRear.num++;
 		}
 	}
 }
@@ -442,8 +449,10 @@ void applyRemapRuleForGyro(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos, f
 
 void applyRemap(SceCtrlData *ctrl) {
 	// Gathering real touch data
-	touchPointsFrontNum = 0;
-	touchPointsRearNum = 0;
+	prevEtFront = etFront;
+	prevEtRear = etRear;
+	etFront.num = 0;
+	etRear.num = 0;
 	SceTouchData front, rear;
 	internal_touch_call = 1;
 	sceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
@@ -569,12 +578,31 @@ void applyRemap(SceCtrlData *ctrl) {
 	ctrl->buttons = new_map;
 }
 
-void addVirtualTouches(SceTouchData *pData, uint16_t* touchPoints, 
-		uint8_t touchPointsNum, uint8_t touchPointsMaxNum){
+uint8_t generateTouchId(int x, int y, int panel){
+	if (panel == SCE_TOUCH_PORT_FRONT){
+		for (int i = 0; i < prevEtFront.num; i++)
+			if (prevEtFront.reports[i].x == x && prevEtFront.reports[i].y == y)
+				return prevEtFront.reports[i].id;
+		etFrontIdCounter = (etFrontIdCounter + 1) % 127;
+		return etFrontIdCounter;
+	} else {
+		for (int i = 0; i < prevEtRear.num; i++)
+			if (prevEtRear.reports[i].x == x && prevEtRear.reports[i].y == y)
+				return prevEtRear.reports[i].id;
+		etRearIdCounter = (etRearIdCounter + 1) % 127;
+		return etRearIdCounter;
+	}
+}
+
+
+void addVirtualTouches(SceTouchData *pData, EmulatedTouch et, 
+		uint8_t touchPointsMaxNum, int panel){
 	int touchIdx = 0;
-	while (touchIdx < touchPointsNum && pData->reportNum < touchPointsMaxNum){
-		pData->report[pData->reportNum].x = touchPoints[touchIdx*2];
-		pData->report[pData->reportNum].y = touchPoints[touchIdx*2 + 1];
+	while (touchIdx < et.num && pData->reportNum < touchPointsMaxNum){
+		pData->report[pData->reportNum].x = et.reports[touchIdx].x;
+		pData->report[pData->reportNum].y = et.reports[touchIdx].y;
+		/*pData->report[pData->reportNum].id = generateTouchId(
+			touchPoints[touchIdx*2], touchPoints[touchIdx*2]+ 1, panel);*/
 		pData->reportNum ++;
 		touchIdx ++;
 	}
@@ -589,7 +617,8 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				(btn_mask[PHYS_BUTTONS_NUM+2] != PHYS_BUTTONS_NUM) ||
 				(btn_mask[PHYS_BUTTONS_NUM+3] != PHYS_BUTTONS_NUM))))
 			pData->reportNum = 0; //Disable pad
-		addVirtualTouches(pData, touchPointsFront, touchPointsFrontNum, MULTITOUCH_FRONT_NUM);
+		addVirtualTouches(pData, etFront, 
+			MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
 	} else {
 		if (touch_options[17] == 2 || 
 			(touch_options[17] == 1 &&
@@ -598,7 +627,8 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				(btn_mask[PHYS_BUTTONS_NUM+6] != PHYS_BUTTONS_NUM) ||
 				(btn_mask[PHYS_BUTTONS_NUM+7] != PHYS_BUTTONS_NUM))))
 			pData->reportNum = 0; //Disable pad
-		addVirtualTouches(pData, touchPointsRear, touchPointsRearNum, MULTITOUCH_REAR_NUM);
+		addVirtualTouches(pData, etRear, 
+			MULTITOUCH_REAR_NUM, SCE_TOUCH_PORT_BACK);
 	}
 }
 
@@ -1110,29 +1140,39 @@ int sceCtrlReadBufferNegative2_patched(int port, SceCtrlData *ctrl, int count) {
 
 int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[12], port, pData, nBufs);
-	if (!show_menu) updateTouchInfo(port, pData);
+	if (!show_menu) updateTouchInfo(port, &pData[ret - 1]);
+	/*for (int i = 0; i < pData[ret - 1].reportNum; i++)
+		pData[ret - 1].report[i].id = 0;*/
 	used_funcs[12] = 1;
 	return ret;
 }
 
 int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[13], port, pData, nBufs);
-	if (!show_menu) updateTouchInfo(port, pData);
+	if (!show_menu) updateTouchInfo(port, &pData[ret - 1]);
+	/*for (int i = 0; i < pData[ret - 1].reportNum; i++)
+		pData[ret - 1].report[i].id = 0;*/
+	pData[0] = pData[ret - 1];
+	
 	used_funcs[13] = 1;
-	return ret;
+	return 1;
 }
 
 int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[14], port, pData, nBufs);
 	if (internal_touch_call) return ret;
-	if (!show_menu) updateTouchInfo(port, pData);
+	if (!show_menu) updateTouchInfo(port, &pData[ret - 1]);
+	/*for (int i = 0; i < pData[ret - 1].reportNum; i++)
+		pData[ret - 1].report[i].id = 0;*/
 	used_funcs[14] = 1;
 	return ret;
 }
 
 int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[15], port, pData, nBufs);
-	if (!show_menu) updateTouchInfo(port, pData);
+	if (!show_menu) updateTouchInfo(port, &pData[ret - 1]);
+	/*for (int i = 0; i < pData[ret - 1].reportNum; i++)
+		pData[ret - 1].report[i].id = 0;*/
 	used_funcs[15] = 1;
 	return ret;
 }
