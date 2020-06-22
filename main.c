@@ -6,17 +6,25 @@
 #include <stdlib.h>
 #include "renderer.h"
 
+#define VERSION				1
+#define SUBVERSION			2
+
 #define HOOKS_NUM         17 // Hooked functions num
 #define PHYS_BUTTONS_NUM  16 // Supported physical buttons num
 #define TARGET_REMAPS     42 // Supported target remaps num
 #define BUTTONS_NUM       38 // Supported buttons num
-#define MENU_MODES        7  // Menu modes num
+#define MENU_MODES        8  // Menu modes num
 #define LONG_PRESS_TIME   350000	//0.35sec
 #define COLOR_DEFAULT     0x00FFFFFF
 #define COLOR_HEADER      0x00FF00FF
 #define COLOR_CURSOR      0x0000FF00
-#define COLOR_ACTIVE      0x00FF0000
+#define COLOR_ACTIVE      0x0000FFFF
 #define COLOR_DISABLE     0x000000FF
+#define L_0    5		//Left margin for text
+#define L_1    18		//Left margin for text
+#define L_2    36
+#define L_3    54
+
 #define BUFFERS_NUM      			64
 #define ANALOGS_DEADZONE_DEF		30
 #define ANALOGS_FORCE_DIGITAL_DEF	0
@@ -26,22 +34,30 @@
 #define GYRO_OPTIONS_NUM			6
 #define MULTITOUCH_FRONT_NUM		6
 #define MULTITOUCH_REAR_NUM			4
-#define TOUCH_OPTIONS_NUM			18
+#define TOUCH_OPTIONS_NUM			19
 #define TOUCH_MODE_DEF				1
-#define CONN_CTRLS_NUM				5
+#define CNTRL_OPTIONS_NUM			2
+#define CREDITS_NUM					3
 
 #ifndef max
 # define max(a,b) (((a)>(b))?(a):(b))
 # define min(a,b) (((a)<(b))?(a):(b))
+# define lim(a,min,max) (((a)>(min))?((a<max)(a):(max)):(min))
 #endif
 
-//Front resolution : 960x544
-//Rear resolution: 960x445
-static const uint16_t TOUCH_POINTS_DEF[8] = {
-	300, 136,	//TL
-	640, 136,	//TR
-	300, 408,	//BL
-	640, 408	//BR
+static const uint16_t TOUCH_POINTS_DEF[16] = {
+	600, 272,	//Front TL
+	1280, 272,	//		TR
+	600, 816,	//		BL
+	1280, 816,	//		BR
+	600, 272,	//Rear	TL
+	1280, 272,	//		TR
+	600, 608,	//		BL
+	1280, 608	//		BR
+};
+
+static const uint8_t CNTRL_DEF[CNTRL_OPTIONS_NUM] = {
+	0, 0,
 };
 
 enum{
@@ -50,8 +66,9 @@ enum{
 	ANALOG_MENU,
 	TOUCH_MENU,
 	GYRO_MENU,
+	CNTRL_MENU,
 	FUNCS_LIST,
-	CONN_CTRLS
+	CREDITS_MENU
 };
 
 enum{
@@ -63,7 +80,6 @@ static uint8_t btn_mask[BUTTONS_NUM];
 static SceCtrlData remappedBuffers[HOOKS_NUM-5][BUFFERS_NUM];
 static int remappedBuffersSizes[HOOKS_NUM];
 static int remappedBuffersIdxs[HOOKS_NUM];
-//static SceCtrlData pstv_fakepad;
 
 typedef struct EmulatedTouch{
 	SceTouchReport reports[MULTITOUCH_FRONT_NUM];
@@ -72,10 +88,15 @@ typedef struct EmulatedTouch{
 EmulatedTouch etFront, etRear, prevEtFront, prevEtRear;
 static uint8_t etFrontIdCounter = 64;
 static uint8_t etRearIdCounter = 64;
+static uint16_t TOUCH_SIZE[4] = {
+	1920, 1088,	//Front
+	1919, 890	//Rear
+};
 
 static uint8_t new_frame = 1;
 static int screen_h = 272;
 static int screen_w = 480;
+static uint32_t ticker;
 static uint8_t show_menu = 0;
 static int cfg_i = 0;
 static int menu_i = MAIN_MENU;
@@ -96,12 +117,18 @@ static uint8_t internal_ext_call = 0;
 static uint8_t analogs_options[ANOLOGS_OPTIONS_NUM];
 static uint8_t gyro_options[GYRO_OPTIONS_NUM];
 static uint16_t touch_options[TOUCH_OPTIONS_NUM];
-static uint16_t controller_options[1] = {0};
-static uint16_t options[1] = {0};
+static uint8_t controller_options[CNTRL_OPTIONS_NUM];
 static uint8_t used_funcs[HOOKS_NUM-1];
 
 static char* str_menus[MENU_MODES] = {
-	"MAIN MENU", "REMAP MENU", "ANALOG MENU", "TOUCH MENU", "GYRO_MENU", "USED FUNCTIONS", "CONNECTED CONTROLLERS"
+	"MAIN MENU", 
+	"REMAP MENU", 
+	"ANALOG MENU", 
+	"TOUCH MENU", 
+	"GYRO_MENU", 
+	"CONNECTED CONTROLLERS", 
+	"USED FUNCTIONS",
+	"CREDITS"
 };
 
 static char* str_main_menu[] = {
@@ -109,12 +136,23 @@ static char* str_main_menu[] = {
 	"Change analog remap settings",
 	"Change touch remap settings",
 	"Change gyro remap settings",
+	"Setup external gamepads",
 	"Show imported functions",
-	"Show connected gamepads",
+	"Credits",
 	"Return to the game"
 };
 
-static char* str_touch_mode[3] = {
+static char* str_credits[] = {
+	"Thanks to ", 
+	"Tain Sueiras, nobodywasishere and RaveHeart",
+	"for their awesome support on Patreon"
+};
+
+static char* str_yes_no[] = {
+	"No", "Yes"
+};
+
+static char* str_touch_mode[] = {
 	"Always on", "Disable if remapped", "Disable"
 };
 
@@ -169,6 +207,7 @@ static char* target_btns[TARGET_REMAPS] = {
 	"Rear (TL)", "Rear (TR)", "Rear (BL)", "Rear (BR)",
 	"Rear (Point [A])", "Rear (Point [B])", "Rear (Point [C])", "Rear (Point [D])",
 };
+static char* touch_points[4] = {"A", "B", "C", "D"};
 
 // Generic clamp function
 int32_t clamp(int32_t value, int32_t mini, int32_t maxi) {
@@ -182,27 +221,33 @@ static uint8_t menuActivator_mask[2] = {
 	4, 3
 };
 
-void resetRemaps(){
+void resetRemapsOptions(){
 	for (int i = 0; i < BUTTONS_NUM; i++) {
 		btn_mask[i] = PHYS_BUTTONS_NUM;
 	}
 }
 
-void resetAnalogs(){
+void resetAnalogsOptions(){
 	for (int i = 0; i < ANOLOGS_OPTIONS_NUM; i++)
 		analogs_options[i] = i < 4 ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF;
 }
 
-void resetTouch(){
-	for (int i = 0; i < TOUCH_OPTIONS_NUM - 2; i++)
-		touch_options[i] = TOUCH_POINTS_DEF[i % 8];
+void resetTouchOptions(){
+	for (int i = 0; i < TOUCH_OPTIONS_NUM - 3; i++)
+		touch_options[i] = TOUCH_POINTS_DEF[i];
 	touch_options[16] = TOUCH_MODE_DEF;
 	touch_options[17] = TOUCH_MODE_DEF;
+	touch_options[18] = 0;
 }
 
-void resetGyro(){
+void resetGyroOptions(){
 	for (int i = 0; i < GYRO_OPTIONS_NUM; i++)
 		gyro_options[i] = i < 3 ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF;
+}
+
+void resetCntrlOptions(){
+	for (int i = 0; i < CNTRL_OPTIONS_NUM; i++)
+		controller_options[i] = CNTRL_DEF[i];
 }
 
 char* getControllerName(int id){
@@ -216,49 +261,63 @@ char* getControllerName(int id){
 
 int calcStartingIndex(int idx, int entriesNum, int screenEntries){
 	int bottom_l = 3;
-	if (idx < screenEntries + 1 - bottom_l) return 0;
-	else if (idx < entriesNum - 1 - bottom_l) return idx - (screenEntries + 1 - bottom_l);
-	else return entriesNum - screenEntries + 1 - bottom_l;
+	int ret = max(0, idx - (screenEntries - bottom_l));
+	while (ret > 0 && (entriesNum - ret - 1) < screenEntries) ret--;
+	return ret;
 }
 // Config Menu Renderer
 void drawConfigMenu() {
 	setTextColor(COLOR_HEADER);
-	drawString(5, 10, "Thanks to Tain Sueiras, nobodywasishere and RaveHeart");
-	drawString(5, 30, "for their awesome support on Patreon");
-	drawStringF(5, 50, "remaPSV v.1.2 - %s", str_menus[menu_i]);
+	drawStringF(L_0, 10, "remaPSV v.%hhu.%hhu - %s", VERSION, SUBVERSION, str_menus[menu_i]);
+	//drawStringF(450, 10, "touchpad rear: %hu x %hu", debug3, debug4);
 		
-	int i, y = 50;
+	int i, y = 10;
 	int screen_entries = (screen_h - 50) / 20;
-	int avaliable_entries = screen_entries - 3 - 1;
+	int avaliable_entries = screen_entries - 1 - 1;
 	switch (menu_i){
 	case MAIN_MENU:
 		for (i = calcStartingIndex(cfg_i, sizeof(str_main_menu)/sizeof(char*), avaliable_entries); i < sizeof(str_main_menu)/sizeof(char*); i++) {
+			if (cfg_i == i){//Draw cursor
+				setTextColor(COLOR_CURSOR);
+				drawString(L_0, y + 20, (ticker % 16 < 8) ? "x" : "X");
+			}
+			
 			setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_DEFAULT);
-			drawStringF(5, y += 20, "%s", str_main_menu[i]);
+			drawStringF(L_1, y += 20, "%s", str_main_menu[i]);
 			if (y + 40 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, screen_h - 24, "(X):select                                     (select) or (O) : save and close");
+		drawString(L_0, screen_h - 24, "(X):select                                     (select) or (O) : save and close");
 		break;
 	case REMAP_MENU:
 		for (i = calcStartingIndex(cfg_i, BUTTONS_NUM, avaliable_entries); i < BUTTONS_NUM; i++) {
+			if (cfg_i == i){//Draw cursor
+				setTextColor(COLOR_CURSOR);
+				drawString(L_0, y + 20, (ticker % 16 < 8) ? "<" : ">");
+			}
+			
 			if (i == cfg_i) setTextColor(COLOR_CURSOR);
 			else if (btn_mask[i] == PHYS_BUTTONS_NUM) setTextColor(COLOR_DEFAULT);
 			else if (btn_mask[i] == PHYS_BUTTONS_NUM + 1) setTextColor(COLOR_DISABLE);
 			else setTextColor(COLOR_ACTIVE);
-			drawStringF(5, y += 20, "%s -> %s", str_btns[i], target_btns[btn_mask[i]]);
+			drawStringF(L_1, y += 20, "%s -> %s", str_btns[i], target_btns[btn_mask[i]]);
 			if (y + 60 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, screen_h - 24, "(<)(>):change  (LT)(RT):section  ([]):reset  (start):reset all         (O):back");
+		drawString(L_0, screen_h - 24, "(<)(>):change  (LT)(RT):section  ([]):reset  (start):reset all         (O):back");
 		break;
 	case ANALOG_MENU:
 		for (i = calcStartingIndex(cfg_i, ANOLOGS_OPTIONS_NUM + 2, avaliable_entries); i < ANOLOGS_OPTIONS_NUM + 2; i++) {				
 			if (y + 60 > screen_h) break;
 			
+			if (cfg_i == i){//Draw cursor
+				setTextColor(COLOR_CURSOR);
+				drawString(L_0, y + 20, !(i % 5) ? "-" : ((ticker % 16 < 8) ? "<" : ">"));
+			}
+			
 			if (!(i % 5)){	//Headers
 				setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_DEFAULT);
-				drawString(5, y+=20, (i == 0) ? "Deadzone:" : "Force digital output:");
+				drawString(L_1, y+=20, (i == 0) ? "Deadzone:" : "Force digital output:");
 				continue;
 			}
 			
@@ -268,116 +327,177 @@ void drawConfigMenu() {
 				setTextColor(COLOR_ACTIVE);
 			else setTextColor(COLOR_DEFAULT);
 			if (o_idx < 4)
-				drawStringF(15, y+=20, "%s [%s axis]: %hhu", 
-					((o_idx / 2) % 2 ) ? "Right Analog" : "Left Analog ",
+				drawStringF(L_2, y+=20, "%s [%s axis]: %hhu", 
+					!(o_idx % 2) ? (((o_idx / 2) % 2 ) ? "Right Analog" : "Left Analog "): "            ",
 					(o_idx % 2) ? "Y" : "X",
 					analogs_options[o_idx]);
 			else 
-				drawStringF(15, y+=20, "%s [%s axis]: %s", 
-					((o_idx / 2) % 2 ) ? "Right Analog" : "Left Analog ",
+				drawStringF(L_2, y+=20, "%s [%s axis]: %s", 
+					!(o_idx % 2) ? (((o_idx / 2) % 2 ) ? "Right Analog" : "Left Analog "): "            ",
 					(o_idx % 2) ? "Y" : "X",
 					analogs_options[o_idx] ? "Yes" : "No");	
 		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, screen_h - 24, "(<)(>):change  ([]):reset  (start):reset all                           (O):back");
+		drawString(L_0, screen_h - 24, "(<)(>):change  ([]):reset  (start):reset all                           (O):back");
 		break;
 	case TOUCH_MENU:
-		setTextColor(COLOR_DEFAULT);
-		drawString(5, y+=20, "Front touch:");
-		setTextColor((0 == cfg_i) ? COLOR_CURSOR : ((touch_options[0] != TOUCH_POINTS_DEF[0]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [A] x: %hu", touch_options[0]);
-		setTextColor((1 == cfg_i) ? COLOR_CURSOR : ((touch_options[1] != TOUCH_POINTS_DEF[1]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [A] y: %hu", touch_options[1]);
-		setTextColor((2 == cfg_i) ? COLOR_CURSOR : ((touch_options[2] != TOUCH_POINTS_DEF[2]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [B] x: %hu", touch_options[2]);
-		setTextColor((3 == cfg_i) ? COLOR_CURSOR : ((touch_options[3] != TOUCH_POINTS_DEF[3]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [B] y: %hu", touch_options[3]);
-		setTextColor((4 == cfg_i) ? COLOR_CURSOR : ((touch_options[4] != TOUCH_POINTS_DEF[4]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [C] x: %hu", touch_options[4]);
-		setTextColor((5 == cfg_i) ? COLOR_CURSOR : ((touch_options[5] != TOUCH_POINTS_DEF[5]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [C] y: %hu", touch_options[5]);
-		setTextColor((6 == cfg_i) ? COLOR_CURSOR : ((touch_options[6] != TOUCH_POINTS_DEF[6]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [D] x: %hu", touch_options[6]);
-		setTextColor((7 == cfg_i) ? COLOR_CURSOR : ((touch_options[7] != TOUCH_POINTS_DEF[7]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [D] y: %hu", touch_options[7]);
-		setTextColor(COLOR_DEFAULT);
-		drawString(5, y+=20, "Rear touch:");
-		setTextColor((8  == cfg_i) ? COLOR_CURSOR : ((touch_options[8] != TOUCH_POINTS_DEF[0]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [A] x: %hu", touch_options[8]);
-		setTextColor((9  == cfg_i) ? COLOR_CURSOR : ((touch_options[9] != TOUCH_POINTS_DEF[1]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [A] y: %hu", touch_options[9]);
-		setTextColor((10 == cfg_i) ? COLOR_CURSOR : ((touch_options[10] != TOUCH_POINTS_DEF[2]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [B] x: %hu", touch_options[10]);
-		setTextColor((11 == cfg_i) ? COLOR_CURSOR : ((touch_options[11] != TOUCH_POINTS_DEF[3]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [B] y: %hu", touch_options[11]);
-		setTextColor((12 == cfg_i) ? COLOR_CURSOR : ((touch_options[12] != TOUCH_POINTS_DEF[4]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [C] x: %hu", touch_options[12]);
-		setTextColor((13 == cfg_i) ? COLOR_CURSOR : ((touch_options[13] != TOUCH_POINTS_DEF[5]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [C] y: %hu", touch_options[13]);
-		setTextColor((14 == cfg_i) ? COLOR_CURSOR : ((touch_options[14] != TOUCH_POINTS_DEF[6]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [D] x: %hu", touch_options[14]);
-		setTextColor((15 == cfg_i) ? COLOR_CURSOR : ((touch_options[15] != TOUCH_POINTS_DEF[7]) ? COLOR_ACTIVE : COLOR_DEFAULT));
-		drawStringF(15, y+=20, "Point [D] y: %hu", touch_options[15]);
-		
-		if (16 == cfg_i) setTextColor(COLOR_CURSOR);
-		else if (touch_options[16] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
-		else if (touch_options[16] == 2) setTextColor(COLOR_DISABLE);
-		else setTextColor(COLOR_ACTIVE);
-		drawStringF(5, y+=20, "Front Touch Mode : %s", str_touch_mode[touch_options[16]]);
-		
-		if (17 == cfg_i) setTextColor(COLOR_CURSOR);
-		else if (touch_options[17] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
-		else if (touch_options[17] == 2) setTextColor(COLOR_DISABLE);
-		else setTextColor(COLOR_ACTIVE);
-		drawStringF(5, y+=20, "Rear  Touch Mode : %s", str_touch_mode[touch_options[17]]);
-		
+		for (i = calcStartingIndex(cfg_i, TOUCH_OPTIONS_NUM + 2, avaliable_entries); i < TOUCH_OPTIONS_NUM + 2; i++) {				
+			if (y + 60 > screen_h) break;
+			
+			if (cfg_i == i){//Draw cursor
+				setTextColor(COLOR_CURSOR);
+				drawString(L_0, y + 20, (i == 0 || i == 9) ? "-" : ((ticker % 16 < 8) ? "<" : ">"));
+			}
+			
+			if (i == 0 || i == 9){	//Headers
+				setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_DEFAULT);
+				drawString(L_1, y+=20, (i == 0) ? "Front touch:" : "Rear touch:");
+				continue;
+			}
+			
+			if (i < 18){ //Points
+				int o_idx = (i <= 8) ? i - 1 : i - 2; //Index in options file 
+				if (i == cfg_i) setTextColor(COLOR_CURSOR);
+				else if (touch_options[o_idx] != TOUCH_POINTS_DEF[o_idx]) 
+					setTextColor(COLOR_ACTIVE);
+				else setTextColor(COLOR_DEFAULT);
+				if (o_idx < 16){
+					if (!(o_idx % 2))
+						drawStringF(L_2, y+=20, "Point [%s] x : %hu", 
+							touch_points[(o_idx % 8)/2],
+							touch_options[o_idx]);
+					else 
+						drawStringF(L_2, y+=20, "          y : %hu", 
+							touch_options[o_idx]);
+				}
+				if (y + 60 > screen_h) break;
+			}
+			
+			if (i == 18){ //Front touch mode
+				if (18 == cfg_i) setTextColor(COLOR_CURSOR);
+				else if (touch_options[16] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
+				else if (touch_options[16] == 2) setTextColor(COLOR_DISABLE);
+				else setTextColor(COLOR_ACTIVE);
+				drawStringF(L_1, y+=20, "Front Touch Mode : %s", str_touch_mode[touch_options[16]]);
+				if (y + 60 > screen_h) break;
+			}
+			
+			if (i==19){ //Rear touch mode
+				if (19 == cfg_i) setTextColor(COLOR_CURSOR);
+				else if (touch_options[17] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
+				else if (touch_options[17] == 2) setTextColor(COLOR_DISABLE);
+				else setTextColor(COLOR_ACTIVE);
+				drawStringF(L_1, y+=20, "Rear  Touch Mode : %s", str_touch_mode[touch_options[17]]);
+				if (y + 60 > screen_h) break;
+			}
+			
+			if (i==20){ //Touch compatibility
+				if (20 == cfg_i) setTextColor(COLOR_CURSOR);
+				else if (touch_options[18] == 0) setTextColor(COLOR_DEFAULT);
+				else setTextColor(COLOR_DISABLE);
+				drawStringF(L_1, y+=20, "Touch compatibility mode: %s", str_yes_no[touch_options[18]]);
+				if (y + 60 > screen_h) break;
+			}
+		}
+		//Draw blinking touch pointer
+		if (cfg_i < 18 && cfg_i != 0 && cfg_i != 9){
+			int o_idx = (cfg_i <= 8) ? cfg_i - 1 : cfg_i - 2; //Index in options file 
+			int left = touch_options[o_idx - (o_idx % 2)] - 8;
+			left *= (float)screen_w / ((o_idx < 8) ? TOUCH_SIZE[0] : TOUCH_SIZE[2]);
+			left = min((max(0, left)), screen_w);
+			int top = touch_options[o_idx - (o_idx % 2) + 1] - 10;
+			top *= (float)screen_h / ((o_idx < 8) ? TOUCH_SIZE[1] : TOUCH_SIZE[3]); //Scale to framebuffer size
+			top = min((max(0, top)), screen_h);//limit into screen
+			setTextColor((ticker % 4) ? COLOR_CURSOR : COLOR_DISABLE);
+			drawString(left, top, (ticker % 2) ? "" : "@");
+		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, screen_h - 24, "(<)(>):change  ([]):reset  (start):reset all                           (O):back");
+		drawString(L_0, screen_h - 24, "(<)(>)(RS)[TOUCH]:change  ([]):reset  (start):reset all  (O):back");
 		break;
 	case GYRO_MENU:
 		for (i = calcStartingIndex(cfg_i, GYRO_OPTIONS_NUM + 2, avaliable_entries); i < GYRO_OPTIONS_NUM + 2; i++) {				
 			if (y + 60 > screen_h) break;
 			
+			if (cfg_i == i){//Draw cursor
+				setTextColor(COLOR_CURSOR);
+				drawString(L_0, y + 20, !(i % 4) ? "-" : ((ticker % 16 < 8) ? "<" : ">"));
+			}
+			
 			if (!(i % 4)){	//Headers
 				setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_DEFAULT);
-				drawString(5, y+=20, (i == 0) ? "Sensivity:" : "Deadzone for digital mode:");
+				drawString(L_1, y+=20, (i == 0) ? "Sensivity:" : "Deadzone for digital mode:");
 				continue;
 			}
 			
 			int o_idx = (i < 4) ? i - 1 : i - 2; //Index in options file
 			if (i == cfg_i) setTextColor(COLOR_CURSOR);
-			else if (gyro_options[o_idx] != ((o_idx < 4) ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF)) 
+			else if (gyro_options[o_idx] != ((o_idx < 3) ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF)) 
 				setTextColor(COLOR_ACTIVE);
 			else setTextColor(COLOR_DEFAULT);
-			drawStringF(15, y+=20, "%s axis: %hhu", 
+			drawStringF(L_2, y+=20, "%s axis: %hhu", 
 				((o_idx % 3) == 2) ? "Z" : ((o_idx % 3) ? "Y" : "X"),
 				gyro_options[o_idx]);
 		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, screen_h - 24, "(<)(>):change  ([]):reset  (start):reset all                          (O): back");
+		drawString(L_0, screen_h - 24, "(<)(>):change  ([]):reset  (start):reset all                          (O): back");
+		break;
+	case CNTRL_MENU:;		
+		SceCtrlPortInfo pi;
+		int res = sceCtrlGetControllerPortInfo(&pi);
+		if (res != 0){
+			setTextColor(COLOR_DISABLE);
+			drawString(L_1, y+= 20, "Error getting controllers info");
+		} else {
+			setTextColor(COLOR_CURSOR);
+			drawString(L_0, y + 20 + 20 * (cfg_i % 2), (ticker % 16 < 8) ? "<" : ">");
+			
+			setTextColor(cfg_i == 0 ? COLOR_CURSOR : 
+				(controller_options[0] == CNTRL_DEF[0] ? COLOR_DEFAULT : COLOR_ACTIVE));
+			drawStringF(L_1, y += 20, "Using port: {%i} %s %s", 
+				controller_options[0],
+				getControllerName(pi.port[controller_options[0]]), 
+				controller_options[0] == 0 ? "[DEFAULT]" : "");
+				
+			setTextColor(cfg_i == 1 ? COLOR_CURSOR : 
+				(controller_options[1] == CNTRL_DEF[1] ? COLOR_DEFAULT : COLOR_ACTIVE));
+			drawStringF(L_1, y += 20, "Swap L1<>LT R1<>RT: %s", str_yes_no[controller_options[1]]);
+			
+			y+=20;
+			setTextColor(COLOR_DEFAULT);
+			drawString(L_1, y+= 20, "Detected controllers:");
+			for (int i = max(0, cfg_i - (avaliable_entries + 1)); i < 5; i++){
+				setTextColor((L_1 == cfg_i) ? COLOR_CURSOR : ((pi.port[i] != SCE_CTRL_TYPE_UNPAIRED) ? COLOR_ACTIVE : COLOR_DEFAULT));
+				drawStringF(L_1, y += 20, "Port %i: %s", i, getControllerName(pi.port[i]));
+				if (y + 40 > screen_h) break;
+			}	
+		}
+		setTextColor(COLOR_HEADER);
+		drawString(L_0, screen_h - 24, "(<)(>):change  ([]):reset  (start):reset all                          (O): back");  
 		break;
 	case FUNCS_LIST:
 		for (i = calcStartingIndex(cfg_i, HOOKS_NUM - 1, avaliable_entries); i < HOOKS_NUM - 1; i++) {
+			if (cfg_i == i){//Draw cursor
+				setTextColor(COLOR_CURSOR);
+				drawString(L_0, y + 20, "-");
+			}
+			
 			setTextColor((i == cfg_i) ? COLOR_CURSOR : (used_funcs[i] ? COLOR_ACTIVE : COLOR_DEFAULT));
-			drawStringF(5, y += 20, "%s : %s", str_funcs[i], used_funcs[i] ? "Yes" : "No");
+			drawStringF(L_1, y += 20, "%s : %s", str_funcs[i], used_funcs[i] ? "Yes" : "No");
 			if (y + 40 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, screen_h - 24, "                                                                       (O):back");
-		break;
-	case CONN_CTRLS:;
-		SceCtrlPortInfo pi;
-		int res = sceCtrlGetControllerPortInfo(&pi);
-		if (res != 0)
-			drawString(5, y+= 20, "Error getting port info");
-		else
-			for (int i = max(0, cfg_i - (avaliable_entries + 1)); i < 5; i++){
-				setTextColor((5 == cfg_i) ? COLOR_CURSOR : ((pi.port[i] != SCE_CTRL_TYPE_UNPAIRED) ? COLOR_ACTIVE : COLOR_DEFAULT));
-				drawStringF(5, y += 20, "Port %i: %s", i, getControllerName(pi.port[i]));
-				if (y + 40 > screen_h) break;
-			}		
+		drawString(L_1, screen_h - 24, "(O):back");                                                           
+		break;   
+	case CREDITS_MENU:
+		y+=20;
+		for (i = calcStartingIndex(cfg_i, CREDITS_NUM, avaliable_entries); i < CREDITS_NUM; i++) {			
+			setTextColor(COLOR_DEFAULT);
+			drawStringF(L_2, y += 20, "%s", str_credits[i]);
+			if (y + 40 > screen_h) break;
+		}
 		setTextColor(COLOR_HEADER);
-		drawString(5, screen_h - 24, "                                                                       (O):back");
+		drawString(L_1, screen_h - 24, "(O):back");                                                           
+		break;                                                             
 	default:
 		break;
 	}
@@ -410,23 +530,23 @@ void applyRemapRule(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos) {
 		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 14){		//Front touch default
 			if (etFront.num == MULTITOUCH_FRONT_NUM) return;
 			storeTouchPoint(&etFront,
-				TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2] * 2,
-				TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2 + 1] * 2);
+				TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2],
+				TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2 + 1]);
 		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 18){	//Front touch custom
 			if (etFront.num == MULTITOUCH_FRONT_NUM) return;
 			storeTouchPoint(&etFront,
-				touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2] * 2,
-				touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2 + 1] * 2);
+				touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2],
+				touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2 + 1]);
 		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 22){	//Rear  touch default
 			if (etRear.num == MULTITOUCH_REAR_NUM) return;
 			storeTouchPoint(&etRear,
-				TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2] * 2,
-				TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2 + 1] * 2);
+				TOUCH_POINTS_DEF[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2],
+				TOUCH_POINTS_DEF[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2 + 1]);
 		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 26){	//Rear touch custom
 			if (etRear.num == MULTITOUCH_REAR_NUM) return;
 			storeTouchPoint(&etRear,
-				touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2] * 2,
-				touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2 + 1] * 2);
+				touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2],
+				touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2 + 1]);
 		}
 	}
 }
@@ -476,26 +596,28 @@ void applyRemap(SceCtrlData *ctrl) {
 	}
 	
 	// Applying remap rules for front virtual buttons
+	int left = TOUCH_SIZE[0]/2; int top = TOUCH_SIZE[1]/2;
 	for (i=0;i<front.reportNum;i++) {
-		if (front.report[i].x > 960 && front.report[i].y > 544)       // Bot Right
+		if (front.report[i].x > left && front.report[i].y > top)       // Bot Right
 			applyRemapRule(PHYS_BUTTONS_NUM + 3, &new_map, stickpos);
-		else if (front.report[i].x <= 960 && front.report[i].y > 544) // Bot Left
+		else if (front.report[i].x <= left && front.report[i].y > top) // Bot Left
 			applyRemapRule(PHYS_BUTTONS_NUM + 2, &new_map, stickpos);
-		else if (front.report[i].x > 960 && front.report[i].y <= 544) // Top Right
+		else if (front.report[i].x > left && front.report[i].y <= top) // Top Right
 			applyRemapRule(PHYS_BUTTONS_NUM + 1, &new_map, stickpos);
-		else if (front.report[i].x <= 960 && front.report[i].y <= 544)// Top Left
+		else if (front.report[i].x <= left && front.report[i].y <= top)// Top Left
 			applyRemapRule(PHYS_BUTTONS_NUM, &new_map, stickpos);
 	}
 	
 	// Applying remap rules for rear virtual buttons
+	left = TOUCH_SIZE[2]/2; top = TOUCH_SIZE[3]/2;
 	for (i=0;i<rear.reportNum;i++) {
-		if (rear.report[i].x > 960 && rear.report[i].y > 544)        // Bot Right
+		if (rear.report[i].x > left && rear.report[i].y > top)        // Bot Right
 			applyRemapRule(PHYS_BUTTONS_NUM + 7, &new_map, stickpos);
-		else if (rear.report[i].x <= 960 && rear.report[i].y > 544)  // Bot Left
+		else if (rear.report[i].x <= left && rear.report[i].y > top)  // Bot Left
 			applyRemapRule(PHYS_BUTTONS_NUM + 6, &new_map, stickpos);
-		else if (rear.report[i].x > 960 && rear.report[i].y <= 544)  // Top Right
+		else if (rear.report[i].x > left && rear.report[i].y <= top)  // Top Right
 			applyRemapRule(PHYS_BUTTONS_NUM + 5, &new_map, stickpos);
-		else if (rear.report[i].x <= 960 && rear.report[i].y <= 544) // Top Left
+		else if (rear.report[i].x <= left && rear.report[i].y <= top) // Top Left
 			applyRemapRule(PHYS_BUTTONS_NUM + 4, &new_map, stickpos);
 	}
 
@@ -658,20 +780,25 @@ void saveConfig(void) {
 	
 	// Opening touch config file and saving the config
 	fd = sceIoOpen("ux0:/data/remaPSV/touch.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	sceIoWrite(fd, touch_options, TOUCH_OPTIONS_NUM);
+	sceIoWrite(fd, touch_options, TOUCH_OPTIONS_NUM*2);
 	sceIoClose(fd);
 	
 	// Opening gyro config file and saving the config
 	fd = sceIoOpen("ux0:/data/remaPSV/gyro.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 	sceIoWrite(fd, gyro_options, GYRO_OPTIONS_NUM);
 	sceIoClose(fd);
+	
+	// Opening gyro config file and saving the config
+	fd = sceIoOpen("ux0:/data/remaPSV/controllers.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	sceIoWrite(fd, controller_options, CNTRL_OPTIONS_NUM);
+	sceIoClose(fd);
 }
 
 void loadConfig(void) {
-	resetRemaps();
-	resetAnalogs();
-	resetTouch();
-	resetGyro();
+	resetRemapsOptions();
+	resetAnalogsOptions();
+	resetTouchOptions();
+	resetGyroOptions();
 	
 	sceIoMkdir("ux0:/data/remaPSV", 0777); // Just in case the folder doesn't exist
 	
@@ -706,7 +833,7 @@ void loadConfig(void) {
 	// Loading touch config file
 	fd = sceIoOpen("ux0:/data/remaPSV/touch.bin", SCE_O_RDONLY, 0777);
 	if (fd >= 0){
-		sceIoRead(fd, touch_options, TOUCH_OPTIONS_NUM);
+		sceIoRead(fd, touch_options, TOUCH_OPTIONS_NUM*2);
 		sceIoClose(fd);
 	}
 	
@@ -716,11 +843,33 @@ void loadConfig(void) {
 		sceIoRead(fd, gyro_options, GYRO_OPTIONS_NUM);
 		sceIoClose(fd);
 	}
+	
+	// Loading gyro config file
+	fd = sceIoOpen("ux0:/data/remaPSV/controllers.bin", SCE_O_RDONLY, 0777);
+	if (fd >= 0){
+		sceIoRead(fd, controller_options, CNTRL_OPTIONS_NUM);
+		sceIoClose(fd);
+	}
 }
 
 uint8_t isBtnActive(uint8_t btnNum){
 	return ((curr_buttons & btns[btnNum]) && !(old_buttons & btns[btnNum])) 
 		|| (pressedTicks[btnNum] != 0 && tick - pressedTicks[btnNum] > LONG_PRESS_TIME);
+}
+
+void touchPicker(int padType){
+	if ((padType == SCE_TOUCH_PORT_FRONT && (cfg_i < 1 || cfg_i >= 9)) ||
+		(padType == SCE_TOUCH_PORT_BACK && (cfg_i < 9 || cfg_i >= 18)))
+		return;
+	int o_idx = (cfg_i < 9) ? cfg_i - 1 : cfg_i - 2;
+	SceTouchData std;
+	internal_touch_call = 1;
+	int ret = sceTouchRead(padType, &std, 1);
+	internal_touch_call = 0;
+	if (ret && std.reportNum){
+		touch_options[o_idx - (o_idx % 2)] = std.report[0].x;
+		touch_options[o_idx - (o_idx % 2) + 1] = std.report[0].y;
+	}
 }
 
 // Input Handler for the Config Menu
@@ -739,23 +888,26 @@ void configInputHandler(SceCtrlData *ctrl) {
 			menu_entries = ANOLOGS_OPTIONS_NUM + 2;
 			break;
 		case TOUCH_MENU:
-			menu_entries = TOUCH_OPTIONS_NUM;
+			menu_entries = TOUCH_OPTIONS_NUM + 2;
+			touchPicker(SCE_TOUCH_PORT_FRONT);
+			touchPicker(SCE_TOUCH_PORT_BACK);
 			break;
 		case GYRO_MENU:
 			menu_entries = GYRO_OPTIONS_NUM + 2;
 			break;
+		case CNTRL_MENU:
+			menu_entries = CNTRL_OPTIONS_NUM;
+			break;
 		case FUNCS_LIST:
 			menu_entries = HOOKS_NUM - 1;
-			break;
-		case CONN_CTRLS:
-			menu_entries = CONN_CTRLS_NUM;
 			break;
 		default:
 			break;
 		}
 		tick = ctrl->timeStamp;
 		curr_buttons = ctrl->buttons;
-		int o_idx; //optins file real index
+		int o_idx; //options file real index
+		
 		for (int i = 0; i < PHYS_BUTTONS_NUM; i++){
 			if ((curr_buttons & btns[i]) && !(old_buttons & btns[i]))
 				pressedTicks[i] = tick;
@@ -784,15 +936,29 @@ void configInputHandler(SceCtrlData *ctrl) {
 					else analogs_options[o_idx] = !analogs_options[o_idx];
 					break;
 				case TOUCH_MENU:
-					if (cfg_i < 16)
-						touch_options[cfg_i] = (touch_options[cfg_i] + 1) % ((cfg_i % 2) ? 544 : 960);
-					else
-						touch_options[cfg_i] = (touch_options[cfg_i] + 1) % 3;
+					if (cfg_i == 0 || cfg_i == 9) break;//Skip headers
+					o_idx = (cfg_i < 9) ? cfg_i - 1 : cfg_i - 2;
+					if (o_idx < 8)//Front Points xy
+						touch_options[o_idx] = (touch_options[o_idx] + 1) 
+							% ((o_idx % 2) ? TOUCH_SIZE[1] : TOUCH_SIZE[0]);
+					else if (o_idx < 16)//Rear Points xy
+						touch_options[o_idx] = (touch_options[o_idx] + 1)
+							% ((o_idx % 2) ? TOUCH_SIZE[3] : TOUCH_SIZE[2]);
+					else if (o_idx < 18)//Mode
+						touch_options[o_idx] = (touch_options[o_idx] + 1) % 3;
+					else 			//Compability
+						touch_options[o_idx] = !touch_options[o_idx];
 					break;
 				case GYRO_MENU:
 					if (!(cfg_i % 4)) break;//Skip headers
 					o_idx = (cfg_i < 4) ? cfg_i - 1 : cfg_i - 2;
 					gyro_options[o_idx] = (gyro_options[o_idx] + 1) % 200;
+					break;
+				case CNTRL_MENU:
+					if (!cfg_i)
+						controller_options[cfg_i] = min(5, controller_options[cfg_i] + 1);
+					else
+						controller_options[cfg_i] = !controller_options[cfg_i];
 					break;
 				}
 				break;
@@ -813,13 +979,19 @@ void configInputHandler(SceCtrlData *ctrl) {
 						analogs_options[o_idx] = o_idx < 4 ? 127 : 1;
 					break;
 				case TOUCH_MENU:
-					if (touch_options[cfg_i]) 	
-						touch_options[cfg_i]--;
+					if (cfg_i == 0 || cfg_i == 9) break;//Skip headers
+					o_idx = (cfg_i < 9) ? cfg_i - 1 : cfg_i - 2;
+					if (touch_options[o_idx]) 	
+						touch_options[o_idx]--;
 					else {
-						if (cfg_i < 16)
-							touch_options[cfg_i] = ((cfg_i % 2) ? 543 : 959);
-						else 
-							touch_options[cfg_i] = 2;
+						if (o_idx < 8)//front points xy
+							touch_options[o_idx] = ((o_idx % 2) ? TOUCH_SIZE[1] - 1 : TOUCH_SIZE[0] - 1);
+						if (o_idx < 16)//rear points xy
+							touch_options[o_idx] = ((o_idx % 2) ? TOUCH_SIZE[3] - 1 : TOUCH_SIZE[2] - 1);
+						else if (o_idx < 18)//touch mode
+							touch_options[o_idx] = 2;
+						else //compability mode
+							touch_options[o_idx] = !touch_options[o_idx];
 					}
 					break;
 				case GYRO_MENU:
@@ -830,11 +1002,17 @@ void configInputHandler(SceCtrlData *ctrl) {
 					else
 						gyro_options[o_idx] = 199;
 					break;
+				case CNTRL_MENU:
+					if (!cfg_i)
+						controller_options[cfg_i] = max(0, controller_options[cfg_i] - 1);
+					else
+						controller_options[cfg_i] = !controller_options[cfg_i];
+					break;
 				}
 				break;
 			case SCE_CTRL_LTRIGGER:
 			case SCE_CTRL_L1:
-				if (menu_i == REMAP_MENU){
+				if (menu_i == REMAP_MENU){ //Sections navigation
 					if (btn_mask[cfg_i] < 16)
 						btn_mask[cfg_i] = 38;	//Rear touch custom
 					else if (btn_mask[cfg_i] < 17)
@@ -857,7 +1035,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 				break;
 			case SCE_CTRL_RTRIGGER:
 			case SCE_CTRL_R1:
-				if (menu_i == REMAP_MENU){
+				if (menu_i == REMAP_MENU){ //Sections navigation
 					if (btn_mask[cfg_i] < 16)
 						btn_mask[cfg_i] = 16;	//Original
 					else if (btn_mask[cfg_i] < 17)
@@ -886,34 +1064,44 @@ void configInputHandler(SceCtrlData *ctrl) {
 				case ANALOG_MENU:
 					if (!(cfg_i % 5)) break;//Skip headers
 					o_idx = (cfg_i < 5) ? cfg_i - 1 : cfg_i - 2;
-					analogs_options[o_idx] = (o_idx) ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF;
+					analogs_options[o_idx] = (o_idx < 4) ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF;
 					break;
 				case TOUCH_MENU: 
-					if (cfg_i < 16)
-						touch_options[cfg_i] = TOUCH_POINTS_DEF[cfg_i % 8];
-					else 
-						touch_options[cfg_i] = TOUCH_MODE_DEF;
+					if (cfg_i == 0 || cfg_i == 9) break;//Skip headers
+					o_idx = (cfg_i < 9) ? cfg_i - 1 : cfg_i - 2;
+					if (o_idx < 16)
+						touch_options[o_idx] = TOUCH_POINTS_DEF[o_idx];
+					else if (o_idx < 16)
+						touch_options[o_idx] = TOUCH_MODE_DEF;
+					else
+						touch_options[o_idx] = 0;
 					break;
 				case GYRO_MENU:
 					if (!(cfg_i % 4)) break;//Skip headers
 					o_idx = (cfg_i < 4) ? cfg_i - 1 : cfg_i - 2; 
 					gyro_options[o_idx] = (o_idx < 3) ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF;
 					break;
+				case CNTRL_MENU:
+					controller_options[cfg_i] = CNTRL_DEF[cfg_i];
+					break;
 				}
 				break;
 			case SCE_CTRL_START:
 				switch (menu_i){
 				case REMAP_MENU: 
-					resetRemaps();
+					resetRemapsOptions();
 					break;
 				case ANALOG_MENU: 
-					resetAnalogs();
+					resetAnalogsOptions();
 					break;
 				case TOUCH_MENU: 
-					resetTouch();
+					resetTouchOptions();
 					break;
 				case GYRO_MENU: 
-					resetGyro();
+					resetGyroOptions();
+					break;
+				case CNTRL_MENU: 
+					resetCntrlOptions();
 					break;
 				}
 				break;
@@ -950,10 +1138,8 @@ void configInputHandler(SceCtrlData *ctrl) {
 }
 
 void remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
-	
-	//Nothing to do here
 	if (count < 1)
-		return;
+		return;	//Nothing to do here
 	
 	if (logic == NEGATIVE)
 		ctrl[count - 1].buttons = 0xFFFFFFFF - ctrl[count - 1].buttons;
@@ -974,7 +1160,6 @@ void remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 			ctrl[i].buttons = (logic == POSITIVE) ? 0 : 0xFFFFFFFF;
 		return;
 	}
-	
 	int buffIdx = (remappedBuffersIdxs[hookId] + 1) % BUFFERS_NUM;
 	
 	//Storing copy of latest buffer
@@ -996,32 +1181,41 @@ void remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 	ctrl[count-1] = remappedBuffers[hookId][buffIdx];
 }
 
-int patchReadToExt(int port, SceCtrlData *ctrl, int count){
-	if (controller_options[0] <= 0 || controller_options[0] == port)
-		return count;
-	//sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
-	internal_ext_call = 1;
-	SceCtrlData pstv_fakepad[count];
-	int ret = sceCtrlReadBufferPositiveExt2(controller_options[0], &pstv_fakepad[0], count);
-	internal_ext_call = 0;
-	if (ret < 0)
-		return count;
-	//ToDo R1 <> RT mby ?
-	for (int i = 0; i < ret; i++)
-		ctrl[i].buttons = pstv_fakepad->buttons;
-	return ret;
+void swapTriggersBumpers(SceCtrlData *ctrl, int count){
+	if (!controller_options[1])
+		return;
+	
+	for (int i = 0; i < count; i++){
+		uint32_t b = 0;
+		for (int i = 0; i < PHYS_BUTTONS_NUM; i++)
+			if (ctrl[i].buttons && btns[i]){
+				if (btns[i] == SCE_CTRL_LTRIGGER) b+= SCE_CTRL_L1;
+				else if (btns[i] == SCE_CTRL_L1) b+= SCE_CTRL_LTRIGGER;
+				else if (btns[i] == SCE_CTRL_RTRIGGER) b+= SCE_CTRL_R1;
+				else if (btns[i] == SCE_CTRL_R1) b+= SCE_CTRL_RTRIGGER;
+				else b += btns[i];
+			}
+		ctrl[i].buttons = b;
+	}
 }
 
-int patchPeekToExt(int port, SceCtrlData *ctrl, int count){
-	if (controller_options[0] <= 0 || controller_options[0] == port)
+int patchToExt(int port, SceCtrlData *ctrl, int count, int read){
+	//if (controller_options[0] <= 0 || controller_options[0] == port)
+	if (controller_options[0] <= 0)
 		return count;
+	
 	//sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
-	internal_ext_call = 1;
 	SceCtrlData pstv_fakepad[count];
-	int ret = sceCtrlPeekBufferPositiveExt2(controller_options[0], &pstv_fakepad[0], count);
+	int ret;
+	internal_ext_call = 1;
+	if (read)
+		ret = sceCtrlReadBufferPositiveExt2(controller_options[0], &pstv_fakepad[0], count);
+	else 
+		ret = sceCtrlPeekBufferPositiveExt2(controller_options[0], &pstv_fakepad[0], count);
 	internal_ext_call = 0;
 	if (ret < 0)
 		return count;
+	
 	//ToDo R1 <> RT mby ?
 	for (int i = 0; i < ret; i++)
 		ctrl[i].buttons = pstv_fakepad->buttons;
@@ -1029,8 +1223,13 @@ int patchPeekToExt(int port, SceCtrlData *ctrl, int count){
 }
 
 int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs){
+	if (!internal_ext_call && show_menu) { //Disable in menu
+		pData[0] = pData[nBufs - 1];
+		pData[0].reportNum = 0;
+		return 1;
+	}
 	if (nBufs && !show_menu) updateTouchInfo(port, &pData[nBufs - 1]);
-	if (options[0]){//Compability mode - return only one buffer
+	if (touch_options[18]){//Compability mode - return only one buffer
 		pData[0] = pData[nBufs - 1];
 		return 1;
 	}
@@ -1045,7 +1244,7 @@ void hookFunction(uint32_t nid, const void *func) {
 
 int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, count);
-	ret = patchPeekToExt(port, ctrl, count);
+	ret = patchToExt(port, ctrl, ret, 0);
 	remap(ctrl, ret, 0, POSITIVE);
 	used_funcs[0] = 1;
 	return ret;
@@ -1053,7 +1252,7 @@ int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 
 int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, count);
-	ret = patchPeekToExt(port, ctrl, count);
+	ret = patchToExt(port, ctrl, ret, 0);
 	remap(ctrl, ret, 1, POSITIVE);
 	used_funcs[1] = 1;
 	return ret;
@@ -1061,15 +1260,15 @@ int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 
 int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, count);
-	ret = patchReadToExt(port, ctrl, count);
+	ret = patchToExt(port, ctrl, ret, 1);
 	remap(ctrl, ret, 2, POSITIVE);
 	used_funcs[2] = 1;
-	return ret;
+	return 0;
 }
 
 int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, count);
-	ret = patchReadToExt(port, ctrl, count);
+	ret = patchToExt(port, ctrl, ret, 1);
 	remap(ctrl, ret, 3, POSITIVE);
 	used_funcs[3] = 1;
 	return ret;
@@ -1077,7 +1276,7 @@ int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 
 int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[4], port, ctrl, count);
-	ret = patchPeekToExt(port, ctrl, count);
+	ret = patchToExt(port, ctrl, ret, 0);
 	remap(ctrl, ret, 4, POSITIVE);
 	used_funcs[4] = 1;
 	return ret;
@@ -1085,6 +1284,7 @@ int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 
 int sceCtrlPeekBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[5], port, ctrl, count);
+	swapTriggersBumpers(ctrl, ret);
 	if (internal_ext_call) return ret;
 	remap(ctrl, ret, 5, POSITIVE);
 	used_funcs[5] = 1;
@@ -1093,7 +1293,7 @@ int sceCtrlPeekBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count
 
 int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[6], port, ctrl, count);
-	ret = patchReadToExt(port, ctrl, count);
+	ret = patchToExt(port, ctrl, ret, 1);
 	remap(ctrl, ret, 6, POSITIVE);
 	used_funcs[6] = 1;
 	return ret;
@@ -1101,6 +1301,7 @@ int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 
 int sceCtrlReadBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[7], port, ctrl, count);
+	swapTriggersBumpers(ctrl, ret);
 	if (internal_ext_call) return ret;
 	remap(ctrl, ret, 7, POSITIVE);
 	used_funcs[7] = 1;
@@ -1162,11 +1363,12 @@ int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) 
 int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
 	if (show_menu) {
 		new_frame = 1;
+		ticker++;
 		screen_h = pParam->height;
 		screen_w = pParam->width;
 		updateFramebuf(pParam);
-		drawConfigMenu();
-	} 
+		drawConfigMenu();		
+	}
 	return TAI_CONTINUE(int, refs[16], pParam, sync);
 }	
 
@@ -1196,6 +1398,19 @@ int module_start(SceSize argc, const void *args) {
 	// Enabling both touch panels sampling
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
+	
+	//Detecting touch panels size
+	SceTouchPanelInfo pi;	
+	int ret = sceTouchGetPanelInfo(SCE_TOUCH_PORT_FRONT, &pi);
+	if (ret >= 0){
+		TOUCH_SIZE[0] = pi.maxAaX;
+		TOUCH_SIZE[1] = pi.maxAaY;
+	}
+	ret = sceTouchGetPanelInfo(SCE_TOUCH_PORT_BACK, &pi);
+	if (ret >= 0){
+		TOUCH_SIZE[2] = pi.maxAaX;
+		TOUCH_SIZE[3] = pi.maxAaY;
+	}
 	
 	// Enabling analogs sampling
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
