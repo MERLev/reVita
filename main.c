@@ -36,7 +36,7 @@
 #define MULTITOUCH_REAR_NUM			4
 #define TOUCH_OPTIONS_NUM			19
 #define TOUCH_MODE_DEF				1
-#define CNTRL_OPTIONS_NUM			2
+#define CNTRL_OPTIONS_NUM			3
 #define CREDITS_NUM					3
 
 #ifndef max
@@ -57,7 +57,7 @@ static const uint16_t TOUCH_POINTS_DEF[16] = {
 };
 
 static const uint8_t CNTRL_DEF[CNTRL_OPTIONS_NUM] = {
-	0, 0,
+	0, 0, 0
 };
 
 enum{
@@ -139,7 +139,9 @@ static char* str_main_menu[] = {
 	"Setup external gamepads",
 	"Show imported functions",
 	"Credits",
-	"Return to the game"
+	"Save as Global config",
+	"Load from Global config",
+	"Save and return to the game"
 };
 
 static char* str_credits[] = {
@@ -407,6 +409,8 @@ void drawConfigMenu() {
 				if (y + 60 > screen_h) break;
 			}
 		}
+		footer1 = "(<)(>)[TOUCH](RS):change  ([]):reset  (start):reset all";                          
+		footer2 = "(O): back";
 		break;
 	case GYRO_MENU:
 		for (i = calcStartingIndex(cfg_i, GYRO_OPTIONS_NUM + 2, avaliable_entries); i < GYRO_OPTIONS_NUM + 2; i++) {				
@@ -443,18 +447,22 @@ void drawConfigMenu() {
 			drawString(L_1, y+= 20, "Error getting controllers info");
 		} else {
 			setTextColor(COLOR_CURSOR);
-			drawString(L_0, y + 20 + 20 * (cfg_i % 2), (ticker % 16 < 8) ? "<" : ">");
-			
+			drawString(L_0, y + 20 + 20 * cfg_i, (ticker % 16 < 8) ? "<" : ">");
+				
 			setTextColor(cfg_i == 0 ? COLOR_CURSOR : 
 				(controller_options[0] == CNTRL_DEF[0] ? COLOR_DEFAULT : COLOR_ACTIVE));
-			drawStringF(L_1, y += 20, "Using port: {%i} %s %s", 
-				controller_options[0],
-				getControllerName(pi.port[controller_options[0]]), 
-				controller_options[0] == 0 ? "[DEFAULT]" : "");
-				
+			drawStringF(L_1, y += 20, "Use external controller: %s", str_yes_no[controller_options[0]]);
+			
 			setTextColor(cfg_i == 1 ? COLOR_CURSOR : 
 				(controller_options[1] == CNTRL_DEF[1] ? COLOR_DEFAULT : COLOR_ACTIVE));
-			drawStringF(L_1, y += 20, "Swap L1<>LT R1<>RT: %s", str_yes_no[controller_options[1]]);
+			drawStringF(L_1, y += 20, "Selected port: {%i} %s %s", 
+				controller_options[1],
+				getControllerName(pi.port[controller_options[1]]), 
+				controller_options[1] ? "" : "[DEFAULT]");
+				
+			setTextColor(cfg_i == 2 ? COLOR_CURSOR : 
+				(controller_options[2] == CNTRL_DEF[2] ? COLOR_DEFAULT : COLOR_ACTIVE));
+			drawStringF(L_1, y += 20, "Swap L1<>LT R1<>RT: %s", str_yes_no[controller_options[2]]);
 			
 			y+=20;
 			setTextColor(COLOR_DEFAULT);
@@ -731,7 +739,7 @@ void applyRemap(SceCtrlData *ctrl) {
 	ctrl->buttons = new_map;
 }
 
-//Same touch id should be same for continuus touches
+//Keep same touch id for continuus touches
 uint8_t generateTouchId(int x, int y, int panel){ 
 	if (panel == SCE_TOUCH_PORT_FRONT){
 		for (int i = 0; i < prevEtFront.num; i++)
@@ -792,12 +800,12 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 	}
 }
 
-void saveConfig(void) {
-	// Opening config file for the running app
-	sprintf(fname, "ux0:/data/remaPSV/%s.bin", titleid);
-	SceUID fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+void saveGlobalConfig(void) {
+	// Just in case the folder doesn't exist
+	sceIoMkdir("ux0:/data/remaPSV", 0777); 
 	
-	// Saving buttons mask
+	// Opening remap config file and saving it
+	SceUID fd = sceIoOpen("ux0:/data/remaPSV/options.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 	sceIoWrite(fd, btn_mask, BUTTONS_NUM);
 	sceIoClose(fd);
 	
@@ -822,20 +830,55 @@ void saveConfig(void) {
 	sceIoClose(fd);
 }
 
-void loadConfig(void) {
-	resetRemapsOptions();
+void saveGameConfig(void) {
+	// Just in case the folder doesn't exist
+	sceIoMkdir("ux0:/data/remaPSV", 0777); 
+	sprintf(fname, "ux0:/data/remaPSV/%s", titleid);
+	sceIoMkdir(fname, 0777);
+	
+	// Opening remap config file and saving it
+	sprintf(fname, "ux0:/data/remaPSV/%s/options.bin", titleid);
+	SceUID fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	sceIoWrite(fd, btn_mask, BUTTONS_NUM);
+	sceIoClose(fd);
+	
+	// Opening analog config file and saving the config
+	sprintf(fname, "ux0:/data/remaPSV/%s/analogs.bin", titleid);
+	fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	sceIoWrite(fd, analogs_options, ANOLOGS_OPTIONS_NUM);
+	sceIoClose(fd);
+	
+	// Opening touch config file and saving the config
+	sprintf(fname, "ux0:/data/remaPSV/%s/touch.bin", titleid);
+	fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	sceIoWrite(fd, touch_options, TOUCH_OPTIONS_NUM*2);
+	sceIoClose(fd);
+	
+	// Opening gyro config file and saving the config
+	sprintf(fname, "ux0:/data/remaPSV/%s/gyro.bin", titleid);
+	fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	sceIoWrite(fd, gyro_options, GYRO_OPTIONS_NUM);
+	sceIoClose(fd);
+	
+	// Opening gyro config file and saving the config
+	sprintf(fname, "ux0:/data/remaPSV/%s/controllers.bin", titleid);
+	fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	sceIoWrite(fd, controller_options, CNTRL_OPTIONS_NUM);
+	sceIoClose(fd);
+}
+
+void loadGlobalConfig(void) {
+	//resetRemapsOptions();
 	resetAnalogsOptions();
 	resetTouchOptions();
 	resetGyroOptions();
+	resetCntrlOptions();
 	
-	sceIoMkdir("ux0:/data/remaPSV", 0777); // Just in case the folder doesn't exist
-	
-	// Getting game Title ID
-	sceAppMgrAppParamGetString(0, 12, titleid , 256);
+	// Just in case the folder doesn't exist
+	sceIoMkdir("ux0:/data/remaPSV", 0777); 
 	
 	// Loading config file for the selected app if exists
-	sprintf(fname, "ux0:/data/remaPSV/%s.bin", titleid);
-	SceUID fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
+	SceUID fd = sceIoOpen("ux0:/data/remaPSV/options.bin", SCE_O_RDONLY, 0777);
 	if (fd >= 0){
 		sceIoRead(fd, btn_mask, BUTTONS_NUM);
 		sceIoClose(fd);
@@ -872,8 +915,63 @@ void loadConfig(void) {
 		sceIoClose(fd);
 	}
 	
-	// Loading gyro config file
+	// Loading controllers config file
 	fd = sceIoOpen("ux0:/data/remaPSV/controllers.bin", SCE_O_RDONLY, 0777);
+	if (fd >= 0){
+		sceIoRead(fd, controller_options, CNTRL_OPTIONS_NUM);
+		sceIoClose(fd);
+	}
+}
+
+void loadGameConfig(void) {
+	// Check if folder exists
+	SceIoStat stat = {0};
+	sprintf(fname, "ux0:/data/remaPSV/%s", titleid);
+    int ret = sceIoGetstat(fname, &stat);
+	if (ret < 0)
+		return;
+	
+	resetRemapsOptions();
+	resetAnalogsOptions();
+	resetTouchOptions();
+	resetGyroOptions();
+	resetCntrlOptions();
+	
+	// Loading remap config file for the selected app if exists
+	sprintf(fname, "ux0:/data/remaPSV/%s/options.bin", titleid);
+	SceUID fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
+	if (fd >= 0){
+		sceIoRead(fd, btn_mask, BUTTONS_NUM);
+		sceIoClose(fd);
+	}
+	
+	// Loading analog config file for the selected app if exists
+	sprintf(fname, "ux0:/data/remaPSV/%s/analogs.bin", titleid);
+	fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
+	if (fd >= 0){
+		sceIoRead(fd, analogs_options, ANOLOGS_OPTIONS_NUM);
+		sceIoClose(fd);
+	}
+	
+	// Loading touch config file for the selected app if exists
+	sprintf(fname, "ux0:/data/remaPSV/%s/touch.bin", titleid);
+	fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
+	if (fd >= 0){
+		sceIoRead(fd, touch_options, TOUCH_OPTIONS_NUM*2);
+		sceIoClose(fd);
+	}
+	
+	// Loading gyro config file for the selected app if exists
+	sprintf(fname, "ux0:/data/remaPSV/%s/gyro.bin", titleid);
+	fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
+	if (fd >= 0){
+		sceIoRead(fd, gyro_options, GYRO_OPTIONS_NUM);
+		sceIoClose(fd);
+	}
+	
+	// Loading gyro config file for the selected app if exists
+	sprintf(fname, "ux0:/data/remaPSV/%s/controllers.bin", titleid);
+	fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
 	if (fd >= 0){
 		sceIoRead(fd, controller_options, CNTRL_OPTIONS_NUM);
 		sceIoClose(fd);
@@ -885,7 +983,10 @@ uint8_t isBtnActive(uint8_t btnNum){
 		|| (pressedTicks[btnNum] != 0 && tick - pressedTicks[btnNum] > LONG_PRESS_TIME);
 }
 
+//Set custom touch point xy using RS
 void analogTouchPicker(SceCtrlData *ctrl){
+	if (cfg_i == 0 || cfg_i == 9 || cfg_i > 17)
+		return;
 	int o_idx = (cfg_i < 9) ? cfg_i - 1 : cfg_i - 2;
 	int o_idx1 = o_idx - (o_idx % 2);
 	int shiftX = ((float)(ctrl->rx - 127)) / 8;
@@ -898,6 +999,7 @@ void analogTouchPicker(SceCtrlData *ctrl){
 			0, TOUCH_SIZE[((o_idx1+1) < 8) ? 1 : 3]);
 }
 
+//Set custom touch point xy using touch
 void touchPicker(int padType){
 	if ((padType == SCE_TOUCH_PORT_FRONT && (cfg_i < 1 || cfg_i >= 9)) ||
 		(padType == SCE_TOUCH_PORT_BACK && (cfg_i < 9 || cfg_i >= 18)))
@@ -997,7 +1099,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 					gyro_options[o_idx] = (gyro_options[o_idx] + 1) % 200;
 					break;
 				case CNTRL_MENU:
-					if (!cfg_i)
+					if (cfg_i == 1)
 						controller_options[cfg_i] = min(5, controller_options[cfg_i] + 1);
 					else
 						controller_options[cfg_i] = !controller_options[cfg_i];
@@ -1045,7 +1147,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 						gyro_options[o_idx] = 199;
 					break;
 				case CNTRL_MENU:
-					if (!cfg_i)
+					if (cfg_i == 1)
 						controller_options[cfg_i] = max(0, controller_options[cfg_i] - 1);
 					else
 						controller_options[cfg_i] = !controller_options[cfg_i];
@@ -1149,9 +1251,13 @@ void configInputHandler(SceCtrlData *ctrl) {
 				break;
 			case SCE_CTRL_CROSS:
 				if (menu_i == MAIN_MENU){
-					if (cfg_i == menu_entries-1) {
+					if (cfg_i == menu_entries-3) {
+						saveGlobalConfig();			
+					} else if (cfg_i == menu_entries-2) {
+						loadGlobalConfig();			
+					} else if (cfg_i == menu_entries-1) {
 						show_menu = 0;
-						saveConfig();
+						saveGameConfig();
 					} else {					
 						menu_i = cfg_i + 1;
 						cfg_i = 0;
@@ -1161,7 +1267,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 			case SCE_CTRL_CIRCLE:
 				if (menu_i == MAIN_MENU) {
 					show_menu = 0;
-					saveConfig();
+					saveGameConfig();
 				} else {
 					menu_i = MAIN_MENU;
 					cfg_i = 0;
@@ -1177,6 +1283,7 @@ void remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 	if (count < 1)
 		return;	//Nothing to do here
 	
+	//Invert for negative logic
 	if (logic == NEGATIVE)
 		ctrl[count - 1].buttons = 0xFFFFFFFF - ctrl[count - 1].buttons;
 	
@@ -1206,6 +1313,7 @@ void remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 	//Applying remap to latest buffer
 	applyRemap(&remappedBuffers[hookId][buffIdx]);
 	
+	//Invert for negative logic
 	if (logic == NEGATIVE)
 		remappedBuffers[hookId][buffIdx].buttons = 
 			0xFFFFFFFF - remappedBuffers[hookId][buffIdx].buttons;
@@ -1218,42 +1326,39 @@ void remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 }
 
 void swapTriggersBumpers(SceCtrlData *ctrl, int count){
-	if (!controller_options[1])
+	if (!controller_options[2])
 		return;
-	
 	for (int i = 0; i < count; i++){
 		uint32_t b = 0;
-		for (int i = 0; i < PHYS_BUTTONS_NUM; i++)
-			if (ctrl[i].buttons && btns[i]){
-				if (btns[i] == SCE_CTRL_LTRIGGER) b+= SCE_CTRL_L1;
-				else if (btns[i] == SCE_CTRL_L1) b+= SCE_CTRL_LTRIGGER;
-				else if (btns[i] == SCE_CTRL_RTRIGGER) b+= SCE_CTRL_R1;
-				else if (btns[i] == SCE_CTRL_R1) b+= SCE_CTRL_RTRIGGER;
-				else b += btns[i];
-			}
+		for (int j = 0; j < PHYS_BUTTONS_NUM; j++)
+			if (ctrl[i].buttons & btns[j]){
+				if (btns[j] == SCE_CTRL_LTRIGGER) b+= SCE_CTRL_L1;
+				else if (btns[j] == SCE_CTRL_L1) b+= SCE_CTRL_LTRIGGER;
+				else if (btns[j] == SCE_CTRL_RTRIGGER) b+= SCE_CTRL_R1;
+				else if (btns[j] == SCE_CTRL_R1) b+= SCE_CTRL_RTRIGGER;
+				else b += btns[j];
+		}
 		ctrl[i].buttons = b;
 	}
 }
 
+//Used to enable r1/r3/l1/l3
 int patchToExt(int port, SceCtrlData *ctrl, int count, int read){
-	//if (controller_options[0] <= 0 || controller_options[0] == port)
-	if (controller_options[0] <= 0)
+	if (!controller_options[0] || show_menu)
 		return count;
-	
-	//sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
 	SceCtrlData pstv_fakepad[count];
 	int ret;
 	internal_ext_call = 1;
 	if (read)
-		ret = sceCtrlReadBufferPositiveExt2(controller_options[0], &pstv_fakepad[0], count);
-	else 
-		ret = sceCtrlPeekBufferPositiveExt2(controller_options[0], &pstv_fakepad[0], count);
+		ret = sceCtrlReadBufferPositiveExt2(controller_options[1], &pstv_fakepad[0], count);
+	else
+		ret = sceCtrlPeekBufferPositiveExt2(controller_options[1], &pstv_fakepad[0], count);
 	internal_ext_call = 0;
 	if (ret < 0)
 		return count;
-	
 	for (int i = 0; i < ret; i++)
 		ctrl[i].buttons = pstv_fakepad->buttons;
+	swapTriggersBumpers(ctrl, ret);
 	return ret;
 }
 
@@ -1319,7 +1424,6 @@ int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 
 int sceCtrlPeekBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[5], port, ctrl, count);
-	swapTriggersBumpers(ctrl, ret);
 	if (internal_ext_call) return ret;
 	remap(ctrl, ret, 5, POSITIVE);
 	used_funcs[5] = 1;
@@ -1336,7 +1440,6 @@ int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count)
 
 int sceCtrlReadBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[7], port, ctrl, count);
-	swapTriggersBumpers(ctrl, ret);
 	if (internal_ext_call) return ret;
 	remap(ctrl, ret, 7, POSITIVE);
 	used_funcs[7] = 1;
@@ -1402,8 +1505,7 @@ int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
 		screen_h = pParam->height;
 		screen_w = pParam->width;
 		updateFramebuf(pParam);
-		drawConfigMenu();
-			
+		drawConfigMenu();	
 	}
 	return TAI_CONTINUE(int, refs[16], pParam, sync);
 }	
@@ -1411,8 +1513,12 @@ int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
 	
+	// Getting game Title ID
+	sceAppMgrAppParamGetString(0, 12, titleid , 256);
+	
 	// Setup stuffs
-	loadConfig();
+	loadGlobalConfig();
+	loadGameConfig();
 	model = sceKernelGetModel();
 	
 	// For some reason, Adrenaline refuses to start 
@@ -1426,8 +1532,7 @@ int module_start(SceSize argc, const void *args) {
 	}
 	
 	// Initializing used funcs table
-	int i;
-	for (i = 0; i < HOOKS_NUM - 1; i++) {
+	for (int i = 0; i < HOOKS_NUM - 1; i++) {
 		used_funcs[i] = 0;
 	}
 	
