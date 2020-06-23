@@ -198,37 +198,23 @@ static char* str_btns[PHYS_BUTTONS_NUM] = {
 	"L1", "R1", "L3", "R3"
 };
 static char* str_sections[] = {
-	"Button", 
-	"LStick", 
-	"RStick", 
-	"FrontTouch", 
-	"RearTouch", 
-	"Gyroscope",
-	"",
-	"Disabled"
+	"Buttons", "LStick", "RStick", 
+	"FrontTouch", "RearTouch", "Gyroscope",
+	"","Disabled"
 };
 static char* str_analog_directions[] = {
-	"Left", 
-	"Right", 
-	"Up", 
-	"Down"
+	"Left", "Right", "Up", "Down"
 };
 static char* str_touch_zones[] = {
-	"TopLeft", 
-	"TopRight", 
-	"BotLeft", 
-	"BotRight"
+	"TopLeft", "TopRight", "BotLeft", "BotRight"
 };
 static char* str_gyro_directions[] = {
-	"Left", 
-	"Right", 
-	"Up", 
-	"Down",
-	"Roll Left",
-	"Roll Right"
+	"Left", "Right", "Up", "Down",
+	"Roll Left","Roll Right"
 };
-static char* touch_points[4] = {"A", "B", "C", "D"};
-static char* str_touch_points[4] = {"Point A", "Point B", "Point C", "Point D"};
+static char* str_touch_points[] = {
+	"Point A", "Point B", "Point C", "Point D"
+};
 
 // Generic clamp function
 int32_t clamp(int32_t value, int32_t mini, int32_t maxi) {
@@ -325,7 +311,7 @@ void drawConfigMenu() {
 		for (i = calcStartingIndex(cfg_i, BUTTONS_NUM, avaliable_entries); i < BUTTONS_NUM; i++) {
 			if (cfg_i == i){//Draw cursor
 				setTextColor(COLOR_CURSOR);
-				drawString(L_0, y + 20, (ticker % 16 < 8) ? "<" : ">");
+				drawString(L_0 + 12*10, y + 20, (ticker % 16 < 8) ? "<" : ">");
 			}
 			
 			char *srcSection = "", *srcAction = "", *targetSection = "", *targetAction = "";
@@ -361,20 +347,20 @@ void drawConfigMenu() {
 			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 22) targetAction = str_touch_zones[btn_mask[i] - PHYS_BUTTONS_NUM-18];
 			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 26) targetAction = str_touch_points[btn_mask[i] - PHYS_BUTTONS_NUM-22];
 	
-			setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_HEADER);
-			drawString(L_1, y += 20, srcSection);
+			setTextColor(COLOR_HEADER);
+			drawString(L_0, y += 20, srcSection);
 			if (i == cfg_i) setTextColor(COLOR_CURSOR);
 			else if (btn_mask[i] == PHYS_BUTTONS_NUM) setTextColor(COLOR_DEFAULT);
 			else if (btn_mask[i] == PHYS_BUTTONS_NUM + 1) setTextColor(COLOR_DISABLE);
 			else setTextColor(COLOR_ACTIVE);
-			drawString(L_1 + 12*11, y, srcAction);
+			drawString(L_0 + 12*11, y, srcAction);
 			if (btn_mask[i] == PHYS_BUTTONS_NUM) setTextColor(COLOR_DEFAULT);
 			else if (btn_mask[i] == PHYS_BUTTONS_NUM + 1) setTextColor(COLOR_DISABLE);
 			else setTextColor(COLOR_ACTIVE);
 			if (btn_mask[i] != PHYS_BUTTONS_NUM)
-				drawString(L_1 + 12*19, y, " -> ");
-			drawString(L_1 + 12*23, y, targetSection);
-			drawString(L_1 + 12*34, y, targetAction);
+				drawString(L_0 + 12*19, y, " -> ");
+			drawString(L_0 + 12*23, y, targetSection);
+			drawString(L_0 + 12*34, y, targetAction);
 			if (y + 60 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
@@ -438,11 +424,11 @@ void drawConfigMenu() {
 				else setTextColor(COLOR_DEFAULT);
 				if (o_idx < 16){
 					if (!(o_idx % 2))
-						drawStringF(L_2, y+=20, "Point [%s] x : %hu", 
-							touch_points[(o_idx % 8)/2],
+						drawStringF(L_2, y+=20, "%s x: %hu", 
+							str_touch_points[(o_idx % 8)/2],
 							touch_options[o_idx]);
 					else 
-						drawStringF(L_2, y+=20, "          y : %hu", 
+						drawStringF(L_2, y+=20, "        y: %hu", 
 							touch_options[o_idx]);
 				}
 				if (y + 60 > screen_h) break;
@@ -1495,7 +1481,7 @@ void swapTriggersBumpers(SceCtrlData *ctrl, int count){
 	}
 }
 
-//Used to enable r1/r3/l1/l3
+//Used to enable R1/R3/L1/L3
 int patchToExt(int port, SceCtrlData *ctrl, int count, int read){
 	if (!controller_options[0] || show_menu)
 		return count;
@@ -1516,7 +1502,7 @@ int patchToExt(int port, SceCtrlData *ctrl, int count, int read){
 }
 
 int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs){
-	if (!internal_ext_call && show_menu) { //Disable in menu
+	if (!internal_touch_call && show_menu) { //Disable in menu
 		pData[0] = pData[nBufs - 1];
 		pData[0].reportNum = 0;
 		return 1;
@@ -1665,6 +1651,15 @@ int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
 
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
+	// For some reason, Adrenaline refuses to start 
+	// if this plugin is active; so stop the
+	// initialization of the module.
+	
+	//Bypass for Adrenaline (NPXS10028) and ABM Bubbles (PSPEMUXXX) and PS4link
+	if(!strcmp(titleid, "NPXS10028") || strstr(titleid, "PSPEMU") || !strcmp(titleid, "NPXS10013"))
+	{
+	   //return SCE_KERNEL_START_SUCCESS;
+	}
 	
 	// Getting game Title ID
 	sceAppMgrAppParamGetString(0, 12, titleid , 256);
@@ -1674,16 +1669,6 @@ int module_start(SceSize argc, const void *args) {
 	loadGlobalConfig();
 	loadGameConfig();
 	model = sceKernelGetModel();
-	
-	// For some reason, Adrenaline refuses to start 
-	// if this plugin is active; so stop the
-	// initialization of the module.
-	
-	//Bypass for Adrenaline (NPXS10028) and ABM Bubbles (PSPEMUXXX)
-	if(!strcmp(titleid, "NPXS10028") && !strstr(titleid, "PSPEMU"))
-	{
-	   return SCE_KERNEL_START_SUCCESS;
-	}
 	
 	// Initializing used funcs table
 	for (int i = 0; i < HOOKS_NUM - 1; i++) {
