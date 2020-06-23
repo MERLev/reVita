@@ -13,7 +13,7 @@
 #define PHYS_BUTTONS_NUM  16 // Supported physical buttons num
 #define TARGET_REMAPS     42 // Supported target remaps num
 #define BUTTONS_NUM       38 // Supported buttons num
-#define MENU_MODES        8  // Menu modes num
+#define MENU_MODES        9  // Menu modes num
 #define LONG_PRESS_TIME   350000	//0.35sec
 #define COLOR_DEFAULT     0x00FFFFFF
 #define COLOR_HEADER      0x00FF00FF
@@ -37,6 +37,7 @@
 #define TOUCH_OPTIONS_NUM			19
 #define TOUCH_MODE_DEF				1
 #define CNTRL_OPTIONS_NUM			3
+#define SETTINGS_NUM				3
 #define CREDITS_NUM					3
 
 #ifndef max
@@ -60,6 +61,10 @@ static const uint8_t CNTRL_DEF[CNTRL_OPTIONS_NUM] = {
 	0, 0, 0
 };
 
+static const uint8_t SETTINGS_DEF[CNTRL_OPTIONS_NUM] = {
+	4, 3, 1
+};
+
 enum{
 	MAIN_MENU = 0,
 	REMAP_MENU,
@@ -68,6 +73,7 @@ enum{
 	GYRO_MENU,
 	CNTRL_MENU,
 	FUNCS_LIST,
+	SETTINGS_MENU,
 	CREDITS_MENU
 };
 
@@ -118,6 +124,7 @@ static uint8_t analogs_options[ANOLOGS_OPTIONS_NUM];
 static uint8_t gyro_options[GYRO_OPTIONS_NUM];
 static uint16_t touch_options[TOUCH_OPTIONS_NUM];
 static uint8_t controller_options[CNTRL_OPTIONS_NUM];
+static uint8_t settings_options[CNTRL_OPTIONS_NUM];
 static uint8_t used_funcs[HOOKS_NUM-1];
 
 static char* str_menus[MENU_MODES] = {
@@ -128,6 +135,7 @@ static char* str_menus[MENU_MODES] = {
 	"GYRO_MENU", 
 	"CONNECTED CONTROLLERS", 
 	"USED FUNCTIONS",
+	"SETTINGS",
 	"CREDITS"
 };
 
@@ -138,10 +146,9 @@ static char* str_main_menu[] = {
 	"Change gyro remap settings",
 	"Setup external gamepads",
 	"Show imported functions",
+	"Settings",
 	"Credits",
-	"Save as Global config",
-	"Load from Global config",
-	"Save and return to the game"
+	"Return to the game"
 };
 
 static char* str_credits[] = {
@@ -156,6 +163,10 @@ static char* str_yes_no[] = {
 
 static char* str_touch_mode[] = {
 	"Always on", "Disable if remapped", "Disable"
+};
+
+static char* str_settings[] = {
+	"Save as Game profile", "Load Game profile", "Save as Global profile", "Load Global profile"
 };
 
 static char* str_funcs[HOOKS_NUM-1] = {
@@ -218,11 +229,6 @@ int32_t clamp(int32_t value, int32_t mini, int32_t maxi) {
 	return value;
 }
 
-// Buttons to activate the remap menu, defaults to START + SQUARE
-static uint8_t menuActivator_mask[2] = {
-	4, 3
-};
-
 void resetRemapsOptions(){
 	for (int i = 0; i < BUTTONS_NUM; i++) {
 		btn_mask[i] = PHYS_BUTTONS_NUM;
@@ -252,6 +258,11 @@ void resetCntrlOptions(){
 		controller_options[i] = CNTRL_DEF[i];
 }
 
+void resetSettingsOptions(){
+	for (int i = 0; i < SETTINGS_NUM; i++)
+		settings_options[i] = SETTINGS_DEF[i];
+}
+
 char* getControllerName(int id){
 	if 		(id == 	SCE_CTRL_TYPE_UNPAIRED) return "Unpaired controller";
 	else if (id == 	SCE_CTRL_TYPE_PHY) 		return "Physical controller for VITA";
@@ -271,11 +282,15 @@ int calcStartingIndex(int idx, int entriesNum, int screenEntries){
 void drawConfigMenu() {
 	char* _blank = "                                                                                ";
 	
+	//DRAW HEADER
 	drawStringF(0, 0, _blank);
 	drawStringF(0, 20, _blank);
 	setTextColor(COLOR_HEADER);
-	drawStringF(L_0, 10, "remaPSV v.%hhu.%hhu - %s", VERSION, SUBVERSION, str_menus[menu_i]);
+	drawStringF(L_0, 10, "remaPSV v.%hhu.%hhu  %s", VERSION, SUBVERSION, str_menus[menu_i]);
+	//drawString(L_0, screen_w - 12*strlen(str_menus[menu_i]) - 10, str_menus[menu_i]);
+	drawString(screen_w - 12*strlen(titleid) - 10, 10, titleid);
 	
+	//DRAW MENU
 	uint8_t slim_mode = 0;//Mode for low res framebuffers;
 	if (screen_w < 850)
 		slim_mode = 1;
@@ -296,7 +311,7 @@ void drawConfigMenu() {
 			if (y + 40 > screen_h) break;
 		}
 		footer1 = "(X):select";
-		footer2 = "(O):save and close";
+		footer2 = "(O):close";
 		break;
 	case REMAP_MENU:
 		for (i = calcStartingIndex(cfg_i, BUTTONS_NUM, avaliable_entries); i < BUTTONS_NUM; i++) {
@@ -442,28 +457,33 @@ void drawConfigMenu() {
 	case CNTRL_MENU:;		
 		SceCtrlPortInfo pi;
 		int res = sceCtrlGetControllerPortInfo(&pi);
-		if (res != 0){
+		if (res != 0){//Should not ever trigger
 			setTextColor(COLOR_DISABLE);
 			drawString(L_1, y+= 20, "Error getting controllers info");
 		} else {
+			//Cursor
 			setTextColor(COLOR_CURSOR);
 			drawString(L_0, y + 20 + 20 * cfg_i, (ticker % 16 < 8) ? "<" : ">");
-				
+			
+			//Use external controller
 			setTextColor(cfg_i == 0 ? COLOR_CURSOR : 
 				(controller_options[0] == CNTRL_DEF[0] ? COLOR_DEFAULT : COLOR_ACTIVE));
 			drawStringF(L_1, y += 20, "Use external controller: %s", str_yes_no[controller_options[0]]);
 			
+			//Port selection
 			setTextColor(cfg_i == 1 ? COLOR_CURSOR : 
 				(controller_options[1] == CNTRL_DEF[1] ? COLOR_DEFAULT : COLOR_ACTIVE));
 			drawStringF(L_1, y += 20, "Selected port: {%i} %s %s", 
 				controller_options[1],
 				getControllerName(pi.port[controller_options[1]]), 
 				controller_options[1] ? "" : "[DEFAULT]");
-				
+			
+			//Button swap
 			setTextColor(cfg_i == 2 ? COLOR_CURSOR : 
 				(controller_options[2] == CNTRL_DEF[2] ? COLOR_DEFAULT : COLOR_ACTIVE));
 			drawStringF(L_1, y += 20, "Swap L1<>LT R1<>RT: %s", str_yes_no[controller_options[2]]);
 			
+			//Ports stats
 			y+=20;
 			setTextColor(COLOR_DEFAULT);
 			drawString(L_1, y+= 20, "Detected controllers:");
@@ -489,7 +509,39 @@ void drawConfigMenu() {
 		}
 		setTextColor(COLOR_HEADER);
 		footer2 = "(O):back";                                                           
-		break;   
+		break;  
+	case SETTINGS_MENU:;	
+		//Cursor
+		setTextColor(COLOR_CURSOR);
+		if (cfg_i <= 2)
+			drawString(L_0, y + 20 + 20 * cfg_i, (ticker % 16 < 8) ? "<" : ">");
+		else
+			drawString(L_0, y + 20 + 20 * cfg_i, (ticker % 16 < 8) ? "x" : "X");
+		//Menu trigger keys
+		setTextColor(cfg_i == 0 ? COLOR_CURSOR : 
+			(settings_options[0] == SETTINGS_DEF[0] ? COLOR_DEFAULT : COLOR_ACTIVE));
+		drawStringF(L_1, y += 20, "Menu trigger first key: %s", 
+			str_btns[settings_options[0]]);
+		setTextColor(cfg_i == 1 ? COLOR_CURSOR : 
+			(settings_options[1] == SETTINGS_DEF[1] ? COLOR_DEFAULT : COLOR_ACTIVE));
+		drawStringF(L_1, y += 20, "            second key: %s", 
+			str_btns[settings_options[1]]);
+		
+		//Save game profile on close
+		setTextColor(cfg_i == 2 ? COLOR_CURSOR : 
+			(settings_options[2] == SETTINGS_DEF[2] ? COLOR_DEFAULT : COLOR_ACTIVE));
+		drawStringF(L_1, y += 20, "Save Game profile on close: %s", str_yes_no[settings_options[2]]);
+		
+		//Profile management
+		for (int i = 0; i <	sizeof(str_settings)/sizeof(char*); i++){
+			setTextColor((cfg_i == (3 + i)) ? COLOR_CURSOR : COLOR_DEFAULT);
+			drawString(L_1, y += 20, str_settings[i]);
+		}
+		
+		//Footer
+		footer1 = "(<)(>):change  ([]):reset  (start):reset all";
+		footer2 = "(O): back";  
+		break; 
 	case CREDITS_MENU:
 		y+=20;
 		for (i = calcStartingIndex(cfg_i, CREDITS_NUM, avaliable_entries); i < CREDITS_NUM; i++) {			
@@ -503,7 +555,7 @@ void drawConfigMenu() {
 		break;
 	}
 	
-	//Footer
+	//DRAW FOOTER
 	setTextColor(COLOR_HEADER);
 	if (!slim_mode){
 		drawStringF(0, screen_h-30, _blank);
@@ -519,20 +571,18 @@ void drawConfigMenu() {
 		drawStringF(screen_w - 12*strlen(footer2) - 10, screen_h-20, footer2);
 	}
 		
-	//Draw blinking touch pointer
-	if (menu_i == TOUCH_MENU){
-		if (cfg_i < 18 && cfg_i != 0 && cfg_i != 9){
-			int o_idx = (cfg_i <= 8) ? cfg_i - 1 : cfg_i - 2; //Index in options file 
-			int left = touch_options[o_idx - (o_idx % 2)] - 8;
-			left *= (float)screen_w / ((o_idx < 8) ? TOUCH_SIZE[0] : TOUCH_SIZE[2]);
-			left = min((max(0, left)), screen_w);
-			int top = touch_options[o_idx - (o_idx % 2) + 1] - 10;
-			top *= (float)screen_h / ((o_idx < 8) ? TOUCH_SIZE[1] : TOUCH_SIZE[3]); //Scale to framebuffer size
-			top = min((max(0, top)), screen_h);//limit into screen
-			setTextColor((ticker % 4) ? COLOR_CURSOR : COLOR_DISABLE);
-			drawString(left, top, (ticker % 2) ? "" : "@");
-		}
-	}
+	//DRAW TOUCH POINTER over everything else
+	if (menu_i != TOUCH_MENU || cfg_i >= 18 || cfg_i == 0 || cfg_i == 9)
+		return;
+	int o_idx = (cfg_i <= 8) ? cfg_i - 1 : cfg_i - 2; //Index in options file 
+	int left = touch_options[o_idx - (o_idx % 2)] - 8;
+	left *= (float)screen_w / ((o_idx < 8) ? TOUCH_SIZE[0] : TOUCH_SIZE[2]);
+	left = min((max(0, left)), screen_w);
+	int top = touch_options[o_idx - (o_idx % 2) + 1] - 10;
+	top *= (float)screen_h / ((o_idx < 8) ? TOUCH_SIZE[1] : TOUCH_SIZE[3]); //Scale to framebuffer size
+	top = min((max(0, top)), screen_h);//limit into screen
+	setTextColor((ticker % 4) ? COLOR_CURSOR : COLOR_DISABLE);
+	drawString(left, top, (ticker % 2) ? "" : "@");
 }
 
 void storeTouchPoint(EmulatedTouch *et, uint16_t x, uint16_t y){
@@ -800,12 +850,37 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 	}
 }
 
+void saveSettings(){
+	// Just in case the folder doesn't exist
+	sceIoMkdir("ux0:/data/remaPSV", 0777); 
+	
+	// Opening settings config file and saving the config
+	SceUID fd = sceIoOpen("ux0:/data/remaPSV/settings.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	sceIoWrite(fd, settings_options, GYRO_OPTIONS_NUM);
+	sceIoClose(fd);
+}
+
+void loadSettings(){
+	resetSettingsOptions();
+	
+	// Just in case the folder doesn't exist
+	sceIoMkdir("ux0:/data/remaPSV", 0777); 
+	
+	// Loading config file for the selected app if exists
+	SceUID fd = sceIoOpen("ux0:/data/remaPSV/settings.bin", SCE_O_RDONLY, 0777);
+	if (fd >= 0){
+		sceIoRead(fd, btn_mask, BUTTONS_NUM);
+		sceIoClose(fd);
+	}
+}
+
 void saveGlobalConfig(void) {
+	SceUID fd;
 	// Just in case the folder doesn't exist
 	sceIoMkdir("ux0:/data/remaPSV", 0777); 
 	
 	// Opening remap config file and saving it
-	SceUID fd = sceIoOpen("ux0:/data/remaPSV/options.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	fd = sceIoOpen("ux0:/data/remaPSV/remap.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 	sceIoWrite(fd, btn_mask, BUTTONS_NUM);
 	sceIoClose(fd);
 	
@@ -831,14 +906,15 @@ void saveGlobalConfig(void) {
 }
 
 void saveGameConfig(void) {
+	SceUID fd;
 	// Just in case the folder doesn't exist
 	sceIoMkdir("ux0:/data/remaPSV", 0777); 
 	sprintf(fname, "ux0:/data/remaPSV/%s", titleid);
 	sceIoMkdir(fname, 0777);
 	
 	// Opening remap config file and saving it
-	sprintf(fname, "ux0:/data/remaPSV/%s/options.bin", titleid);
-	SceUID fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	sprintf(fname, "ux0:/data/remaPSV/%s/remap.bin", titleid);
+	fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 	sceIoWrite(fd, btn_mask, BUTTONS_NUM);
 	sceIoClose(fd);
 	
@@ -868,29 +944,21 @@ void saveGameConfig(void) {
 }
 
 void loadGlobalConfig(void) {
-	//resetRemapsOptions();
+	resetRemapsOptions();
 	resetAnalogsOptions();
 	resetTouchOptions();
 	resetGyroOptions();
 	resetCntrlOptions();
 	
+	SceUID fd;
+	
 	// Just in case the folder doesn't exist
 	sceIoMkdir("ux0:/data/remaPSV", 0777); 
 	
 	// Loading config file for the selected app if exists
-	SceUID fd = sceIoOpen("ux0:/data/remaPSV/options.bin", SCE_O_RDONLY, 0777);
+	fd = sceIoOpen("ux0:/data/remaPSV/remap.bin", SCE_O_RDONLY, 0777);
 	if (fd >= 0){
 		sceIoRead(fd, btn_mask, BUTTONS_NUM);
-		sceIoClose(fd);
-	}
-	
-	// Loading menu activator config file
-	fd = sceIoOpen("ux0:/data/remaPSV/menuactivator.bin", SCE_O_RDONLY, 0777);
-	if(fd >= 0){
-		uint8_t temp;
-		sceIoRead(fd, &temp, 1);
-		menuActivator_mask[0] = (temp >> 4) & 0x0F;
-		menuActivator_mask[1] = temp & 0x0F;
 		sceIoClose(fd);
 	}
 	
@@ -937,9 +1005,11 @@ void loadGameConfig(void) {
 	resetGyroOptions();
 	resetCntrlOptions();
 	
+	SceUID fd;
+	
 	// Loading remap config file for the selected app if exists
-	sprintf(fname, "ux0:/data/remaPSV/%s/options.bin", titleid);
-	SceUID fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
+	sprintf(fname, "ux0:/data/remaPSV/%s/remap.bin", titleid);
+	fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
 	if (fd >= 0){
 		sceIoRead(fd, btn_mask, BUTTONS_NUM);
 		sceIoClose(fd);
@@ -1045,6 +1115,9 @@ void configInputHandler(SceCtrlData *ctrl) {
 		case FUNCS_LIST:
 			menu_entries = HOOKS_NUM - 1;
 			break;
+		case SETTINGS_MENU:
+			menu_entries = SETTINGS_NUM + 4;
+			break;
 		default:
 			break;
 		}
@@ -1104,6 +1177,13 @@ void configInputHandler(SceCtrlData *ctrl) {
 					else
 						controller_options[cfg_i] = !controller_options[cfg_i];
 					break;
+				case SETTINGS_MENU:
+					if (cfg_i < 2)
+						settings_options[cfg_i] 
+							= min(PHYS_BUTTONS_NUM - 1, settings_options[cfg_i] + 1);
+					else if (cfg_i == 2)
+						settings_options[cfg_i] = !settings_options[cfg_i];
+					break;
 				}
 				break;
 			case SCE_CTRL_LEFT:
@@ -1151,6 +1231,13 @@ void configInputHandler(SceCtrlData *ctrl) {
 						controller_options[cfg_i] = max(0, controller_options[cfg_i] - 1);
 					else
 						controller_options[cfg_i] = !controller_options[cfg_i];
+					break;
+				case SETTINGS_MENU:
+					if (cfg_i < 2)
+						settings_options[cfg_i] 
+							= max(0, settings_options[cfg_i] - 1);
+					else if (cfg_i == 2)
+						settings_options[cfg_i] = !settings_options[cfg_i];
 					break;
 				}
 				break;
@@ -1228,6 +1315,10 @@ void configInputHandler(SceCtrlData *ctrl) {
 				case CNTRL_MENU:
 					controller_options[cfg_i] = CNTRL_DEF[cfg_i];
 					break;
+				case SETTINGS_MENU:
+					if (cfg_i <= 2)
+						settings_options[cfg_i] = SETTINGS_DEF[cfg_i];
+					break;
 				}
 				break;
 			case SCE_CTRL_START:
@@ -1247,15 +1338,14 @@ void configInputHandler(SceCtrlData *ctrl) {
 				case CNTRL_MENU: 
 					resetCntrlOptions();
 					break;
+				case SETTINGS_MENU: 
+					resetSettingsOptions();
+					break;
 				}
 				break;
 			case SCE_CTRL_CROSS:
 				if (menu_i == MAIN_MENU){
-					if (cfg_i == menu_entries-3) {
-						saveGlobalConfig();			
-					} else if (cfg_i == menu_entries-2) {
-						loadGlobalConfig();			
-					} else if (cfg_i == menu_entries-1) {
+					if (cfg_i == menu_entries-1) {
 						show_menu = 0;
 						saveGameConfig();
 					} else {					
@@ -1264,10 +1354,24 @@ void configInputHandler(SceCtrlData *ctrl) {
 					}
 				}
 				break;
+				if (menu_i == SETTINGS_MENU){
+					if (cfg_i == 3) {
+						saveGameConfig();	
+					} else if (cfg_i == 4) {
+						loadGameConfig();			
+					} else if (cfg_i == 5) {
+						saveGlobalConfig();			
+					} else if (cfg_i == 6) {
+						loadGlobalConfig();			
+					}
+				}
+				break;
 			case SCE_CTRL_CIRCLE:
 				if (menu_i == MAIN_MENU) {
 					show_menu = 0;
-					saveGameConfig();
+					saveSettings();
+					if (settings_options[0])
+						saveGameConfig();
 				} else {
 					menu_i = MAIN_MENU;
 					cfg_i = 0;
@@ -1289,8 +1393,8 @@ void remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 	
 	//Checking for menu triggering
 	if (!show_menu 
-			&& (ctrl[count - 1].buttons & btns[menuActivator_mask[0]]) 
-			&& (ctrl[count-1].buttons & btns[menuActivator_mask[1]])) {
+			&& (ctrl[count - 1].buttons & btns[settings_options[0]]) 
+			&& (ctrl[count - 1].buttons & btns[settings_options[1]])) {
 		show_menu = 1;
 		cfg_i = 0;
 		//ToDo clear buffers
@@ -1517,6 +1621,7 @@ int module_start(SceSize argc, const void *args) {
 	sceAppMgrAppParamGetString(0, 12, titleid , 256);
 	
 	// Setup stuffs
+	loadSettings();
 	loadGlobalConfig();
 	loadGameConfig();
 	model = sceKernelGetModel();
