@@ -35,7 +35,7 @@
 #define MULTITOUCH_FRONT_NUM		6
 #define MULTITOUCH_REAR_NUM			4
 #define TOUCH_OPTIONS_NUM			19
-#define TOUCH_MODE_DEF				1
+#define TOUCH_MODE_DEF				0
 #define CNTRL_OPTIONS_NUM			3
 #define SETTINGS_NUM				3
 #define CREDITS_NUM					3
@@ -161,10 +161,6 @@ static char* str_yes_no[] = {
 	"No", "Yes"
 };
 
-static char* str_touch_mode[] = {
-	"Always on", "Disable if remapped", "Disable"
-};
-
 static char* str_settings[] = {
 	"Save as Game profile", "Load Game profile", "Save as Global profile", "Load Global profile"
 };
@@ -187,40 +183,52 @@ static char* str_funcs[HOOKS_NUM-1] = {
 	"sceTouchPeek",
 	"sceTouchPeek2"
 };
-static uint32_t btns[BUTTONS_NUM] = {
+static uint32_t btns[PHYS_BUTTONS_NUM] = {
 	SCE_CTRL_CROSS, SCE_CTRL_CIRCLE, SCE_CTRL_TRIANGLE, SCE_CTRL_SQUARE,
 	SCE_CTRL_START, SCE_CTRL_SELECT, SCE_CTRL_LTRIGGER, SCE_CTRL_RTRIGGER,
 	SCE_CTRL_UP, SCE_CTRL_RIGHT, SCE_CTRL_LEFT, SCE_CTRL_DOWN, SCE_CTRL_L1,
 	SCE_CTRL_R1, SCE_CTRL_L3, SCE_CTRL_R3
 };
 
-static char* str_btns[BUTTONS_NUM] = {
+static char* str_btns[PHYS_BUTTONS_NUM] = {
 	"Cross", "Circle", "Triangle", "Square",
 	"Start", "Select", 
-	"L Trigger (L2)", "R Trigger (R2)",
+	"LT/L2", "RT/R2",
 	"Up", "Right", "Left", "Down", 
-	"L1", "R1", "L3", "R3",
-	"Touch (TL)", "Touch (TR)", "Touch (BL)", "Touch (BR)",
-	"Rear (TL)", "Rear (TR)", "Rear (BL)", "Rear (BR)",
-	"Left Analog (L)", "Left Analog (R)", "Left Analog (U)", "Left Analog (D)", 
-	"Right Analog (L)", "Right Analog (R)", "Right Analog (U)", "Right Analog (D)",
-	"Gyro (L)", "Gyro (R)", "Gyro (U)", "Gyro (D)", "Gyro (Roll Left)", "Gyro (Roll Right)"
+	"L1", "R1", "L3", "R3"
 };
-static char* target_btns[TARGET_REMAPS] = {
-	"Cross", "Circle", "Triangle", "Square", 
-	"Start", "Select", 
-	"L Trigger (L2)", "R Trigger (R2)", 
-	"Up", "Right", "Left", "Down", 
-	"L1", "R1", "L3", "R3", 
-	"Original", "Disable",
-	"Left Analog (L)", "Left Analog (R)", "Left Analog (U)", "Left Analog (D)", 
-	"Right Analog (L)", "Right Analog (R)", "Right Analog (U)", "Right Analog (D)",
-	"Touch (TL)", "Touch (TR)", "Touch (BL)", "Touch (BR)",
-	"Touch (Point [A])", "Touch (Point [B])", "Touch (Point [C])", "Touch (Point [D])",
-	"Rear (TL)", "Rear (TR)", "Rear (BL)", "Rear (BR)",
-	"Rear (Point [A])", "Rear (Point [B])", "Rear (Point [C])", "Rear (Point [D])",
+static char* str_sections[] = {
+	"Button", 
+	"LStick", 
+	"RStick", 
+	"FrontTouch", 
+	"RearTouch", 
+	"Gyroscope",
+	"",
+	"Disabled"
+};
+static char* str_analog_directions[] = {
+	"Left", 
+	"Right", 
+	"Up", 
+	"Down"
+};
+static char* str_touch_zones[] = {
+	"TopLeft", 
+	"TopRight", 
+	"BotLeft", 
+	"BotRight"
+};
+static char* str_gyro_directions[] = {
+	"Left", 
+	"Right", 
+	"Up", 
+	"Down",
+	"Roll Left",
+	"Roll Right"
 };
 static char* touch_points[4] = {"A", "B", "C", "D"};
+static char* str_touch_points[4] = {"Point A", "Point B", "Point C", "Point D"};
 
 // Generic clamp function
 int32_t clamp(int32_t value, int32_t mini, int32_t maxi) {
@@ -245,7 +253,7 @@ void resetTouchOptions(){
 		touch_options[i] = TOUCH_POINTS_DEF[i];
 	touch_options[16] = TOUCH_MODE_DEF;
 	touch_options[17] = TOUCH_MODE_DEF;
-	touch_options[18] = 0;
+	touch_options[18] = TOUCH_MODE_DEF;
 }
 
 void resetGyroOptions(){
@@ -320,11 +328,53 @@ void drawConfigMenu() {
 				drawString(L_0, y + 20, (ticker % 16 < 8) ? "<" : ">");
 			}
 			
+			char *srcSection = "", *srcAction = "", *targetSection = "", *targetAction = "";
+			//Source section
+			if (i == 0) srcSection = str_sections[0];
+			else if (i == PHYS_BUTTONS_NUM)  srcSection = str_sections[3];
+			else if (i == PHYS_BUTTONS_NUM + 4)  srcSection = str_sections[4];
+			else if (i == PHYS_BUTTONS_NUM + 8) srcSection = str_sections[1];
+			else if (i == PHYS_BUTTONS_NUM + 12) srcSection = str_sections[2];
+			else if (i == PHYS_BUTTONS_NUM + 16) srcSection = str_sections[5];
+			//Source  Action
+			if (i < PHYS_BUTTONS_NUM) srcAction = str_btns[i];
+			else if (i < PHYS_BUTTONS_NUM + 4)  srcAction = str_touch_zones[i - PHYS_BUTTONS_NUM];
+			else if (i < PHYS_BUTTONS_NUM + 8)  srcAction = str_touch_zones[i - PHYS_BUTTONS_NUM-4];
+			else if (i < PHYS_BUTTONS_NUM + 12) srcAction = str_analog_directions[i - PHYS_BUTTONS_NUM-8];
+			else if (i < PHYS_BUTTONS_NUM + 16) srcAction = str_analog_directions[i - PHYS_BUTTONS_NUM-12];
+			else if (i < PHYS_BUTTONS_NUM + 22) srcAction = str_gyro_directions[i - PHYS_BUTTONS_NUM-16];
+			//Target Section
+			if (btn_mask[i] < PHYS_BUTTONS_NUM) targetSection = str_sections[0];
+			else if (btn_mask[i] == PHYS_BUTTONS_NUM)  targetSection = str_sections[6];
+			else if (btn_mask[i] == PHYS_BUTTONS_NUM + 1)  targetSection = str_sections[7];
+			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 6)  targetSection = str_sections[1];
+			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 10)  targetSection = str_sections[2];
+			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 18)  targetSection = str_sections[3];
+			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 26)  targetSection = str_sections[4];
+			//Target  Action
+			if (btn_mask[i] < PHYS_BUTTONS_NUM) targetAction = str_btns[btn_mask[i]];
+			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 2)  targetAction = "";
+			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 6) targetAction = str_analog_directions[btn_mask[i] - PHYS_BUTTONS_NUM-2];
+			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 10) targetAction = str_analog_directions[btn_mask[i] - PHYS_BUTTONS_NUM-6];
+			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 14) targetAction = str_touch_zones[btn_mask[i] - PHYS_BUTTONS_NUM-10];
+			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 18) targetAction = str_touch_points[btn_mask[i] - PHYS_BUTTONS_NUM-14];
+			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 22) targetAction = str_touch_zones[btn_mask[i] - PHYS_BUTTONS_NUM-18];
+			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 26) targetAction = str_touch_points[btn_mask[i] - PHYS_BUTTONS_NUM-22];
+	
+			setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_HEADER);
+			drawString(L_1, y += 20, srcSection);
 			if (i == cfg_i) setTextColor(COLOR_CURSOR);
 			else if (btn_mask[i] == PHYS_BUTTONS_NUM) setTextColor(COLOR_DEFAULT);
 			else if (btn_mask[i] == PHYS_BUTTONS_NUM + 1) setTextColor(COLOR_DISABLE);
 			else setTextColor(COLOR_ACTIVE);
-			drawStringF(L_1, y += 20, "%s -> %s", str_btns[i], target_btns[btn_mask[i]]);
+			drawString(L_1 + 12*11, y, srcAction);
+			if (btn_mask[i] == PHYS_BUTTONS_NUM) setTextColor(COLOR_DEFAULT);
+			else if (btn_mask[i] == PHYS_BUTTONS_NUM + 1) setTextColor(COLOR_DISABLE);
+			else setTextColor(COLOR_ACTIVE);
+			if (btn_mask[i] != PHYS_BUTTONS_NUM)
+				drawString(L_1 + 12*19, y, " -> ");
+			drawString(L_1 + 12*23, y, targetSection);
+			drawString(L_1 + 12*34, y, targetAction);
 			if (y + 60 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
@@ -401,26 +451,24 @@ void drawConfigMenu() {
 			if (i == 18){ //Front touch mode
 				if (18 == cfg_i) setTextColor(COLOR_CURSOR);
 				else if (touch_options[16] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
-				else if (touch_options[16] == 2) setTextColor(COLOR_DISABLE);
 				else setTextColor(COLOR_ACTIVE);
-				drawStringF(L_1, y+=20, "Front Touch Mode : %s", str_touch_mode[touch_options[16]]);
+				drawStringF(L_1, y+=20, "Disable Front touch if remapped: %s", str_yes_no[touch_options[16]]);
 				if (y + 60 > screen_h) break;
 			}
 			
 			if (i==19){ //Rear touch mode
 				if (19 == cfg_i) setTextColor(COLOR_CURSOR);
 				else if (touch_options[17] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
-				else if (touch_options[17] == 2) setTextColor(COLOR_DISABLE);
 				else setTextColor(COLOR_ACTIVE);
-				drawStringF(L_1, y+=20, "Rear  Touch Mode : %s", str_touch_mode[touch_options[17]]);
+				drawStringF(L_1, y+=20, "Disable Rear touch  if remapped: %s", str_yes_no[touch_options[17]]);
 				if (y + 60 > screen_h) break;
 			}
 			
 			if (i==20){ //Touch compatibility
 				if (20 == cfg_i) setTextColor(COLOR_CURSOR);
-				else if (touch_options[18] == 0) setTextColor(COLOR_DEFAULT);
+				else if (touch_options[18] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
 				else setTextColor(COLOR_DISABLE);
-				drawStringF(L_1, y+=20, "Touch compatibility mode: %s", str_yes_no[touch_options[18]]);
+				drawStringF(L_1, y+=20, "Touch compatibility mode       : %s", str_yes_no[touch_options[18]]);
 				if (y + 60 > screen_h) break;
 			}
 		}
@@ -520,11 +568,11 @@ void drawConfigMenu() {
 		//Menu trigger keys
 		setTextColor(cfg_i == 0 ? COLOR_CURSOR : 
 			(settings_options[0] == SETTINGS_DEF[0] ? COLOR_DEFAULT : COLOR_ACTIVE));
-		drawStringF(L_1, y += 20, "Menu trigger first key: %s", 
+		drawStringF(L_1, y += 20, "Menu trigger first key    : %s", 
 			str_btns[settings_options[0]]);
 		setTextColor(cfg_i == 1 ? COLOR_CURSOR : 
 			(settings_options[1] == SETTINGS_DEF[1] ? COLOR_DEFAULT : COLOR_ACTIVE));
-		drawStringF(L_1, y += 20, "            second key: %s", 
+		drawStringF(L_1, y += 20, "            second key    : %s", 
 			str_btns[settings_options[1]]);
 		
 		//Save game profile on close
@@ -824,24 +872,30 @@ void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et,
 
 void updateTouchInfo(SceUInt32 port, SceTouchData *pData){	
 	if (port == SCE_TOUCH_PORT_FRONT) {
-		if (touch_options[16] == 2 || 
-			(touch_options[16] == 1 &&
-				((btn_mask[PHYS_BUTTONS_NUM] != PHYS_BUTTONS_NUM) ||
-				(btn_mask[PHYS_BUTTONS_NUM+1] != PHYS_BUTTONS_NUM) ||
-				(btn_mask[PHYS_BUTTONS_NUM+2] != PHYS_BUTTONS_NUM) ||
-				(btn_mask[PHYS_BUTTONS_NUM+3] != PHYS_BUTTONS_NUM))))
+		if ((touch_options[16] == 1 && //Disable if remapped
+				(btn_mask[PHYS_BUTTONS_NUM] != PHYS_BUTTONS_NUM ||
+				 btn_mask[PHYS_BUTTONS_NUM+1] != PHYS_BUTTONS_NUM ||
+				 btn_mask[PHYS_BUTTONS_NUM+2] != PHYS_BUTTONS_NUM ||
+				 btn_mask[PHYS_BUTTONS_NUM+3] != PHYS_BUTTONS_NUM)) ||
+				 btn_mask[PHYS_BUTTONS_NUM]   == PHYS_BUTTONS_NUM+1 ||
+				 btn_mask[PHYS_BUTTONS_NUM+1] == PHYS_BUTTONS_NUM+1 ||
+				 btn_mask[PHYS_BUTTONS_NUM+2] == PHYS_BUTTONS_NUM+1 ||
+				 btn_mask[PHYS_BUTTONS_NUM+3] == PHYS_BUTTONS_NUM+1)
 			pData->reportNum = 0; //Disable pad
 		addVirtualTouches(pData, &etFront, 
 			MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
 		prevEtFront = etFront;
 		etFront.num = 0;
 	} else {
-		if (touch_options[17] == 2 || 
-			(touch_options[17] == 1 &&
-				((btn_mask[PHYS_BUTTONS_NUM+4] != PHYS_BUTTONS_NUM) ||
-				(btn_mask[PHYS_BUTTONS_NUM+5] != PHYS_BUTTONS_NUM) ||
-				(btn_mask[PHYS_BUTTONS_NUM+6] != PHYS_BUTTONS_NUM) ||
-				(btn_mask[PHYS_BUTTONS_NUM+7] != PHYS_BUTTONS_NUM))))
+		if ((touch_options[17] == 1 &&//Disable if remapped
+				(btn_mask[PHYS_BUTTONS_NUM+4] != PHYS_BUTTONS_NUM ||
+				 btn_mask[PHYS_BUTTONS_NUM+5] != PHYS_BUTTONS_NUM ||
+				 btn_mask[PHYS_BUTTONS_NUM+6] != PHYS_BUTTONS_NUM ||
+				 btn_mask[PHYS_BUTTONS_NUM+7] != PHYS_BUTTONS_NUM)) ||
+				 btn_mask[PHYS_BUTTONS_NUM+4] == PHYS_BUTTONS_NUM+1 ||
+				 btn_mask[PHYS_BUTTONS_NUM+5] == PHYS_BUTTONS_NUM+1 ||
+				 btn_mask[PHYS_BUTTONS_NUM+6] == PHYS_BUTTONS_NUM+1 ||
+				 btn_mask[PHYS_BUTTONS_NUM+7] == PHYS_BUTTONS_NUM+1)
 			pData->reportNum = 0; //Disable pad
 		addVirtualTouches(pData, &etRear, 
 			MULTITOUCH_REAR_NUM, SCE_TOUCH_PORT_BACK);
@@ -1087,6 +1141,9 @@ void touchPicker(int padType){
 
 // Input Handler for the Config Menu
 void configInputHandler(SceCtrlData *ctrl) {
+	if ((ctrl->buttons & btns[settings_options[0]]) 
+			&& (ctrl->buttons & btns[settings_options[1]]))
+		return; //Menu trigger butoons should not trigger any menu actions on menu open
 	if (new_frame) {
 		new_frame = 0;
 		int menu_entries = 0;
@@ -1161,9 +1218,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 					else if (o_idx < 16)//Rear Points xy
 						touch_options[o_idx] = (touch_options[o_idx] + 1)
 							% ((o_idx % 2) ? TOUCH_SIZE[3] : TOUCH_SIZE[2]);
-					else if (o_idx < 18)//Mode
-						touch_options[o_idx] = (touch_options[o_idx] + 1) % 3;
-					else 			//Compability
+					else 			//yes/no otion
 						touch_options[o_idx] = !touch_options[o_idx];
 					break;
 				case GYRO_MENU:
@@ -1212,9 +1267,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 							touch_options[o_idx] = ((o_idx % 2) ? TOUCH_SIZE[1] - 1 : TOUCH_SIZE[0] - 1);
 						if (o_idx < 16)//rear points xy
 							touch_options[o_idx] = ((o_idx % 2) ? TOUCH_SIZE[3] - 1 : TOUCH_SIZE[2] - 1);
-						else if (o_idx < 18)//touch mode
-							touch_options[o_idx] = 2;
-						else //compability mode
+						else //yes/no options
 							touch_options[o_idx] = !touch_options[o_idx];
 					}
 					break;
@@ -1302,10 +1355,8 @@ void configInputHandler(SceCtrlData *ctrl) {
 					o_idx = (cfg_i < 9) ? cfg_i - 1 : cfg_i - 2;
 					if (o_idx < 16)
 						touch_options[o_idx] = TOUCH_POINTS_DEF[o_idx];
-					else if (o_idx < 16)
-						touch_options[o_idx] = TOUCH_MODE_DEF;
 					else
-						touch_options[o_idx] = 0;
+						touch_options[o_idx] = TOUCH_MODE_DEF;
 					break;
 				case GYRO_MENU:
 					if (!(cfg_i % 4)) break;//Skip headers
@@ -1352,9 +1403,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 						menu_i = cfg_i + 1;
 						cfg_i = 0;
 					}
-				}
-				break;
-				if (menu_i == SETTINGS_MENU){
+				} else if (menu_i == SETTINGS_MENU){
 					if (cfg_i == 3) {
 						saveGameConfig();	
 					} else if (cfg_i == 4) {
