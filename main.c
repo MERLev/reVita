@@ -368,93 +368,89 @@ void drawConfigMenu() {
 		footer2 = " (start):reset all  (O):back";
 		break;
 	case ANALOG_MENU:
-		for (i = calcStartingIndex(cfg_i, ANOLOGS_OPTIONS_NUM + 2, avaliable_entries); i < ANOLOGS_OPTIONS_NUM + 2; i++) {				
+		for (i = calcStartingIndex(cfg_i, ANOLOGS_OPTIONS_NUM, avaliable_entries); i < ANOLOGS_OPTIONS_NUM; i++) {				
 			if (y + 60 > screen_h) break;
 			
 			if (cfg_i == i){//Draw cursor
 				setTextColor(COLOR_CURSOR);
-				drawString(L_0, y + 20, !(i % 5) ? "-" : ((ticker % 16 < 8) ? "<" : ">"));
+				drawString(L_0 + 26*12, y + 20, (ticker % 16 < 8) ? "<" : ">");
 			}
 			
-			if (!(i % 5)){	//Headers
-				setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_DEFAULT);
-				drawString(L_1, y+=20, (i == 0) ? "Deadzone:" : "Force digital output:");
-				continue;
+			if (!(i % 4)){	//Headers
+				setTextColor(COLOR_HEADER);
+				drawString(L_0, y+20, (i == 0) ? "Deadzone" : "Force digital");
 			}
 			
-			int o_idx = (i < 5) ? i - 1 : i - 2; //Index in options file
 			if (i == cfg_i) setTextColor(COLOR_CURSOR);
-			else if (analogs_options[o_idx] != ((o_idx < 4) ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF)) 
+			else if (analogs_options[i] != ((i/2*2 < 4) ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF)) 
 				setTextColor(COLOR_ACTIVE);
 			else setTextColor(COLOR_DEFAULT);
-			if (o_idx < 4)
-				drawStringF(L_2, y+=20, "%s [%s axis]: %hhu", 
-					!(o_idx % 2) ? (((o_idx / 2) % 2 ) ? "Right Analog" : "Left Analog "): "            ",
-					(o_idx % 2) ? "Y" : "X",
-					analogs_options[o_idx]);
+			drawStringF(L_0+14*12, y+=20, "%s", 
+				!(i % 2) ? (((i / 2) % 2 ) ? "Right Analog" : "Left Analog "): "");
+			if (i < 4)
+				drawStringF(L_0+27*12, y, "[%s axis]: %hhu", 
+					(i % 2) ? "Y" : "X",
+					analogs_options[i]);
 			else 
-				drawStringF(L_2, y+=20, "%s [%s axis]: %s", 
-					!(o_idx % 2) ? (((o_idx / 2) % 2 ) ? "Right Analog" : "Left Analog "): "            ",
-					(o_idx % 2) ? "Y" : "X",
-					analogs_options[o_idx] ? "Yes" : "No");	
+				drawStringF(L_0+27*12, y, "[%s axis]: %s", 
+					(i % 2) ? "Y" : "X",
+					str_yes_no[analogs_options[i]]);	
 		}
 		footer1 = "(<)(>):change  ([]):reset  (start):reset all" ;
 		footer2 = "(O):back";
 		break;
 	case TOUCH_MENU:
-		for (i = calcStartingIndex(cfg_i, TOUCH_OPTIONS_NUM + 2, avaliable_entries); i < TOUCH_OPTIONS_NUM + 2; i++) {				
+		for (i = calcStartingIndex(cfg_i, TOUCH_OPTIONS_NUM, avaliable_entries); i < TOUCH_OPTIONS_NUM; i++) {				
 			if (y + 60 > screen_h) break;
 			
 			if (cfg_i == i){//Draw cursor
 				setTextColor(COLOR_CURSOR);
-				drawString(L_0, y + 20, (i == 0 || i == 9) ? "-" : ((ticker % 16 < 8) ? "<" : ">"));
+				drawString(L_0+ ((i<16) ? 16*12 : 32*12), y + 20, (ticker % 16 < 8) ? "<" : ">");
 			}
 			
-			if (i == 0 || i == 9){	//Headers
-				setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_DEFAULT);
-				drawString(L_1, y+=20, (i == 0) ? "Front touch:" : "Rear touch:");
-				continue;
+			if (i == 0 || i == 8){	//Headers
+				setTextColor(COLOR_HEADER);
+				drawString(L_0, y+20, (i == 0) ? "Front" : "Rear");
 			}
 			
-			if (i < 18){ //Points
-				int o_idx = (i <= 8) ? i - 1 : i - 2; //Index in options file 
+			if (i < 16){ //Points
 				if (i == cfg_i) setTextColor(COLOR_CURSOR);
-				else if (touch_options[o_idx] != TOUCH_POINTS_DEF[o_idx]) 
+				else if (touch_options[i] != TOUCH_POINTS_DEF[i]) 
 					setTextColor(COLOR_ACTIVE);
 				else setTextColor(COLOR_DEFAULT);
-				if (o_idx < 16){
-					if (!(o_idx % 2))
-						drawStringF(L_2, y+=20, "%s x: %hu", 
-							str_touch_points[(o_idx % 8)/2],
-							touch_options[o_idx]);
-					else 
-						drawStringF(L_2, y+=20, "        y: %hu", 
-							touch_options[o_idx]);
+				if (i < 16){
+					if (!(i % 2)) 
+						drawString(L_0+6*12, y+20, str_touch_points[(i % 8)/2]);
+					drawStringF(L_0+14*12, y+=20, "%s:", !(i % 2) ? "x" : "y");
+					drawStringF(L_0+17*12, y, "%hu", touch_options[i]);
 				}
 				if (y + 60 > screen_h) break;
 			}
 			
-			if (i == 18){ //Front touch mode
-				if (18 == cfg_i) setTextColor(COLOR_CURSOR);
+			if (i == 16){ //Front touch mode
+				if (16 == cfg_i) setTextColor(COLOR_CURSOR);
 				else if (touch_options[16] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
 				else setTextColor(COLOR_ACTIVE);
-				drawStringF(L_1, y+=20, "Disable Front touch if remapped: %s", str_yes_no[touch_options[16]]);
+				drawString(L_0, y+=20, "Disable Front touch if remapped:");
+				drawString(L_0+33*12, y, str_yes_no[touch_options[16]]);
 				if (y + 60 > screen_h) break;
 			}
 			
-			if (i==19){ //Rear touch mode
-				if (19 == cfg_i) setTextColor(COLOR_CURSOR);
+			if (i==17){ //Rear touch mode
+				if (17 == cfg_i) setTextColor(COLOR_CURSOR);
 				else if (touch_options[17] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
 				else setTextColor(COLOR_ACTIVE);
-				drawStringF(L_1, y+=20, "Disable Rear touch  if remapped: %s", str_yes_no[touch_options[17]]);
+				drawString(L_0, y+=20, "Disable Rear touch  if remapped:");
+				drawString(L_0+33*12, y, str_yes_no[touch_options[17]]);
 				if (y + 60 > screen_h) break;
 			}
 			
-			if (i==20){ //Touch compatibility
-				if (20 == cfg_i) setTextColor(COLOR_CURSOR);
+			if (i==18){ //Touch compatibility
+				if (18 == cfg_i) setTextColor(COLOR_CURSOR);
 				else if (touch_options[18] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
 				else setTextColor(COLOR_DISABLE);
-				drawStringF(L_1, y+=20, "Touch compatibility mode       : %s", str_yes_no[touch_options[18]]);
+				drawString(L_0, y+=20, "Touch compatibility mode       :");
+				drawString(L_0+33*12, y, str_yes_no[touch_options[18]]);
 				if (y + 60 > screen_h) break;
 			}
 		}
@@ -462,28 +458,26 @@ void drawConfigMenu() {
 		footer2 = "(O): back";
 		break;
 	case GYRO_MENU:
-		for (i = calcStartingIndex(cfg_i, GYRO_OPTIONS_NUM + 2, avaliable_entries); i < GYRO_OPTIONS_NUM + 2; i++) {				
+		for (i = calcStartingIndex(cfg_i, GYRO_OPTIONS_NUM, avaliable_entries); i < GYRO_OPTIONS_NUM; i++) {				
 			if (y + 60 > screen_h) break;
 			
 			if (cfg_i == i){//Draw cursor
 				setTextColor(COLOR_CURSOR);
-				drawString(L_0, y + 20, !(i % 4) ? "-" : ((ticker % 16 < 8) ? "<" : ">"));
+				drawString(L_0+17*12, y + 20, (ticker % 16 < 8) ? "<" : ">");
 			}
 			
-			if (!(i % 4)){	//Headers
-				setTextColor((i == cfg_i) ? COLOR_CURSOR : COLOR_DEFAULT);
-				drawString(L_1, y+=20, (i == 0) ? "Sensivity:" : "Deadzone for digital mode:");
-				continue;
+			if (!(i % 3)){	//Headers
+				setTextColor(COLOR_HEADER);
+				drawString(L_0, y+20, (i == 0) ? "Sensivity" : "Deadzone");
 			}
 			
-			int o_idx = (i < 4) ? i - 1 : i - 2; //Index in options file
 			if (i == cfg_i) setTextColor(COLOR_CURSOR);
-			else if (gyro_options[o_idx] != ((o_idx < 3) ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF)) 
+			else if (gyro_options[i] != ((i < 3) ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF)) 
 				setTextColor(COLOR_ACTIVE);
 			else setTextColor(COLOR_DEFAULT);
-			drawStringF(L_2, y+=20, "%s axis: %hhu", 
-				((o_idx % 3) == 2) ? "Z" : ((o_idx % 3) ? "Y" : "X"),
-				gyro_options[o_idx]);
+			drawStringF(L_0+10*12, y+=20, "%s axis:", 
+				((i % 3) == 2) ? "Z" : ((i % 3) ? "Y" : "X"));
+			drawStringF(L_0+18*12, y, "%hhu", gyro_options[i]);
 		}
 		footer1 = "(<)(>):change  ([]):reset  (start):reset all";                          
 		footer2 = "(O): back";
@@ -515,7 +509,7 @@ void drawConfigMenu() {
 			//Button swap
 			setTextColor(cfg_i == 2 ? COLOR_CURSOR : 
 				(controller_options[2] == CNTRL_DEF[2] ? COLOR_DEFAULT : COLOR_ACTIVE));
-			drawStringF(L_1, y += 20, "Swap L1<>LT R1<>RT: %s", str_yes_no[controller_options[2]]);
+			drawStringF(L_1, y += 20, "Swap L1<>LT R1<>RT     : %s", str_yes_no[controller_options[2]]);
 			
 			//Ports stats
 			y+=20;
@@ -536,7 +530,6 @@ void drawConfigMenu() {
 				setTextColor(COLOR_CURSOR);
 				drawString(L_0, y + 20, "-");
 			}
-			
 			setTextColor((i == cfg_i) ? COLOR_CURSOR : (used_funcs[i] ? COLOR_ACTIVE : COLOR_DEFAULT));
 			drawStringF(L_1, y += 20, "%s : %s", str_funcs[i], used_funcs[i] ? "Yes" : "No");
 			if (y + 40 > screen_h) break;
@@ -606,14 +599,13 @@ void drawConfigMenu() {
 	}
 		
 	//DRAW TOUCH POINTER over everything else
-	if (menu_i != TOUCH_MENU || cfg_i >= 18 || cfg_i == 0 || cfg_i == 9)
+	if (menu_i != TOUCH_MENU || cfg_i >= 16)
 		return;
-	int o_idx = (cfg_i <= 8) ? cfg_i - 1 : cfg_i - 2; //Index in options file 
-	int left = touch_options[o_idx - (o_idx % 2)] - 8;
-	left *= (float)screen_w / ((o_idx < 8) ? TOUCH_SIZE[0] : TOUCH_SIZE[2]);
+	int left = touch_options[cfg_i - (cfg_i % 2)] - 8;
+	left *= (float)screen_w / ((cfg_i < 8) ? TOUCH_SIZE[0] : TOUCH_SIZE[2]);
 	left = min((max(0, left)), screen_w);
-	int top = touch_options[o_idx - (o_idx % 2) + 1] - 10;
-	top *= (float)screen_h / ((o_idx < 8) ? TOUCH_SIZE[1] : TOUCH_SIZE[3]); //Scale to framebuffer size
+	int top = touch_options[cfg_i - (cfg_i % 2) + 1] - 10;
+	top *= (float)screen_h / ((cfg_i < 8) ? TOUCH_SIZE[1] : TOUCH_SIZE[3]); //Scale to framebuffer size
 	top = min((max(0, top)), screen_h);//limit into screen
 	setTextColor((ticker % 4) ? COLOR_CURSOR : COLOR_DISABLE);
 	drawString(left, top, (ticker % 2) ? "" : "@");
@@ -1095,10 +1087,9 @@ uint8_t isBtnActive(uint8_t btnNum){
 
 //Set custom touch point xy using RS
 void analogTouchPicker(SceCtrlData *ctrl){
-	if (cfg_i == 0 || cfg_i == 9 || cfg_i > 17)
+	if (cfg_i >= 16)
 		return;
-	int o_idx = (cfg_i < 9) ? cfg_i - 1 : cfg_i - 2;
-	int o_idx1 = o_idx - (o_idx % 2);
+	int o_idx1 = cfg_i - (cfg_i % 2);
 	int shiftX = ((float)(ctrl->rx - 127)) / 8;
 	int shiftY = ((float)(ctrl->ry - 127)) / 8;
 	if (abs(shiftX) > 30 / 8)
@@ -1111,17 +1102,16 @@ void analogTouchPicker(SceCtrlData *ctrl){
 
 //Set custom touch point xy using touch
 void touchPicker(int padType){
-	if ((padType == SCE_TOUCH_PORT_FRONT && (cfg_i < 1 || cfg_i >= 9)) ||
-		(padType == SCE_TOUCH_PORT_BACK && (cfg_i < 9 || cfg_i >= 18)))
+	if ((padType == SCE_TOUCH_PORT_FRONT && cfg_i >= 8) ||
+		(padType == SCE_TOUCH_PORT_BACK && (cfg_i < 8 || cfg_i >= 16)))
 		return;
-	int o_idx = (cfg_i < 9) ? cfg_i - 1 : cfg_i - 2;
 	SceTouchData std;
 	internal_touch_call = 1;
 	int ret = sceTouchRead(padType, &std, 1);
 	internal_touch_call = 0;
 	if (ret && std.reportNum){
-		touch_options[o_idx - (o_idx % 2)] = std.report[0].x;
-		touch_options[o_idx - (o_idx % 2) + 1] = std.report[0].y;
+		touch_options[cfg_i - (cfg_i % 2)] = std.report[0].x;
+		touch_options[cfg_i - (cfg_i % 2) + 1] = std.report[0].y;
 	}
 }
 
@@ -1141,16 +1131,16 @@ void configInputHandler(SceCtrlData *ctrl) {
 			menu_entries = BUTTONS_NUM;
 			break;
 		case ANALOG_MENU:
-			menu_entries = ANOLOGS_OPTIONS_NUM + 2;
+			menu_entries = ANOLOGS_OPTIONS_NUM;
 			break;
 		case TOUCH_MENU:
-			menu_entries = TOUCH_OPTIONS_NUM + 2;
+			menu_entries = TOUCH_OPTIONS_NUM;
 			touchPicker(SCE_TOUCH_PORT_FRONT);
 			touchPicker(SCE_TOUCH_PORT_BACK);
 			analogTouchPicker(ctrl);
 			break;
 		case GYRO_MENU:
-			menu_entries = GYRO_OPTIONS_NUM + 2;
+			menu_entries = GYRO_OPTIONS_NUM;
 			break;
 		case CNTRL_MENU:
 			menu_entries = CNTRL_OPTIONS_NUM;
@@ -1166,8 +1156,6 @@ void configInputHandler(SceCtrlData *ctrl) {
 		}
 		tick = ctrl->timeStamp;
 		curr_buttons = ctrl->buttons;
-		int o_idx; //options file real index
-		
 		for (int i = 0; i < PHYS_BUTTONS_NUM; i++){
 			if ((curr_buttons & btns[i]) && !(old_buttons & btns[i]))
 				pressedTicks[i] = tick;
@@ -1190,27 +1178,21 @@ void configInputHandler(SceCtrlData *ctrl) {
 					btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % TARGET_REMAPS;
 					break;
 				case ANALOG_MENU:
-					if (!(cfg_i % 5)) break;//Skip headers
-					o_idx = (cfg_i < 5) ? cfg_i - 1 : cfg_i - 2;
-					if (o_idx < 4) analogs_options[o_idx] = (analogs_options[o_idx] + 1) % 128;
-					else analogs_options[o_idx] = !analogs_options[o_idx];
+					if (cfg_i < 4) analogs_options[cfg_i] = (analogs_options[cfg_i] + 1) % 128;
+					else analogs_options[cfg_i] = !analogs_options[cfg_i];
 					break;
 				case TOUCH_MENU:
-					if (cfg_i == 0 || cfg_i == 9) break;//Skip headers
-					o_idx = (cfg_i < 9) ? cfg_i - 1 : cfg_i - 2;
-					if (o_idx < 8)//Front Points xy
-						touch_options[o_idx] = (touch_options[o_idx] + 1) 
-							% ((o_idx % 2) ? TOUCH_SIZE[1] : TOUCH_SIZE[0]);
-					else if (o_idx < 16)//Rear Points xy
-						touch_options[o_idx] = (touch_options[o_idx] + 1)
-							% ((o_idx % 2) ? TOUCH_SIZE[3] : TOUCH_SIZE[2]);
+					if (cfg_i < 8)//Front Points xy
+						touch_options[cfg_i] = (touch_options[cfg_i] + 1) 
+							% ((cfg_i % 2) ? TOUCH_SIZE[1] : TOUCH_SIZE[0]);
+					else if (cfg_i < 16)//Rear Points xy
+						touch_options[cfg_i] = (touch_options[cfg_i] + 1)
+							% ((cfg_i % 2) ? TOUCH_SIZE[3] : TOUCH_SIZE[2]);
 					else 			//yes/no otion
-						touch_options[o_idx] = !touch_options[o_idx];
+						touch_options[cfg_i] = !touch_options[cfg_i];
 					break;
 				case GYRO_MENU:
-					if (!(cfg_i % 4)) break;//Skip headers
-					o_idx = (cfg_i < 4) ? cfg_i - 1 : cfg_i - 2;
-					gyro_options[o_idx] = (gyro_options[o_idx] + 1) % 200;
+					gyro_options[cfg_i] = (gyro_options[cfg_i] + 1) % 200;
 					break;
 				case CNTRL_MENU:
 					if (cfg_i == 1)
@@ -1236,34 +1218,28 @@ void configInputHandler(SceCtrlData *ctrl) {
 						btn_mask[cfg_i] = TARGET_REMAPS - 1;
 					break;
 				case ANALOG_MENU:
-					if (!(cfg_i % 5)) break;//Skip headers
-					o_idx = (cfg_i < 5) ? cfg_i - 1 : cfg_i - 2;
-					if (analogs_options[o_idx]) 	
-						analogs_options[o_idx]--;
+					if (analogs_options[cfg_i]) 	
+						analogs_options[cfg_i]--;
 					else
-						analogs_options[o_idx] = o_idx < 4 ? 127 : 1;
+						analogs_options[cfg_i] = cfg_i < 4 ? 127 : 1;
 					break;
 				case TOUCH_MENU:
-					if (cfg_i == 0 || cfg_i == 9) break;//Skip headers
-					o_idx = (cfg_i < 9) ? cfg_i - 1 : cfg_i - 2;
-					if (touch_options[o_idx]) 	
-						touch_options[o_idx]--;
+					if (touch_options[cfg_i]) 	
+						touch_options[cfg_i]--;
 					else {
-						if (o_idx < 8)//front points xy
-							touch_options[o_idx] = ((o_idx % 2) ? TOUCH_SIZE[1] - 1 : TOUCH_SIZE[0] - 1);
-						if (o_idx < 16)//rear points xy
-							touch_options[o_idx] = ((o_idx % 2) ? TOUCH_SIZE[3] - 1 : TOUCH_SIZE[2] - 1);
+						if (cfg_i < 8)//front points xy
+							touch_options[cfg_i] = ((cfg_i % 2) ? TOUCH_SIZE[1] - 1 : TOUCH_SIZE[0] - 1);
+						if (cfg_i < 16)//rear points xy
+							touch_options[cfg_i] = ((cfg_i % 2) ? TOUCH_SIZE[3] - 1 : TOUCH_SIZE[2] - 1);
 						else //yes/no options
-							touch_options[o_idx] = !touch_options[o_idx];
+							touch_options[cfg_i] = !touch_options[cfg_i];
 					}
 					break;
 				case GYRO_MENU:
-					if (!(cfg_i % 4)) break;//Skip headers
-					o_idx = (cfg_i < 4) ? cfg_i - 1 : cfg_i - 2;
-					if (gyro_options[o_idx]) 	
-						gyro_options[o_idx]--;
+					if (gyro_options[cfg_i]) 	
+						gyro_options[cfg_i]--;
 					else
-						gyro_options[o_idx] = 199;
+						gyro_options[cfg_i] = 199;
 					break;
 				case CNTRL_MENU:
 					if (cfg_i == 1)
@@ -1332,22 +1308,16 @@ void configInputHandler(SceCtrlData *ctrl) {
 					btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
 					break;
 				case ANALOG_MENU:
-					if (!(cfg_i % 5)) break;//Skip headers
-					o_idx = (cfg_i < 5) ? cfg_i - 1 : cfg_i - 2;
-					analogs_options[o_idx] = (o_idx < 4) ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF;
+					analogs_options[cfg_i] = (cfg_i < 4) ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF;
 					break;
 				case TOUCH_MENU: 
-					if (cfg_i == 0 || cfg_i == 9) break;//Skip headers
-					o_idx = (cfg_i < 9) ? cfg_i - 1 : cfg_i - 2;
-					if (o_idx < 16)
-						touch_options[o_idx] = TOUCH_POINTS_DEF[o_idx];
+					if (cfg_i < 16)
+						touch_options[cfg_i] = TOUCH_POINTS_DEF[cfg_i];
 					else
-						touch_options[o_idx] = TOUCH_MODE_DEF;
+						touch_options[cfg_i] = TOUCH_MODE_DEF;
 					break;
 				case GYRO_MENU:
-					if (!(cfg_i % 4)) break;//Skip headers
-					o_idx = (cfg_i < 4) ? cfg_i - 1 : cfg_i - 2; 
-					gyro_options[o_idx] = (o_idx < 3) ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF;
+					gyro_options[cfg_i] = (cfg_i < 3) ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF;
 					break;
 				case CNTRL_MENU:
 					controller_options[cfg_i] = CNTRL_DEF[cfg_i];
