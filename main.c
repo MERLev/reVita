@@ -35,10 +35,10 @@
 #define GYRO_OPTIONS_NUM			6
 #define MULTITOUCH_FRONT_NUM		6
 #define MULTITOUCH_REAR_NUM			4
-#define TOUCH_OPTIONS_NUM			19
-#define TOUCH_MODE_DEF				0
+#define TOUCH_OPTIONS_NUM			18
+#define TOUCH_MODE_DEF				1
 #define CNTRL_OPTIONS_NUM			3
-#define SETTINGS_NUM				3
+#define SETTINGS_NUM				4
 #define CREDITS_NUM					3
 
 #ifndef max
@@ -62,9 +62,10 @@ static const uint8_t CNTRL_DEF[CNTRL_OPTIONS_NUM] = {
 	0, 0, 0
 };
 
-static const uint8_t SETTINGS_DEF[CNTRL_OPTIONS_NUM] = {
+static const uint8_t SETTINGS_DEF[SETTINGS_NUM] = {
 	4, 3, //Opening keys
-	1	  //Autosave game profile
+	1,	  //Autosave game profile
+	0	  //Startup delay
 };
 
 enum{
@@ -89,7 +90,7 @@ static uint8_t analogs_options[ANOLOGS_OPTIONS_NUM];
 static uint8_t gyro_options[GYRO_OPTIONS_NUM];
 static uint16_t touch_options[TOUCH_OPTIONS_NUM];
 static uint8_t controller_options[CNTRL_OPTIONS_NUM];
-static uint8_t settings_options[CNTRL_OPTIONS_NUM];
+static uint8_t settings_options[SETTINGS_NUM];
 
 static uint8_t used_funcs[HOOKS_NUM-1];
 
@@ -119,6 +120,8 @@ static uint16_t TOUCH_SIZE[4] = {
 	1919, 890	//Rear
 };
 
+static uint8_t delayedStartDone = 0;
+static uint64_t startTick;
 static uint8_t new_frame = 1;
 static int screen_h = 272;
 static int screen_w = 480;
@@ -248,11 +251,10 @@ void resetAnalogsOptions(){
 		analogs_options[i] = i < 4 ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF;
 }
 void resetTouchOptions(){
-	for (int i = 0; i < TOUCH_OPTIONS_NUM - 3; i++)
+	for (int i = 0; i < TOUCH_OPTIONS_NUM - 2; i++)
 		touch_options[i] = TOUCH_POINTS_DEF[i];
 	touch_options[16] = TOUCH_MODE_DEF;
 	touch_options[17] = TOUCH_MODE_DEF;
-	touch_options[18] = TOUCH_MODE_DEF;
 }
 void resetGyroOptions(){
 	for (int i = 0; i < GYRO_OPTIONS_NUM; i++)
@@ -457,15 +459,6 @@ void drawConfigMenu() {
 				drawString(L_0+33*CHA_W, y, str_yes_no[touch_options[17]]);
 				if (y + 60 > screen_h) break;
 			}
-			
-			if (i==18){ //Touch compatibility
-				if (18 == cfg_i) setTextColor(COLOR_CURSOR);
-				else if (touch_options[18] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
-				else setTextColor(COLOR_DISABLE);
-				drawString(L_0, y+=CHA_H, "Touch compatibility mode       :");
-				drawString(L_0+33*CHA_W, y, str_yes_no[touch_options[18]]);
-				if (y + 60 > screen_h) break;
-			}
 		}
 		footer1 = "(<)(>)[TOUCH](RS):change  ([]):reset  (start):reset all";                          
 		footer2 = "(O): back";
@@ -572,9 +565,14 @@ void drawConfigMenu() {
 			(settings_options[2] == SETTINGS_DEF[2] ? COLOR_DEFAULT : COLOR_ACTIVE));
 		drawStringF(L_1, y += CHA_H, "Save Game profile on close: %s", str_yes_no[settings_options[2]]);
 		
+		//Startup delay
+		setTextColor(cfg_i == 3 ? COLOR_CURSOR : 
+			(settings_options[3] == SETTINGS_DEF[3] ? COLOR_DEFAULT : COLOR_ACTIVE));
+		drawStringF(L_1, y += CHA_H, "Startup delay             : %hhu seconds", settings_options[3]);
+		
 		//Profile management
 		for (int i = 0; i <	sizeof(str_settings)/sizeof(char*); i++){
-			setTextColor((cfg_i == (3 + i)) ? COLOR_CURSOR : COLOR_DEFAULT);
+			setTextColor((cfg_i == (4 + i)) ? COLOR_CURSOR : COLOR_DEFAULT);
 			drawString(L_1, y += CHA_H, str_settings[i]);
 		}
 		
@@ -876,7 +874,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				 btn_mask[PHYS_BUTTONS_NUM+3] == PHYS_BUTTONS_NUM+1)
 			pData->reportNum = 0; //Disable pad
 			
-		if (!newEmulatedTouchBuffer){//New tocubuffer not ready - using previous one
+		if (!newEmulatedTouchBuffer){//New touchbuffer not ready - using previous one
 			addVirtualTouches(pData, &prevEtFront, 
 				MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
 			return;
@@ -899,7 +897,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				 btn_mask[PHYS_BUTTONS_NUM+7] == PHYS_BUTTONS_NUM+1)
 			pData->reportNum = 0; //Disable pad
 			
-		if (!newEmulatedTouchBuffer){//New tocubuffer not ready - using previous one
+		if (!newEmulatedTouchBuffer){//New touchbuffer not ready - using previous one
 			addVirtualTouches(pData, &prevEtRear, 
 				MULTITOUCH_REAR_NUM, SCE_TOUCH_PORT_BACK);
 			return;
@@ -919,7 +917,7 @@ void saveSettings(){
 	
 	// Opening settings config file and saving the config
 	SceUID fd = sceIoOpen("ux0:/data/remaPSV/settings.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	sceIoWrite(fd, settings_options, GYRO_OPTIONS_NUM);
+	sceIoWrite(fd, settings_options, SETTINGS_NUM);
 	sceIoClose(fd);
 }
 
@@ -932,7 +930,7 @@ void loadSettings(){
 	// Loading config file for the selected app if exists
 	SceUID fd = sceIoOpen("ux0:/data/remaPSV/settings.bin", SCE_O_RDONLY, 0777);
 	if (fd >= 0){
-		sceIoRead(fd, btn_mask, BUTTONS_NUM);
+		sceIoRead(fd, settings_options, SETTINGS_NUM);
 		sceIoClose(fd);
 	}
 }
@@ -1237,6 +1235,9 @@ void configInputHandler(SceCtrlData *ctrl) {
 							= min(PHYS_BUTTONS_NUM - 1, settings_options[cfg_i] + 1);
 					else if (cfg_i == 2)
 						settings_options[cfg_i] = !settings_options[cfg_i];
+					else if (cfg_i == 3)
+						settings_options[cfg_i] 
+							= min(60, settings_options[cfg_i] + 1);
 					break;
 				}
 				break;
@@ -1284,6 +1285,9 @@ void configInputHandler(SceCtrlData *ctrl) {
 							= max(0, settings_options[cfg_i] - 1);
 					else if (cfg_i == 2)
 						settings_options[cfg_i] = !settings_options[cfg_i];
+					else if (cfg_i == 3)
+						settings_options[cfg_i] 
+							= max(0, settings_options[cfg_i] - 1);
 					break;
 				}
 				break;
@@ -1391,13 +1395,13 @@ void configInputHandler(SceCtrlData *ctrl) {
 						cfg_i = 0;
 					}
 				} else if (menu_i == SETTINGS_MENU){
-					if (cfg_i == 3) {
+					if (cfg_i == SETTINGS_NUM) {
 						saveGameConfig();	
-					} else if (cfg_i == 4) {
+					} else if (cfg_i == SETTINGS_NUM + 1) {
 						loadGameConfig();			
-					} else if (cfg_i == 5) {
+					} else if (cfg_i == SETTINGS_NUM + 2) {
 						saveGlobalConfig();			
-					} else if (cfg_i == 6) {
+					} else if (cfg_i == SETTINGS_NUM + 3) {
 						loadGlobalConfig();			
 					}
 				}
@@ -1681,7 +1685,21 @@ int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) 
 	return onTouch(port, pData, ret, 3);
 }
 
+void delayedStart(){
+	delayedStartDone = 1;
+	// Enabling analogs sampling 
+	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+	sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
+	// Enabling gyro sampling
+	sceMotionReset();
+	sceMotionStartSampling();
+}
+
 int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
+	if (!delayedStartDone 
+		&& startTick + settings_options[3] * 1000000 < sceKernelGetProcessTimeWide()){
+		delayedStart();
+	}
 	if (show_menu) {
 		new_frame = 1;
 		ticker++;
@@ -1704,6 +1722,9 @@ int module_start(SceSize argc, const void *args) {
 	{
 	   return SCE_KERNEL_START_SUCCESS;
 	}
+	
+	//Set current tick for delayed startup calculation
+	startTick = sceKernelGetProcessTimeWide();
 	
 	// Getting game Title ID
 	sceAppMgrAppParamGetString(0, 12, titleid , 256);
@@ -1743,11 +1764,11 @@ int module_start(SceSize argc, const void *args) {
 		!strcmp(titleid, "PCSF00438")){
 			
 		// Enabling analogs sampling 
-		sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
-		sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
+		//sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+		//sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
 		// Enabling gyro sampling
-		sceMotionReset();
-		sceMotionStartSampling();
+		//sceMotionReset();
+		//sceMotionStartSampling();
 	}
 	
 	// Hooking functions
