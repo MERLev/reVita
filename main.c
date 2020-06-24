@@ -106,7 +106,8 @@ static int remappedBuffersFrontIdxs[4];
 static SceTouchData remappedBuffersRear[4][BUFFERS_NUM];
 static int remappedBuffersRearSizes[4];
 static int remappedBuffersRearIdxs[4];
-uint8_t newEmulatedTouchBuffer = 0;
+uint8_t newEmulatedFrontTouchBuffer = 0;
+uint8_t newEmulatedRearTouchBuffer = 0;
 
 typedef struct EmulatedTouch{
 	SceTouchReport reports[MULTITOUCH_FRONT_NUM];
@@ -826,7 +827,8 @@ void applyRemap(SceCtrlData *ctrl) {
 	ctrl->buttons = new_map;
 	
 	//Telling that new emulated touch buffer is ready to be takn
-	newEmulatedTouchBuffer = 1;
+	newEmulatedFrontTouchBuffer = 1;
+	newEmulatedRearTouchBuffer = 1;
 }
 
 //Keep same touch id for continuus touches
@@ -874,7 +876,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				 btn_mask[PHYS_BUTTONS_NUM+3] == PHYS_BUTTONS_NUM+1)
 			pData->reportNum = 0; //Disable pad
 			
-		if (!newEmulatedTouchBuffer){//New touchbuffer not ready - using previous one
+		if (!newEmulatedFrontTouchBuffer){//New touchbuffer not ready - using previous one
 			addVirtualTouches(pData, &prevEtFront, 
 				MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
 			return;
@@ -884,7 +886,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 			MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
 		prevEtFront = etFront;
 		etFront.num = 0;
-		newEmulatedTouchBuffer = 0;
+		newEmulatedFrontTouchBuffer = 0;
 	} else {
 		if ((touch_options[17] == 1 &&//Disable if remapped
 				(btn_mask[PHYS_BUTTONS_NUM+4] != PHYS_BUTTONS_NUM ||
@@ -897,7 +899,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				 btn_mask[PHYS_BUTTONS_NUM+7] == PHYS_BUTTONS_NUM+1)
 			pData->reportNum = 0; //Disable pad
 			
-		if (!newEmulatedTouchBuffer){//New touchbuffer not ready - using previous one
+		if (!newEmulatedRearTouchBuffer){//New touchbuffer not ready - using previous one
 			addVirtualTouches(pData, &prevEtRear, 
 				MULTITOUCH_REAR_NUM, SCE_TOUCH_PORT_BACK);
 			return;
@@ -907,7 +909,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 			MULTITOUCH_REAR_NUM, SCE_TOUCH_PORT_BACK);
 		prevEtRear = etRear;
 		etRear.num = 0;
-		newEmulatedTouchBuffer = 0;
+		newEmulatedRearTouchBuffer = 0;
 	}
 }
 
@@ -1552,7 +1554,7 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 			updateTouchInfo(port, &remappedBuffersRear[hookId][buffIdx]);
 			
 			//Limit returned buufers num with what we have stored
-			nBufs = min(nBufs, remappedBuffersFrontSizes[hookId]);
+			nBufs = min(nBufs, remappedBuffersRearSizes[hookId]);
 			
 			//Restoring stored buffers
 			for (int i = 0; i < nBufs; i++)
