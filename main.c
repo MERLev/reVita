@@ -95,15 +95,15 @@ static uint8_t settings_options[SETTINGS_NUM];
 static uint8_t used_funcs[HOOKS_NUM-1];
 
 //Circular cache to store remapped keys buffers per each ctrs hook
-static SceCtrlData remappedBuffers[HOOKS_NUM-5][BUFFERS_NUM];
+static SceCtrlData *remappedBuffers[HOOKS_NUM-5][BUFFERS_NUM];
 static int remappedBuffersSizes[HOOKS_NUM];
 static int remappedBuffersIdxs[HOOKS_NUM];
 
 //Circular cache to store Touch buffers per each touch hook
-static SceTouchData remappedBuffersFront[4][BUFFERS_NUM];
+static SceTouchData *remappedBuffersFront[4][BUFFERS_NUM];
 static int remappedBuffersFrontSizes[4];
 static int remappedBuffersFrontIdxs[4];
-static SceTouchData remappedBuffersRear[4][BUFFERS_NUM];
+static SceTouchData *remappedBuffersRear[4][BUFFERS_NUM];
 static int remappedBuffersRearSizes[4];
 static int remappedBuffersRearIdxs[4];
 uint8_t newEmulatedFrontTouchBuffer = 0;
@@ -1454,21 +1454,22 @@ void remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 	//Storing copy of latest buffer
 	remappedBuffersIdxs[hookId] = buffIdx;
 	remappedBuffersSizes[hookId] = min(remappedBuffersSizes[hookId] + 1, BUFFERS_NUM);
-	remappedBuffers[hookId][buffIdx] = ctrl[count-1]; 
+	SceCtrlData c = ctrl[count-1];
+	remappedBuffers[hookId][buffIdx] = &c; 
 	
 	//Applying remap to latest buffer
-	applyRemap(&remappedBuffers[hookId][buffIdx]);
+	applyRemap(remappedBuffers[hookId][buffIdx]);
 	
 	//Invert for negative logic
 	if (logic == NEGATIVE)
-		remappedBuffers[hookId][buffIdx].buttons = 
-			0xFFFFFFFF - remappedBuffers[hookId][buffIdx].buttons;
+		remappedBuffers[hookId][buffIdx]->buttons = 
+			0xFFFFFFFF - remappedBuffers[hookId][buffIdx]->buttons;
 	
 	//Restoring stored buffers
 	for (int i = 0; i < count; i++)
-		ctrl[i] = remappedBuffers[hookId]
+		ctrl[i] = *remappedBuffers[hookId]
 			[(BUFFERS_NUM + buffIdx - count + i + 1) % BUFFERS_NUM];
-	ctrl[count-1] = remappedBuffers[hookId][buffIdx];
+	ctrl[count-1] = *remappedBuffers[hookId][buffIdx];
 }
 
 void swapTriggersBumpers(SceCtrlData *ctrl, int count){
@@ -1528,17 +1529,18 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 			//Storing copy of latest buffer
 			remappedBuffersFrontIdxs[hookId] = buffIdx;
 			remappedBuffersFrontSizes[hookId] = min(remappedBuffersFrontSizes[hookId] + 1, BUFFERS_NUM);
-			remappedBuffersFront[hookId][buffIdx] = pData[nBufs-1]; 
+			SceTouchData d = pData[nBufs-1];
+			remappedBuffersFront[hookId][buffIdx] = &d; 
 			
 			//Updating latest buffer with simulated touches
-			updateTouchInfo(port, &remappedBuffersFront[hookId][buffIdx]);
+			updateTouchInfo(port, remappedBuffersFront[hookId][buffIdx]);
 			
 			//Limit returned buufers num with what we have stored
 			nBufs = min(nBufs, remappedBuffersFrontSizes[hookId]);
 			
 			//Restoring stored buffers
 			for (int i = 0; i < nBufs; i++)
-				pData[i] = remappedBuffersFront[hookId]
+				pData[i] = *remappedBuffersFront[hookId]
 					[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
 			
 		} else {
@@ -1548,17 +1550,18 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 			//Storing copy of latest buffer
 			remappedBuffersRearIdxs[hookId] = buffIdx;
 			remappedBuffersRearSizes[hookId] = min(remappedBuffersRearSizes[hookId] + 1, BUFFERS_NUM);
-			remappedBuffersRear[hookId][buffIdx] = pData[nBufs-1]; 
+			SceTouchData d = pData[nBufs-1];
+			remappedBuffersRear[hookId][buffIdx] = &d; 
 			
 			//Updating latest buffer with simulated touches
-			updateTouchInfo(port, &remappedBuffersRear[hookId][buffIdx]);
+			updateTouchInfo(port, remappedBuffersRear[hookId][buffIdx]);
 			
 			//Limit returned buufers num with what we have stored
 			nBufs = min(nBufs, remappedBuffersRearSizes[hookId]);
 			
 			//Restoring stored buffers
 			for (int i = 0; i < nBufs; i++)
-				pData[i] = remappedBuffersRear[hookId]
+				pData[i] = *remappedBuffersRear[hookId]
 					[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
 		}
 	}
@@ -1715,6 +1718,10 @@ int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
 
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
+	
+	// Getting game Title ID
+	sceAppMgrAppParamGetString(0, 12, titleid , 256);
+	
 	// For some reason, some Apps are refusing to start 
 	// if this plugin is active; so stop the
 	// initialization of the module.
@@ -1727,9 +1734,6 @@ int module_start(SceSize argc, const void *args) {
 	
 	//Set current tick for delayed startup calculation
 	startTick = sceKernelGetProcessTimeWide();
-	
-	// Getting game Title ID
-	sceAppMgrAppParamGetString(0, 12, titleid , 256);
 	
 	// Setup stuffs
 	loadSettings();
