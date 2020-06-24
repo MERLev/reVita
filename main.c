@@ -1759,20 +1759,6 @@ int module_start(SceSize argc, const void *args) {
 		TOUCH_SIZE[3] = pi.maxAaY;
 	}
 	
-	
-	// Somehow any of those 4 lines breaks Front Touch in GoW1.
-	if(!strcmp(titleid, "PCSA00126") && 
-		!strcmp(titleid, "PCSC00059") && 
-		!strcmp(titleid, "PCSF00438")){
-			
-		// Enabling analogs sampling 
-		//sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
-		//sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
-		// Enabling gyro sampling
-		//sceMotionReset();
-		//sceMotionStartSampling();
-	}
-	
 	// Hooking functions
 	hookFunction(0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
 	hookFunction(0x15F81E8C, sceCtrlPeekBufferPositive2_patched);
