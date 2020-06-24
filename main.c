@@ -105,6 +105,7 @@ static int remappedBuffersFrontIdxs[4];
 static SceTouchData remappedBuffersRear[4][BUFFERS_NUM];
 static int remappedBuffersRearSizes[4];
 static int remappedBuffersRearIdxs[4];
+uint8_t newEmulatedTouchBuffer = 0;
 
 typedef struct EmulatedTouch{
 	SceTouchReport reports[MULTITOUCH_FRONT_NUM];
@@ -825,6 +826,9 @@ void applyRemap(SceCtrlData *ctrl) {
 	
 	//Storing remap for HW buttons
 	ctrl->buttons = new_map;
+	
+	//Telling that new emulated touch buffer is ready to be takn
+	newEmulatedTouchBuffer = 1;
 }
 
 //Keep same touch id for continuus touches
@@ -854,7 +858,6 @@ void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et,
 		et->reports[touchIdx].id = generateTouchId(
 			et->reports[touchIdx].x, et->reports[touchIdx].y, panel);
 		pData->report[pData->reportNum].id = et->reports[touchIdx].id;
-		et->reports[touchIdx].id = pData->report[pData->reportNum].id;
 		pData->reportNum ++;
 		touchIdx ++;
 	}
@@ -872,10 +875,18 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				 btn_mask[PHYS_BUTTONS_NUM+2] == PHYS_BUTTONS_NUM+1 ||
 				 btn_mask[PHYS_BUTTONS_NUM+3] == PHYS_BUTTONS_NUM+1)
 			pData->reportNum = 0; //Disable pad
+			
+		if (!newEmulatedTouchBuffer){//New tocubuffer not ready - using previous one
+			addVirtualTouches(pData, &prevEtFront, 
+				MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
+			return;
+		}
+		
 		addVirtualTouches(pData, &etFront, 
 			MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
 		prevEtFront = etFront;
 		etFront.num = 0;
+		newEmulatedTouchBuffer = 0;
 	} else {
 		if ((touch_options[17] == 1 &&//Disable if remapped
 				(btn_mask[PHYS_BUTTONS_NUM+4] != PHYS_BUTTONS_NUM ||
@@ -887,10 +898,18 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				 btn_mask[PHYS_BUTTONS_NUM+6] == PHYS_BUTTONS_NUM+1 ||
 				 btn_mask[PHYS_BUTTONS_NUM+7] == PHYS_BUTTONS_NUM+1)
 			pData->reportNum = 0; //Disable pad
+			
+		if (!newEmulatedTouchBuffer){//New tocubuffer not ready - using previous one
+			addVirtualTouches(pData, &prevEtRear, 
+				MULTITOUCH_REAR_NUM, SCE_TOUCH_PORT_BACK);
+			return;
+		}
+		
 		addVirtualTouches(pData, &etRear, 
 			MULTITOUCH_REAR_NUM, SCE_TOUCH_PORT_BACK);
 		prevEtRear = etRear;
 		etRear.num = 0;
+		newEmulatedTouchBuffer = 0;
 	}
 }
 
@@ -1508,6 +1527,9 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 			//Updating latest buffer with simulated touches
 			updateTouchInfo(port, &remappedBuffersFront[hookId][buffIdx]);
 			
+			//Limit returned buufers num with what we have stored
+			nBufs = min(nBufs, remappedBuffersFrontSizes[hookId]);
+			
 			//Restoring stored buffers
 			for (int i = 0; i < nBufs; i++)
 				pData[i] = remappedBuffersFront[hookId]
@@ -1524,6 +1546,9 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 			
 			//Updating latest buffer with simulated touches
 			updateTouchInfo(port, &remappedBuffersRear[hookId][buffIdx]);
+			
+			//Limit returned buufers num with what we have stored
+			nBufs = min(nBufs, remappedBuffersFrontSizes[hookId]);
 			
 			//Restoring stored buffers
 			for (int i = 0; i < nBufs; i++)
@@ -1673,8 +1698,9 @@ int module_start(SceSize argc, const void *args) {
 	// For some reason, some Apps are refusing to start 
 	// if this plugin is active; so stop the
 	// initialization of the module.
-	//Bypass for Adrenaline (NPXS10028),ABM Bubbles (PSPEMUXXX) and PS4link (NPXS10013)
-	if(!strcmp(titleid, "NPXS10028") || strstr(titleid, "PSPEMU") || !strcmp(titleid, "NPXS10013"))
+	if(!strcmp(titleid, "NPXS10028") || //Adrenaline
+		strstr(titleid, "PSPEMU") || 	//ABM Bubbles
+		!strcmp(titleid, "NPXS10013"))	//PS4link
 	{
 	   return SCE_KERNEL_START_SUCCESS;
 	}
@@ -1712,8 +1738,8 @@ int module_start(SceSize argc, const void *args) {
 	
 	
 	// Somehow any of those 4 lines breaks Front Touch in GoW1.
-	if(!strcmp(titleid, "PCSA00126") || 
-		!strcmp(titleid, "PCSC00059") || 
+	if(!strcmp(titleid, "PCSA00126") && 
+		!strcmp(titleid, "PCSC00059") && 
 		!strcmp(titleid, "PCSF00438")){
 			
 		// Enabling analogs sampling 
