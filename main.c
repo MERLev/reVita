@@ -1658,7 +1658,7 @@ int module_start(SceSize argc, const void *args) {
 	//Bypass for Adrenaline (NPXS10028) and ABM Bubbles (PSPEMUXXX) and PS4link
 	if(!strcmp(titleid, "NPXS10028") || strstr(titleid, "PSPEMU") || !strcmp(titleid, "NPXS10013"))
 	{
-	   //return SCE_KERNEL_START_SUCCESS;
+	   return SCE_KERNEL_START_SUCCESS;
 	}
 	
 	// Getting game Title ID
@@ -1692,13 +1692,17 @@ int module_start(SceSize argc, const void *args) {
 		TOUCH_SIZE[3] = pi.maxAaY;
 	}
 	
-	// Enabling analogs sampling
-	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
-	sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
+	// Enabling analogs sampling 
+	// Somehow everything works just fine without those lines
+	// Break Front Touch in GoW
+	//sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+	//sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
 	
 	// Enabling gyro sampling
-	sceMotionReset();
-	sceMotionStartSampling();
+	// Somehow everything works just fine without those lines
+	// Break Front Touch in GoW
+	//sceMotionReset();
+	//sceMotionStartSampling();
 	
 	// Hooking functions
 	hookFunction(0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
