@@ -1,12 +1,7 @@
 # remaPSV2 v.2.0
 **remaPSV2** is an updated version of [Rinnegatamante](https://github.com/Rinnegatamante)'s **[remaPSV](https://github.com/Rinnegatamante/remaPSV)** (which takes the name from the glorious remaPSP included in cwCheat for PSP). 
 
-## Installation
-
-- Copy **remaPSV2.suprx** and **ioplus.skprx** to **ur0:/tai** folder 
-- Add **remaPSV2.suprx** into your **ur0:/config.ini** file (under ***ALL** or whatever game you want to use it).
-- Add **ioplus.skprx** into your taiHen config file (under ***KERNEL**)
-- To bring the config menu, press **START + Square** in game.
+![Image](/include/screenshot.png)
 
 ## Functionality
 
@@ -15,6 +10,13 @@
 - 4 pre-defined and 4 customizable touch points to emulate
 - external controllers support
 - per-game and global profiles
+
+## Installation
+
+- Copy **remaPSV2.suprx** and **ioplus.skprx** to **ur0:/tai** folder 
+- Add **remaPSV2.suprx** into your **ur0:/config.ini** file (under ***ALL** or whatever game you want to use it).
+- Add **ioplus.skprx** into your taiHen config file (under ***KERNEL**)
+- To bring the config menu, press **START + Square** in game.
 
 ## Credits
 
