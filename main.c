@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include "renderer.h"
 
-#define VERSION				1
-#define SUBVERSION			2
+#define VERSION				2
+#define SUBVERSION			0
 
 #define HOOKS_NUM         17 // Hooked functions num
 #define PHYS_BUTTONS_NUM  16 // Supported physical buttons num
@@ -39,7 +39,7 @@
 #define TOUCH_MODE_DEF				1
 #define CNTRL_OPTIONS_NUM			3
 #define SETTINGS_NUM				4
-#define CREDITS_NUM					3
+#define CREDITS_NUM					16
 
 #ifndef max
 # define max(a,b) (((a)>(b))?(a):(b))
@@ -172,10 +172,23 @@ static char* str_main_menu[] = {
 	"Return to the game"
 };
 
-static char* str_credits[] = {
+static char* str_credits[CREDITS_NUM] = {
 	"Thanks to ", 
 	"Tain Sueiras, nobodywasishere and RaveHeart",
-	"for their awesome support on Patreon"
+	"for their awesome support on Patreon",
+	"",
+	"Special thanks to",
+	" S1ngyy, for his analogs emulation code",
+	" pablojrl123, for ",
+	"    customizable buttons activation code",
+	" Cassie, W0lfwang and TheIronUniverse",
+	"    for enduring endless crashes",
+	"    while testing this thing",
+	" Vita Nuova comminity",
+	"    for all the help and support I got there",
+	"",
+	"Created by Rinnegatamante",
+	" Edits by Mer1e"
 };
 
 static char* str_yes_no[] = {
@@ -297,7 +310,7 @@ void drawConfigMenu() {
 	drawStringF(0, 0, _blank);
 	drawStringF(0, CHA_H, _blank);
 	setTextColor(COLOR_HEADER);
-	drawStringF(L_0, 10, "remaPSV v.%hhu.%hhu  %s", VERSION, SUBVERSION, str_menus[menu_i]);
+	drawStringF(L_0, 10, "remaPSV2 v.%hhu.%hhu  %s", VERSION, SUBVERSION, str_menus[menu_i]);
 	drawString(screen_w - CHA_W*strlen(titleid) - 10, 10, titleid);
 	
 	//DRAW MENU
@@ -585,8 +598,13 @@ void drawConfigMenu() {
 		footer2 = "(O): back";  
 		break; 
 	case CREDITS_MENU:
-		y+=CHA_H;
-		for (i = calcStartingIndex(cfg_i, CREDITS_NUM, avaliable_entries); i < CREDITS_NUM; i++) {			
+		//y+=CHA_H;
+		for (i = calcStartingIndex(cfg_i, CREDITS_NUM, avaliable_entries); i < CREDITS_NUM; i++) {	
+			if (cfg_i == i){//Draw cursor
+				setTextColor(COLOR_CURSOR);
+				drawString(L_0, y + CHA_H, "-");
+			}
+			
 			setTextColor(COLOR_DEFAULT);
 			drawStringF(L_2, y += CHA_H, "%s", str_credits[i]);
 			if (y + 40 > screen_h) break;
@@ -1181,6 +1199,9 @@ void configInputHandler(SceCtrlData *ctrl) {
 			break;
 		case FUNCS_LIST:
 			menu_entries = HOOKS_NUM - 1;
+			break;
+		case CREDITS_MENU:
+			menu_entries = CREDITS_NUM;
 			break;
 		case SETTINGS_MENU:
 			menu_entries = SETTINGS_NUM + 4;
