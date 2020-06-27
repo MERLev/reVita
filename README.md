@@ -1,5 +1,5 @@
 # remaPSV2 v.2.0
-**remaPSV2** is an updated version of [Rinnegatamante](/Rinnegatamante)'s **[remaPSV](/Rinnegatamante/remaPSV)** (which takes the name from the glorious remaPSP included in cwCheat for PSP). 
+**remaPSV2** is an updated version of [Rinnegatamante](https://github.com/Rinnegatamante)'s **[remaPSV](https://github.com/Rinnegatamante/remaPSV)** (which takes the name from the glorious remaPSP included in cwCheat for PSP). 
 
 ## Installation
 
@@ -18,15 +18,15 @@
 
 ## Credits
 
-- [original version](/Rinnegatamante/remaPSV) created by [Rinnegatamante](/Rinnegatamante)
-- [S1ngyy](/S1ngyy), for providing analogs emulation code
-- [pablojrl123](/pablojrl123), for customizable buttons activation code
+- [original version](https://github.com/Rinnegatamante/remaPSV) created by [Rinnegatamante](https://github.com/Rinnegatamante)
+- [S1ngyy](https://github.com/S1ngyy), for providing analogs emulation code
+- [pablojrl123](https://github.com/pablojrl123), for customizable buttons activation code
 - Cassie for testing
 - W0lfwang for testing
 - TheIronUniverse for testing
 - [Vita Nuova](https://t.co/3Efi3PGwK5?amp=1) communinity for all the help and support I got there
 
-## Original credits by [Rinnegatamante](/Rinnegatamante)
+## Original credits by [Rinnegatamante](https://github.com//Rinnegatamante)
 
 - Dmaskell92 for testing the plugin.
 - All my Patroners for their awesome support:
