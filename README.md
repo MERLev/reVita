@@ -18,7 +18,7 @@
 
 ## Credits
 
-- original version created by [Rinnegatamante](/Rinnegatamante)
+- [original version](/Rinnegatamante/remaPSV) created by [Rinnegatamante](/Rinnegatamante)
 - [S1ngyy](/S1ngyy), for providing analogs emulation code
 - [pablojrl123](/pablojrl123), for customizable buttons activation code
 - Cassie for testing
