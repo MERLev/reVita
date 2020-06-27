@@ -184,7 +184,7 @@ static char* str_credits[CREDITS_NUM] = {
 	" Cassie, W0lfwang and TheIronUniverse",
 	"    for enduring endless crashes",
 	"    while testing this thing",
-	" Vita Nuova comminity",
+	" Vita Nuova community",
 	"    for all the help and support I got there",
 	"",
 	"Created by Rinnegatamante",
