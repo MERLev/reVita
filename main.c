@@ -125,6 +125,7 @@ static uint16_t TOUCH_SIZE[4] = {
 };
 
 static uint8_t delayedStartDone = 0;
+static uint8_t headless_mode = 0;
 static uint64_t startTick;
 static uint8_t new_frame = 1;
 static int screen_h = 272;
@@ -784,7 +785,7 @@ void applyRemap(SceCtrlData *ctrl) {
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 14, &new_map, stickpos, ctrl->ry);
 	else if (ctrl->ry > 127 + analogs_options[3])		// Down
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 15, &new_map, stickpos, 255 - ctrl->ry);
-	
+	/*
 	// Applying remap for gyro
 	if (motionstate.angularVelocity.y > 0)
 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 16,  &new_map, stickpos, 
@@ -803,7 +804,26 @@ void applyRemap(SceCtrlData *ctrl) {
 			motionstate.angularVelocity.z * gyro_options[2]);
 	if (motionstate.angularVelocity.z < 0)
 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 21,  &new_map, stickpos, 
-			-motionstate.angularVelocity.z * gyro_options[2]);
+			-motionstate.angularVelocity.z * gyro_options[2]);*/
+	// Applying remap for gyro
+	if (motionstate.deviceQuat.y > 0)
+		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 16,  &new_map, stickpos, 
+			motionstate.deviceQuat.y * gyro_options[0]);
+	if (motionstate.deviceQuat.y < 0)
+		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 17,  &new_map, stickpos, 
+			-motionstate.deviceQuat.y * gyro_options[0]);
+	if (motionstate.deviceQuat.x > 0)
+		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 18,  &new_map, stickpos, 
+			motionstate.deviceQuat.x * gyro_options[1]);
+	if (motionstate.deviceQuat.x < 0)
+		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 19,  &new_map, stickpos, 
+			-motionstate.deviceQuat.x * gyro_options[1]);
+	if (motionstate.deviceQuat.z > 0)
+		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 20,  &new_map, stickpos, 
+			motionstate.deviceQuat.z * gyro_options[2]);
+	if (motionstate.deviceQuat.z < 0)
+		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 21,  &new_map, stickpos, 
+			-motionstate.deviceQuat.z * gyro_options[2]);
 	
 	// Nulling analogs if they're remapped		
 	if ((ctrl->lx < 127 && btn_mask[PHYS_BUTTONS_NUM+8] != PHYS_BUTTONS_NUM) ||
@@ -1457,8 +1477,11 @@ int remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 	if (logic == NEGATIVE)
 		ctrl[count - 1].buttons = 0xFFFFFFFF - ctrl[count - 1].buttons;
 	
+	if (ctrl[count - 1].buttons & SCE_CTRL_SQUARE)
+		sceMotionReset();
+	
 	//Checking for menu triggering
-	if (!show_menu 
+	if (!headless_mode && !show_menu 
 			&& (ctrl[count - 1].buttons & btns[settings_options[0]]) 
 			&& (ctrl[count - 1].buttons & btns[settings_options[1]])) {
 		show_menu = 1;
@@ -1740,10 +1763,7 @@ int module_start(SceSize argc, const void *args) {
 	// For some reason, some Apps are refusing to start 
 	// if this plugin is active; so stop the
 	// initialization of the module.
-	if(!strcmp(titleid, "NPXS10028") || //Adrenaline
-		strstr(titleid, "PSPEMU") || 	//ABM Bubbles
-		!strcmp(titleid, "NPXS10013"))	//PS4link
-	{
+	if(!strcmp(titleid, "NPXS10013")){	//PS4link
 	   return SCE_KERNEL_START_SUCCESS;
 	}
 	
@@ -1795,6 +1815,16 @@ int module_start(SceSize argc, const void *args) {
 	hookFunction(0x39401BEA, sceTouchRead2_patched);
 	hookFunction(0xFF082DF0, sceTouchPeek_patched);
 	hookFunction(0x3AD3D0A1, sceTouchPeek2_patched);
+	
+	// For some reason, some Apps are refusing to start 
+	// with framebuffer hooked; so stop the
+	// initialization of the module.
+	if(!strcmp(titleid, "NPXS10028") || //Adrenaline
+			strstr(titleid, "PSPEMU")){	//ABM
+		headless_mode = 1;
+		return SCE_KERNEL_START_SUCCESS;
+	}
+	
 	hookFunction(0x7A410B64, sceDisplaySetFrameBuf_patched);
 	
 	return SCE_KERNEL_START_SUCCESS;

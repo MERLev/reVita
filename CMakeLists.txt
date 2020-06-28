@@ -8,7 +8,7 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   endif()
 endif()
 
-project(TurboPad)
+project(remaPSV2)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -std=gnu99")
@@ -23,12 +23,12 @@ link_directories(
 
 add_definitions(-DRELEASE)
 
-add_executable(remaPSV
+add_executable(remaPSV2
   main.c
   renderer.c
 )
 
-target_link_libraries(remaPSV
+target_link_libraries(remaPSV2
   taihen_stub
   SceLibKernel_stub_weak
   SceCtrl_stub_weak
@@ -42,10 +42,10 @@ target_link_libraries(remaPSV
   gcc
 )
 
-set_target_properties(remaPSV
+set_target_properties(remaPSV2
   PROPERTIES LINK_FLAGS "-nostdlib"
 )
 
-vita_create_self(remaPSV.suprx remaPSV
-  CONFIG ${CMAKE_SOURCE_DIR}/remaPSV.yml
+vita_create_self(remaPSV2.suprx remaPSV2
+  CONFIG ${CMAKE_SOURCE_DIR}/remaPSV2.yml
 )
