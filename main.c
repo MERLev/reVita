@@ -785,7 +785,7 @@ void applyRemap(SceCtrlData *ctrl) {
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 14, &new_map, stickpos, ctrl->ry);
 	else if (ctrl->ry > 127 + analogs_options[3])		// Down
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 15, &new_map, stickpos, 255 - ctrl->ry);
-	/*
+	
 	// Applying remap for gyro
 	if (motionstate.angularVelocity.y > 0)
 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 16,  &new_map, stickpos, 
@@ -804,26 +804,7 @@ void applyRemap(SceCtrlData *ctrl) {
 			motionstate.angularVelocity.z * gyro_options[2]);
 	if (motionstate.angularVelocity.z < 0)
 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 21,  &new_map, stickpos, 
-			-motionstate.angularVelocity.z * gyro_options[2]);*/
-	// Applying remap for gyro
-	if (motionstate.deviceQuat.y > 0)
-		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 16,  &new_map, stickpos, 
-			motionstate.deviceQuat.y * gyro_options[0]);
-	if (motionstate.deviceQuat.y < 0)
-		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 17,  &new_map, stickpos, 
-			-motionstate.deviceQuat.y * gyro_options[0]);
-	if (motionstate.deviceQuat.x > 0)
-		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 18,  &new_map, stickpos, 
-			motionstate.deviceQuat.x * gyro_options[1]);
-	if (motionstate.deviceQuat.x < 0)
-		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 19,  &new_map, stickpos, 
-			-motionstate.deviceQuat.x * gyro_options[1]);
-	if (motionstate.deviceQuat.z > 0)
-		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 20,  &new_map, stickpos, 
-			motionstate.deviceQuat.z * gyro_options[2]);
-	if (motionstate.deviceQuat.z < 0)
-		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 21,  &new_map, stickpos, 
-			-motionstate.deviceQuat.z * gyro_options[2]);
+			-motionstate.angularVelocity.z * gyro_options[2]);
 	
 	// Nulling analogs if they're remapped		
 	if ((ctrl->lx < 127 && btn_mask[PHYS_BUTTONS_NUM+8] != PHYS_BUTTONS_NUM) ||
