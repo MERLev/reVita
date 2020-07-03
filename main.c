@@ -95,7 +95,7 @@ static uint16_t touch_options[TOUCH_OPTIONS_NUM];
 static uint8_t controller_options[CNTRL_OPTIONS_NUM];
 static uint8_t settings_options[SETTINGS_NUM];
 
-static uint8_t used_funcs[HOOKS_NUM-1];
+static uint8_t used_funcs[HOOKS_NUM];
 
 //Circular cache to store remapped keys buffers per each ctrs hook
 static SceCtrlData *remappedBuffers[HOOKS_NUM-5][BUFFERS_NUM];
@@ -125,7 +125,6 @@ static uint16_t TOUCH_SIZE[4] = {
 };
 
 static uint8_t delayedStartDone = 0;
-static uint8_t headless_mode = 0;
 static uint64_t startTick;
 static uint8_t new_frame = 1;
 static int screen_h = 272;
@@ -1450,7 +1449,23 @@ void configInputHandler(SceCtrlData *ctrl) {
 	}
 }
 
+void delayedStart(){
+	delayedStartDone = 1;
+	// Enabling analogs sampling 
+	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+	sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
+	// Enabling gyro sampling
+	sceMotionReset();
+	sceMotionStartSampling();
+}
+
 int remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
+	//Activate delayed start
+	if (!delayedStartDone 
+		&& startTick + settings_options[3] * 1000000 < sceKernelGetProcessTimeWide()){
+		delayedStart();
+	}
+	
 	if (count < 1)
 		return count;	//Nothing to do here
 	
@@ -1462,7 +1477,7 @@ int remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 		sceMotionReset();
 	
 	//Checking for menu triggering
-	if (!headless_mode && !show_menu 
+	if (used_funcs[16] && !show_menu 
 			&& (ctrl[count - 1].buttons & btns[settings_options[0]]) 
 			&& (ctrl[count - 1].buttons & btns[settings_options[1]])) {
 		show_menu = 1;
@@ -1709,21 +1724,7 @@ int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) 
 	return retouch(port, pData, ret, 3);
 }
 
-void delayedStart(){
-	delayedStartDone = 1;
-	// Enabling analogs sampling 
-	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
-	sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
-	// Enabling gyro sampling
-	sceMotionReset();
-	sceMotionStartSampling();
-}
-
 int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
-	if (!delayedStartDone 
-		&& startTick + settings_options[3] * 1000000 < sceKernelGetProcessTimeWide()){
-		delayedStart();
-	}
 	if (show_menu) {
 		new_frame = 1;
 		ticker++;
@@ -1732,6 +1733,7 @@ int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
 		updateFramebuf(pParam);
 		drawConfigMenu();	
 	}
+	used_funcs[16] = 1;
 	return TAI_CONTINUE(int, refs[16], pParam, sync);
 }	
 
@@ -1758,7 +1760,7 @@ int module_start(SceSize argc, const void *args) {
 	model = sceKernelGetModel();
 	
 	// Initializing used funcs table
-	for (int i = 0; i < HOOKS_NUM - 1; i++) {
+	for (int i = 0; i < HOOKS_NUM; i++) {
 		used_funcs[i] = 0;
 	}
 	
@@ -1798,13 +1800,10 @@ int module_start(SceSize argc, const void *args) {
 	hookFunction(0x3AD3D0A1, sceTouchPeek2_patched);
 	
 	// For some reason, some Apps are refusing to start 
-	// with framebuffer hooked; so stop the
-	// initialization of the module.
+	// with framebuffer hooked; so skip hooking it
 	if(!strcmp(titleid, "NPXS10028") || //Adrenaline
-			strstr(titleid, "PSPEMU")){	//ABM
-		headless_mode = 1;
+			strstr(titleid, "PSPEMU"))	//ABM
 		return SCE_KERNEL_START_SUCCESS;
-	}
 	
 	hookFunction(0x7A410B64, sceDisplaySetFrameBuf_patched);
 	
