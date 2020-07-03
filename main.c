@@ -1,9 +1,11 @@
+#include <stddef.h>
 #include <vitasdk.h>
 #include <taihen.h>
 #include <psp2/motion.h> 
 #include <libk/string.h>
 #include <libk/stdio.h>
 #include <stdlib.h>
+#include <taipool.h>
 #include "renderer.h"
 
 #define VERSION				2
@@ -819,7 +821,6 @@ void applyRemap(SceCtrlData *ctrl) {
 		(ctrl->ry > 127 && btn_mask[PHYS_BUTTONS_NUM+15] != PHYS_BUTTONS_NUM))
 		ctrl->ry = 127;	
 	
-	
 	// Remove minimal drift if digital remap for stick directions is used
 	if (stickpos[0] || stickpos[1] || stickpos[2] || stickpos[3]){
 		if (abs(ctrl->lx - 127) < analogs_options[0]) 
@@ -868,7 +869,6 @@ uint8_t generateTouchId(int x, int y, int panel){
 		return etRearIdCounter;
 	}
 }
-
 
 void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et, 
 		uint8_t touchPointsMaxNum, int panel){
@@ -1492,13 +1492,17 @@ int remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 			ctrl[i].buttons = (logic == POSITIVE) ? 0 : 0xFFFFFFFF;
 		return count;
 	}
+	
 	int buffIdx = (remappedBuffersIdxs[hookId] + 1) % BUFFERS_NUM;
 	
 	//Storing copy of latest buffer
 	remappedBuffersIdxs[hookId] = buffIdx;
 	remappedBuffersSizes[hookId] = min(remappedBuffersSizes[hookId] + 1, BUFFERS_NUM);
-	SceCtrlData c = ctrl[count-1];
-	remappedBuffers[hookId][buffIdx] = &c; 
+	if (remappedBuffers[hookId][buffIdx] == NULL){ //Alloc memory
+		SceCtrlData *c = malloc(sizeof(SceCtrlData));
+		remappedBuffers[hookId][buffIdx] = c; 
+	}
+	*remappedBuffers[hookId][buffIdx] = ctrl[count-1];
 	
 	//Applying remap to latest buffer
 	applyRemap(remappedBuffers[hookId][buffIdx]);
@@ -1575,8 +1579,11 @@ int retouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 			//Storing copy of latest buffer
 			remappedBuffersFrontIdxs[hookId] = buffIdx;
 			remappedBuffersFrontSizes[hookId] = min(remappedBuffersFrontSizes[hookId] + 1, BUFFERS_NUM);
-			SceTouchData d = pData[nBufs-1];
-			remappedBuffersFront[hookId][buffIdx] = &d; 
+			if (remappedBuffersFront[hookId][buffIdx] == NULL){ //Alloc memory
+				SceTouchData *c = malloc(sizeof(SceTouchData));
+				remappedBuffersFront[hookId][buffIdx] = c; 
+			}
+			*remappedBuffersFront[hookId][buffIdx] = pData[nBufs-1];
 			
 			//Updating latest buffer with simulated touches
 			updateTouchInfo(port, remappedBuffersFront[hookId][buffIdx]);
@@ -1596,8 +1603,11 @@ int retouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 			//Storing copy of latest buffer
 			remappedBuffersRearIdxs[hookId] = buffIdx;
 			remappedBuffersRearSizes[hookId] = min(remappedBuffersRearSizes[hookId] + 1, BUFFERS_NUM);
-			SceTouchData d = pData[nBufs-1];
-			remappedBuffersRear[hookId][buffIdx] = &d; 
+			if (remappedBuffersRear[hookId][buffIdx] == NULL){ //Alloc memory
+				SceTouchData *c = malloc(sizeof(SceTouchData));
+				remappedBuffersRear[hookId][buffIdx] = c; 
+			}
+			*remappedBuffersRear[hookId][buffIdx] = pData[nBufs-1];
 			
 			//Updating latest buffer with simulated touches
 			updateTouchInfo(port, remappedBuffersRear[hookId][buffIdx]);
@@ -1764,6 +1774,9 @@ int module_start(SceSize argc, const void *args) {
 		used_funcs[i] = 0;
 	}
 	
+	// Initializing taipool mempool for dynamic memory managing
+	taipool_init(1 * 1024 * 1024);
+	
 	// Enabling both touch panels sampling
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
@@ -1816,6 +1829,8 @@ int module_stop(SceSize argc, const void *args) {
 	while (current_hook-- > 0) {
 		taiHookRelease(hooks[current_hook], refs[current_hook]);
 	}
+	
+    taipool_term();
 		
 	return SCE_KERNEL_STOP_SUCCESS;
 	
