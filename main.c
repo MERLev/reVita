@@ -33,8 +33,9 @@
 #define ANALOGS_FORCE_DIGITAL_DEF	0
 #define ANOLOGS_OPTIONS_NUM			8
 #define GYRO_SENS_DEF				127
+#define GYRO_WHEEL_DEF				0
 #define GYRO_DEADZONE_DEF			15
-#define GYRO_OPTIONS_NUM			6
+#define GYRO_OPTIONS_NUM			8
 #define MULTITOUCH_FRONT_NUM		6
 #define MULTITOUCH_REAR_NUM			4
 #define TOUCH_OPTIONS_NUM			18
@@ -113,6 +114,7 @@ static int remappedBuffersRearSizes[4];
 static int remappedBuffersRearIdxs[4];
 uint8_t newEmulatedFrontTouchBuffer = 0;
 uint8_t newEmulatedRearTouchBuffer = 0;
+
 
 typedef struct EmulatedTouch{
 	SceTouchReport reports[MULTITOUCH_FRONT_NUM];
@@ -275,9 +277,12 @@ void resetTouchOptions(){
 	touch_options[16] = TOUCH_MODE_DEF;
 	touch_options[17] = TOUCH_MODE_DEF;
 }
-void resetGyroOptions(){
+void resetGyroOptions() {
 	for (int i = 0; i < GYRO_OPTIONS_NUM; i++)
-		gyro_options[i] = i < 3 ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF;
+		if (i < GYRO_OPTIONS_NUM - 2) {
+	gyro_options[i] = i < 3 ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF;
+		}
+		else gyro_options[i] = GYRO_WHEEL_DEF;
 }
 void resetCntrlOptions(){
 	for (int i = 0; i < CNTRL_OPTIONS_NUM; i++)
@@ -483,26 +488,35 @@ void drawConfigMenu() {
 		footer2 = "(O): back";
 		break;
 	case GYRO_MENU:
-		for (i = calcStartingIndex(cfg_i, GYRO_OPTIONS_NUM, avaliable_entries); i < GYRO_OPTIONS_NUM; i++) {				
+		for (i = calcStartingIndex(cfg_i, GYRO_OPTIONS_NUM, avaliable_entries); i < GYRO_OPTIONS_NUM; i++) {
 			if (y + 60 > screen_h) break;
-			
-			if (cfg_i == i){//Draw cursor
+
+			if (cfg_i == i) {//Draw cursor
 				setTextColor(COLOR_CURSOR);
-				drawString(L_0+17*CHA_W, y + CHA_H, (ticker % 16 < 8) ? "<" : ">");
+				drawString(L_0 + 17 * CHA_W, y + CHA_H, (ticker % 16 < 8) ? "<" : ">");
 			}
-			
-			if (!(i % 3)){	//Headers
+
+			if (!(i % 3)) {	//Headers
 				setTextColor(COLOR_HEADER);
-				drawString(L_0, y+CHA_H, (i == 0) ? "Sensivity" : "Deadzone");
+				drawString(L_0, y + CHA_H, (i == 0) ? "Sensivity" : (i == 3) ? "Deadzone" : "Mode");
 			}
-			
+
 			if (i == cfg_i) setTextColor(COLOR_CURSOR);
-			else if (gyro_options[i] != ((i < 3) ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF)) 
+			else if (gyro_options[i] != ((i < 3) ? GYRO_SENS_DEF : (i == GYRO_OPTIONS_NUM - 2) ? GYRO_WHEEL_DEF : GYRO_DEADZONE_DEF))
 				setTextColor(COLOR_ACTIVE);
 			else setTextColor(COLOR_DEFAULT);
-			drawStringF(L_0+10*CHA_W, y+=CHA_H, "%s axis:", 
-				((i % 3) == 2) ? "Z" : ((i % 3) ? "Y" : "X"));
-			drawStringF(L_0+18*CHA_W, y, "%hhu", gyro_options[i]);
+			if (i < GYRO_OPTIONS_NUM - 2) {
+				drawStringF(L_0 + 10 * CHA_W, y += CHA_H, "%s axis:",
+					((i % 3) == 2) ? "Z" : ((i % 3) ? "Y" : "X"));
+				drawStringF(L_0 + 18 * CHA_W, y, "%hhu", gyro_options[i]);
+			}
+			else if (i == GYRO_OPTIONS_NUM - 2) {
+				drawString(L_0 + 10 * CHA_W, y += CHA_H, "Wheel:");
+				drawString(L_0 + 18 * CHA_W, y, str_yes_no[gyro_options[i]]);
+			}
+			else if (i == GYRO_OPTIONS_NUM - 1) {
+				drawString(L_0 + 10 * CHA_W, y += CHA_H, "Reset");
+			}
 		}
 		footer1 = "(<)(>):change  ([]):reset  (start):reset all";                          
 		footer2 = "(O): back";
@@ -711,7 +725,7 @@ void applyRemapRuleForAnalog(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos,
 void applyRemapRuleForGyro(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos, float gyroval){
 	if (PHYS_BUTTONS_NUM + 1 < btn_mask[btn_idx] && btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 10) {
 		// Gyro -> Analog remap
-		stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] += gyroval;
+		stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] = stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] + clamp(gyroval, -127, 127);
 	} else {
 		// Gyro -> Btn remap
 		if ((((btn_idx == PHYS_BUTTONS_NUM + 16 || btn_idx == PHYS_BUTTONS_NUM + 17)) && gyroval > gyro_options[3] * 10) ||
@@ -788,25 +802,48 @@ void applyRemap(SceCtrlData *ctrl) {
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 15, &new_map, stickpos, 255 - ctrl->ry);
 	
 	// Applying remap for gyro
-	if (motionstate.angularVelocity.y > 0)
-		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 16,  &new_map, stickpos, 
-			motionstate.angularVelocity.y * gyro_options[0]);
-	if (motionstate.angularVelocity.y < 0)
-		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 17,  &new_map, stickpos, 
-			-motionstate.angularVelocity.y * gyro_options[0]);
-	if (motionstate.angularVelocity.x > 0)
-		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 18,  &new_map, stickpos, 
-			motionstate.angularVelocity.x * gyro_options[1]);
-	if (motionstate.angularVelocity.x < 0)
-		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 19,  &new_map, stickpos, 
-			-motionstate.angularVelocity.x * gyro_options[1]);
-	if (motionstate.angularVelocity.z > 0)
-		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 20,  &new_map, stickpos, 
-			motionstate.angularVelocity.z * gyro_options[2]);
-	if (motionstate.angularVelocity.z < 0)
-		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 21,  &new_map, stickpos, 
-			-motionstate.angularVelocity.z * gyro_options[2]);
-	
+	if (gyro_options[6] == 0) {
+		if (motionstate.angularVelocity.y > 0)
+			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 16, &new_map, stickpos,
+				motionstate.angularVelocity.y * gyro_options[0]);
+		if (motionstate.angularVelocity.y < 0)
+			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 17, &new_map, stickpos,
+				-motionstate.angularVelocity.y * gyro_options[0]);
+		if (motionstate.angularVelocity.x > 0)
+			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 18, &new_map, stickpos,
+				motionstate.angularVelocity.x * gyro_options[1]);
+		if (motionstate.angularVelocity.x < 0)
+			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 19, &new_map, stickpos,
+				-motionstate.angularVelocity.x * gyro_options[1]);
+		if (motionstate.angularVelocity.z > 0)
+			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 20, &new_map, stickpos,
+				motionstate.angularVelocity.z * gyro_options[2]);
+		if (motionstate.angularVelocity.z < 0)
+			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 21, &new_map, stickpos,
+				-motionstate.angularVelocity.z * gyro_options[2]);
+	}
+	else {
+		// Applying remap for gyro wheel mode
+		if (motionstate.deviceQuat.y < 0)
+			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 16, &new_map, stickpos,
+				motionstate.deviceQuat.y * gyro_options[0] * 4);
+		if (motionstate.deviceQuat.y > 0)
+			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 17, &new_map, stickpos,
+				-motionstate.deviceQuat.y * gyro_options[0] * 4);
+		if (motionstate.deviceQuat.x < 0)
+			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 18, &new_map, stickpos,
+				motionstate.deviceQuat.x * gyro_options[1] * 4);
+		if (motionstate.deviceQuat.x > 0)
+			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 19, &new_map, stickpos,
+				-motionstate.deviceQuat.x * gyro_options[1] * 4);
+		if (motionstate.deviceQuat.z < 0)
+			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 20, &new_map, stickpos,
+				motionstate.deviceQuat.z * gyro_options[2] * 4);
+		if (motionstate.deviceQuat.z > 0)
+			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 21, &new_map, stickpos,
+			-motionstate.deviceQuat.z * gyro_options[2] * 4);
+	}
+
 	// Nulling analogs if they're remapped		
 	if ((ctrl->lx < 127 && btn_mask[PHYS_BUTTONS_NUM+8] != PHYS_BUTTONS_NUM) ||
 		(ctrl->lx > 127 && btn_mask[PHYS_BUTTONS_NUM+9] != PHYS_BUTTONS_NUM))
@@ -1247,6 +1284,10 @@ void configInputHandler(SceCtrlData *ctrl) {
 						touch_options[cfg_i] = !touch_options[cfg_i];
 					break;
 				case GYRO_MENU:
+					if (cfg_i == 6)
+						gyro_options[cfg_i] = (gyro_options[cfg_i] + 1) % 2;
+					else if (cfg_i == 7) {
+					} else
 					gyro_options[cfg_i] = (gyro_options[cfg_i] + 1) % 200;
 					break;
 				case CNTRL_MENU:
@@ -1296,8 +1337,13 @@ void configInputHandler(SceCtrlData *ctrl) {
 				case GYRO_MENU:
 					if (gyro_options[cfg_i]) 	
 						gyro_options[cfg_i]--;
-					else
+					else {
+						if (cfg_i == 6)
+							gyro_options[cfg_i] = 1;
+						else if (cfg_i == 7) {
+						} else	
 						gyro_options[cfg_i] = 199;
+					}
 					break;
 				case CNTRL_MENU:
 					if (cfg_i == 1)
@@ -1378,7 +1424,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 						touch_options[cfg_i] = TOUCH_MODE_DEF;
 					break;
 				case GYRO_MENU:
-					gyro_options[cfg_i] = (cfg_i < 3) ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF;
+					gyro_options[cfg_i] = ((cfg_i < 3) ? GYRO_SENS_DEF : (cfg_i == GYRO_OPTIONS_NUM - 2 || cfg_i == GYRO_OPTIONS_NUM - 1) ? GYRO_WHEEL_DEF : GYRO_DEADZONE_DEF);
 					break;
 				case CNTRL_MENU:
 					controller_options[cfg_i] = CNTRL_DEF[cfg_i];
@@ -1430,6 +1476,9 @@ void configInputHandler(SceCtrlData *ctrl) {
 					} else if (cfg_i == SETTINGS_NUM + 3) {
 						loadGlobalConfig();			
 					}
+				} else if (menu_i == GYRO_MENU) {
+					if (cfg_i == 7)
+						sceMotionReset();
 				}
 				break;
 			case SCE_CTRL_CIRCLE:
