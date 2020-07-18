@@ -189,7 +189,7 @@ static char* str_credits[CREDITS_NUM] = {
 	"for their awesome support on Patreon",
 	"",
 	"Special thanks to",
-	" S1ngyy, for his analogs emulation code",
+	" S1ngyy, for his analogs/gyro code",
 	" pablojrl123, for ",
 	"    customizable buttons activation code",
 	" Cassie, W0lfwang and TheIronUniverse",
@@ -199,7 +199,7 @@ static char* str_credits[CREDITS_NUM] = {
 	"    for all the help and support I got there",
 	"",
 	"Created by Rinnegatamante",
-	" Edits by Mer1e"
+	" Updated by Mer1e"
 };
 
 static char* str_yes_no[] = {
