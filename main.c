@@ -32,10 +32,7 @@
 #define ANALOGS_DEADZONE_DEF		30
 #define ANALOGS_FORCE_DIGITAL_DEF	0
 #define ANOLOGS_OPTIONS_NUM			8
-#define GYRO_SENS_DEF				127
-#define GYRO_WHEEL_DEF				0
-#define GYRO_DEADZONE_DEF			15
-#define GYRO_OPTIONS_NUM			8
+#define GYRO_OPTIONS_NUM			11
 #define MULTITOUCH_FRONT_NUM		6
 #define MULTITOUCH_REAR_NUM			4
 #define TOUCH_OPTIONS_NUM			18
@@ -61,6 +58,16 @@ static const uint16_t TOUCH_POINTS_DEF[16] = {
 	1280, 608	//		BR
 };
 
+static const uint8_t GYRO_DEF[GYRO_OPTIONS_NUM] = {
+	127, 127, 127,	//Sensivity
+	15, 15, 15,		//Deadzone
+	0,				//Deadband
+	0,				//Whel mode
+	6,				//Reset wheel btn 1 | LTrigger
+	7,				//Reset wheel btn 2 | RTrigger
+	0
+};
+
 static const uint8_t CNTRL_DEF[CNTRL_OPTIONS_NUM] = {
 	0, 0, 0
 };
@@ -68,7 +75,7 @@ static const uint8_t CNTRL_DEF[CNTRL_OPTIONS_NUM] = {
 static const uint8_t SETTINGS_DEF[SETTINGS_NUM] = {
 	4, 3, //Opening keys
 	1,	  //Autosave game profile
-	0	  //Startup delay
+	10	  //Startup delay
 };
 
 enum{
@@ -253,6 +260,9 @@ static char* str_gyro_directions[] = {
 static char* str_touch_points[] = {
 	"Point A", "Point B", "Point C", "Point D"
 };
+static char* str_deadband[] = {
+	"Game default", "Enable", "Disable"
+};
 
 // Generic clamp function
 int32_t clamp(int32_t value, int32_t mini, int32_t maxi) {
@@ -279,10 +289,7 @@ void resetTouchOptions(){
 }
 void resetGyroOptions() {
 	for (int i = 0; i < GYRO_OPTIONS_NUM; i++)
-		if (i < GYRO_OPTIONS_NUM - 2) {
-	gyro_options[i] = i < 3 ? GYRO_SENS_DEF : GYRO_DEADZONE_DEF;
-		}
-		else gyro_options[i] = GYRO_WHEEL_DEF;
+		gyro_options[i] = GYRO_DEF[i];
 }
 void resetCntrlOptions(){
 	for (int i = 0; i < CNTRL_OPTIONS_NUM; i++)
@@ -396,10 +403,10 @@ void drawConfigMenu() {
 			else if (btn_mask[i] == PHYS_BUTTONS_NUM + 1) setTextColor(COLOR_DISABLE);
 			else setTextColor(COLOR_ACTIVE);
 			if (btn_mask[i] != PHYS_BUTTONS_NUM)
-				drawString(L_0 + CHA_W*19, y, " -> ");
+				drawString(L_0 + CHA_W*21, y, " -> ");
 			
-			drawString(L_0 + CHA_W*23, y, targetSection);
-			drawString(L_0 + CHA_W*34, y, targetAction);
+			drawString(L_0 + CHA_W*25, y, targetSection);
+			drawString(L_0 + CHA_W*36, y, targetAction);
 			if (y + 60 > screen_h) break;
 		}
 		setTextColor(COLOR_HEADER);
@@ -409,11 +416,6 @@ void drawConfigMenu() {
 	case ANALOG_MENU:
 		for (i = calcStartingIndex(cfg_i, ANOLOGS_OPTIONS_NUM, avaliable_entries); i < ANOLOGS_OPTIONS_NUM; i++) {				
 			if (y + 60 > screen_h) break;
-			
-			if (cfg_i == i){//Draw cursor
-				setTextColor(COLOR_CURSOR);
-				drawString(L_0 + 26*CHA_W, y + CHA_H, (ticker % 16 < 8) ? "<" : ">");
-			}
 			
 			if (!(i % 4)){	//Headers
 				setTextColor(COLOR_HEADER);
@@ -434,6 +436,11 @@ void drawConfigMenu() {
 				drawStringF(L_0+27*CHA_W, y, "[%s axis]: %s", 
 					(i % 2) ? "Y" : "X",
 					str_yes_no[analogs_options[i]]);	
+					
+			if (cfg_i == i){//Draw cursor
+				setTextColor(COLOR_CURSOR);
+				drawString(L_0 + 36*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
+			}
 		}
 		footer1 = "(<)(>):change  ([]):reset  (start):reset all" ;
 		footer2 = "(O):back";
@@ -491,31 +498,42 @@ void drawConfigMenu() {
 		for (i = calcStartingIndex(cfg_i, GYRO_OPTIONS_NUM, avaliable_entries); i < GYRO_OPTIONS_NUM; i++) {
 			if (y + 60 > screen_h) break;
 
-			if (cfg_i == i) {//Draw cursor
-				setTextColor(COLOR_CURSOR);
-				drawString(L_0 + 17 * CHA_W, y + CHA_H, (ticker % 16 < 8) ? "<" : ">");
-			}
-
-			if (!(i % 3)) {	//Headers
+			if (i < 6 && !(i % 3)) {	//Draw Headers
 				setTextColor(COLOR_HEADER);
-				drawString(L_0, y + CHA_H, (i == 0) ? "Sensivity" : (i == 3) ? "Deadzone" : "Mode");
+				drawString(L_1, y + CHA_H, (i == 0) ? "Sensivity" : (i == 3) ? "Deadzone" : "Mode");
 			}
 
 			if (i == cfg_i) setTextColor(COLOR_CURSOR);
-			else if (gyro_options[i] != ((i < 3) ? GYRO_SENS_DEF : (i == GYRO_OPTIONS_NUM - 2) ? GYRO_WHEEL_DEF : GYRO_DEADZONE_DEF))
-				setTextColor(COLOR_ACTIVE);
+			else if (gyro_options[i] != GYRO_DEF[i]) setTextColor(COLOR_ACTIVE);
 			else setTextColor(COLOR_DEFAULT);
-			if (i < GYRO_OPTIONS_NUM - 2) {
-				drawStringF(L_0 + 10 * CHA_W, y += CHA_H, "%s axis:",
-					((i % 3) == 2) ? "Z" : ((i % 3) ? "Y" : "X"));
-				drawStringF(L_0 + 18 * CHA_W, y, "%hhu", gyro_options[i]);
+			if (i < 6){ 		//Draw sens and deadzone option
+				drawStringF(L_1 + 17 * CHA_W, y += CHA_H, "%s axis: %hhu",
+					((i % 3) == 2) ? "Z" : ((i % 3) ? "Y" : "X"),
+					gyro_options[i]);
+			
+			} else if (i == 6) { //Draw deadband option
+				drawStringF(L_1, y += CHA_H, "Deadband mode          : %s", 
+					str_deadband[gyro_options[i]]);
+				
+			} else if (i == 7) { //Draw wheel mode option
+				drawStringF(L_1, y += CHA_H, "Wheel mode [WIP]       : %s", 
+					str_yes_no[gyro_options[i]]);
+			
+			} else if (i < 10) { //Draw reset button options
+				drawStringF(L_1, y += CHA_H, "Wheel reset %s key : %s", 
+					(i == 8) ? "first " : "second", 
+					str_btns[gyro_options[i]]);
+			
+			} else if (i == 10) { //Draw manual reset option
+				drawString(L_1, y += CHA_H, "Manual wheel reset");
 			}
-			else if (i == GYRO_OPTIONS_NUM - 2) {
-				drawString(L_0 + 10 * CHA_W, y += CHA_H, "Wheel:");
-				drawString(L_0 + 18 * CHA_W, y, str_yes_no[gyro_options[i]]);
-			}
-			else if (i == GYRO_OPTIONS_NUM - 1) {
-				drawString(L_0 + 10 * CHA_W, y += CHA_H, "Reset");
+			
+			if (cfg_i == i) {//Draw cursor
+				setTextColor(COLOR_CURSOR);
+				if (cfg_i == 10)
+					drawString(L_0, y, (ticker % 16 < 8) ? "x" : "X");
+				else
+					drawString(L_1 + 24 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 			}
 		}
 		footer1 = "(<)(>):change  ([]):reset  (start):reset all";                          
@@ -802,7 +820,7 @@ void applyRemap(SceCtrlData *ctrl) {
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 15, &new_map, stickpos, 255 - ctrl->ry);
 	
 	// Applying remap for gyro
-	if (gyro_options[6] == 0) {
+	if (gyro_options[7] == 0) {
 		if (motionstate.angularVelocity.y > 0)
 			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 16, &new_map, stickpos,
 				motionstate.angularVelocity.y * gyro_options[0]);
@@ -1204,6 +1222,19 @@ void touchPicker(int padType){
 	}
 }
 
+void delayedStart(){
+	delayedStartDone = 1;
+	// Enabling analogs sampling 
+	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+	sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
+	// Enabling gyro sampling
+	sceMotionReset();
+	sceMotionStartSampling();
+	if (gyro_options[6] == 1) sceMotionSetDeadband(1);
+	else if (gyro_options[6] == 2) sceMotionSetDeadband(0);
+	if (gyro_options[7] == 1) sceMotionSetTiltCorrection(0); 
+}
+
 // Input Handler for the Config Menu
 void configInputHandler(SceCtrlData *ctrl) {
 	if ((ctrl->buttons & btns[settings_options[0]]) 
@@ -1284,11 +1315,15 @@ void configInputHandler(SceCtrlData *ctrl) {
 						touch_options[cfg_i] = !touch_options[cfg_i];
 					break;
 				case GYRO_MENU:
-					if (cfg_i == 6)
+					if (cfg_i < 6) //Sens & deadzone
+						gyro_options[cfg_i] = (gyro_options[cfg_i] + 1) % 200;
+					else if (cfg_i == 6) // Deadband
+						gyro_options[cfg_i] = min(2, gyro_options[cfg_i] + 1);
+					else if (cfg_i == 7) // Wheel mode
 						gyro_options[cfg_i] = (gyro_options[cfg_i] + 1) % 2;
-					else if (cfg_i == 7) {
-					} else
-					gyro_options[cfg_i] = (gyro_options[cfg_i] + 1) % 200;
+					else if (cfg_i < 10) // Reset wheel buttons
+						gyro_options[cfg_i] 
+							= min(PHYS_BUTTONS_NUM - 1, gyro_options[cfg_i] + 1);
 					break;
 				case CNTRL_MENU:
 					if (cfg_i == 1)
@@ -1338,11 +1373,14 @@ void configInputHandler(SceCtrlData *ctrl) {
 					if (gyro_options[cfg_i]) 	
 						gyro_options[cfg_i]--;
 					else {
-						if (cfg_i == 6)
+						if (cfg_i < 6) //Sens & deadzone
+							gyro_options[cfg_i] = 199;
+						else if (cfg_i == 6) // deadband
+							gyro_options[cfg_i] = max(0, gyro_options[cfg_i] - 1);
+						else if (cfg_i == 7) //Wheel mode
 							gyro_options[cfg_i] = 1;
-						else if (cfg_i == 7) {
-						} else	
-						gyro_options[cfg_i] = 199;
+						else if (cfg_i < 10)  // Reset wheel btns
+							gyro_options[cfg_i] = max(0, gyro_options[cfg_i] - 1);
 					}
 					break;
 				case CNTRL_MENU:
@@ -1424,7 +1462,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 						touch_options[cfg_i] = TOUCH_MODE_DEF;
 					break;
 				case GYRO_MENU:
-					gyro_options[cfg_i] = ((cfg_i < 3) ? GYRO_SENS_DEF : (cfg_i == GYRO_OPTIONS_NUM - 2 || cfg_i == GYRO_OPTIONS_NUM - 1) ? GYRO_WHEEL_DEF : GYRO_DEADZONE_DEF);
+					gyro_options[cfg_i] = GYRO_DEF[cfg_i];
 					break;
 				case CNTRL_MENU:
 					controller_options[cfg_i] = CNTRL_DEF[cfg_i];
@@ -1477,7 +1515,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 						loadGlobalConfig();			
 					}
 				} else if (menu_i == GYRO_MENU) {
-					if (cfg_i == 7)
+					if (cfg_i == 10)
 						sceMotionReset();
 				}
 				break;
@@ -1487,6 +1525,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 					saveSettings();
 					if (settings_options[0])
 						saveGameConfig();
+					delayedStart();
 				} else {
 					menu_i = MAIN_MENU;
 					cfg_i = 0;
@@ -1496,16 +1535,6 @@ void configInputHandler(SceCtrlData *ctrl) {
 		}
 		old_buttons = curr_buttons;
 	}
-}
-
-void delayedStart(){
-	delayedStartDone = 1;
-	// Enabling analogs sampling 
-	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
-	sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
-	// Enabling gyro sampling
-	sceMotionReset();
-	sceMotionStartSampling();
 }
 
 int remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
@@ -1522,8 +1551,11 @@ int remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 	if (logic == NEGATIVE)
 		ctrl[count - 1].buttons = 0xFFFFFFFF - ctrl[count - 1].buttons;
 	
-	if (ctrl[count - 1].buttons & SCE_CTRL_SQUARE)
-		sceMotionReset();
+	//Reset gyro buttons pressed
+	if ((ctrl[count - 1].buttons & btns[gyro_options[8]]) 
+			&& (ctrl[count - 1].buttons & btns[gyro_options[9]])) {
+		sceMotionReset();		
+	}
 	
 	//Checking for menu triggering
 	if (used_funcs[16] && !show_menu 
