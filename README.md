@@ -8,6 +8,7 @@
 - ability to remap buttons, analog sticks, rear and front touch zones, gyroscope movements
 - ability to emulate buttons, analog sticks, touch events
 - 4 pre-defined and 4 customizable touch points to emulate
+- improve gyro sensivity in any game by disabling gyro deadband
 - external controllers support
 - per-game and global profiles
 
@@ -21,7 +22,7 @@
 ## Credits
 
 - [original version](https://github.com/Rinnegatamante/remaPSV) created by [Rinnegatamante](https://github.com/Rinnegatamante)
-- [S1ngyy](https://github.com/S1ngyy), for providing analogs emulation code
+- [S1ngyy](https://github.com/S1ngyy), for providing code for analogs/gyro support
 - [pablojrl123](https://github.com/pablojrl123), for customizable buttons activation code
 - Cassie for testing
 - W0lfwang for testing
