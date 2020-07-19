@@ -1551,9 +1551,10 @@ int remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 	if (logic == NEGATIVE)
 		ctrl[count - 1].buttons = 0xFFFFFFFF - ctrl[count - 1].buttons;
 	
-	//Reset gyro buttons pressed
-	if ((ctrl[count - 1].buttons & btns[gyro_options[8]]) 
-			&& (ctrl[count - 1].buttons & btns[gyro_options[9]])) {
+	//Reset wheel gyro buttons pressed
+	if (gyro_options[7] == 1 &&
+			(ctrl[count - 1].buttons & btns[gyro_options[8]]) 
+				&& (ctrl[count - 1].buttons & btns[gyro_options[9]])) {
 		sceMotionReset();		
 	}
 	
