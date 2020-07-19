@@ -1834,12 +1834,13 @@ int module_start(SceSize argc, const void *args) {
 	// Getting game Title ID
 	sceAppMgrAppParamGetString(0, 12, titleid , 256);
 	
-	// For some reason, some Apps are refusing to start 
+	// For some reason, some system Apps are refusing to start 
 	// if this plugin is active; so stop the
 	// initialization of the module.
-	if(!strcmp(titleid, "NPXS10013")){	//PS4link
-	   return SCE_KERNEL_START_SUCCESS;
-	}
+	if(!strcmp(titleid, "") ||
+		(strcmp(titleid, "NPXS10028") && //Adrenaline
+			strstr(titleid, "NPXS")))	 //System app
+		return SCE_KERNEL_START_SUCCESS;
 	
 	//Set current tick for delayed startup calculation
 	startTick = sceKernelGetProcessTimeWide();
