@@ -1558,6 +1558,12 @@ int remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 		sceMotionReset();		
 	}
 	
+	if (!show_menu 
+			&& (ctrl[count - 1].buttons & SCE_CTRL_START) 
+			&& (ctrl[count - 1].buttons & SCE_CTRL_TRIANGLE)) {
+		saveGameConfig();
+	}
+	
 	//Checking for menu triggering
 	if (used_funcs[16] && !show_menu 
 			&& (ctrl[count - 1].buttons & btns[settings_options[0]]) 
