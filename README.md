@@ -19,6 +19,22 @@
 - Add **ioplus.skprx** into your taiHen config file (under ***KERNEL**)
 - To bring the config menu, press **START + Square** in game.
 
+## Known issues
+
+- Menu not opening in some homebrew and adrenaline. 
+  - Solution: To use plugin for such apps, you can follow those steps
+    1. Open any game/app where plugin menu is working
+    2. Configure everything as of doing it for desired app with menu not working.
+    3. Go to settings -> save as Global config
+    4. Open you desired app -> it should already be using global config and you remaps should be working
+    5. Press (START) + (TRIANGLE) to save your global profile as current running game profile.
+  
+- Unresponsive black screen after going out of sleep mode. 
+  - Solution: Should be fixed in 2.0.1 version.
+
+- Screen blinking in Jak and Daxter. 
+  - Solution: restart an app.
+
 ## Credits
 
 - [original version](https://github.com/Rinnegatamante/remaPSV) created by [Rinnegatamante](https://github.com/Rinnegatamante)
