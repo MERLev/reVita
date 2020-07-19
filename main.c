@@ -10,6 +10,7 @@
 
 #define VERSION				2
 #define SUBVERSION			0
+#define SUBSUBVERSION		1
 
 #define HOOKS_NUM         17 // Hooked functions num
 #define PHYS_BUTTONS_NUM  16 // Supported physical buttons num
@@ -324,7 +325,8 @@ void drawConfigMenu() {
 	drawStringF(0, 0, _blank);
 	drawStringF(0, CHA_H, _blank);
 	setTextColor(COLOR_HEADER);
-	drawStringF(L_0, 10, "remaPSV2 v.%hhu.%hhu  %s", VERSION, SUBVERSION, str_menus[menu_i]);
+	drawStringF(L_0, 10, "remaPSV2 v.%hhu.%hhu.%hhu  %s", 
+		VERSION, SUBVERSION, SUBSUBVERSION, str_menus[menu_i]);
 	drawString(screen_w - CHA_W*strlen(titleid) - 10, 10, titleid);
 	
 	//DRAW MENU
