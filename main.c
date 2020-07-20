@@ -10,7 +10,7 @@
 
 #define VERSION				2
 #define SUBVERSION			0
-#define SUBSUBVERSION		1
+#define SUBSUBVERSION		2
 
 #define HOOKS_NUM         17 // Hooked functions num
 #define PHYS_BUTTONS_NUM  16 // Supported physical buttons num
@@ -196,11 +196,11 @@ static char* str_credits[CREDITS_NUM] = {
 	" Cassie, W0lfwang and TheIronUniverse",
 	"    for enduring endless crashes",
 	"    while testing this thing",
+	" mantixero, for testing ps4link app",
 	" Vita Nuova community",
 	"    for all the help and support I got there",
-	"",
-	"Created by Rinnegatamante",
-	" Updated by Mer1e"
+	"         Created by Rinnegatamante",
+	"                  Updated by Mer1e"
 };
 
 static char* str_yes_no[] = {
