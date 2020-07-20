@@ -1235,6 +1235,23 @@ void delayedStart(){
 	if (gyro_options[6] == 1) sceMotionSetDeadband(1);
 	else if (gyro_options[6] == 2) sceMotionSetDeadband(0);
 	if (gyro_options[7] == 1) sceMotionSetTiltCorrection(0); 
+	
+	// Enabling both touch panels sampling
+	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
+	sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
+	
+	// Detecting touch panels size
+	SceTouchPanelInfo pi;	
+	int ret = sceTouchGetPanelInfo(SCE_TOUCH_PORT_FRONT, &pi);
+	if (ret >= 0){
+		TOUCH_SIZE[0] = pi.maxAaX;
+		TOUCH_SIZE[1] = pi.maxAaY;
+	}
+	ret = sceTouchGetPanelInfo(SCE_TOUCH_PORT_BACK, &pi);
+	if (ret >= 0){
+		TOUCH_SIZE[2] = pi.maxAaX;
+		TOUCH_SIZE[3] = pi.maxAaY;
+	}
 }
 
 // Input Handler for the Config Menu
@@ -1685,7 +1702,6 @@ int retouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 			for (int i = 0; i < nBufs; i++)
 				pData[i] = *remappedBuffersFront[hookId]
 					[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
-			
 		} else {
 			//Real index
 			int buffIdx = (remappedBuffersRearIdxs[hookId] + 1) % BUFFERS_NUM;
@@ -1722,82 +1738,94 @@ void hookFunction(uint32_t nid, const void *func) {
 
 int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, count);
+	ret = remap(ctrl, ret, 0, POSITIVE);
 	used_funcs[0] = 1;
 	ret = patchToExt(port, ctrl, ret, PEEK);
-	return remap(ctrl, ret, 0, POSITIVE);
+	return ret;
 }
 
 int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, count);
-	used_funcs[1] = 1;
 	ret = patchToExt(port, ctrl, ret, PEEK);
-	return remap(ctrl, ret, 1, POSITIVE);
+	ret = remap(ctrl, ret, 1, POSITIVE);
+	used_funcs[1] = 1;
+	return ret;
 }
 
 int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, count);
-	used_funcs[2] = 1;
 	ret = patchToExt(port, ctrl, ret, READ);
-	return remap(ctrl, ret, 2, POSITIVE);
+	ret = remap(ctrl, ret, 2, POSITIVE);
+	used_funcs[2] = 1;
+	return ret;
 }
 
 int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, count);
-	used_funcs[3] = 1;
 	ret = patchToExt(port, ctrl, ret, READ);
-	return remap(ctrl, ret, 3, POSITIVE);
+	ret = remap(ctrl, ret, 3, POSITIVE);
+	used_funcs[3] = 1;
+	return ret;
 }
 
 int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[4], port, ctrl, count);
-	used_funcs[4] = 1;
 	ret = patchToExt(port, ctrl, ret, PEEK);
-	return remap(ctrl, ret, 4, POSITIVE);
+	ret = remap(ctrl, ret, 4, POSITIVE);
+	used_funcs[4] = 1;
+	return ret;
 }
 
 int sceCtrlPeekBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[5], port, ctrl, count);
 	if (internal_ext_call) return ret;
+	ret = remap(ctrl, ret, 5, POSITIVE);
 	used_funcs[5] = 1;
-	return remap(ctrl, ret, 5, POSITIVE);
+	return ret;
 }
 
 int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[6], port, ctrl, count);
-	used_funcs[6] = 1;
 	ret = patchToExt(port, ctrl, ret, READ);
-	return remap(ctrl, ret, 6, POSITIVE);
+	ret = remap(ctrl, ret, 6, POSITIVE);
+	used_funcs[6] = 1;
+	return ret;
 }
 
 int sceCtrlReadBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[7], port, ctrl, count);
 	if (internal_ext_call) return ret;
+	ret = remap(ctrl, ret, 7, POSITIVE);
 	used_funcs[7] = 1;
-	return remap(ctrl, ret, 7, POSITIVE);
+	return ret;
 }
 
 int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[8], port, ctrl, count);
+	ret = remap(ctrl, ret, 8, NEGATIVE);
 	used_funcs[8] = 1;
-	return remap(ctrl, ret, 8, NEGATIVE);
+	return ret;
 }
 
 int sceCtrlPeekBufferNegative2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[9], port, ctrl, count);
+	ret = remap(ctrl, ret, 9, NEGATIVE);
 	used_funcs[9] = 1;
-	return remap(ctrl, ret, 9, NEGATIVE);
+	return ret;
 }
 
 int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[10], port, ctrl, count);
+	ret = remap(ctrl, ret, 10, NEGATIVE);
 	used_funcs[10] = 1;
-	return remap(ctrl, ret, 10, NEGATIVE);
+	return ret;
 }
 
 int sceCtrlReadBufferNegative2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[11], port, ctrl, count);
+	ret = remap(ctrl, ret, 11, NEGATIVE);
 	used_funcs[11] = 1;
-	return remap(ctrl, ret, 11, NEGATIVE);;
+	return ret;
 }
 
 int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
@@ -1847,7 +1875,8 @@ int module_start(SceSize argc, const void *args) {
 	// if this plugin is active; so stop the
 	// initialization of the module.
 	if(!strcmp(titleid, "") ||
-		(strcmp(titleid, "NPXS10028") && //Adrenaline
+		(strcmp(titleid, "NPXS10028") && //not Adrenaline
+			strcmp(titleid, "NPXS10013") && //not PS4Link
 			strstr(titleid, "NPXS")))	 //System app
 		return SCE_KERNEL_START_SUCCESS;
 	
@@ -1868,23 +1897,6 @@ int module_start(SceSize argc, const void *args) {
 	// Initializing taipool mempool for dynamic memory managing
 	taipool_init(1 * 1024 * 1024);
 	
-	// Enabling both touch panels sampling
-	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
-	sceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
-	
-	// Detecting touch panels size
-	SceTouchPanelInfo pi;	
-	int ret = sceTouchGetPanelInfo(SCE_TOUCH_PORT_FRONT, &pi);
-	if (ret >= 0){
-		TOUCH_SIZE[0] = pi.maxAaX;
-		TOUCH_SIZE[1] = pi.maxAaY;
-	}
-	ret = sceTouchGetPanelInfo(SCE_TOUCH_PORT_BACK, &pi);
-	if (ret >= 0){
-		TOUCH_SIZE[2] = pi.maxAaX;
-		TOUCH_SIZE[3] = pi.maxAaY;
-	}
-	
 	// Hooking functions
 	hookFunction(0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
 	hookFunction(0x15F81E8C, sceCtrlPeekBufferPositive2_patched);
@@ -1898,6 +1910,8 @@ int module_start(SceSize argc, const void *args) {
 	hookFunction(0x81A89660, sceCtrlPeekBufferNegative2_patched);
 	hookFunction(0x15F96FB0, sceCtrlReadBufferNegative_patched);
 	hookFunction(0x27A0C5FB, sceCtrlReadBufferNegative2_patched);
+	if(!strcmp(titleid, "NPXS10013")) //PS4Link
+		return SCE_KERNEL_START_SUCCESS;
 	hookFunction(0x169A1D58, sceTouchRead_patched);
 	hookFunction(0x39401BEA, sceTouchRead2_patched);
 	hookFunction(0xFF082DF0, sceTouchPeek_patched);
@@ -1906,6 +1920,7 @@ int module_start(SceSize argc, const void *args) {
 	// For some reason, some Apps are refusing to start 
 	// with framebuffer hooked; so skip hooking it
 	if(!strcmp(titleid, "NPXS10028") || //Adrenaline
+			!strcmp(titleid, "NPXS10013") || //PS4Link
 			strstr(titleid, "PSPEMU"))	//ABM
 		return SCE_KERNEL_START_SUCCESS;
 	
