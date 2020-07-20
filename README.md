@@ -1,4 +1,4 @@
-# remaPSV2 v.2.0
+# remaPSV2 v.2.0.1
 **remaPSV2** is an updated version of [Rinnegatamante](https://github.com/Rinnegatamante)'s **[remaPSV](https://github.com/Rinnegatamante/remaPSV)** (which takes the name from the glorious remaPSP included in cwCheat for PSP). 
 
 ![Image](/include/screenshot.png)
@@ -18,6 +18,28 @@
 - Add **remaPSV2.suprx** into your **ur0:/config.ini** file (under ***ALL** or whatever game you want to use it).
 - Add **ioplus.skprx** into your taiHen config file (under ***KERNEL**)
 - To bring the config menu, press **START + Square** in game.
+
+## Usage
+
+- When in-game, press (start) + (square) to bring up plugin menu
+
+## FAQ
+
+- How to open plugin menu ?
+  - Press (start) + (square) whin in-game
+- What can you do with gyro ?
+  - You can remap gyro direction (up, down, left, right) to right stick directions to enable gyro aim in any game.
+- How do I map combo of buttons ?
+  - Combo mappings are not supported
+- Is it possible to remap PS4Link keys
+  - Currently it is not
+- Is there a way to turn it on and off? Or does it save presets on a game by game basis?
+  - ATM, no
+- Is there any way to have this work on the save screen/system apps/livearea ?
+  - ATM, no
+- What is deadband under gyro menu ?
+  - Deadband limits gyroscope sensivity, so smallest movements are ignored to handle shaking hands, and it is enabled by default in most vita games. Disabling it will higly increase sensivity of gyroscope.
+
 
 ## Known issues
 
