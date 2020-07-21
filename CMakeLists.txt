@@ -26,6 +26,8 @@ add_definitions(-DRELEASE)
 add_executable(remaPSV2
   main.c
   renderer.c
+  profile.h
+  profile.c
 )
 
 target_link_libraries(remaPSV2
