@@ -1580,6 +1580,7 @@ int remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 	if (!show_menu 
 			&& (ctrl[count - 1].buttons & SCE_CTRL_START) 
 			&& (ctrl[count - 1].buttons & SCE_CTRL_TRIANGLE)) {
+		loadGlobalConfig();
 		saveGameConfig();
 	}
 	
