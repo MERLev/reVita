@@ -109,15 +109,15 @@ static uint8_t settings_options[SETTINGS_NUM];
 static uint8_t used_funcs[HOOKS_NUM];
 
 //Circular cache to store remapped keys buffers per each ctrs hook
-static SceCtrlData *remappedBuffers[HOOKS_NUM-5][BUFFERS_NUM];
+static SceCtrlData *remappedBuffers[HOOKS_NUM-5];
 static int remappedBuffersSizes[HOOKS_NUM];
 static int remappedBuffersIdxs[HOOKS_NUM];
 
 //Circular cache to store Touch buffers per each touch hook
-static SceTouchData *remappedBuffersFront[4][BUFFERS_NUM];
+static SceTouchData *remappedBuffersFront[4];
 static int remappedBuffersFrontSizes[4];
 static int remappedBuffersFrontIdxs[4];
-static SceTouchData *remappedBuffersRear[4][BUFFERS_NUM];
+static SceTouchData *remappedBuffersRear[4];
 static int remappedBuffersRearSizes[4];
 static int remappedBuffersRearIdxs[4];
 uint8_t newEmulatedFrontTouchBuffer = 0;
@@ -165,7 +165,7 @@ static char* str_menus[MENU_MODES] = {
 	"REMAP MENU", 
 	"ANALOG MENU", 
 	"TOUCH MENU", 
-	"GYRO_MENU", 
+	"GYRO MENU", 
 	"CONNECTED CONTROLLERS", 
 	"USED FUNCTIONS",
 	"SETTINGS",
@@ -186,21 +186,20 @@ static char* str_main_menu[] = {
 
 static char* str_credits[CREDITS_NUM] = {
 	"Thanks to ", 
-	"Tain Sueiras, nobodywasishere and RaveHeart",
-	"for their awesome support on Patreon",
-	"",
+	"  Tain Sueiras, nobodywasishere and RaveHeart",
+	"     for their awesome support on Patreon",
 	"Special thanks to",
-	" S1ngyy, for his analogs/gyro code",
-	" pablojrl123, for ",
-	"    customizable buttons activation code",
-	" Cassie, W0lfwang and TheIronUniverse",
+	"  S1ngyy, for his analogs/gyro code",
+	"  pablojrl123, for customizable opening buttons",
+	"  Cassie, W0lfwang, TheIronUniverse,",
+	"  Kiiro Yakumo and mantixero",
 	"    for enduring endless crashes",
 	"    while testing this thing",
-	" mantixero, for testing ps4link app",
-	" Vita Nuova community",
+	"  Vita Nuova community",
 	"    for all the help and support I got there",
-	"         Created by Rinnegatamante",
-	"                  Updated by Mer1e"
+	"",
+	"              Created by Rinnegatamante",
+	"                       Updated by Mer1e"
 };
 
 static char* str_yes_no[] = {
@@ -1234,7 +1233,8 @@ void delayedStart(){
 	sceMotionStartSampling();
 	if (gyro_options[6] == 1) sceMotionSetDeadband(1);
 	else if (gyro_options[6] == 2) sceMotionSetDeadband(0);
-	if (gyro_options[7] == 1) sceMotionSetTiltCorrection(0); 
+	//ToDo decide on sceMotionSetTiltCorrection usage
+	//if (gyro_options[7] == 1) sceMotionSetTiltCorrection(0); 
 	
 	// Enabling both touch panels sampling
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
@@ -1605,26 +1605,22 @@ int remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 	//Storing copy of latest buffer
 	remappedBuffersIdxs[hookId] = buffIdx;
 	remappedBuffersSizes[hookId] = min(remappedBuffersSizes[hookId] + 1, BUFFERS_NUM);
-	if (remappedBuffers[hookId][buffIdx] == NULL){ //Alloc memory
-		SceCtrlData *c = malloc(sizeof(SceCtrlData));
-		remappedBuffers[hookId][buffIdx] = c; 
-	}
-	*remappedBuffers[hookId][buffIdx] = ctrl[count-1];
+	remappedBuffers[hookId][buffIdx] = ctrl[count-1];
 	
 	//Applying remap to latest buffer
-	applyRemap(remappedBuffers[hookId][buffIdx]);
+	applyRemap(&remappedBuffers[hookId][buffIdx]);
 	
 	//Invert for negative logic
 	if (logic == NEGATIVE)
-		remappedBuffers[hookId][buffIdx]->buttons = 
-			0xFFFFFFFF - remappedBuffers[hookId][buffIdx]->buttons;
+		remappedBuffers[hookId][buffIdx].buttons = 
+			0xFFFFFFFF - remappedBuffers[hookId][buffIdx].buttons;
 	
 	//Limit returned buffers with amount we have cached
 	count = min(count, remappedBuffersSizes[hookId]);
 	
 	//Restoring stored buffers
 	for (int i = 0; i < count; i++)
-		ctrl[i] = *remappedBuffers[hookId]
+		ctrl[i] = remappedBuffers[hookId]
 			[(BUFFERS_NUM + buffIdx - count + i + 1) % BUFFERS_NUM];
 	return count;
 }
@@ -1686,21 +1682,17 @@ int retouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 			//Storing copy of latest buffer
 			remappedBuffersFrontIdxs[hookId] = buffIdx;
 			remappedBuffersFrontSizes[hookId] = min(remappedBuffersFrontSizes[hookId] + 1, BUFFERS_NUM);
-			if (remappedBuffersFront[hookId][buffIdx] == NULL){ //Alloc memory
-				SceTouchData *c = malloc(sizeof(SceTouchData));
-				remappedBuffersFront[hookId][buffIdx] = c; 
-			}
-			*remappedBuffersFront[hookId][buffIdx] = pData[nBufs-1];
+			remappedBuffersFront[hookId][buffIdx] = pData[nBufs-1];
 			
 			//Updating latest buffer with simulated touches
-			updateTouchInfo(port, remappedBuffersFront[hookId][buffIdx]);
+			updateTouchInfo(port, &remappedBuffersFront[hookId][buffIdx]);
 			
 			//Limit returned buufers num with what we have stored
 			nBufs = min(nBufs, remappedBuffersFrontSizes[hookId]);
 			
 			//Restoring stored buffers
 			for (int i = 0; i < nBufs; i++)
-				pData[i] = *remappedBuffersFront[hookId]
+				pData[i] = remappedBuffersFront[hookId]
 					[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
 		} else {
 			//Real index
@@ -1709,21 +1701,17 @@ int retouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 			//Storing copy of latest buffer
 			remappedBuffersRearIdxs[hookId] = buffIdx;
 			remappedBuffersRearSizes[hookId] = min(remappedBuffersRearSizes[hookId] + 1, BUFFERS_NUM);
-			if (remappedBuffersRear[hookId][buffIdx] == NULL){ //Alloc memory
-				SceTouchData *c = malloc(sizeof(SceTouchData));
-				remappedBuffersRear[hookId][buffIdx] = c; 
-			}
-			*remappedBuffersRear[hookId][buffIdx] = pData[nBufs-1];
+			remappedBuffersRear[hookId][buffIdx] = pData[nBufs-1];
 			
 			//Updating latest buffer with simulated touches
-			updateTouchInfo(port, remappedBuffersRear[hookId][buffIdx]);
+			updateTouchInfo(port, &remappedBuffersRear[hookId][buffIdx]);
 			
 			//Limit returned buufers num with what we have stored
 			nBufs = min(nBufs, remappedBuffersRearSizes[hookId]);
 			
 			//Restoring stored buffers
 			for (int i = 0; i < nBufs; i++)
-				pData[i] = *remappedBuffersRear[hookId]
+				pData[i] = remappedBuffersRear[hookId]
 					[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
 		}
 	}
@@ -1895,7 +1883,15 @@ int module_start(SceSize argc, const void *args) {
 	}
 	
 	// Initializing taipool mempool for dynamic memory managing
-	taipool_init(1 * 1024 * 1024);
+	taipool_init(1024 + 1 * (
+		sizeof(SceCtrlData) * (HOOKS_NUM-5) * BUFFERS_NUM + 
+		2 * sizeof(SceTouchData) * 4 * BUFFERS_NUM));
+	for (int i = 0; i < HOOKS_NUM-5; i++) //Allocating mem for stored buffers
+		remappedBuffers[i] = malloc(sizeof(SceCtrlData) * BUFFERS_NUM);
+	for (int i = 0; i < 4; i++){
+		remappedBuffersFront[i] = malloc(sizeof(SceTouchData) * BUFFERS_NUM);
+		remappedBuffersRear[i] = malloc(sizeof(SceTouchData) * BUFFERS_NUM);
+	}
 	
 	// Hooking functions
 	hookFunction(0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
