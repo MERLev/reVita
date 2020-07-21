@@ -1,4 +1,4 @@
-# remaPSV2 v.2.0.1
+# remaPSV2 v.2.0.2
 **remaPSV2** is an updated version of [Rinnegatamante](https://github.com/Rinnegatamante)'s **[remaPSV](https://github.com/Rinnegatamante/remaPSV)** (which takes the name from the glorious remaPSP included in cwCheat for PSP). 
 
 ![Image](/include/screenshot.png)
@@ -11,6 +11,15 @@
 - improve gyro sensivity in any game by disabling gyro deadband
 - external controllers support
 - per-game and global profiles
+
+## Compability
+
+- Full support
+  - All official games and some of the homebrew
+- Partial support without plugin menu opening [[How To]](https://github.com/MERLev/remaPSV2#known-issues)
+  - Adrenaline, PS4link, some of the homebrew
+- No support
+  - Livearea, all other system apps, some of the homebrews
 
 ## Installation
 
@@ -32,7 +41,7 @@
 - How do I map combo of buttons ?
   - Combo mappings are not supported
 - Is it possible to remap PS4Link keys
-  - Currently it is not
+  - Yes, but a bit [tricky](https://github.com/MERLev/remaPSV2#known-issues)
 - Is there a way to turn it on and off? Or does it save presets on a game by game basis?
   - ATM, no
 - Is there any way to have this work on the save screen/system apps/livearea ?
@@ -43,7 +52,7 @@
 
 ## Known issues
 
-- Menu not opening in some homebrew and adrenaline. 
+- Menu not opening in Adrenaline, PS4link and some homebrew. 
   - Solution: To use plugin for such apps, you can follow those steps
     1. Open any game/app where plugin menu is working
     2. Configure everything as of doing it for desired app with menu not working.
