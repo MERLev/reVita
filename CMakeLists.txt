@@ -28,6 +28,10 @@ add_executable(remaPSV2
   renderer.c
   profile.h
   profile.c
+  ui.h
+  ui.c
+  common.h
+  common.c
 )
 
 target_link_libraries(remaPSV2
