@@ -282,14 +282,11 @@ int module_start(SceSize argc, const void *args) {
 }
 
 int module_stop(SceSize argc, const void *args) {
-
 	// Freeing hooks
 	while (current_hook-- > 0) {
 		taiHookRelease(hooks[current_hook], refs[current_hook]);
 	}
-	
     taipool_term();
-		
-	return SCE_KERNEL_STOP_SUCCESS;
 	
+	return SCE_KERNEL_STOP_SUCCESS;
 }

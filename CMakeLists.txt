@@ -24,18 +24,12 @@ link_directories(
 add_definitions(-DRELEASE)
 
 add_executable(remaPSV2
-  main.h
-  main.c
-  remap.h
-  remap.c
-  renderer.h
-  renderer.c
-  ui.h
-  ui.c
-  profile.h
-  profile.c
-  common.h
-  common.c
+  src/main.c
+  src/remap.c
+  src/renderer.c
+  src/ui.c
+  src/profile.c
+  src/common.c
 )
 
 target_link_libraries(remaPSV2
