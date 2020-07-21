@@ -1625,41 +1625,32 @@ int remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
 	return count;
 }
 
-void swapTriggersBumpers(SceCtrlData *ctrl, int count){
-	if (!controller_options[2])
-		return;
-	for (int i = 0; i < count; i++){
-		uint32_t b = 0;
-		for (int j = 0; j < PHYS_BUTTONS_NUM; j++)
-			if (ctrl[i].buttons & btns[j]){
-				if (btns[j] == SCE_CTRL_LTRIGGER) b+= SCE_CTRL_L1;
-				else if (btns[j] == SCE_CTRL_L1) b+= SCE_CTRL_LTRIGGER;
-				else if (btns[j] == SCE_CTRL_RTRIGGER) b+= SCE_CTRL_R1;
-				else if (btns[j] == SCE_CTRL_R1) b+= SCE_CTRL_RTRIGGER;
-				else b += btns[j];
-		}
-		ctrl[i].buttons = b;
+void swapTriggersBumpers(SceCtrlData *ctrl){
+	uint32_t b = 0;
+	for (int j = 0; j < PHYS_BUTTONS_NUM; j++)
+		if (ctrl->buttons & btns[j]){
+			if (btns[j] == SCE_CTRL_LTRIGGER) b+= SCE_CTRL_L1;
+			else if (btns[j] == SCE_CTRL_L1) b+= SCE_CTRL_LTRIGGER;
+			else if (btns[j] == SCE_CTRL_RTRIGGER) b+= SCE_CTRL_R1;
+			else if (btns[j] == SCE_CTRL_R1) b+= SCE_CTRL_RTRIGGER;
+			else b += btns[j];
 	}
+	ctrl->buttons = b;
 }
 
 //Used to enable R1/R3/L1/L3
-int patchToExt(int port, SceCtrlData *ctrl, int count, int read){
+void patchToExt(SceCtrlData *ctrl){
 	if (!controller_options[0] || show_menu)
-		return count;
-	SceCtrlData pstv_fakepad[count];
-	int ret;
+		return;
+	SceCtrlData pstv_fakepad;
 	internal_ext_call = 1;
-	if (read)
-		ret = sceCtrlReadBufferPositiveExt2(controller_options[1], &pstv_fakepad[0], count);
-	else
-		ret = sceCtrlPeekBufferPositiveExt2(controller_options[1], &pstv_fakepad[0], count);
+	int ret = sceCtrlPeekBufferPositiveExt2(controller_options[1], &pstv_fakepad, 1);
 	internal_ext_call = 0;
-	if (ret < 0)
-		return count;
-	for (int i = 0; i < ret; i++)
-		ctrl[i].buttons = pstv_fakepad->buttons;
-	swapTriggersBumpers(ctrl, ret);
-	return ret;
+	if (ret > 0){
+		ctrl->buttons = pstv_fakepad.buttons;
+		if (controller_options[2])
+			swapTriggersBumpers(ctrl);
+	}
 }
 
 int retouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
@@ -1726,15 +1717,15 @@ void hookFunction(uint32_t nid, const void *func) {
 
 int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, count);
+	patchToExt(&ctrl[ret - 1]);
 	ret = remap(ctrl, ret, 0, POSITIVE);
 	used_funcs[0] = 1;
-	ret = patchToExt(port, ctrl, ret, PEEK);
 	return ret;
 }
 
 int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, count);
-	ret = patchToExt(port, ctrl, ret, PEEK);
+	patchToExt(&ctrl[ret - 1]);
 	ret = remap(ctrl, ret, 1, POSITIVE);
 	used_funcs[1] = 1;
 	return ret;
@@ -1742,7 +1733,7 @@ int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 
 int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, count);
-	ret = patchToExt(port, ctrl, ret, READ);
+	patchToExt(&ctrl[ret - 1]);
 	ret = remap(ctrl, ret, 2, POSITIVE);
 	used_funcs[2] = 1;
 	return ret;
@@ -1750,7 +1741,7 @@ int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
 
 int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, count);
-	ret = patchToExt(port, ctrl, ret, READ);
+	patchToExt(&ctrl[ret - 1]);
 	ret = remap(ctrl, ret, 3, POSITIVE);
 	used_funcs[3] = 1;
 	return ret;
@@ -1758,7 +1749,7 @@ int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
 
 int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[4], port, ctrl, count);
-	ret = patchToExt(port, ctrl, ret, PEEK);
+	patchToExt(&ctrl[ret - 1]);
 	ret = remap(ctrl, ret, 4, POSITIVE);
 	used_funcs[4] = 1;
 	return ret;
@@ -1774,7 +1765,7 @@ int sceCtrlPeekBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count
 
 int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count) {
 	int ret = TAI_CONTINUE(int, refs[6], port, ctrl, count);
-	ret = patchToExt(port, ctrl, ret, READ);
+	patchToExt(&ctrl[ret - 1]);
 	ret = remap(ctrl, ret, 6, POSITIVE);
 	used_funcs[6] = 1;
 	return ret;
