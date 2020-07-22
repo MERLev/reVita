@@ -1,10 +1,7 @@
-#include <stddef.h>
 #include <vitasdk.h>
-#include <taihen.h>
 #include <psp2/motion.h> 
-#include <libk/string.h>
-#include <libk/stdio.h>
 #include <stdlib.h>
+
 #include "main.h"
 #include "renderer.h"
 #include "ui.h"
@@ -12,13 +9,12 @@
 #include "common.h"
 
 #define VERSION				2
-#define SUBVERSION			0
-#define SUBSUBVERSION		2
+#define SUBVERSION			1
+#define SUBSUBVERSION		0
 
-#define CREDITS_NUM					16
+#define MENU_MODES          9  // Menu modes num
+#define CREDITS_NUM			16
 
-#define MENU_MODES        9  // Menu modes num
-#define LONG_PRESS_TIME   350000	//0.35sec
 #define COLOR_DEFAULT     0x00FFFFFF
 #define COLOR_HEADER      0x00FF00FF
 #define COLOR_CURSOR      0x0000FF00
@@ -29,6 +25,8 @@
 #define L_0    5		//Left margin for text
 #define L_1    18		
 #define L_2    36
+
+#define LONG_PRESS_TIME   350000	//0.35sec
 
 enum{
 	MAIN_MENU = 0,
@@ -103,7 +101,10 @@ static char* str_yes_no[] = {
 };
 
 static char* str_settings[] = {
-	"Save as Game profile", "Load Game profile", "Save as Global profile", "Load Global profile"
+	"Save as Game profile", 
+	"Load Game profile", 
+	"Save as Global profile", 
+	"Load Global profile"
 };
 
 static char* str_funcs[HOOKS_NUM-1] = {
@@ -569,7 +570,7 @@ void touchPicker(int padType){
 }
 
 // Input Handler for the Config Menu
-void configInputHandler(SceCtrlData *ctrl) {
+void ui_inputHandler(SceCtrlData *ctrl) {
 	if ((ctrl->buttons & btns[settings_options[0]]) 
 			&& (ctrl->buttons & btns[settings_options[1]]))
 		return; //Menu trigger butoons should not trigger any menu actions on menu open
@@ -868,6 +869,7 @@ void configInputHandler(SceCtrlData *ctrl) {
 		}
 		old_buttons = curr_buttons;
 	}
+	
 }
 
 void ui_draw(const SceDisplayFrameBuf *pParam){

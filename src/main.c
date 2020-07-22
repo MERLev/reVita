@@ -66,120 +66,192 @@ void delayedStart(){
 	}
 }
 
-void checkForDelayedStart(){
+int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
+	//Nothing to do here
+	if (nBufs < 1)
+		return nBufs;	
+	
 	//Activate delayed start
 	if (!delayedStartDone 
 		&& startTick + settings_options[3] * 1000000 < sceKernelGetProcessTimeWide()){
 		delayedStart();
 	}
+	
+	//Reset wheel gyro buttons pressed
+	if (gyro_options[7] == 1 &&
+			(ctrl[nBufs - 1].buttons & btns[gyro_options[8]]) 
+				&& (ctrl[nBufs - 1].buttons & btns[gyro_options[9]])) {
+		sceMotionReset();		
+	}
+	
+	//Combo to save profile used
+	if (!show_menu 
+			&& (ctrl[nBufs - 1].buttons & SCE_CTRL_START) 
+			&& (ctrl[nBufs - 1].buttons & SCE_CTRL_TRIANGLE)) {
+		loadGlobalConfig();
+		saveGameConfig();
+	}
+	
+	//Checking for menu triggering
+	if (used_funcs[16] && !show_menu 
+			&& (ctrl[nBufs - 1].buttons & btns[settings_options[0]]) 
+			&& (ctrl[nBufs - 1].buttons & btns[settings_options[1]])) {
+		remap_resetBuffers(hookId);
+		ui_show();
+	}
+	
+	//In-menu inputs handling
+	if (show_menu){
+		ui_inputHandler(&ctrl[nBufs - 1]);
+		
+		//Nullify all inputs
+		for (int i = 0; i < nBufs; i++)
+			ctrl[i].buttons = 0;
+		
+		return nBufs;
+	}
+	
+	//Execute remapping
+	int ret = remap(ctrl, nBufs, hookId);
+	return ret;
 }
 
-// Simplified generic hooking function
-void hookFunction(uint32_t nid, const void *func) {
-	hooks[current_hook] = taiHookFunctionImport(&refs[current_hook],TAI_MAIN_MODULE,TAI_ANY_LIBRARY,nid,func);
-	current_hook++;
+int onInput(SceCtrlData *ctrl, int nBufs, int hookId){
+	//Nothing to do here
+	if (nBufs < 1)
+		return nBufs;	
+	
+	//Patch for external controllers support
+	if (!show_menu)
+		patchToExt(&ctrl[nBufs - 1]);
+	
+	return onInputExt(ctrl, nBufs, hookId);
 }
 
-int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
-	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, count);
-	patchToExt(&ctrl[ret - 1]);
-	checkForDelayedStart();
-	ret = remap(ctrl, ret, 0, POSITIVE);
+int onInputNegative(SceCtrlData *ctrl, int nBufs, int hookId){
+	//Nothing to do here
+	if (nBufs < 1)
+		return nBufs;	
+	
+	//Invert for negative logic
+	for (int i = 0; i < nBufs; i++)
+		ctrl[i].buttons = 0xFFFFFFFF - ctrl[i].buttons;
+	
+	//Call as for positive logic
+	int ret = onInput(ctrl, nBufs, hookId);
+	
+	//Invert back for negative logic
+	for (int i = 0; i < ret; i++)
+		ctrl[i].buttons = 0xFFFFFFFF - ctrl[i].buttons;
+	
+	return ret;
+}
+
+int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
+	//Nothing to do here
+	if (nBufs < 1)
+		return nBufs;	
+	
+	//Disable in menu
+	if (!internal_touch_call && show_menu) {
+		pData[0] = pData[nBufs - 1];
+		pData[0].reportNum = 0;
+		return 1;
+	}
+	
+	if (show_menu){	
+		//Clear buffers when in menu
+		remap_resetTouchBuffers(hookId);
+	} else {
+		return retouch(port, pData, nBufs, hookId);
+	}
+	return nBufs;
+}
+
+int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
+	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, nBufs);
+	ret = onInput(ctrl, ret, 0);
 	used_funcs[0] = 1;
 	return ret;
 }
 
-int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
-	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, count);
-	patchToExt(&ctrl[ret - 1]);
-	checkForDelayedStart();
-	ret = remap(ctrl, ret, 1, POSITIVE);
+int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int nBufs) {
+	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, nBufs);
+	ret = onInput(ctrl, ret, 1);
 	used_funcs[1] = 1;
 	return ret;
 }
 
-int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int count) {
-	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, count);
-	patchToExt(&ctrl[ret - 1]);
-	checkForDelayedStart();
-	ret = remap(ctrl, ret, 2, POSITIVE);
+int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
+	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, nBufs);
+	ret = onInput(ctrl, ret, 2);
 	used_funcs[2] = 1;
 	return ret;
 }
 
-int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int count) {
-	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, count);
-	patchToExt(&ctrl[ret - 1]);
-	checkForDelayedStart();
-	ret = remap(ctrl, ret, 3, POSITIVE);
+int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int nBufs) {
+	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, nBufs);
+	ret = onInput(ctrl, ret, 3);
 	used_funcs[3] = 1;
 	return ret;
 }
 
-int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count) {
-	int ret = TAI_CONTINUE(int, refs[4], port, ctrl, count);
-	patchToExt(&ctrl[ret - 1]);
-	checkForDelayedStart();
-	ret = remap(ctrl, ret, 4, POSITIVE);
+int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int nBufs) {
+	int ret = TAI_CONTINUE(int, refs[4], port, ctrl, nBufs);
+	if (internal_ext_call) return ret;
+	ret = onInputExt(ctrl, ret, 4);
 	used_funcs[4] = 1;
 	return ret;
 }
 
-int sceCtrlPeekBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
-	int ret = TAI_CONTINUE(int, refs[5], port, ctrl, count);
+int sceCtrlPeekBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int nBufs) {
+	int ret = TAI_CONTINUE(int, refs[5], port, ctrl, nBufs);
 	if (internal_ext_call) return ret;
-	checkForDelayedStart();
-	ret = remap(ctrl, ret, 5, POSITIVE);
+	ret = onInputExt(ctrl, ret, 5);
 	used_funcs[5] = 1;
 	return ret;
 }
 
-int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int count) {
-	int ret = TAI_CONTINUE(int, refs[6], port, ctrl, count);
-	patchToExt(&ctrl[ret - 1]);
-	checkForDelayedStart();
-	ret = remap(ctrl, ret, 6, POSITIVE);
+int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int nBufs) {
+	int ret = TAI_CONTINUE(int, refs[6], port, ctrl, nBufs);
+	if (internal_ext_call) return ret;
+	ret = onInputExt(ctrl, ret, 6);
 	used_funcs[6] = 1;
 	return ret;
 }
 
-int sceCtrlReadBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int count) {
-	int ret = TAI_CONTINUE(int, refs[7], port, ctrl, count);
+int sceCtrlReadBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int nBufs) {
+	int ret = TAI_CONTINUE(int, refs[7], port, ctrl, nBufs);
 	if (internal_ext_call) return ret;
-	checkForDelayedStart();
-	ret = remap(ctrl, ret, 7, POSITIVE);
+	ret = onInputExt(ctrl, ret, 7);
 	used_funcs[7] = 1;
 	return ret;
 }
 
-int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int count) {
-	int ret = TAI_CONTINUE(int, refs[8], port, ctrl, count);
-	checkForDelayedStart();
-	ret = remap(ctrl, ret, 8, NEGATIVE);
+int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
+	int ret = TAI_CONTINUE(int, refs[8], port, ctrl, nBufs);
+	ret = onInputNegative(ctrl, ret, 8);
 	used_funcs[8] = 1;
 	return ret;
 }
 
-int sceCtrlPeekBufferNegative2_patched(int port, SceCtrlData *ctrl, int count) {
-	int ret = TAI_CONTINUE(int, refs[9], port, ctrl, count);
-	checkForDelayedStart();
-	ret = remap(ctrl, ret, 9, NEGATIVE);
+int sceCtrlPeekBufferNegative2_patched(int port, SceCtrlData *ctrl, int nBufs) {
+	int ret = TAI_CONTINUE(int, refs[9], port, ctrl, nBufs);
+	ret = onInputNegative(ctrl, ret, 9);
 	used_funcs[9] = 1;
 	return ret;
 }
 
-int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int count) {
-	int ret = TAI_CONTINUE(int, refs[10], port, ctrl, count);
-	checkForDelayedStart();
-	ret = remap(ctrl, ret, 10, NEGATIVE);
+int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
+	int ret = TAI_CONTINUE(int, refs[10], port, ctrl, nBufs);
+	ret = onInputNegative(ctrl, ret, 10);
 	used_funcs[10] = 1;
 	return ret;
 }
 
-int sceCtrlReadBufferNegative2_patched(int port, SceCtrlData *ctrl, int count) {
-	int ret = TAI_CONTINUE(int, refs[11], port, ctrl, count);
-	checkForDelayedStart();
-	ret = remap(ctrl, ret, 11, NEGATIVE);
+int sceCtrlReadBufferNegative2_patched(int port, SceCtrlData *ctrl, int nBufs) {
+	int ret = TAI_CONTINUE(int, refs[11], port, ctrl, nBufs);
+	ret = onInputNegative(ctrl, ret, 11);
 	used_funcs[11] = 1;
 	return ret;
 }
@@ -214,6 +286,12 @@ int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
 	return TAI_CONTINUE(int, refs[16], pParam, sync);
 }	
 
+// Simplified generic hooking function
+void hookFunction(uint32_t nid, const void *func) {
+	hooks[current_hook] = taiHookFunctionImport(&refs[current_hook],TAI_MAIN_MODULE,TAI_ANY_LIBRARY,nid,func);
+	current_hook++;
+}
+
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
 	
@@ -247,7 +325,7 @@ int module_start(SceSize argc, const void *args) {
 	taipool_init(1024 + 1 * (
 		sizeof(SceCtrlData) * (HOOKS_NUM-5) * BUFFERS_NUM + 
 		2 * sizeof(SceTouchData) * 4 * BUFFERS_NUM));
-	remapInit();
+	remap_init();
 	
 	// Hooking functions
 	hookFunction(0xA9C3CED6, sceCtrlPeekBufferPositive_patched);

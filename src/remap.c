@@ -4,8 +4,12 @@
 
 #include "main.h"
 #include "profile.h"
-#include "ui.h"
 #include "common.h"
+
+typedef struct EmulatedTouch{
+	SceTouchReport reports[MULTITOUCH_FRONT_NUM];
+	uint8_t num;
+}EmulatedTouch;
 
 //Circular cache to store remapped keys buffers per each ctrs hook
 static SceCtrlData *remappedBuffers[HOOKS_NUM-5];
@@ -22,11 +26,7 @@ static int remappedBuffersRearIdxs[4];
 uint8_t newEmulatedFrontTouchBuffer = 0;
 uint8_t newEmulatedRearTouchBuffer = 0;
 
-typedef struct EmulatedTouch{
-	SceTouchReport reports[MULTITOUCH_FRONT_NUM];
-	uint8_t num;
-}EmulatedTouch;
-EmulatedTouch etFront, etRear, prevEtFront, prevEtRear;
+static EmulatedTouch etFront, etRear, prevEtFront, prevEtRear;
 static uint8_t etFrontIdCounter = 64;
 static uint8_t etRearIdCounter = 64;
 
@@ -341,67 +341,25 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 	}
 }
 
-int remap(SceCtrlData *ctrl, int count, int hookId, int logic) {
-	if (count < 1)
-		return count;	//Nothing to do here
-	
-	//Invert for negative logic
-	if (logic == NEGATIVE)
-		ctrl[count - 1].buttons = 0xFFFFFFFF - ctrl[count - 1].buttons;
-	
-	//Reset wheel gyro buttons pressed
-	if (gyro_options[7] == 1 &&
-			(ctrl[count - 1].buttons & btns[gyro_options[8]]) 
-				&& (ctrl[count - 1].buttons & btns[gyro_options[9]])) {
-		sceMotionReset();		
-	}
-	
-	if (!show_menu 
-			&& (ctrl[count - 1].buttons & SCE_CTRL_START) 
-			&& (ctrl[count - 1].buttons & SCE_CTRL_TRIANGLE)) {
-		loadGlobalConfig();
-		saveGameConfig();
-	}
-	
-	//Checking for menu triggering
-	if (used_funcs[16] && !show_menu 
-			&& (ctrl[count - 1].buttons & btns[settings_options[0]]) 
-			&& (ctrl[count - 1].buttons & btns[settings_options[1]])) {
-		ui_show();
-		//Clear buffers;
-		remappedBuffersIdxs[hookId] = 0;
-		remappedBuffersSizes[hookId] = 0;
-	}
-	if (show_menu){
-		configInputHandler(&ctrl[count - 1]);
-		for (int i = 0; i < count; i++)
-			ctrl[i].buttons = (logic == POSITIVE) ? 0 : 0xFFFFFFFF;
-		return count;
-	}
-	
+int remap(SceCtrlData *ctrl, int nBufs, int hookId) {	
 	int buffIdx = (remappedBuffersIdxs[hookId] + 1) % BUFFERS_NUM;
 	
 	//Storing copy of latest buffer
 	remappedBuffersIdxs[hookId] = buffIdx;
 	remappedBuffersSizes[hookId] = min(remappedBuffersSizes[hookId] + 1, BUFFERS_NUM);
-	remappedBuffers[hookId][buffIdx] = ctrl[count-1];
+	remappedBuffers[hookId][buffIdx] = ctrl[nBufs-1];
 	
 	//Applying remap to latest buffer
 	applyRemap(&remappedBuffers[hookId][buffIdx]);
 	
-	//Invert for negative logic
-	if (logic == NEGATIVE)
-		remappedBuffers[hookId][buffIdx].buttons = 
-			0xFFFFFFFF - remappedBuffers[hookId][buffIdx].buttons;
-	
 	//Limit returned buffers with amount we have cached
-	count = min(count, remappedBuffersSizes[hookId]);
+	nBufs = min(nBufs, remappedBuffersSizes[hookId]);
 	
 	//Restoring stored buffers
-	for (int i = 0; i < count; i++)
+	for (int i = 0; i < nBufs; i++)
 		ctrl[i] = remappedBuffers[hookId]
-			[(BUFFERS_NUM + buffIdx - count + i + 1) % BUFFERS_NUM];
-	return count;
+			[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
+	return nBufs;
 }
 
 void swapTriggersBumpers(SceCtrlData *ctrl){
@@ -419,7 +377,7 @@ void swapTriggersBumpers(SceCtrlData *ctrl){
 
 //Used to enable R1/R3/L1/L3
 void patchToExt(SceCtrlData *ctrl){
-	if (!controller_options[0] || show_menu)
+	if (!controller_options[0])
 		return;
 	SceCtrlData pstv_fakepad;
 	internal_ext_call = 1;
@@ -433,62 +391,60 @@ void patchToExt(SceCtrlData *ctrl){
 }
 
 int retouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
-	if (!internal_touch_call && show_menu) { //Disable in menu
-		pData[0] = pData[nBufs - 1];
-		pData[0].reportNum = 0;
-		return 1;
-	}
-	if (show_menu){	//Clear buffers when in menu
-		remappedBuffersFrontIdxs[hookId] = 0;
-		remappedBuffersRearIdxs[hookId] = 0;
-		remappedBuffersFrontSizes[hookId] = 0;
-		remappedBuffersRearSizes[hookId] = 0;
-	}
-	if (nBufs && !show_menu) {
-		if (port == SCE_TOUCH_PORT_FRONT){
-			//Get next cache real index
-			int buffIdx = (remappedBuffersFrontIdxs[hookId] + 1) % BUFFERS_NUM;
-	
-			//Storing copy of latest buffer
-			remappedBuffersFrontIdxs[hookId] = buffIdx;
-			remappedBuffersFrontSizes[hookId] = min(remappedBuffersFrontSizes[hookId] + 1, BUFFERS_NUM);
-			remappedBuffersFront[hookId][buffIdx] = pData[nBufs-1];
-			
-			//Updating latest buffer with simulated touches
-			updateTouchInfo(port, &remappedBuffersFront[hookId][buffIdx]);
-			
-			//Limit returned buufers num with what we have stored
-			nBufs = min(nBufs, remappedBuffersFrontSizes[hookId]);
-			
-			//Restoring stored buffers
-			for (int i = 0; i < nBufs; i++)
-				pData[i] = remappedBuffersFront[hookId]
-					[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
-		} else {
-			//Real index
-			int buffIdx = (remappedBuffersRearIdxs[hookId] + 1) % BUFFERS_NUM;
-	
-			//Storing copy of latest buffer
-			remappedBuffersRearIdxs[hookId] = buffIdx;
-			remappedBuffersRearSizes[hookId] = min(remappedBuffersRearSizes[hookId] + 1, BUFFERS_NUM);
-			remappedBuffersRear[hookId][buffIdx] = pData[nBufs-1];
-			
-			//Updating latest buffer with simulated touches
-			updateTouchInfo(port, &remappedBuffersRear[hookId][buffIdx]);
-			
-			//Limit returned buufers num with what we have stored
-			nBufs = min(nBufs, remappedBuffersRearSizes[hookId]);
-			
-			//Restoring stored buffers
-			for (int i = 0; i < nBufs; i++)
-				pData[i] = remappedBuffersRear[hookId]
-					[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
-		}
+	if (port == SCE_TOUCH_PORT_FRONT){
+		//Get next cache real index
+		int buffIdx = (remappedBuffersFrontIdxs[hookId] + 1) % BUFFERS_NUM;
+
+		//Storing copy of latest buffer
+		remappedBuffersFrontIdxs[hookId] = buffIdx;
+		remappedBuffersFrontSizes[hookId] = min(remappedBuffersFrontSizes[hookId] + 1, BUFFERS_NUM);
+		remappedBuffersFront[hookId][buffIdx] = pData[nBufs-1];
+		
+		//Updating latest buffer with simulated touches
+		updateTouchInfo(port, &remappedBuffersFront[hookId][buffIdx]);
+		
+		//Limit returned buufers num with what we have stored
+		nBufs = min(nBufs, remappedBuffersFrontSizes[hookId]);
+		
+		//Restoring stored buffers
+		for (int i = 0; i < nBufs; i++)
+			pData[i] = remappedBuffersFront[hookId]
+				[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
+	} else {
+		//Real index
+		int buffIdx = (remappedBuffersRearIdxs[hookId] + 1) % BUFFERS_NUM;
+
+		//Storing copy of latest buffer
+		remappedBuffersRearIdxs[hookId] = buffIdx;
+		remappedBuffersRearSizes[hookId] = min(remappedBuffersRearSizes[hookId] + 1, BUFFERS_NUM);
+		remappedBuffersRear[hookId][buffIdx] = pData[nBufs-1];
+		
+		//Updating latest buffer with simulated touches
+		updateTouchInfo(port, &remappedBuffersRear[hookId][buffIdx]);
+		
+		//Limit returned buufers num with what we have stored
+		nBufs = min(nBufs, remappedBuffersRearSizes[hookId]);
+		
+		//Restoring stored buffers
+		for (int i = 0; i < nBufs; i++)
+			pData[i] = remappedBuffersRear[hookId]
+				[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
 	}
 	return nBufs;
 }
 
-void remapInit(){
+void remap_resetBuffers(int hookId){
+	remappedBuffersIdxs[hookId] = 0;
+	remappedBuffersSizes[hookId] = 0;
+}
+void remap_resetTouchBuffers(int hookId){
+	remappedBuffersFrontIdxs[hookId] = 0;
+	remappedBuffersRearIdxs[hookId] = 0;
+	remappedBuffersFrontSizes[hookId] = 0;
+	remappedBuffersRearSizes[hookId] = 0;
+}
+
+void remap_init(){
 	for (int i = 0; i < HOOKS_NUM-5; i++) //Allocating mem for stored buffers
 		remappedBuffers[i] = malloc(sizeof(SceCtrlData) * BUFFERS_NUM);
 	for (int i = 0; i < 4; i++){
