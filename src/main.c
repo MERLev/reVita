@@ -96,7 +96,7 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 	if (used_funcs[16] && !show_menu 
 			&& (ctrl[nBufs - 1].buttons & btns[profile_settings[0]]) 
 			&& (ctrl[nBufs - 1].buttons & btns[profile_settings[1]])) {
-		remap_resetBuffers(hookId);
+		remap_resetCtrlBuffers(hookId);
 		ui_show();
 	}
 	
@@ -112,7 +112,7 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 	}
 	
 	//Execute remapping
-	int ret = remap(ctrl, nBufs, hookId);
+	int ret = remap_controls(ctrl, nBufs, hookId);
 	return ret;
 }
 
@@ -123,7 +123,7 @@ int onInput(SceCtrlData *ctrl, int nBufs, int hookId){
 	
 	//Patch for external controllers support
 	if (!show_menu)
-		patchToExt(&ctrl[nBufs - 1]);
+		remap_patchToExt(&ctrl[nBufs - 1]);
 	
 	return onInputExt(ctrl, nBufs, hookId);
 }
@@ -163,7 +163,7 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 		//Clear buffers when in menu
 		remap_resetTouchBuffers(hookId);
 	} else {
-		return retouch(port, pData, nBufs, hookId);
+		return remap_touch(port, pData, nBufs, hookId);
 	}
 	return nBufs;
 }
@@ -259,25 +259,25 @@ int sceCtrlReadBufferNegative2_patched(int port, SceCtrlData *ctrl, int nBufs) {
 int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[12], port, pData, nBufs);
 	used_funcs[12] = 1;
-	return retouch(port, pData, ret, 0);
+	return remap_touch(port, pData, ret, 0);
 }
 
 int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[13], port, pData, nBufs);
 	used_funcs[13] = 1;
-	return retouch(port, pData, ret, 1);
+	return remap_touch(port, pData, ret, 1);
 }
 
 int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[14], port, pData, nBufs);
 	used_funcs[14] = 1;
-	return retouch(port, pData, ret, 2);
+	return remap_touch(port, pData, ret, 2);
 }
 
 int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[15], port, pData, nBufs);
 	used_funcs[15] = 1;
-	return retouch(port, pData, ret, 3);
+	return remap_touch(port, pData, ret, 3);
 }
 
 int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {

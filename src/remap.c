@@ -344,7 +344,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 	}
 }
 
-int remap(SceCtrlData *ctrl, int nBufs, int hookId) {	
+int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId) {	
 	int buffIdx = (remappedBuffersIdxs[hookId] + 1) % BUFFERS_NUM;
 	
 	//Storing copy of latest buffer
@@ -379,7 +379,7 @@ void swapTriggersBumpers(SceCtrlData *ctrl){
 }
 
 //Used to enable R1/R3/L1/L3
-void patchToExt(SceCtrlData *ctrl){
+void remap_patchToExt(SceCtrlData *ctrl){
 	if (!profile_controller[0])
 		return;
 	SceCtrlData pstv_fakepad;
@@ -393,7 +393,7 @@ void patchToExt(SceCtrlData *ctrl){
 	}
 }
 
-int retouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
+int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
 	if (port == SCE_TOUCH_PORT_FRONT){
 		//Get next cache real index
 		int buffIdx = (remappedBuffersFrontIdxs[hookId] + 1) % BUFFERS_NUM;
@@ -436,7 +436,7 @@ int retouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 	return nBufs;
 }
 
-void remap_resetBuffers(int hookId){
+void remap_resetCtrlBuffers(int hookId){
 	remappedBuffersIdxs[hookId] = 0;
 	remappedBuffersSizes[hookId] = 0;
 }
