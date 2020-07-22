@@ -6,6 +6,9 @@
 #include "profile.h"
 #include "common.h"
 
+#define MULTITOUCH_FRONT_NUM		6
+#define MULTITOUCH_REAR_NUM			4
+
 typedef struct EmulatedTouch{
 	SceTouchReport reports[MULTITOUCH_FRONT_NUM];
 	uint8_t num;
@@ -41,50 +44,50 @@ void storeTouchPoint(EmulatedTouch *et, uint16_t x, uint16_t y){
 
 //Anything -> Btn, Analog, Touch
 void applyRemapRule(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos) {
-	if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM) { // -> Btn
-		if (!(*map & btns[btn_mask[btn_idx]])) {
-			*map += btns[btn_mask[btn_idx]];
+	if (profile_remap[btn_idx] < PHYS_BUTTONS_NUM) { // -> Btn
+		if (!(*map & btns[profile_remap[btn_idx]])) {
+			*map += btns[profile_remap[btn_idx]];
 		}
 
-	} else if (btn_mask[btn_idx] == PHYS_BUTTONS_NUM) { // -> Original
+	} else if (profile_remap[btn_idx] == PHYS_BUTTONS_NUM) { // -> Original
 		if (btn_idx < PHYS_BUTTONS_NUM) {
 			if (!(*map & btns[btn_idx])) {
 				*map += btns[btn_idx];
 			}
 		}										//  -> Analog
-	} else if (PHYS_BUTTONS_NUM + 1 < btn_mask[btn_idx] && btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 10) { 
-		stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] += 127;
-	} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 24){	// -> Touch
-		if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 14){		//Front touch default
+	} else if (PHYS_BUTTONS_NUM + 1 < profile_remap[btn_idx] && profile_remap[btn_idx] < PHYS_BUTTONS_NUM + 10) { 
+		stickpos[profile_remap[btn_idx] - (PHYS_BUTTONS_NUM + 2)] += 127;
+	} else if (profile_remap[btn_idx] < PHYS_BUTTONS_NUM + 24){	// -> Touch
+		if (profile_remap[btn_idx] < PHYS_BUTTONS_NUM + 14){		//Front touch default
 			if (etFront.num == MULTITOUCH_FRONT_NUM) return;
 			storeTouchPoint(&etFront,
-				TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2],
-				TOUCH_POINTS_DEF[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2 + 1]);
-		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 18){	//Front touch custom
+				PROFILE_TOUCH_DEF[(profile_remap[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2],
+				PROFILE_TOUCH_DEF[(profile_remap[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2 + 1]);
+		} else if (profile_remap[btn_idx] < PHYS_BUTTONS_NUM + 18){	//Front touch custom
 			if (etFront.num == MULTITOUCH_FRONT_NUM) return;
 			storeTouchPoint(&etFront,
-				touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2],
-				touch_options[(btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2 + 1]);
-		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 22){	//Rear  touch default
+				profile_touch[(profile_remap[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2],
+				profile_touch[(profile_remap[btn_idx] - (PHYS_BUTTONS_NUM + 14)) * 2 + 1]);
+		} else if (profile_remap[btn_idx] < PHYS_BUTTONS_NUM + 22){	//Rear  touch default
 			if (etRear.num == MULTITOUCH_REAR_NUM) return;
 			storeTouchPoint(&etRear,
-				TOUCH_POINTS_DEF[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2],
-				TOUCH_POINTS_DEF[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2 + 1]);
-		} else if (btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 26){	//Rear touch custom
+				PROFILE_TOUCH_DEF[8 + (profile_remap[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2],
+				PROFILE_TOUCH_DEF[8 + (profile_remap[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2 + 1]);
+		} else if (profile_remap[btn_idx] < PHYS_BUTTONS_NUM + 26){	//Rear touch custom
 			if (etRear.num == MULTITOUCH_REAR_NUM) return;
 			storeTouchPoint(&etRear,
-				touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2],
-				touch_options[8 + (btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2 + 1]);
+				profile_touch[8 + (profile_remap[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2],
+				profile_touch[8 + (profile_remap[btn_idx] - (PHYS_BUTTONS_NUM + 22)) * 2 + 1]);
 		}
 	}
 }
 
 //Used to handle analog->analog mapping
 void applyRemapRuleForAnalog(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos, uint8_t stickposval) {
-	if (PHYS_BUTTONS_NUM + 1 < btn_mask[btn_idx] && btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 10
-		&& !analogs_options[4 + (int) ((btn_idx - PHYS_BUTTONS_NUM - 8) / 2)]) {
+	if (PHYS_BUTTONS_NUM + 1 < profile_remap[btn_idx] && profile_remap[btn_idx] < PHYS_BUTTONS_NUM + 10
+		&& !profile_analog[4 + (int) ((btn_idx - PHYS_BUTTONS_NUM - 8) / 2)]) {
 		// Analog -> Analog [ANALOG MODE]
-		stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] += 127 - stickposval;
+		stickpos[profile_remap[btn_idx] - (PHYS_BUTTONS_NUM + 2)] += 127 - stickposval;
 	} else {
 		// Analog -> Analog [DIGITAL MODE] and Analog -> Button
 		applyRemapRule(btn_idx, map, stickpos);
@@ -93,14 +96,14 @@ void applyRemapRuleForAnalog(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos,
 
 //Used to handle analog->gyro mapping
 void applyRemapRuleForGyro(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos, float gyroval){
-	if (PHYS_BUTTONS_NUM + 1 < btn_mask[btn_idx] && btn_mask[btn_idx] < PHYS_BUTTONS_NUM + 10) {
+	if (PHYS_BUTTONS_NUM + 1 < profile_remap[btn_idx] && profile_remap[btn_idx] < PHYS_BUTTONS_NUM + 10) {
 		// Gyro -> Analog remap
-		stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] = stickpos[btn_mask[btn_idx] - (PHYS_BUTTONS_NUM + 2)] + clamp(gyroval, -127, 127);
+		stickpos[profile_remap[btn_idx] - (PHYS_BUTTONS_NUM + 2)] = stickpos[profile_remap[btn_idx] - (PHYS_BUTTONS_NUM + 2)] + clamp(gyroval, -127, 127);
 	} else {
 		// Gyro -> Btn remap
-		if ((((btn_idx == PHYS_BUTTONS_NUM + 16 || btn_idx == PHYS_BUTTONS_NUM + 17)) && gyroval > gyro_options[3] * 10) ||
-			(((btn_idx == PHYS_BUTTONS_NUM + 18 || btn_idx == PHYS_BUTTONS_NUM + 19)) && gyroval > gyro_options[4] * 10) ||
-			(((btn_idx == PHYS_BUTTONS_NUM + 20 || btn_idx == PHYS_BUTTONS_NUM + 21)) && gyroval > gyro_options[5] * 10))
+		if ((((btn_idx == PHYS_BUTTONS_NUM + 16 || btn_idx == PHYS_BUTTONS_NUM + 17)) && gyroval > profile_gyro[3] * 10) ||
+			(((btn_idx == PHYS_BUTTONS_NUM + 18 || btn_idx == PHYS_BUTTONS_NUM + 19)) && gyroval > profile_gyro[4] * 10) ||
+			(((btn_idx == PHYS_BUTTONS_NUM + 20 || btn_idx == PHYS_BUTTONS_NUM + 21)) && gyroval > profile_gyro[5] * 10))
 			applyRemapRule(btn_idx, map, stickpos);
 	}
 }
@@ -152,93 +155,93 @@ void applyRemap(SceCtrlData *ctrl) {
 	}
 
 	// Applying remap rules for left analog
-	if (ctrl->lx < 127 - analogs_options[0])			// Left
+	if (ctrl->lx < 127 - profile_analog[0])			// Left
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 8, &new_map, stickpos, ctrl->lx);
-	else if (ctrl->lx > 127 + analogs_options[0])		// Right
+	else if (ctrl->lx > 127 + profile_analog[0])		// Right
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 9, &new_map, stickpos, 255 - ctrl->lx);
-	if (ctrl->ly < 127 - analogs_options[1])			// Up
+	if (ctrl->ly < 127 - profile_analog[1])			// Up
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 10, &new_map, stickpos, ctrl->ly);
-	else if (ctrl->ly > 127 + analogs_options[1])		// Down
+	else if (ctrl->ly > 127 + profile_analog[1])		// Down
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 11, &new_map, stickpos, 255 - ctrl->ly);
 	
 	// Applying remap rules for right analog
-	if (ctrl->rx < 127 - analogs_options[2])	 		// Left
+	if (ctrl->rx < 127 - profile_analog[2])	 		// Left
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 12, &new_map, stickpos, ctrl->rx);
-	else if (ctrl->rx > 127 + analogs_options[2])		// Right
+	else if (ctrl->rx > 127 + profile_analog[2])		// Right
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 13, &new_map, stickpos, 255 - ctrl->rx);
-	if (ctrl->ry < 127 - analogs_options[3])			// Up
+	if (ctrl->ry < 127 - profile_analog[3])			// Up
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 14, &new_map, stickpos, ctrl->ry);
-	else if (ctrl->ry > 127 + analogs_options[3])		// Down
+	else if (ctrl->ry > 127 + profile_analog[3])		// Down
 		applyRemapRuleForAnalog(PHYS_BUTTONS_NUM + 15, &new_map, stickpos, 255 - ctrl->ry);
 	
 	// Applying remap for gyro
-	if (gyro_options[7] == 0) {
+	if (profile_gyro[7] == 0) {
 		if (motionstate.angularVelocity.y > 0)
 			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 16, &new_map, stickpos,
-				motionstate.angularVelocity.y * gyro_options[0]);
+				motionstate.angularVelocity.y * profile_gyro[0]);
 		if (motionstate.angularVelocity.y < 0)
 			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 17, &new_map, stickpos,
-				-motionstate.angularVelocity.y * gyro_options[0]);
+				-motionstate.angularVelocity.y * profile_gyro[0]);
 		if (motionstate.angularVelocity.x > 0)
 			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 18, &new_map, stickpos,
-				motionstate.angularVelocity.x * gyro_options[1]);
+				motionstate.angularVelocity.x * profile_gyro[1]);
 		if (motionstate.angularVelocity.x < 0)
 			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 19, &new_map, stickpos,
-				-motionstate.angularVelocity.x * gyro_options[1]);
+				-motionstate.angularVelocity.x * profile_gyro[1]);
 		if (motionstate.angularVelocity.z > 0)
 			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 20, &new_map, stickpos,
-				motionstate.angularVelocity.z * gyro_options[2]);
+				motionstate.angularVelocity.z * profile_gyro[2]);
 		if (motionstate.angularVelocity.z < 0)
 			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 21, &new_map, stickpos,
-				-motionstate.angularVelocity.z * gyro_options[2]);
+				-motionstate.angularVelocity.z * profile_gyro[2]);
 	}
 	else {
 		// Applying remap for gyro wheel mode
 		if (motionstate.deviceQuat.y < 0)
 			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 16, &new_map, stickpos,
-				motionstate.deviceQuat.y * gyro_options[0] * 4);
+				motionstate.deviceQuat.y * profile_gyro[0] * 4);
 		if (motionstate.deviceQuat.y > 0)
 			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 17, &new_map, stickpos,
-				-motionstate.deviceQuat.y * gyro_options[0] * 4);
+				-motionstate.deviceQuat.y * profile_gyro[0] * 4);
 		if (motionstate.deviceQuat.x < 0)
 			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 18, &new_map, stickpos,
-				motionstate.deviceQuat.x * gyro_options[1] * 4);
+				motionstate.deviceQuat.x * profile_gyro[1] * 4);
 		if (motionstate.deviceQuat.x > 0)
 			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 19, &new_map, stickpos,
-				-motionstate.deviceQuat.x * gyro_options[1] * 4);
+				-motionstate.deviceQuat.x * profile_gyro[1] * 4);
 		if (motionstate.deviceQuat.z < 0)
 			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 20, &new_map, stickpos,
-				motionstate.deviceQuat.z * gyro_options[2] * 4);
+				motionstate.deviceQuat.z * profile_gyro[2] * 4);
 		if (motionstate.deviceQuat.z > 0)
 			applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 21, &new_map, stickpos,
-			-motionstate.deviceQuat.z * gyro_options[2] * 4);
+			-motionstate.deviceQuat.z * profile_gyro[2] * 4);
 	}
 
 	// Nulling analogs if they're remapped		
-	if ((ctrl->lx < 127 && btn_mask[PHYS_BUTTONS_NUM+8] != PHYS_BUTTONS_NUM) ||
-		(ctrl->lx > 127 && btn_mask[PHYS_BUTTONS_NUM+9] != PHYS_BUTTONS_NUM))
+	if ((ctrl->lx < 127 && profile_remap[PHYS_BUTTONS_NUM+8] != PHYS_BUTTONS_NUM) ||
+		(ctrl->lx > 127 && profile_remap[PHYS_BUTTONS_NUM+9] != PHYS_BUTTONS_NUM))
 		ctrl->lx = 127;
-	if ((ctrl->ly < 127 && btn_mask[PHYS_BUTTONS_NUM+10] != PHYS_BUTTONS_NUM) ||
-		(ctrl->ly > 127 && btn_mask[PHYS_BUTTONS_NUM+11] != PHYS_BUTTONS_NUM))
+	if ((ctrl->ly < 127 && profile_remap[PHYS_BUTTONS_NUM+10] != PHYS_BUTTONS_NUM) ||
+		(ctrl->ly > 127 && profile_remap[PHYS_BUTTONS_NUM+11] != PHYS_BUTTONS_NUM))
 		ctrl->ly = 127;
-	if ((ctrl->rx < 127 && btn_mask[PHYS_BUTTONS_NUM+12] != PHYS_BUTTONS_NUM) ||
-		(ctrl->rx > 127 && btn_mask[PHYS_BUTTONS_NUM+13] != PHYS_BUTTONS_NUM))
+	if ((ctrl->rx < 127 && profile_remap[PHYS_BUTTONS_NUM+12] != PHYS_BUTTONS_NUM) ||
+		(ctrl->rx > 127 && profile_remap[PHYS_BUTTONS_NUM+13] != PHYS_BUTTONS_NUM))
 		ctrl->rx = 127;
-	if ((ctrl->ry < 127 && btn_mask[PHYS_BUTTONS_NUM+14] != PHYS_BUTTONS_NUM) ||
-		(ctrl->ry > 127 && btn_mask[PHYS_BUTTONS_NUM+15] != PHYS_BUTTONS_NUM))
+	if ((ctrl->ry < 127 && profile_remap[PHYS_BUTTONS_NUM+14] != PHYS_BUTTONS_NUM) ||
+		(ctrl->ry > 127 && profile_remap[PHYS_BUTTONS_NUM+15] != PHYS_BUTTONS_NUM))
 		ctrl->ry = 127;	
 	
 	// Remove minimal drift if digital remap for stick directions is used
 	if (stickpos[0] || stickpos[1] || stickpos[2] || stickpos[3]){
-		if (abs(ctrl->lx - 127) < analogs_options[0]) 
+		if (abs(ctrl->lx - 127) < profile_analog[0]) 
 			ctrl->lx = 127;
-		if (abs(ctrl->ly - 127) < analogs_options[1]) 
+		if (abs(ctrl->ly - 127) < profile_analog[1]) 
 			ctrl->ly = 127;
 	}
 	if (stickpos[4] || stickpos[5] || stickpos[6] || stickpos[7]){
-		if (abs(ctrl->rx - 127) < analogs_options[2]) 
+		if (abs(ctrl->rx - 127) < profile_analog[2]) 
 			ctrl->rx = 127;
-		if (abs(ctrl->ry - 127) < analogs_options[3]) 
+		if (abs(ctrl->ry - 127) < profile_analog[3]) 
 			ctrl->ry = 127;
 	}
 	
@@ -293,15 +296,15 @@ void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et,
 
 void updateTouchInfo(SceUInt32 port, SceTouchData *pData){	
 	if (port == SCE_TOUCH_PORT_FRONT) {
-		if ((touch_options[16] == 1 && //Disable if remapped
-				(btn_mask[PHYS_BUTTONS_NUM] != PHYS_BUTTONS_NUM ||
-				 btn_mask[PHYS_BUTTONS_NUM+1] != PHYS_BUTTONS_NUM ||
-				 btn_mask[PHYS_BUTTONS_NUM+2] != PHYS_BUTTONS_NUM ||
-				 btn_mask[PHYS_BUTTONS_NUM+3] != PHYS_BUTTONS_NUM)) ||
-				 btn_mask[PHYS_BUTTONS_NUM]   == PHYS_BUTTONS_NUM+1 ||
-				 btn_mask[PHYS_BUTTONS_NUM+1] == PHYS_BUTTONS_NUM+1 ||
-				 btn_mask[PHYS_BUTTONS_NUM+2] == PHYS_BUTTONS_NUM+1 ||
-				 btn_mask[PHYS_BUTTONS_NUM+3] == PHYS_BUTTONS_NUM+1)
+		if ((profile_touch[16] == 1 && //Disable if remapped
+				(profile_remap[PHYS_BUTTONS_NUM] != PHYS_BUTTONS_NUM ||
+				 profile_remap[PHYS_BUTTONS_NUM+1] != PHYS_BUTTONS_NUM ||
+				 profile_remap[PHYS_BUTTONS_NUM+2] != PHYS_BUTTONS_NUM ||
+				 profile_remap[PHYS_BUTTONS_NUM+3] != PHYS_BUTTONS_NUM)) ||
+				 profile_remap[PHYS_BUTTONS_NUM]   == PHYS_BUTTONS_NUM+1 ||
+				 profile_remap[PHYS_BUTTONS_NUM+1] == PHYS_BUTTONS_NUM+1 ||
+				 profile_remap[PHYS_BUTTONS_NUM+2] == PHYS_BUTTONS_NUM+1 ||
+				 profile_remap[PHYS_BUTTONS_NUM+3] == PHYS_BUTTONS_NUM+1)
 			pData->reportNum = 0; //Disable pad
 			
 		if (!newEmulatedFrontTouchBuffer){//New touchbuffer not ready - using previous one
@@ -316,15 +319,15 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 		etFront.num = 0;
 		newEmulatedFrontTouchBuffer = 0;
 	} else {
-		if ((touch_options[17] == 1 &&//Disable if remapped
-				(btn_mask[PHYS_BUTTONS_NUM+4] != PHYS_BUTTONS_NUM ||
-				 btn_mask[PHYS_BUTTONS_NUM+5] != PHYS_BUTTONS_NUM ||
-				 btn_mask[PHYS_BUTTONS_NUM+6] != PHYS_BUTTONS_NUM ||
-				 btn_mask[PHYS_BUTTONS_NUM+7] != PHYS_BUTTONS_NUM)) ||
-				 btn_mask[PHYS_BUTTONS_NUM+4] == PHYS_BUTTONS_NUM+1 ||
-				 btn_mask[PHYS_BUTTONS_NUM+5] == PHYS_BUTTONS_NUM+1 ||
-				 btn_mask[PHYS_BUTTONS_NUM+6] == PHYS_BUTTONS_NUM+1 ||
-				 btn_mask[PHYS_BUTTONS_NUM+7] == PHYS_BUTTONS_NUM+1)
+		if ((profile_touch[17] == 1 &&//Disable if remapped
+				(profile_remap[PHYS_BUTTONS_NUM+4] != PHYS_BUTTONS_NUM ||
+				 profile_remap[PHYS_BUTTONS_NUM+5] != PHYS_BUTTONS_NUM ||
+				 profile_remap[PHYS_BUTTONS_NUM+6] != PHYS_BUTTONS_NUM ||
+				 profile_remap[PHYS_BUTTONS_NUM+7] != PHYS_BUTTONS_NUM)) ||
+				 profile_remap[PHYS_BUTTONS_NUM+4] == PHYS_BUTTONS_NUM+1 ||
+				 profile_remap[PHYS_BUTTONS_NUM+5] == PHYS_BUTTONS_NUM+1 ||
+				 profile_remap[PHYS_BUTTONS_NUM+6] == PHYS_BUTTONS_NUM+1 ||
+				 profile_remap[PHYS_BUTTONS_NUM+7] == PHYS_BUTTONS_NUM+1)
 			pData->reportNum = 0; //Disable pad
 			
 		if (!newEmulatedRearTouchBuffer){//New touchbuffer not ready - using previous one
@@ -377,15 +380,15 @@ void swapTriggersBumpers(SceCtrlData *ctrl){
 
 //Used to enable R1/R3/L1/L3
 void patchToExt(SceCtrlData *ctrl){
-	if (!controller_options[0])
+	if (!profile_controller[0])
 		return;
 	SceCtrlData pstv_fakepad;
 	internal_ext_call = 1;
-	int ret = sceCtrlPeekBufferPositiveExt2(controller_options[1], &pstv_fakepad, 1);
+	int ret = sceCtrlPeekBufferPositiveExt2(profile_controller[1], &pstv_fakepad, 1);
 	internal_ext_call = 0;
 	if (ret > 0){
 		ctrl->buttons = pstv_fakepad.buttons;
-		if (controller_options[2])
+		if (profile_controller[2])
 			swapTriggersBumpers(ctrl);
 	}
 }

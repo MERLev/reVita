@@ -207,7 +207,7 @@ void drawConfigMenu() {
 		footer2 = "(O):close";
 		break;
 	case REMAP_MENU:
-		for (i = calcStartingIndex(cfg_i, BUTTONS_NUM, avaliable_entries); i < BUTTONS_NUM; i++) {
+		for (i = calcStartingIndex(cfg_i, PROFILE_REMAP_NUM, avaliable_entries); i < PROFILE_REMAP_NUM; i++) {
 			if (cfg_i == i){//Draw cursor
 				setTextColor(COLOR_CURSOR);
 				drawString(L_0 + CHA_W*10, y + CHA_H, (ticker % 16 < 8) ? "<" : ">");
@@ -229,36 +229,36 @@ void drawConfigMenu() {
 			else if (i < PHYS_BUTTONS_NUM + 16) srcAction = str_analog_directions[i - PHYS_BUTTONS_NUM-12];
 			else if (i < PHYS_BUTTONS_NUM + 22) srcAction = str_gyro_directions[i - PHYS_BUTTONS_NUM-16];
 			//Target Section
-			if (btn_mask[i] < PHYS_BUTTONS_NUM) targetSection = str_sections[0];
-			else if (btn_mask[i] == PHYS_BUTTONS_NUM)  targetSection = str_sections[6];
-			else if (btn_mask[i] == PHYS_BUTTONS_NUM + 1)  targetSection = str_sections[7];
-			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 6)  targetSection = str_sections[1];
-			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 10)  targetSection = str_sections[2];
-			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 18)  targetSection = str_sections[3];
-			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 26)  targetSection = str_sections[4];
+			if (profile_remap[i] < PHYS_BUTTONS_NUM) targetSection = str_sections[0];
+			else if (profile_remap[i] == PHYS_BUTTONS_NUM)  targetSection = str_sections[6];
+			else if (profile_remap[i] == PHYS_BUTTONS_NUM + 1)  targetSection = str_sections[7];
+			else if (profile_remap[i] < PHYS_BUTTONS_NUM + 6)  targetSection = str_sections[1];
+			else if (profile_remap[i] < PHYS_BUTTONS_NUM + 10)  targetSection = str_sections[2];
+			else if (profile_remap[i] < PHYS_BUTTONS_NUM + 18)  targetSection = str_sections[3];
+			else if (profile_remap[i] < PHYS_BUTTONS_NUM + 26)  targetSection = str_sections[4];
 			//Target  Action
-			if (btn_mask[i] < PHYS_BUTTONS_NUM) targetAction = str_btns[btn_mask[i]];
-			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 2)  targetAction = "";
-			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 6) targetAction = str_analog_directions[btn_mask[i] - PHYS_BUTTONS_NUM-2];
-			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 10) targetAction = str_analog_directions[btn_mask[i] - PHYS_BUTTONS_NUM-6];
-			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 14) targetAction = str_touch_zones[btn_mask[i] - PHYS_BUTTONS_NUM-10];
-			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 18) targetAction = str_touch_points[btn_mask[i] - PHYS_BUTTONS_NUM-14];
-			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 22) targetAction = str_touch_zones[btn_mask[i] - PHYS_BUTTONS_NUM-18];
-			else if (btn_mask[i] < PHYS_BUTTONS_NUM + 26) targetAction = str_touch_points[btn_mask[i] - PHYS_BUTTONS_NUM-22];
+			if (profile_remap[i] < PHYS_BUTTONS_NUM) targetAction = str_btns[profile_remap[i]];
+			else if (profile_remap[i] < PHYS_BUTTONS_NUM + 2)  targetAction = "";
+			else if (profile_remap[i] < PHYS_BUTTONS_NUM + 6) targetAction = str_analog_directions[profile_remap[i] - PHYS_BUTTONS_NUM-2];
+			else if (profile_remap[i] < PHYS_BUTTONS_NUM + 10) targetAction = str_analog_directions[profile_remap[i] - PHYS_BUTTONS_NUM-6];
+			else if (profile_remap[i] < PHYS_BUTTONS_NUM + 14) targetAction = str_touch_zones[profile_remap[i] - PHYS_BUTTONS_NUM-10];
+			else if (profile_remap[i] < PHYS_BUTTONS_NUM + 18) targetAction = str_touch_points[profile_remap[i] - PHYS_BUTTONS_NUM-14];
+			else if (profile_remap[i] < PHYS_BUTTONS_NUM + 22) targetAction = str_touch_zones[profile_remap[i] - PHYS_BUTTONS_NUM-18];
+			else if (profile_remap[i] < PHYS_BUTTONS_NUM + 26) targetAction = str_touch_points[profile_remap[i] - PHYS_BUTTONS_NUM-22];
 	
 			setTextColor(COLOR_HEADER);
 			drawString(L_0, y += CHA_H, srcSection);
 			
 			if (i == cfg_i) setTextColor(COLOR_CURSOR);
-			else if (btn_mask[i] == PHYS_BUTTONS_NUM) setTextColor(COLOR_DEFAULT);
-			else if (btn_mask[i] == PHYS_BUTTONS_NUM + 1) setTextColor(COLOR_DISABLE);
+			else if (profile_remap[i] == PHYS_BUTTONS_NUM) setTextColor(COLOR_DEFAULT);
+			else if (profile_remap[i] == PHYS_BUTTONS_NUM + 1) setTextColor(COLOR_DISABLE);
 			else setTextColor(COLOR_ACTIVE);
 			drawString(L_0 + CHA_W*11, y, srcAction);
 			
-			if (btn_mask[i] == PHYS_BUTTONS_NUM) setTextColor(COLOR_DEFAULT);
-			else if (btn_mask[i] == PHYS_BUTTONS_NUM + 1) setTextColor(COLOR_DISABLE);
+			if (profile_remap[i] == PHYS_BUTTONS_NUM) setTextColor(COLOR_DEFAULT);
+			else if (profile_remap[i] == PHYS_BUTTONS_NUM + 1) setTextColor(COLOR_DISABLE);
 			else setTextColor(COLOR_ACTIVE);
-			if (btn_mask[i] != PHYS_BUTTONS_NUM)
+			if (profile_remap[i] != PHYS_BUTTONS_NUM)
 				drawString(L_0 + CHA_W*21, y, " -> ");
 			
 			drawString(L_0 + CHA_W*25, y, targetSection);
@@ -270,7 +270,7 @@ void drawConfigMenu() {
 		footer2 = " (start):reset all  (O):back";
 		break;
 	case ANALOG_MENU:
-		for (i = calcStartingIndex(cfg_i, ANOLOGS_OPTIONS_NUM, avaliable_entries); i < ANOLOGS_OPTIONS_NUM; i++) {				
+		for (i = calcStartingIndex(cfg_i, PROFILE_ANALOG_NUM, avaliable_entries); i < PROFILE_ANALOG_NUM; i++) {				
 			if (y + 60 > screen_h) break;
 			
 			if (!(i % 4)){	//Headers
@@ -279,19 +279,18 @@ void drawConfigMenu() {
 			}
 			
 			if (i == cfg_i) setTextColor(COLOR_CURSOR);
-			else if (analogs_options[i] != ((i/2*2 < 4) ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF)) 
-				setTextColor(COLOR_ACTIVE);
+			else if (profile_analog[i] != PROFILE_ANALOG_DEF[i]) setTextColor(COLOR_ACTIVE);
 			else setTextColor(COLOR_DEFAULT);
 			drawStringF(L_0+14*CHA_W, y+=CHA_H, "%s", 
 				!(i % 2) ? (((i / 2) % 2 ) ? "Right Analog" : "Left Analog "): "");
 			if (i < 4)
 				drawStringF(L_0+27*CHA_W, y, "[%s axis]: %hhu", 
 					(i % 2) ? "Y" : "X",
-					analogs_options[i]);
+					profile_analog[i]);
 			else 
 				drawStringF(L_0+27*CHA_W, y, "[%s axis]: %s", 
 					(i % 2) ? "Y" : "X",
-					str_yes_no[analogs_options[i]]);	
+					str_yes_no[profile_analog[i]]);	
 					
 			if (cfg_i == i){//Draw cursor
 				setTextColor(COLOR_CURSOR);
@@ -302,7 +301,7 @@ void drawConfigMenu() {
 		footer2 = "(O):back";
 		break;
 	case TOUCH_MENU:
-		for (i = calcStartingIndex(cfg_i, TOUCH_OPTIONS_NUM, avaliable_entries); i < TOUCH_OPTIONS_NUM; i++) {				
+		for (i = calcStartingIndex(cfg_i, PROFILE_TOUCH_NUM, avaliable_entries); i < PROFILE_TOUCH_NUM; i++) {				
 			if (y + 60 > screen_h) break;
 			
 			if (cfg_i == i){//Draw cursor
@@ -317,33 +316,33 @@ void drawConfigMenu() {
 			
 			if (i < 16){ //Points
 				if (i == cfg_i) setTextColor(COLOR_CURSOR);
-				else if (touch_options[i] != TOUCH_POINTS_DEF[i]) 
+				else if (profile_touch[i] != PROFILE_TOUCH_DEF[i]) 
 					setTextColor(COLOR_ACTIVE);
 				else setTextColor(COLOR_DEFAULT);
 				if (i < 16){
 					if (!(i % 2)) 
 						drawString(L_0+6*CHA_W, y+CHA_H, str_touch_points[(i % 8)/2]);
 					drawStringF(L_0+14*CHA_W, y+=CHA_H, "%s:", !(i % 2) ? "x" : "y");
-					drawStringF(L_0+17*CHA_W, y, "%hu", touch_options[i]);
+					drawStringF(L_0+17*CHA_W, y, "%hu", profile_touch[i]);
 				}
 				if (y + 60 > screen_h) break;
 			}
 			
 			if (i == 16){ //Front touch mode
 				if (16 == cfg_i) setTextColor(COLOR_CURSOR);
-				else if (touch_options[16] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
+				else if (profile_touch[16] == PROFILE_TOUCH_DEF[i]) setTextColor(COLOR_DEFAULT);
 				else setTextColor(COLOR_ACTIVE);
 				drawString(L_0, y+=CHA_H, "Disable Front touch if remapped:");
-				drawString(L_0+33*CHA_W, y, str_yes_no[touch_options[16]]);
+				drawString(L_0+33*CHA_W, y, str_yes_no[profile_touch[16]]);
 				if (y + 60 > screen_h) break;
 			}
 			
 			if (i==17){ //Rear touch mode
 				if (17 == cfg_i) setTextColor(COLOR_CURSOR);
-				else if (touch_options[17] == TOUCH_MODE_DEF) setTextColor(COLOR_DEFAULT);
+				else if (profile_touch[17] == PROFILE_TOUCH_DEF[i]) setTextColor(COLOR_DEFAULT);
 				else setTextColor(COLOR_ACTIVE);
 				drawString(L_0, y+=CHA_H, "Disable Rear touch  if remapped:");
-				drawString(L_0+33*CHA_W, y, str_yes_no[touch_options[17]]);
+				drawString(L_0+33*CHA_W, y, str_yes_no[profile_touch[17]]);
 				if (y + 60 > screen_h) break;
 			}
 		}
@@ -351,7 +350,7 @@ void drawConfigMenu() {
 		footer2 = "(O): back";
 		break;
 	case GYRO_MENU:
-		for (i = calcStartingIndex(cfg_i, GYRO_OPTIONS_NUM, avaliable_entries); i < GYRO_OPTIONS_NUM; i++) {
+		for (i = calcStartingIndex(cfg_i, PROFILE_GYRO_NUM, avaliable_entries); i < PROFILE_GYRO_NUM; i++) {
 			if (y + 60 > screen_h) break;
 
 			if (i < 6 && !(i % 3)) {	//Draw Headers
@@ -360,25 +359,25 @@ void drawConfigMenu() {
 			}
 
 			if (i == cfg_i) setTextColor(COLOR_CURSOR);
-			else if (gyro_options[i] != GYRO_DEF[i]) setTextColor(COLOR_ACTIVE);
+			else if (profile_gyro[i] != PROFILE_GYRO_DEF[i]) setTextColor(COLOR_ACTIVE);
 			else setTextColor(COLOR_DEFAULT);
 			if (i < 6){ 		//Draw sens and deadzone option
 				drawStringF(L_1 + 17 * CHA_W, y += CHA_H, "%s axis: %hhu",
 					((i % 3) == 2) ? "Z" : ((i % 3) ? "Y" : "X"),
-					gyro_options[i]);
+					profile_gyro[i]);
 			
 			} else if (i == 6) { //Draw deadband option
 				drawStringF(L_1, y += CHA_H, "Deadband mode          : %s", 
-					str_deadband[gyro_options[i]]);
+					str_deadband[profile_gyro[i]]);
 				
 			} else if (i == 7) { //Draw wheel mode option
 				drawStringF(L_1, y += CHA_H, "Wheel mode [WIP]       : %s", 
-					str_yes_no[gyro_options[i]]);
+					str_yes_no[profile_gyro[i]]);
 			
 			} else if (i < 10) { //Draw reset button options
 				drawStringF(L_1, y += CHA_H, "Wheel reset %s key : %s", 
 					(i == 8) ? "first " : "second", 
-					str_btns[gyro_options[i]]);
+					str_btns[profile_gyro[i]]);
 			
 			} else if (i == 10) { //Draw manual reset option
 				drawString(L_1, y += CHA_H, "Manual wheel reset");
@@ -408,21 +407,21 @@ void drawConfigMenu() {
 			
 			//Use external controller
 			setTextColor(cfg_i == 0 ? COLOR_CURSOR : 
-				(controller_options[0] == CNTRL_DEF[0] ? COLOR_DEFAULT : COLOR_ACTIVE));
-			drawStringF(L_1, y += CHA_H, "Use external controller: %s", str_yes_no[controller_options[0]]);
+				(profile_controller[0] == PROFILE_CONTROLLER_DEF[0] ? COLOR_DEFAULT : COLOR_ACTIVE));
+			drawStringF(L_1, y += CHA_H, "Use external controller: %s", str_yes_no[profile_controller[0]]);
 			
 			//Port selection
 			setTextColor(cfg_i == 1 ? COLOR_CURSOR : 
-				(controller_options[1] == CNTRL_DEF[1] ? COLOR_DEFAULT : COLOR_ACTIVE));
+				(profile_controller[1] == PROFILE_CONTROLLER_DEF[1] ? COLOR_DEFAULT : COLOR_ACTIVE));
 			drawStringF(L_1, y += CHA_H, "Selected port: {%i} %s %s", 
-				controller_options[1],
-				getControllerName(pi.port[controller_options[1]]), 
-				controller_options[1] ? "" : "[DEFAULT]");
+				profile_controller[1],
+				getControllerName(pi.port[profile_controller[1]]), 
+				profile_controller[1] ? "" : "[DEFAULT]");
 			
 			//Button swap
 			setTextColor(cfg_i == 2 ? COLOR_CURSOR : 
-				(controller_options[2] == CNTRL_DEF[2] ? COLOR_DEFAULT : COLOR_ACTIVE));
-			drawStringF(L_1, y += CHA_H, "Swap L1<>LT R1<>RT     : %s", str_yes_no[controller_options[2]]);
+				(profile_controller[2] == PROFILE_CONTROLLER_DEF[2] ? COLOR_DEFAULT : COLOR_ACTIVE));
+			drawStringF(L_1, y += CHA_H, "Swap L1<>LT R1<>RT     : %s", str_yes_no[profile_controller[2]]);
 			
 			//Ports stats
 			y+=CHA_H;
@@ -459,23 +458,23 @@ void drawConfigMenu() {
 			drawString(L_0, y + CHA_H + CHA_H * cfg_i, (ticker % 16 < 8) ? "x" : "X");
 		//Menu trigger keys
 		setTextColor(cfg_i == 0 ? COLOR_CURSOR : 
-			(settings_options[0] == SETTINGS_DEF[0] ? COLOR_DEFAULT : COLOR_ACTIVE));
+			(profile_settings[0] == PROFILE_SETTINGS_DEF[0] ? COLOR_DEFAULT : COLOR_ACTIVE));
 		drawStringF(L_1, y += CHA_H, "Menu trigger first key    : %s", 
-			str_btns[settings_options[0]]);
+			str_btns[profile_settings[0]]);
 		setTextColor(cfg_i == 1 ? COLOR_CURSOR : 
-			(settings_options[1] == SETTINGS_DEF[1] ? COLOR_DEFAULT : COLOR_ACTIVE));
+			(profile_settings[1] == PROFILE_SETTINGS_DEF[1] ? COLOR_DEFAULT : COLOR_ACTIVE));
 		drawStringF(L_1, y += CHA_H, "            second key    : %s", 
-			str_btns[settings_options[1]]);
+			str_btns[profile_settings[1]]);
 		
 		//Save game profile on close
 		setTextColor(cfg_i == 2 ? COLOR_CURSOR : 
-			(settings_options[2] == SETTINGS_DEF[2] ? COLOR_DEFAULT : COLOR_ACTIVE));
-		drawStringF(L_1, y += CHA_H, "Save Game profile on close: %s", str_yes_no[settings_options[2]]);
+			(profile_settings[2] == PROFILE_SETTINGS_DEF[2] ? COLOR_DEFAULT : COLOR_ACTIVE));
+		drawStringF(L_1, y += CHA_H, "Save Game profile on close: %s", str_yes_no[profile_settings[2]]);
 		
 		//Startup delay
 		setTextColor(cfg_i == 3 ? COLOR_CURSOR : 
-			(settings_options[3] == SETTINGS_DEF[3] ? COLOR_DEFAULT : COLOR_ACTIVE));
-		drawStringF(L_1, y += CHA_H, "Startup delay             : %hhu seconds", settings_options[3]);
+			(profile_settings[3] == PROFILE_SETTINGS_DEF[3] ? COLOR_DEFAULT : COLOR_ACTIVE));
+		drawStringF(L_1, y += CHA_H, "Startup delay             : %hhu seconds", profile_settings[3]);
 		
 		//Profile management
 		for (int i = 0; i <	sizeof(str_settings)/sizeof(char*); i++){
@@ -524,10 +523,10 @@ void drawConfigMenu() {
 	//DRAW TOUCH POINTER over everything else
 	if (menu_i != TOUCH_MENU || cfg_i >= 16)
 		return;
-	int left = touch_options[cfg_i - (cfg_i % 2)] - 8;
+	int left = profile_touch[cfg_i - (cfg_i % 2)] - 8;
 	left *= (float)screen_w / ((cfg_i < 8) ? TOUCH_SIZE[0] : TOUCH_SIZE[2]);
 	left = min((max(0, left)), screen_w);
-	int top = touch_options[cfg_i - (cfg_i % 2) + 1] - 10;
+	int top = profile_touch[cfg_i - (cfg_i % 2) + 1] - 10;
 	top *= (float)screen_h / ((cfg_i < 8) ? TOUCH_SIZE[1] : TOUCH_SIZE[3]); //Scale to framebuffer size
 	top = min((max(0, top)), screen_h);//limit into screen
 	setTextColor((ticker % 4) ? COLOR_CURSOR : COLOR_DISABLE);
@@ -547,10 +546,10 @@ void analogTouchPicker(SceCtrlData *ctrl){
 	int shiftX = ((float)(ctrl->rx - 127)) / 8;
 	int shiftY = ((float)(ctrl->ry - 127)) / 8;
 	if (abs(shiftX) > 30 / 8)
-		touch_options[o_idx1] = lim(touch_options[o_idx1] + shiftX, 
+		profile_touch[o_idx1] = lim(profile_touch[o_idx1] + shiftX, 
 			0, TOUCH_SIZE[(o_idx1 < 8) ? 0 : 2]);
 	if (abs(shiftY) > 30 / 8)
-		touch_options[o_idx1+1] = lim(touch_options[o_idx1+1] + shiftY, 
+		profile_touch[o_idx1+1] = lim(profile_touch[o_idx1+1] + shiftY, 
 			0, TOUCH_SIZE[((o_idx1+1) < 8) ? 1 : 3]);
 }
 
@@ -564,15 +563,15 @@ void touchPicker(int padType){
 	int ret = sceTouchRead(padType, &std, 1);
 	internal_touch_call = 0;
 	if (ret && std.reportNum){
-		touch_options[cfg_i - (cfg_i % 2)] = std.report[0].x;
-		touch_options[cfg_i - (cfg_i % 2) + 1] = std.report[0].y;
+		profile_touch[cfg_i - (cfg_i % 2)] = std.report[0].x;
+		profile_touch[cfg_i - (cfg_i % 2) + 1] = std.report[0].y;
 	}
 }
 
 // Input Handler for the Config Menu
 void ui_inputHandler(SceCtrlData *ctrl) {
-	if ((ctrl->buttons & btns[settings_options[0]]) 
-			&& (ctrl->buttons & btns[settings_options[1]]))
+	if ((ctrl->buttons & btns[profile_settings[0]]) 
+			&& (ctrl->buttons & btns[profile_settings[1]]))
 		return; //Menu trigger butoons should not trigger any menu actions on menu open
 	if (new_frame) {
 		new_frame = 0;
@@ -582,22 +581,22 @@ void ui_inputHandler(SceCtrlData *ctrl) {
 			menu_entries = sizeof(str_main_menu) / sizeof(char*);
 			break;
 		case REMAP_MENU:
-			menu_entries = BUTTONS_NUM;
+			menu_entries = PROFILE_REMAP_NUM;
 			break;
 		case ANALOG_MENU:
-			menu_entries = ANOLOGS_OPTIONS_NUM;
+			menu_entries = PROFILE_ANALOG_NUM;
 			break;
 		case TOUCH_MENU:
-			menu_entries = TOUCH_OPTIONS_NUM;
+			menu_entries = PROFILE_TOUCH_NUM;
 			touchPicker(SCE_TOUCH_PORT_FRONT);
 			touchPicker(SCE_TOUCH_PORT_BACK);
 			analogTouchPicker(ctrl);
 			break;
 		case GYRO_MENU:
-			menu_entries = GYRO_OPTIONS_NUM;
+			menu_entries = PROFILE_GYRO_NUM;
 			break;
 		case CNTRL_MENU:
-			menu_entries = CNTRL_OPTIONS_NUM;
+			menu_entries = PROFILE_CONTROLLER_NUM;
 			break;
 		case FUNCS_LIST:
 			menu_entries = HOOKS_NUM - 1;
@@ -606,7 +605,7 @@ void ui_inputHandler(SceCtrlData *ctrl) {
 			menu_entries = CREDITS_NUM;
 			break;
 		case SETTINGS_MENU:
-			menu_entries = SETTINGS_NUM + 4;
+			menu_entries = PROFILE_SETTINGS_NUM + 4;
 			break;
 		default:
 			break;
@@ -632,200 +631,197 @@ void ui_inputHandler(SceCtrlData *ctrl) {
 			case SCE_CTRL_RIGHT:
 				switch (menu_i){
 				case REMAP_MENU: 
-					btn_mask[cfg_i] = (btn_mask[cfg_i] + 1) % TARGET_REMAPS;
+					profile_remap[cfg_i] = (profile_remap[cfg_i] + 1) % TARGET_REMAPS;
 					break;
 				case ANALOG_MENU:
-					if (cfg_i < 4) analogs_options[cfg_i] = (analogs_options[cfg_i] + 1) % 128;
-					else analogs_options[cfg_i] = !analogs_options[cfg_i];
+					if (cfg_i < 4) profile_analog[cfg_i] = (profile_analog[cfg_i] + 1) % 128;
+					else profile_analog[cfg_i] = !profile_analog[cfg_i];
 					break;
 				case TOUCH_MENU:
 					if (cfg_i < 8)//Front Points xy
-						touch_options[cfg_i] = (touch_options[cfg_i] + 1) 
+						profile_touch[cfg_i] = (profile_touch[cfg_i] + 1) 
 							% ((cfg_i % 2) ? TOUCH_SIZE[1] : TOUCH_SIZE[0]);
 					else if (cfg_i < 16)//Rear Points xy
-						touch_options[cfg_i] = (touch_options[cfg_i] + 1)
+						profile_touch[cfg_i] = (profile_touch[cfg_i] + 1)
 							% ((cfg_i % 2) ? TOUCH_SIZE[3] : TOUCH_SIZE[2]);
 					else 			//yes/no otion
-						touch_options[cfg_i] = !touch_options[cfg_i];
+						profile_touch[cfg_i] = !profile_touch[cfg_i];
 					break;
 				case GYRO_MENU:
 					if (cfg_i < 6) //Sens & deadzone
-						gyro_options[cfg_i] = (gyro_options[cfg_i] + 1) % 200;
+						profile_gyro[cfg_i] = (profile_gyro[cfg_i] + 1) % 200;
 					else if (cfg_i == 6) // Deadband
-						gyro_options[cfg_i] = min(2, gyro_options[cfg_i] + 1);
+						profile_gyro[cfg_i] = min(2, profile_gyro[cfg_i] + 1);
 					else if (cfg_i == 7) // Wheel mode
-						gyro_options[cfg_i] = (gyro_options[cfg_i] + 1) % 2;
+						profile_gyro[cfg_i] = (profile_gyro[cfg_i] + 1) % 2;
 					else if (cfg_i < 10) // Reset wheel buttons
-						gyro_options[cfg_i] 
-							= min(PHYS_BUTTONS_NUM - 1, gyro_options[cfg_i] + 1);
+						profile_gyro[cfg_i] 
+							= min(PHYS_BUTTONS_NUM - 1, profile_gyro[cfg_i] + 1);
 					break;
 				case CNTRL_MENU:
 					if (cfg_i == 1)
-						controller_options[cfg_i] = min(5, controller_options[cfg_i] + 1);
+						profile_controller[cfg_i] = min(5, profile_controller[cfg_i] + 1);
 					else
-						controller_options[cfg_i] = !controller_options[cfg_i];
+						profile_controller[cfg_i] = !profile_controller[cfg_i];
 					break;
 				case SETTINGS_MENU:
 					if (cfg_i < 2)
-						settings_options[cfg_i] 
-							= min(PHYS_BUTTONS_NUM - 1, settings_options[cfg_i] + 1);
+						profile_settings[cfg_i] 
+							= min(PHYS_BUTTONS_NUM - 1, profile_settings[cfg_i] + 1);
 					else if (cfg_i == 2)
-						settings_options[cfg_i] = !settings_options[cfg_i];
+						profile_settings[cfg_i] = !profile_settings[cfg_i];
 					else if (cfg_i == 3)
-						settings_options[cfg_i] 
-							= min(60, settings_options[cfg_i] + 1);
+						profile_settings[cfg_i] 
+							= min(60, profile_settings[cfg_i] + 1);
 					break;
 				}
 				break;
 			case SCE_CTRL_LEFT:
 				switch (menu_i){
 				case REMAP_MENU:
-					if (btn_mask[cfg_i]) 	
-						btn_mask[cfg_i]--;
+					if (profile_remap[cfg_i]) 	
+						profile_remap[cfg_i]--;
 					else
-						btn_mask[cfg_i] = TARGET_REMAPS - 1;
+						profile_remap[cfg_i] = TARGET_REMAPS - 1;
 					break;
 				case ANALOG_MENU:
-					if (analogs_options[cfg_i]) 	
-						analogs_options[cfg_i]--;
+					if (profile_analog[cfg_i]) 	
+						profile_analog[cfg_i]--;
 					else
-						analogs_options[cfg_i] = cfg_i < 4 ? 127 : 1;
+						profile_analog[cfg_i] = cfg_i < 4 ? 127 : 1;
 					break;
 				case TOUCH_MENU:
-					if (touch_options[cfg_i]) 	
-						touch_options[cfg_i]--;
+					if (profile_touch[cfg_i]) 	
+						profile_touch[cfg_i]--;
 					else {
 						if (cfg_i < 8)//front points xy
-							touch_options[cfg_i] = ((cfg_i % 2) ? TOUCH_SIZE[1] - 1 : TOUCH_SIZE[0] - 1);
+							profile_touch[cfg_i] = ((cfg_i % 2) ? TOUCH_SIZE[1] - 1 : TOUCH_SIZE[0] - 1);
 						if (cfg_i < 16)//rear points xy
-							touch_options[cfg_i] = ((cfg_i % 2) ? TOUCH_SIZE[3] - 1 : TOUCH_SIZE[2] - 1);
+							profile_touch[cfg_i] = ((cfg_i % 2) ? TOUCH_SIZE[3] - 1 : TOUCH_SIZE[2] - 1);
 						else //yes/no options
-							touch_options[cfg_i] = !touch_options[cfg_i];
+							profile_touch[cfg_i] = !profile_touch[cfg_i];
 					}
 					break;
 				case GYRO_MENU:
-					if (gyro_options[cfg_i]) 	
-						gyro_options[cfg_i]--;
+					if (profile_gyro[cfg_i]) 	
+						profile_gyro[cfg_i]--;
 					else {
 						if (cfg_i < 6) //Sens & deadzone
-							gyro_options[cfg_i] = 199;
+							profile_gyro[cfg_i] = 199;
 						else if (cfg_i == 6) // deadband
-							gyro_options[cfg_i] = max(0, gyro_options[cfg_i] - 1);
+							profile_gyro[cfg_i] = max(0, profile_gyro[cfg_i] - 1);
 						else if (cfg_i == 7) //Wheel mode
-							gyro_options[cfg_i] = 1;
+							profile_gyro[cfg_i] = 1;
 						else if (cfg_i < 10)  // Reset wheel btns
-							gyro_options[cfg_i] = max(0, gyro_options[cfg_i] - 1);
+							profile_gyro[cfg_i] = max(0, profile_gyro[cfg_i] - 1);
 					}
 					break;
 				case CNTRL_MENU:
 					if (cfg_i == 1)
-						controller_options[cfg_i] = max(0, controller_options[cfg_i] - 1);
+						profile_controller[cfg_i] = max(0, profile_controller[cfg_i] - 1);
 					else
-						controller_options[cfg_i] = !controller_options[cfg_i];
+						profile_controller[cfg_i] = !profile_controller[cfg_i];
 					break;
 				case SETTINGS_MENU:
 					if (cfg_i < 2)
-						settings_options[cfg_i] 
-							= max(0, settings_options[cfg_i] - 1);
+						profile_settings[cfg_i] 
+							= max(0, profile_settings[cfg_i] - 1);
 					else if (cfg_i == 2)
-						settings_options[cfg_i] = !settings_options[cfg_i];
+						profile_settings[cfg_i] = !profile_settings[cfg_i];
 					else if (cfg_i == 3)
-						settings_options[cfg_i] 
-							= max(0, settings_options[cfg_i] - 1);
+						profile_settings[cfg_i] 
+							= max(0, profile_settings[cfg_i] - 1);
 					break;
 				}
 				break;
 			case SCE_CTRL_LTRIGGER:
 			case SCE_CTRL_L1:
 				if (menu_i == REMAP_MENU){ //Sections navigation
-					if (btn_mask[cfg_i] < 16)
-						btn_mask[cfg_i] = 38;	//Rear touch custom
-					else if (btn_mask[cfg_i] < 17)
-						btn_mask[cfg_i] = 0;	//HW Buttons
-					else if (btn_mask[cfg_i] < 18)
-						btn_mask[cfg_i] = 16;	//Original
-					else if (btn_mask[cfg_i] < 22)
-						btn_mask[cfg_i] = 17;	//Disabled
-					else if (btn_mask[cfg_i] < 26)
-						btn_mask[cfg_i] = 18;	//Left stick
-					else if (btn_mask[cfg_i] < 30)
-						btn_mask[cfg_i] = 22;	//Right stick
-					else if (btn_mask[cfg_i] < 34)
-						btn_mask[cfg_i] = 26;	//Front touch default
-					else if (btn_mask[cfg_i] < 38)
-						btn_mask[cfg_i] = 30;	//Front touch custom
+					if (profile_remap[cfg_i] < 16)
+						profile_remap[cfg_i] = 38;	//Rear touch custom
+					else if (profile_remap[cfg_i] < 17)
+						profile_remap[cfg_i] = 0;	//HW Buttons
+					else if (profile_remap[cfg_i] < 18)
+						profile_remap[cfg_i] = 16;	//Original
+					else if (profile_remap[cfg_i] < 22)
+						profile_remap[cfg_i] = 17;	//Disabled
+					else if (profile_remap[cfg_i] < 26)
+						profile_remap[cfg_i] = 18;	//Left stick
+					else if (profile_remap[cfg_i] < 30)
+						profile_remap[cfg_i] = 22;	//Right stick
+					else if (profile_remap[cfg_i] < 34)
+						profile_remap[cfg_i] = 26;	//Front touch default
+					else if (profile_remap[cfg_i] < 38)
+						profile_remap[cfg_i] = 30;	//Front touch custom
 					else 
-						btn_mask[cfg_i] = 34;	//Rear touch default
+						profile_remap[cfg_i] = 34;	//Rear touch default
 				}
 				break;
 			case SCE_CTRL_RTRIGGER:
 			case SCE_CTRL_R1:
 				if (menu_i == REMAP_MENU){ //Sections navigation
-					if (btn_mask[cfg_i] < 16)
-						btn_mask[cfg_i] = 16;	//Original
-					else if (btn_mask[cfg_i] < 17)
-						btn_mask[cfg_i] = 17;	//Disabled
-					else if (btn_mask[cfg_i] < 18)
-						btn_mask[cfg_i] = 18;	//Left stick
-					else if (btn_mask[cfg_i] < 22)
-						btn_mask[cfg_i] = 22;	//Right stick
-					else if (btn_mask[cfg_i] < 26)
-						btn_mask[cfg_i] = 26;	//Front touch default
-					else if (btn_mask[cfg_i] < 30)
-						btn_mask[cfg_i] = 30;	//Front touch custom
-					else if (btn_mask[cfg_i] < 34)
-						btn_mask[cfg_i] = 34;	//Rear touch default
-					else if (btn_mask[cfg_i] < 38)
-						btn_mask[cfg_i] = 38;	//Rear touch custom
+					if (profile_remap[cfg_i] < 16)
+						profile_remap[cfg_i] = 16;	//Original
+					else if (profile_remap[cfg_i] < 17)
+						profile_remap[cfg_i] = 17;	//Disabled
+					else if (profile_remap[cfg_i] < 18)
+						profile_remap[cfg_i] = 18;	//Left stick
+					else if (profile_remap[cfg_i] < 22)
+						profile_remap[cfg_i] = 22;	//Right stick
+					else if (profile_remap[cfg_i] < 26)
+						profile_remap[cfg_i] = 26;	//Front touch default
+					else if (profile_remap[cfg_i] < 30)
+						profile_remap[cfg_i] = 30;	//Front touch custom
+					else if (profile_remap[cfg_i] < 34)
+						profile_remap[cfg_i] = 34;	//Rear touch default
+					else if (profile_remap[cfg_i] < 38)
+						profile_remap[cfg_i] = 38;	//Rear touch custom
 					else 
-						btn_mask[cfg_i] = 0;	//HW Buttons
+						profile_remap[cfg_i] = 0;	//HW Buttons
 				}
 				break;
 			case SCE_CTRL_SQUARE:
 				switch (menu_i){
 				case REMAP_MENU: 
-					btn_mask[cfg_i] = PHYS_BUTTONS_NUM;
+					profile_remap[cfg_i] = PHYS_BUTTONS_NUM;
 					break;
 				case ANALOG_MENU:
-					analogs_options[cfg_i] = (cfg_i < 4) ? ANALOGS_DEADZONE_DEF : ANALOGS_FORCE_DIGITAL_DEF;
+					profile_analog[cfg_i] = PROFILE_ANALOG_DEF[cfg_i];
 					break;
 				case TOUCH_MENU: 
-					if (cfg_i < 16)
-						touch_options[cfg_i] = TOUCH_POINTS_DEF[cfg_i];
-					else
-						touch_options[cfg_i] = TOUCH_MODE_DEF;
+					profile_touch[cfg_i] = PROFILE_TOUCH_DEF[i];
 					break;
 				case GYRO_MENU:
-					gyro_options[cfg_i] = GYRO_DEF[cfg_i];
+					profile_gyro[cfg_i] = PROFILE_GYRO_DEF[cfg_i];
 					break;
 				case CNTRL_MENU:
-					controller_options[cfg_i] = CNTRL_DEF[cfg_i];
+					profile_controller[cfg_i] = PROFILE_CONTROLLER_DEF[cfg_i];
 					break;
 				case SETTINGS_MENU:
 					if (cfg_i <= 2)
-						settings_options[cfg_i] = SETTINGS_DEF[cfg_i];
+						profile_settings[cfg_i] = PROFILE_SETTINGS_DEF[cfg_i];
 					break;
 				}
 				break;
 			case SCE_CTRL_START:
 				switch (menu_i){
 				case REMAP_MENU: 
-					resetRemapsOptions();
+					profile_resetRemap();
 					break;
 				case ANALOG_MENU: 
-					resetAnalogsOptions();
+					profile_resetAnalog();
 					break;
 				case TOUCH_MENU: 
-					resetTouchOptions();
+					profile_resetTouch();
 					break;
 				case GYRO_MENU: 
-					resetGyroOptions();
+					profile_resetGyro();
 					break;
 				case CNTRL_MENU: 
-					resetCntrlOptions();
+					profile_resetController();
 					break;
 				case SETTINGS_MENU: 
-					resetSettingsOptions();
+					profile_resetSettings();
 					break;
 				}
 				break;
@@ -833,20 +829,20 @@ void ui_inputHandler(SceCtrlData *ctrl) {
 				if (menu_i == MAIN_MENU){
 					if (cfg_i == menu_entries-1) {
 						show_menu = 0;
-						saveGameConfig();
+						profile_saveLocal();
 					} else {					
 						menu_i = cfg_i + 1;
 						cfg_i = 0;
 					}
 				} else if (menu_i == SETTINGS_MENU){
-					if (cfg_i == SETTINGS_NUM) {
-						saveGameConfig();	
-					} else if (cfg_i == SETTINGS_NUM + 1) {
-						loadGameConfig();			
-					} else if (cfg_i == SETTINGS_NUM + 2) {
-						saveGlobalConfig();			
-					} else if (cfg_i == SETTINGS_NUM + 3) {
-						loadGlobalConfig();			
+					if (cfg_i == PROFILE_SETTINGS_NUM) {
+						profile_saveLocal();	
+					} else if (cfg_i == PROFILE_SETTINGS_NUM + 1) {
+						profile_loadLocal();			
+					} else if (cfg_i == PROFILE_SETTINGS_NUM + 2) {
+						profile_saveGlobal();			
+					} else if (cfg_i == PROFILE_SETTINGS_NUM + 3) {
+						profile_loadGlobal();			
 					}
 				} else if (menu_i == GYRO_MENU) {
 					if (cfg_i == 10)
@@ -856,9 +852,9 @@ void ui_inputHandler(SceCtrlData *ctrl) {
 			case SCE_CTRL_CIRCLE:
 				if (menu_i == MAIN_MENU) {
 					show_menu = 0;
-					saveSettings();
-					if (settings_options[0])
-						saveGameConfig();
+					profile_saveSettings();
+					if (profile_settings[0])
+						profile_saveLocal();
 					delayedStart();
 				} else {
 					menu_i = MAIN_MENU;

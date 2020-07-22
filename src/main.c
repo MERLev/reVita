@@ -43,8 +43,8 @@ void delayedStart(){
 	// Enabling gyro sampling
 	sceMotionReset();
 	sceMotionStartSampling();
-	if (gyro_options[6] == 1) sceMotionSetDeadband(1);
-	else if (gyro_options[6] == 2) sceMotionSetDeadband(0);
+	if (profile_gyro[6] == 1) sceMotionSetDeadband(1);
+	else if (profile_gyro[6] == 2) sceMotionSetDeadband(0);
 	//ToDo decide on sceMotionSetTiltCorrection usage
 	//if (gyro_options[7] == 1) sceMotionSetTiltCorrection(0); 
 	
@@ -73,14 +73,14 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 	
 	//Activate delayed start
 	if (!delayedStartDone 
-		&& startTick + settings_options[3] * 1000000 < sceKernelGetProcessTimeWide()){
+		&& startTick + profile_settings[3] * 1000000 < sceKernelGetProcessTimeWide()){
 		delayedStart();
 	}
 	
 	//Reset wheel gyro buttons pressed
-	if (gyro_options[7] == 1 &&
-			(ctrl[nBufs - 1].buttons & btns[gyro_options[8]]) 
-				&& (ctrl[nBufs - 1].buttons & btns[gyro_options[9]])) {
+	if (profile_gyro[7] == 1 &&
+			(ctrl[nBufs - 1].buttons & btns[profile_gyro[8]]) 
+				&& (ctrl[nBufs - 1].buttons & btns[profile_gyro[9]])) {
 		sceMotionReset();		
 	}
 	
@@ -88,14 +88,14 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 	if (!show_menu 
 			&& (ctrl[nBufs - 1].buttons & SCE_CTRL_START) 
 			&& (ctrl[nBufs - 1].buttons & SCE_CTRL_TRIANGLE)) {
-		loadGlobalConfig();
-		saveGameConfig();
+		profile_loadGlobal();
+		profile_saveLocal();
 	}
 	
 	//Checking for menu triggering
 	if (used_funcs[16] && !show_menu 
-			&& (ctrl[nBufs - 1].buttons & btns[settings_options[0]]) 
-			&& (ctrl[nBufs - 1].buttons & btns[settings_options[1]])) {
+			&& (ctrl[nBufs - 1].buttons & btns[profile_settings[0]]) 
+			&& (ctrl[nBufs - 1].buttons & btns[profile_settings[1]])) {
 		remap_resetBuffers(hookId);
 		ui_show();
 	}
@@ -311,9 +311,9 @@ int module_start(SceSize argc, const void *args) {
 	startTick = sceKernelGetProcessTimeWide();
 	
 	// Setup stuffs
-	loadSettings();
-	loadGlobalConfig();
-	loadGameConfig();
+	profile_loadSettings();
+	profile_loadGlobal();
+	profile_loadLocal();
 	model = sceKernelGetModel();
 	
 	// Initializing used funcs table
