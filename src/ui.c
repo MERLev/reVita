@@ -40,7 +40,7 @@ enum{
 	CREDITS_MENU
 };
 
-uint8_t show_menu = 0;
+uint8_t ui_opened = 0;
 
 static uint8_t new_frame = 1;
 static int screen_h = 272;
@@ -534,7 +534,7 @@ void drawConfigMenu() {
 }
 
 uint8_t isBtnActive(uint8_t btnNum){
-	return ((curr_buttons & btns[btnNum]) && !(old_buttons & btns[btnNum])) 
+	return ((curr_buttons & HW_BUTTONS[btnNum]) && !(old_buttons & HW_BUTTONS[btnNum])) 
 		|| (pressedTicks[btnNum] != 0 && tick - pressedTicks[btnNum] > LONG_PRESS_TIME);
 }
 
@@ -570,8 +570,8 @@ void touchPicker(int padType){
 
 // Input Handler for the Config Menu
 void ui_inputHandler(SceCtrlData *ctrl) {
-	if ((ctrl->buttons & btns[profile_settings[0]]) 
-			&& (ctrl->buttons & btns[profile_settings[1]]))
+	if ((ctrl->buttons & HW_BUTTONS[profile_settings[0]]) 
+			&& (ctrl->buttons & HW_BUTTONS[profile_settings[1]]))
 		return; //Menu trigger butoons should not trigger any menu actions on menu open
 	if (new_frame) {
 		new_frame = 0;
@@ -613,15 +613,15 @@ void ui_inputHandler(SceCtrlData *ctrl) {
 		tick = ctrl->timeStamp;
 		curr_buttons = ctrl->buttons;
 		for (int i = 0; i < PHYS_BUTTONS_NUM; i++){
-			if ((curr_buttons & btns[i]) && !(old_buttons & btns[i]))
+			if ((curr_buttons & HW_BUTTONS[i]) && !(old_buttons & HW_BUTTONS[i]))
 				pressedTicks[i] = tick;
-			else if (!(curr_buttons & btns[i]) && (old_buttons & btns[i]))
+			else if (!(curr_buttons & HW_BUTTONS[i]) && (old_buttons & HW_BUTTONS[i]))
 				pressedTicks[i] = 0;
 			
 			if (!isBtnActive(i))
 				continue;
 			
-			switch (btns[i]) {
+			switch (HW_BUTTONS[i]) {
 			case SCE_CTRL_DOWN:
 				cfg_i = (cfg_i + 1) % menu_entries;
 				break;
@@ -828,7 +828,7 @@ void ui_inputHandler(SceCtrlData *ctrl) {
 			case SCE_CTRL_CROSS:
 				if (menu_i == MAIN_MENU){
 					if (cfg_i == menu_entries-1) {
-						show_menu = 0;
+						ui_opened = 0;
 						profile_saveLocal();
 					} else {					
 						menu_i = cfg_i + 1;
@@ -851,7 +851,7 @@ void ui_inputHandler(SceCtrlData *ctrl) {
 				break;
 			case SCE_CTRL_CIRCLE:
 				if (menu_i == MAIN_MENU) {
-					show_menu = 0;
+					ui_opened = 0;
 					profile_saveSettings();
 					if (profile_settings[0])
 						profile_saveLocal();
@@ -869,7 +869,7 @@ void ui_inputHandler(SceCtrlData *ctrl) {
 }
 
 void ui_draw(const SceDisplayFrameBuf *pParam){
-	if (show_menu) {
+	if (ui_opened) {
 		new_frame = 1;
 		ticker++;
 		screen_h = pParam->height;
@@ -879,7 +879,7 @@ void ui_draw(const SceDisplayFrameBuf *pParam){
 	}
 }
 
-void ui_show(const SceDisplayFrameBuf *pParam){
-	show_menu = 1;
+void ui_open(const SceDisplayFrameBuf *pParam){
+	ui_opened = 1;
 	cfg_i = 0;
 }

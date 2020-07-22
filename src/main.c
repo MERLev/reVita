@@ -18,12 +18,6 @@ uint16_t TOUCH_SIZE[4] = {
 	1920, 1088,	//Front
 	1919, 890	//Rear
 };
-const uint32_t btns[PHYS_BUTTONS_NUM] = {
-	SCE_CTRL_CROSS, SCE_CTRL_CIRCLE, SCE_CTRL_TRIANGLE, SCE_CTRL_SQUARE,
-	SCE_CTRL_START, SCE_CTRL_SELECT, SCE_CTRL_LTRIGGER, SCE_CTRL_RTRIGGER,
-	SCE_CTRL_UP, SCE_CTRL_RIGHT, SCE_CTRL_LEFT, SCE_CTRL_DOWN, SCE_CTRL_L1,
-	SCE_CTRL_R1, SCE_CTRL_L3, SCE_CTRL_R3
-};
 int model;
 uint8_t internal_touch_call = 0;
 uint8_t internal_ext_call = 0;
@@ -79,13 +73,13 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 	
 	//Reset wheel gyro buttons pressed
 	if (profile_gyro[7] == 1 &&
-			(ctrl[nBufs - 1].buttons & btns[profile_gyro[8]]) 
-				&& (ctrl[nBufs - 1].buttons & btns[profile_gyro[9]])) {
+			(ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_gyro[8]]) 
+				&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_gyro[9]])) {
 		sceMotionReset();		
 	}
 	
 	//Combo to save profile used
-	if (!show_menu 
+	if (!ui_opened 
 			&& (ctrl[nBufs - 1].buttons & SCE_CTRL_START) 
 			&& (ctrl[nBufs - 1].buttons & SCE_CTRL_TRIANGLE)) {
 		profile_loadGlobal();
@@ -93,15 +87,15 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 	}
 	
 	//Checking for menu triggering
-	if (used_funcs[16] && !show_menu 
-			&& (ctrl[nBufs - 1].buttons & btns[profile_settings[0]]) 
-			&& (ctrl[nBufs - 1].buttons & btns[profile_settings[1]])) {
+	if (used_funcs[16] && !ui_opened 
+			&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_settings[0]]) 
+			&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_settings[1]])) {
 		remap_resetCtrlBuffers(hookId);
-		ui_show();
+		ui_open();
 	}
 	
 	//In-menu inputs handling
-	if (show_menu){
+	if (ui_opened){
 		ui_inputHandler(&ctrl[nBufs - 1]);
 		
 		//Nullify all inputs
@@ -122,7 +116,7 @@ int onInput(SceCtrlData *ctrl, int nBufs, int hookId){
 		return nBufs;	
 	
 	//Patch for external controllers support
-	if (!show_menu)
+	if (!ui_opened)
 		remap_patchToExt(&ctrl[nBufs - 1]);
 	
 	return onInputExt(ctrl, nBufs, hookId);
@@ -153,13 +147,13 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 		return nBufs;	
 	
 	//Disable in menu
-	if (!internal_touch_call && show_menu) {
+	if (!internal_touch_call && ui_opened) {
 		pData[0] = pData[nBufs - 1];
 		pData[0].reportNum = 0;
 		return 1;
 	}
 	
-	if (show_menu){	
+	if (ui_opened){	
 		//Clear buffers when in menu
 		remap_resetTouchBuffers(hookId);
 	} else {

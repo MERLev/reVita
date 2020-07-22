@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "main.h"
+#include "remap.h"
 #include "profile.h"
 #include "common.h"
 
@@ -45,14 +46,14 @@ void storeTouchPoint(EmulatedTouch *et, uint16_t x, uint16_t y){
 //Anything -> Btn, Analog, Touch
 void applyRemapRule(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos) {
 	if (profile_remap[btn_idx] < PHYS_BUTTONS_NUM) { // -> Btn
-		if (!(*map & btns[profile_remap[btn_idx]])) {
-			*map += btns[profile_remap[btn_idx]];
+		if (!(*map & HW_BUTTONS[profile_remap[btn_idx]])) {
+			*map += HW_BUTTONS[profile_remap[btn_idx]];
 		}
 
 	} else if (profile_remap[btn_idx] == PHYS_BUTTONS_NUM) { // -> Original
 		if (btn_idx < PHYS_BUTTONS_NUM) {
-			if (!(*map & btns[btn_idx])) {
-				*map += btns[btn_idx];
+			if (!(*map & HW_BUTTONS[btn_idx])) {
+				*map += HW_BUTTONS[btn_idx];
 			}
 		}										//  -> Analog
 	} else if (PHYS_BUTTONS_NUM + 1 < profile_remap[btn_idx] && profile_remap[btn_idx] < PHYS_BUTTONS_NUM + 10) { 
@@ -125,7 +126,7 @@ void applyRemap(SceCtrlData *ctrl) {
 	uint32_t new_map = 0;
 	uint32_t stickpos[8] = { };
 	for (i=0;i<PHYS_BUTTONS_NUM;i++) {
-		if (ctrl->buttons & btns[i]) applyRemapRule(i, &new_map, stickpos);
+		if (ctrl->buttons & HW_BUTTONS[i]) applyRemapRule(i, &new_map, stickpos);
 	}
 	
 	// Applying remap rules for front virtual buttons
@@ -368,12 +369,12 @@ int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId) {
 void swapTriggersBumpers(SceCtrlData *ctrl){
 	uint32_t b = 0;
 	for (int j = 0; j < PHYS_BUTTONS_NUM; j++)
-		if (ctrl->buttons & btns[j]){
-			if (btns[j] == SCE_CTRL_LTRIGGER) b+= SCE_CTRL_L1;
-			else if (btns[j] == SCE_CTRL_L1) b+= SCE_CTRL_LTRIGGER;
-			else if (btns[j] == SCE_CTRL_RTRIGGER) b+= SCE_CTRL_R1;
-			else if (btns[j] == SCE_CTRL_R1) b+= SCE_CTRL_RTRIGGER;
-			else b += btns[j];
+		if (ctrl->buttons & HW_BUTTONS[j]){
+			if (HW_BUTTONS[j] == SCE_CTRL_LTRIGGER) b+= SCE_CTRL_L1;
+			else if (HW_BUTTONS[j] == SCE_CTRL_L1) b+= SCE_CTRL_LTRIGGER;
+			else if (HW_BUTTONS[j] == SCE_CTRL_RTRIGGER) b+= SCE_CTRL_R1;
+			else if (HW_BUTTONS[j] == SCE_CTRL_R1) b+= SCE_CTRL_RTRIGGER;
+			else b += HW_BUTTONS[j];
 	}
 	ctrl->buttons = b;
 }
@@ -436,11 +437,11 @@ int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t ho
 	return nBufs;
 }
 
-void remap_resetCtrlBuffers(int hookId){
+void remap_resetCtrlBuffers(uint8_t hookId){
 	remappedBuffersIdxs[hookId] = 0;
 	remappedBuffersSizes[hookId] = 0;
 }
-void remap_resetTouchBuffers(int hookId){
+void remap_resetTouchBuffers(uint8_t hookId){
 	remappedBuffersFrontIdxs[hookId] = 0;
 	remappedBuffersRearIdxs[hookId] = 0;
 	remappedBuffersFrontSizes[hookId] = 0;

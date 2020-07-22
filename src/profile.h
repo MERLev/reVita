@@ -1,6 +1,8 @@
 #ifndef _PROFILE_H_
 #define _PROFILE_H_
 
+#define TARGET_REMAPS               42 // Supported target remaps num
+
 #define PROFILE_REMAP_NUM           38 // Supported buttons num
 #define PROFILE_ANALOG_NUM          8
 #define PROFILE_GYRO_NUM			11
