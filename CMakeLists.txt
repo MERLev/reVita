@@ -11,11 +11,8 @@ endif()
 project(remaPSV2)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -std=gnu99 -DTAIPOOL_AS_STDLIB")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -std=gnu99")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
-
-include_directories(
-)
 
 link_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -23,7 +20,7 @@ link_directories(
 
 add_definitions(-DRELEASE)
 
-add_executable(remaPSV2
+add_executable(${PROJECT_NAME}
   src/main.c
   src/remap.c
   src/renderer.c
@@ -32,26 +29,43 @@ add_executable(remaPSV2
   src/common.c
 )
 
-target_link_libraries(remaPSV2
-  taipool
-  taihen_stub
+target_link_libraries(${PROJECT_NAME}
+ # taipool
+ # taihen_stub
   k
   gcc
-  SceLibKernel_stub_weak
-  SceKernelThreadMgr_stub_weak
-  SceCtrl_stub_weak
-  SceIofilemgr_stub_weak
-  SceAppMgr_stub_weak
-  SceTouch_stub_weak
-  SceDisplay_stub_weak
-  SceSysmem_stub_weak
+  taihenForKernel_stub
+  taihenModuleUtils_stub
+  SceThreadmgrForDriver_stub
+  SceSysmemForDriver_stub
+  SceSysrootForKernel_stub
+  SceAppMgrForDriver_stub
+  SceCtrlForDriver_stub
+  SceIofilemgrForDriver_stub
+  
+  SceSblAIMgrForDriver_stub
+  SceSysclibForDriver_stub
+  SceProcessmgrForDriver_stub
+  ScePowerForDriver_stub
+
+#  SceLibKernel_stub_weak
+#  SceKernelThreadMgr_stub_weak
+#  SceCtrl_stub_weak
+#  SceIofilemgr_stub_weak
+#  SceAppMgr_stub_weak
+#  SceTouch_stub_weak
+#  SceDisplay_stub_weak
+#  SceSysmem_stub_weak
   SceMotion_stub 
+#  SceSysmem_stub 
+  SceTouch_stub
 )
 
-set_target_properties(remaPSV2
+set_target_properties(${PROJECT_NAME}
   PROPERTIES LINK_FLAGS "-nostdlib"
 )
 
-vita_create_self(remaPSV2.suprx remaPSV2
+vita_create_self(remaPSV2.skprx ${PROJECT_NAME}
+  UNSAFE
   CONFIG ${CMAKE_SOURCE_DIR}/remaPSV2.yml
 )

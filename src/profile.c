@@ -1,6 +1,7 @@
-#include <vitasdk.h>
+#include <vitasdkkern.h>
 #include <taihen.h>
 #include <libk/stdio.h>
+#include <psp2kern/io/stat.h> 
 #include "main.h"
 #include "profile.h"
 
@@ -78,95 +79,95 @@ void profile_resetSettings(){
 
 void profile_saveSettings(){
 	// Just in case the folder doesn't exist
-	sceIoMkdir("ux0:/data/remaPSV", 0777); 
+	ksceIoMkdir("ux0:/data/remaPSV", 0777); 
 	
 	// Opening settings config file and saving the config
-	SceUID fd = sceIoOpen("ux0:/data/remaPSV/settings.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	sceIoWrite(fd, profile_settings, PROFILE_SETTINGS_NUM);
-	sceIoClose(fd);
+	SceUID fd = ksceIoOpen("ux0:/data/remaPSV/settings.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	ksceIoWrite(fd, profile_settings, PROFILE_SETTINGS_NUM);
+	ksceIoClose(fd);
 }
 
 void profile_loadSettings(){
 	profile_resetSettings();
 	
 	// Just in case the folder doesn't exist
-	sceIoMkdir("ux0:/data/remaPSV", 0777); 
+	ksceIoMkdir("ux0:/data/remaPSV", 0777); 
 	
 	// Loading config file for the selected app if exists
-	SceUID fd = sceIoOpen("ux0:/data/remaPSV/settings.bin", SCE_O_RDONLY, 0777);
+	SceUID fd = ksceIoOpen("ux0:/data/remaPSV/settings.bin", SCE_O_RDONLY, 0777);
 	if (fd >= 0){
-		sceIoRead(fd, profile_settings, PROFILE_SETTINGS_NUM);
-		sceIoClose(fd);
+		ksceIoRead(fd, profile_settings, PROFILE_SETTINGS_NUM);
+		ksceIoClose(fd);
 	}
 }
 
 void profile_saveGlobal() {
 	SceUID fd;
 	// Just in case the folder doesn't exist
-	sceIoMkdir("ux0:/data/remaPSV", 0777); 
+	ksceIoMkdir("ux0:/data/remaPSV", 0777); 
 	
 	// Opening remap config file and saving it
-	fd = sceIoOpen("ux0:/data/remaPSV/remap.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	sceIoWrite(fd, profile_remap, PROFILE_REMAP_NUM);
-	sceIoClose(fd);
+	fd = ksceIoOpen("ux0:/data/remaPSV/remap.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	ksceIoWrite(fd, profile_remap, PROFILE_REMAP_NUM);
+	ksceIoClose(fd);
 	
 	// Opening analog config file and saving the config
-	fd = sceIoOpen("ux0:/data/remaPSV/analogs.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	sceIoWrite(fd, profile_analog, PROFILE_ANALOG_NUM);
-	sceIoClose(fd);
+	fd = ksceIoOpen("ux0:/data/remaPSV/analogs.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	ksceIoWrite(fd, profile_analog, PROFILE_ANALOG_NUM);
+	ksceIoClose(fd);
 	
 	// Opening touch config file and saving the config
-	fd = sceIoOpen("ux0:/data/remaPSV/touch.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	sceIoWrite(fd, profile_touch, PROFILE_TOUCH_NUM*2);
-	sceIoClose(fd);
+	fd = ksceIoOpen("ux0:/data/remaPSV/touch.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	ksceIoWrite(fd, profile_touch, PROFILE_TOUCH_NUM*2);
+	ksceIoClose(fd);
 	
 	// Opening gyro config file and saving the config
-	fd = sceIoOpen("ux0:/data/remaPSV/gyro.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	sceIoWrite(fd, profile_gyro, PROFILE_GYRO_NUM);
-	sceIoClose(fd);
+	fd = ksceIoOpen("ux0:/data/remaPSV/gyro.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	ksceIoWrite(fd, profile_gyro, PROFILE_GYRO_NUM);
+	ksceIoClose(fd);
 	
 	// Opening gyro config file and saving the config
-	fd = sceIoOpen("ux0:/data/remaPSV/controllers.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	sceIoWrite(fd, profile_controller, PROFILE_CONTROLLER_NUM);
-	sceIoClose(fd);
+	fd = ksceIoOpen("ux0:/data/remaPSV/controllers.bin", SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	ksceIoWrite(fd, profile_controller, PROFILE_CONTROLLER_NUM);
+	ksceIoClose(fd);
 }
 
 void profile_saveLocal() {
 	SceUID fd;
 	// Just in case the folder doesn't exist
-	sceIoMkdir("ux0:/data/remaPSV", 0777); 
+	ksceIoMkdir("ux0:/data/remaPSV", 0777); 
 	sprintf(fname, "ux0:/data/remaPSV/%s", titleid);
-	sceIoMkdir(fname, 0777);
+	ksceIoMkdir(fname, 0777);
 	
 	// Opening remap config file and saving it
 	sprintf(fname, "ux0:/data/remaPSV/%s/remap.bin", titleid);
-	fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	sceIoWrite(fd, profile_remap, PROFILE_REMAP_NUM);
-	sceIoClose(fd);
+	fd = ksceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	ksceIoWrite(fd, profile_remap, PROFILE_REMAP_NUM);
+	ksceIoClose(fd);
 	
 	// Opening analog config file and saving the config
 	sprintf(fname, "ux0:/data/remaPSV/%s/analogs.bin", titleid);
-	fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	sceIoWrite(fd, profile_analog, PROFILE_ANALOG_NUM);
-	sceIoClose(fd);
+	fd = ksceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	ksceIoWrite(fd, profile_analog, PROFILE_ANALOG_NUM);
+	ksceIoClose(fd);
 	
 	// Opening touch config file and saving the config
 	sprintf(fname, "ux0:/data/remaPSV/%s/touch.bin", titleid);
-	fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	sceIoWrite(fd, profile_touch, PROFILE_TOUCH_NUM*2);
-	sceIoClose(fd);
+	fd = ksceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	ksceIoWrite(fd, profile_touch, PROFILE_TOUCH_NUM*2);
+	ksceIoClose(fd);
 	
 	// Opening gyro config file and saving the config
 	sprintf(fname, "ux0:/data/remaPSV/%s/gyro.bin", titleid);
-	fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	sceIoWrite(fd, profile_gyro, PROFILE_GYRO_NUM);
-	sceIoClose(fd);
+	fd = ksceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	ksceIoWrite(fd, profile_gyro, PROFILE_GYRO_NUM);
+	ksceIoClose(fd);
 	
 	// Opening gyro config file and saving the config
 	sprintf(fname, "ux0:/data/remaPSV/%s/controllers.bin", titleid);
-	fd = sceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	sceIoWrite(fd, profile_controller, PROFILE_CONTROLLER_NUM);
-	sceIoClose(fd);
+	fd = ksceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	ksceIoWrite(fd, profile_controller, PROFILE_CONTROLLER_NUM);
+	ksceIoClose(fd);
 }
 
 void profile_loadGlobal() {
@@ -179,41 +180,41 @@ void profile_loadGlobal() {
 	SceUID fd;
 	
 	// Just in case the folder doesn't exist
-	sceIoMkdir("ux0:/data/remaPSV", 0777); 
+	ksceIoMkdir("ux0:/data/remaPSV", 0777); 
 	
 	// Loading config file for the selected app if exists
-	fd = sceIoOpen("ux0:/data/remaPSV/remap.bin", SCE_O_RDONLY, 0777);
+	fd = ksceIoOpen("ux0:/data/remaPSV/remap.bin", SCE_O_RDONLY, 0777);
 	if (fd >= 0){
-		sceIoRead(fd, profile_remap, PROFILE_REMAP_NUM);
-		sceIoClose(fd);
+		ksceIoRead(fd, profile_remap, PROFILE_REMAP_NUM);
+		ksceIoClose(fd);
 	}
 	
 	// Loading analog config file
-	fd = sceIoOpen("ux0:/data/remaPSV/analogs.bin", SCE_O_RDONLY, 0777);
+	fd = ksceIoOpen("ux0:/data/remaPSV/analogs.bin", SCE_O_RDONLY, 0777);
 	if (fd >= 0){
-		sceIoRead(fd, profile_analog, PROFILE_ANALOG_NUM);
-		sceIoClose(fd);
+		ksceIoRead(fd, profile_analog, PROFILE_ANALOG_NUM);
+		ksceIoClose(fd);
 	}
 	
 	// Loading touch config file
-	fd = sceIoOpen("ux0:/data/remaPSV/touch.bin", SCE_O_RDONLY, 0777);
+	fd = ksceIoOpen("ux0:/data/remaPSV/touch.bin", SCE_O_RDONLY, 0777);
 	if (fd >= 0){
-		sceIoRead(fd, profile_touch, PROFILE_TOUCH_NUM*2);
-		sceIoClose(fd);
+		ksceIoRead(fd, profile_touch, PROFILE_TOUCH_NUM*2);
+		ksceIoClose(fd);
 	}
 	
 	// Loading gyro config file
-	fd = sceIoOpen("ux0:/data/remaPSV/gyro.bin", SCE_O_RDONLY, 0777);
+	fd = ksceIoOpen("ux0:/data/remaPSV/gyro.bin", SCE_O_RDONLY, 0777);
 	if (fd >= 0){
-		sceIoRead(fd, profile_gyro, PROFILE_GYRO_NUM);
-		sceIoClose(fd);
+		ksceIoRead(fd, profile_gyro, PROFILE_GYRO_NUM);
+		ksceIoClose(fd);
 	}
 	
 	// Loading controllers config file
-	fd = sceIoOpen("ux0:/data/remaPSV/controllers.bin", SCE_O_RDONLY, 0777);
+	fd = ksceIoOpen("ux0:/data/remaPSV/controllers.bin", SCE_O_RDONLY, 0777);
 	if (fd >= 0){
-		sceIoRead(fd, profile_controller, PROFILE_CONTROLLER_NUM);
-		sceIoClose(fd);
+		ksceIoRead(fd, profile_controller, PROFILE_CONTROLLER_NUM);
+		ksceIoClose(fd);
 	}
 }
 
@@ -221,7 +222,7 @@ void profile_loadLocal() {
 	// Check if folder exists
 	SceIoStat stat = {0};
 	sprintf(fname, "ux0:/data/remaPSV/%s", titleid);
-    int ret = sceIoGetstat(fname, &stat);
+    int ret = ksceIoGetstat(fname, &stat);
 	if (ret < 0)
 		return;
 	
@@ -235,41 +236,41 @@ void profile_loadLocal() {
 	
 	// Loading remap config file for the selected app if exists
 	sprintf(fname, "ux0:/data/remaPSV/%s/remap.bin", titleid);
-	fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
+	fd = ksceIoOpen(fname, SCE_O_RDONLY, 0777);
 	if (fd >= 0){
-		sceIoRead(fd, profile_remap, PROFILE_REMAP_NUM);
-		sceIoClose(fd);
+		ksceIoRead(fd, profile_remap, PROFILE_REMAP_NUM);
+		ksceIoClose(fd);
 	}
 	
 	// Loading analog config file for the selected app if exists
 	sprintf(fname, "ux0:/data/remaPSV/%s/analogs.bin", titleid);
-	fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
+	fd = ksceIoOpen(fname, SCE_O_RDONLY, 0777);
 	if (fd >= 0){
-		sceIoRead(fd, profile_analog, PROFILE_ANALOG_NUM);
-		sceIoClose(fd);
+		ksceIoRead(fd, profile_analog, PROFILE_ANALOG_NUM);
+		ksceIoClose(fd);
 	}
 	
 	// Loading touch config file for the selected app if exists
 	sprintf(fname, "ux0:/data/remaPSV/%s/touch.bin", titleid);
-	fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
+	fd = ksceIoOpen(fname, SCE_O_RDONLY, 0777);
 	if (fd >= 0){
-		sceIoRead(fd, profile_touch, PROFILE_TOUCH_NUM*2);
-		sceIoClose(fd);
+		ksceIoRead(fd, profile_touch, PROFILE_TOUCH_NUM*2);
+		ksceIoClose(fd);
 	}
 	
 	// Loading gyro config file for the selected app if exists
 	sprintf(fname, "ux0:/data/remaPSV/%s/gyro.bin", titleid);
-	fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
+	fd = ksceIoOpen(fname, SCE_O_RDONLY, 0777);
 	if (fd >= 0){
-		sceIoRead(fd, profile_gyro, PROFILE_GYRO_NUM);
-		sceIoClose(fd);
+		ksceIoRead(fd, profile_gyro, PROFILE_GYRO_NUM);
+		ksceIoClose(fd);
 	}
 	
 	// Loading gyro config file for the selected app if exists
 	sprintf(fname, "ux0:/data/remaPSV/%s/controllers.bin", titleid);
-	fd = sceIoOpen(fname, SCE_O_RDONLY, 0777);
+	fd = ksceIoOpen(fname, SCE_O_RDONLY, 0777);
 	if (fd >= 0){
-		sceIoRead(fd, profile_controller, PROFILE_CONTROLLER_NUM);
-		sceIoClose(fd);
+		ksceIoRead(fd, profile_controller, PROFILE_CONTROLLER_NUM);
+		ksceIoClose(fd);
 	}
 }

@@ -1,6 +1,10 @@
-#include <vitasdk.h>
+#include <vitasdkkern.h>
 #include <psp2/motion.h> 
+#include <psp2/touch.h> 
+#include <psp2kern/ctrl.h> 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "main.h"
 #include "renderer.h"
@@ -396,7 +400,7 @@ void drawConfigMenu() {
 		break;
 	case CNTRL_MENU:;		
 		SceCtrlPortInfo pi;
-		int res = sceCtrlGetControllerPortInfo(&pi);
+		int res = ksceCtrlGetControllerPortInfo(&pi);
 		if (res != 0){//Should not ever trigger
 			setTextColor(COLOR_DISABLE);
 			drawString(L_1, y+= CHA_H, "Error getting controllers info");

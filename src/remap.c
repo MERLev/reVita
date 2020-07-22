@@ -1,5 +1,6 @@
-#include <vitasdk.h>
+#include <vitasdkkern.h>
 #include <psp2/motion.h> 
+#include <psp2/touch.h>
 #include <stdlib.h>
 
 #include "main.h"
@@ -380,18 +381,19 @@ void swapTriggersBumpers(SceCtrlData *ctrl){
 }
 
 //Used to enable R1/R3/L1/L3
-void remap_patchToExt(SceCtrlData *ctrl){
+void remap_patchToExt(SceCtrlData *ctrl){/*
 	if (!profile_controller[0])
 		return;
 	SceCtrlData pstv_fakepad;
 	internal_ext_call = 1;
+	//ToDo
 	int ret = sceCtrlPeekBufferPositiveExt2(profile_controller[1], &pstv_fakepad, 1);
 	internal_ext_call = 0;
 	if (ret > 0){
 		ctrl->buttons = pstv_fakepad.buttons;
 		if (profile_controller[2])
 			swapTriggersBumpers(ctrl);
-	}
+	}*/
 }
 
 int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
@@ -448,11 +450,34 @@ void remap_resetTouchBuffers(uint8_t hookId){
 	remappedBuffersRearSizes[hookId] = 0;
 }
 
+static SceCtrlData _remappedBuffers[HOOKS_NUM-5][BUFFERS_NUM];
+static SceTouchData _remappedBuffersFront[4][BUFFERS_NUM];
+static SceTouchData _remappedBuffersRear[4][BUFFERS_NUM];
 void remap_init(){
+	SceUID uid;
 	for (int i = 0; i < HOOKS_NUM-5; i++) //Allocating mem for stored buffers
-		remappedBuffers[i] = malloc(sizeof(SceCtrlData) * BUFFERS_NUM);
+		//remappedBuffers[i] = malloc(sizeof(SceCtrlData) * BUFFERS_NUM);
+		//uid = ksceKernelAllocMemBlock("remappedBuffers", SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, sizeof(SceCtrlData) * BUFFERS_NUM, NULL);
+		//remappedBuffers[i] = ksceKernelAllocMemBlock("remappedBuffers", SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, sizeof(SceCtrlData) * BUFFERS_NUM, NULL);
+
 	for (int i = 0; i < 4; i++){
-		remappedBuffersFront[i] = malloc(sizeof(SceTouchData) * BUFFERS_NUM);
-		remappedBuffersRear[i] = malloc(sizeof(SceTouchData) * BUFFERS_NUM);
+		//remappedBuffersFront[i] = malloc(sizeof(SceTouchData) * BUFFERS_NUM);
+		//remappedBuffersRear[i] = malloc(sizeof(SceTouchData) * BUFFERS_NUM);
+		//remappedBuffersFront[i] = ksceKernelAllocMemBlock("remappedBuffersFront", SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, sizeof(SceTouchData) * BUFFERS_NUM, NULL);
+		//remappedBuffersRear[i] = ksceKernelAllocMemBlock("remappedBuffersRear", SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, sizeof(SceTouchData) * BUFFERS_NUM, NULL);
+	}
+	/*for (int i = 0; i < HOOKS_NUM-5; i++) //Allocating mem for stored buffers
+		remappedBuffers[i] = (SceCtrlData*)&_remappedBuffers[i];
+
+	for (int i = 0; i < 4; i++){
+		remappedBuffersFront[i] = (SceTouchData*)&_remappedBuffersFront[i];
+		remappedBuffersRear[i] = (SceTouchData*)&_remappedBuffersRear[i];
+	}*/
+	for (int i = 0; i < HOOKS_NUM-5; i++) //Allocating mem for stored buffers
+		remappedBuffers[i] = &_remappedBuffers[i][0];
+
+	for (int i = 0; i < 4; i++){
+		remappedBuffersFront[i] = (SceTouchData*)&_remappedBuffersFront[i][0];
+		remappedBuffersRear[i] = (SceTouchData*)&_remappedBuffersRear[i][0];
 	}
 }
