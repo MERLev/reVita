@@ -162,117 +162,51 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 	return nBufs;
 }
 
-int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
-	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, nBufs);
-	ret = onInput(ctrl, ret, 0);
-	used_funcs[0] = 1;
-	return ret;
-}
+#define DECL_FUNC_HOOK_PATCH_CTRL(index, name) \
+    static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
+		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
+		ret = onInput(ctrl, ret, (index)); \
+		used_funcs[(index)] = 1; \
+        return ret; \
+    }
+#define DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(index, name) \
+    static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
+		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
+		ret = onInputNegative(ctrl, ret, (index)); \
+		used_funcs[(index)] = 1; \
+        return ret; \
+    }
+#define DECL_FUNC_HOOK_PATCH_CTRL_EXT(index, name) \
+    static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
+		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
+		if (internal_ext_call) return ret; \
+		ret = onInputExt(ctrl, ret, (index)); \
+		used_funcs[(index)] = 1; \
+        return ret; \
+    }
+#define DECL_FUNC_HOOK_PATCH_TOUCH(index, name) \
+    static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
+		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
+		used_funcs[(index)] = 1; \
+        return remap_touch(port, pData, ret, (index - 12)); \
+    }
 
-int sceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *ctrl, int nBufs) {
-	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, nBufs);
-	ret = onInput(ctrl, ret, 1);
-	used_funcs[1] = 1;
-	return ret;
-}
-
-int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
-	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, nBufs);
-	ret = onInput(ctrl, ret, 2);
-	used_funcs[2] = 1;
-	return ret;
-}
-
-int sceCtrlReadBufferPositive2_patched(int port, SceCtrlData *ctrl, int nBufs) {
-	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, nBufs);
-	ret = onInput(ctrl, ret, 3);
-	used_funcs[3] = 1;
-	return ret;
-}
-
-int sceCtrlPeekBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int nBufs) {
-	int ret = TAI_CONTINUE(int, refs[4], port, ctrl, nBufs);
-	if (internal_ext_call) return ret;
-	ret = onInputExt(ctrl, ret, 4);
-	used_funcs[4] = 1;
-	return ret;
-}
-
-int sceCtrlPeekBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int nBufs) {
-	int ret = TAI_CONTINUE(int, refs[5], port, ctrl, nBufs);
-	if (internal_ext_call) return ret;
-	ret = onInputExt(ctrl, ret, 5);
-	used_funcs[5] = 1;
-	return ret;
-}
-
-int sceCtrlReadBufferPositiveExt_patched(int port, SceCtrlData *ctrl, int nBufs) {
-	int ret = TAI_CONTINUE(int, refs[6], port, ctrl, nBufs);
-	if (internal_ext_call) return ret;
-	ret = onInputExt(ctrl, ret, 6);
-	used_funcs[6] = 1;
-	return ret;
-}
-
-int sceCtrlReadBufferPositiveExt2_patched(int port, SceCtrlData *ctrl, int nBufs) {
-	int ret = TAI_CONTINUE(int, refs[7], port, ctrl, nBufs);
-	if (internal_ext_call) return ret;
-	ret = onInputExt(ctrl, ret, 7);
-	used_funcs[7] = 1;
-	return ret;
-}
-
-int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
-	int ret = TAI_CONTINUE(int, refs[8], port, ctrl, nBufs);
-	ret = onInputNegative(ctrl, ret, 8);
-	used_funcs[8] = 1;
-	return ret;
-}
-
-int sceCtrlPeekBufferNegative2_patched(int port, SceCtrlData *ctrl, int nBufs) {
-	int ret = TAI_CONTINUE(int, refs[9], port, ctrl, nBufs);
-	ret = onInputNegative(ctrl, ret, 9);
-	used_funcs[9] = 1;
-	return ret;
-}
-
-int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
-	int ret = TAI_CONTINUE(int, refs[10], port, ctrl, nBufs);
-	ret = onInputNegative(ctrl, ret, 10);
-	used_funcs[10] = 1;
-	return ret;
-}
-
-int sceCtrlReadBufferNegative2_patched(int port, SceCtrlData *ctrl, int nBufs) {
-	int ret = TAI_CONTINUE(int, refs[11], port, ctrl, nBufs);
-	ret = onInputNegative(ctrl, ret, 11);
-	used_funcs[11] = 1;
-	return ret;
-}
-
-int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
-	int ret = TAI_CONTINUE(int, refs[12], port, pData, nBufs);
-	used_funcs[12] = 1;
-	return remap_touch(port, pData, ret, 0);
-}
-
-int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
-	int ret = TAI_CONTINUE(int, refs[13], port, pData, nBufs);
-	used_funcs[13] = 1;
-	return remap_touch(port, pData, ret, 1);
-}
-
-int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
-	int ret = TAI_CONTINUE(int, refs[14], port, pData, nBufs);
-	used_funcs[14] = 1;
-	return remap_touch(port, pData, ret, 2);
-}
-
-int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
-	int ret = TAI_CONTINUE(int, refs[15], port, pData, nBufs);
-	used_funcs[15] = 1;
-	return remap_touch(port, pData, ret, 3);
-}
+DECL_FUNC_HOOK_PATCH_CTRL(0, sceCtrlPeekBufferPositive)
+DECL_FUNC_HOOK_PATCH_CTRL(1, sceCtrlPeekBufferPositive2)
+DECL_FUNC_HOOK_PATCH_CTRL(2, sceCtrlReadBufferPositive)
+DECL_FUNC_HOOK_PATCH_CTRL(3, sceCtrlReadBufferPositive2)
+DECL_FUNC_HOOK_PATCH_CTRL_EXT(4, sceCtrlPeekBufferPositiveExt)
+DECL_FUNC_HOOK_PATCH_CTRL_EXT(5, sceCtrlPeekBufferPositiveExt2)
+DECL_FUNC_HOOK_PATCH_CTRL_EXT(6, sceCtrlReadBufferPositiveExt)
+DECL_FUNC_HOOK_PATCH_CTRL_EXT(7, sceCtrlReadBufferPositiveExt2)
+DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(8, sceCtrlPeekBufferNegative)
+DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(9, sceCtrlPeekBufferNegative2)
+DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(10, sceCtrlReadBufferNegative)
+DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(11, sceCtrlReadBufferNegative2)
+DECL_FUNC_HOOK_PATCH_TOUCH(12, sceTouchRead)
+DECL_FUNC_HOOK_PATCH_TOUCH(13, sceTouchRead2)
+DECL_FUNC_HOOK_PATCH_TOUCH(14, sceTouchPeek)
+DECL_FUNC_HOOK_PATCH_TOUCH(15, sceTouchPeek2)
 
 int sceDisplaySetFrameBuf_patched(const SceDisplayFrameBuf *pParam, int sync) {
 	ui_draw(pParam);
