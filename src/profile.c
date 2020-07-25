@@ -1,6 +1,7 @@
 #include <vitasdkkern.h>
 #include <taihen.h>
 #include <libk/stdio.h>
+#include <stdbool.h>
 #include <psp2kern/io/stat.h> 
 #include "main.h"
 #include "profile.h"

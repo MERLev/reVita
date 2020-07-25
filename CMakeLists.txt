@@ -9,29 +9,30 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 endif()
 
 project(remaPSV2)
-include("${VITASDK}/share/vita.cmake" REQUIRED)
+include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -std=gnu99")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nostdlib")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
+
+add_definitions(-DRELEASE) 
 
 link_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-add_definitions(-DRELEASE)
-
 add_executable(${PROJECT_NAME}
   src/main.c
-  src/remap.c
-  src/renderer.c
-  src/ui.c
   src/profile.c
   src/common.c
+  src/remap.c
+  src/ui.c
+  src/ctrl.c
+  src/renderer.c
+  src/log.c
 )
 
 target_link_libraries(${PROJECT_NAME}
- # taipool
- # taihen_stub
   k
   gcc
   taihenForKernel_stub
@@ -42,30 +43,10 @@ target_link_libraries(${PROJECT_NAME}
   SceAppMgrForDriver_stub
   SceCtrlForDriver_stub
   SceIofilemgrForDriver_stub
-  
-  SceSblAIMgrForDriver_stub
-  SceSysclibForDriver_stub
-  SceProcessmgrForDriver_stub
-  ScePowerForDriver_stub
-
-#  SceLibKernel_stub_weak
-#  SceKernelThreadMgr_stub_weak
-#  SceCtrl_stub_weak
-#  SceIofilemgr_stub_weak
-#  SceAppMgr_stub_weak
-#  SceTouch_stub_weak
-#  SceDisplay_stub_weak
-#  SceSysmem_stub_weak
-  SceMotion_stub 
-#  SceSysmem_stub 
-  SceTouch_stub
+  SceTouchForDriver_stub
 )
 
-set_target_properties(${PROJECT_NAME}
-  PROPERTIES LINK_FLAGS "-nostdlib"
-)
-
-vita_create_self(remaPSV2.skprx ${PROJECT_NAME}
+vita_create_self(${PROJECT_NAME}.skprx ${PROJECT_NAME}
   UNSAFE
-  CONFIG ${CMAKE_SOURCE_DIR}/remaPSV2.yml
+  CONFIG ${CMAKE_SOURCE_DIR}/${PROJECT_NAME}.yml
 )

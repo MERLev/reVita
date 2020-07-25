@@ -1,15 +1,19 @@
+#include <stdbool.h>
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-#define HOOKS_NUM         17 // Hooked functions num
+#define INVALID_PID -1
 
-extern char titleid[16];
+#define HOOKS_NUM 18
+
+extern SceUID processId;
+extern char titleid[32];
+extern bool is_in_pspemu;
+
 extern uint8_t used_funcs[HOOKS_NUM];
 extern uint16_t TOUCH_SIZE[4];
-
 extern uint8_t internal_touch_call;
 extern uint8_t internal_ext_call;
-
 extern void delayedStart();
 
 #endif

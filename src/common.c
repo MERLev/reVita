@@ -8,7 +8,6 @@ const uint32_t HW_BUTTONS[PHYS_BUTTONS_NUM] = {
 	SCE_CTRL_R1, SCE_CTRL_L3, SCE_CTRL_R3
 };
 
-// Generic clamp function
 int32_t clamp(int32_t value, int32_t mini, int32_t maxi) {
 	if (value < mini) { return mini; }
 	if (value > maxi) { return maxi; }
