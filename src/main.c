@@ -225,6 +225,8 @@ DECL_FUNC_HOOK_PATCH_TOUCH(14, ksceTouchPeek)
 int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplayFrameBuf *pParam, int sync) {
     used_funcs[16] = 1;
 
+    ui_draw(pParam);
+
     if (!head || !pParam)
         goto DISPLAY_HOOK_RET;
 
@@ -234,7 +236,6 @@ int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplay
     if (index && ksceAppMgrIsExclusiveProcessRunning())
         goto DISPLAY_HOOK_RET; // Do not draw over SceShell overlay
 
-    ui_draw(pParam);
 
 DISPLAY_HOOK_RET:
     return TAI_CONTINUE(int, refs[16], head, index, pParam, sync);
@@ -288,6 +289,8 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             // Set current pid
             processId = (ev == 1 || ev == 5) ? pid : INVALID_PID;
             delayedStartDone = 0;
+            for (int i = 0; i < HOOKS_NUM; i++)
+		        used_funcs[i] = 0;
             startTick = ksceKernelGetSystemTimeWide();
             profile_loadGlobal();
             profile_loadLocal();

@@ -41,7 +41,7 @@ void renderer_drawImageDirectlyToFB(uint32_t x, uint32_t y, uint32_t w, uint32_t
 	uint32_t cache[w];
 	for (int j = 0; j < h; j++){
 		ksceKernelMemcpyUserToKernel(&cache[0],
-			(uintptr_t)&fbfbBase_user[(j + y) * fbWidth + x],
+			(uintptr_t)&fbfbBase_user[(j + y) * fbPitch + x],
 			sizeof(uint32_t) * w);
 		for (int i = 0; i < w; i++){
 			if (bitN >= 8){
@@ -52,7 +52,7 @@ void renderer_drawImageDirectlyToFB(uint32_t x, uint32_t y, uint32_t w, uint32_t
 				cache[i] = color; 
 			bitN++;
 		}
-		ksceKernelMemcpyKernelToUser((uintptr_t)&fbfbBase_user[(j + y) * fbWidth + x],
+		ksceKernelMemcpyKernelToUser((uintptr_t)&fbfbBase_user[(j + y) * fbPitch + x],
 			&cache[0],
 			sizeof(uint32_t) * w);
 	}
@@ -117,12 +117,9 @@ void renderer_setFB(const SceDisplayFrameBuf *param){
 	fbHeight = param->height;
 	fbfbBase_user = param->base;
 	fbPitch = param->pitch;
-	LOG("renderer setFB\n");
-	//clear();
 }
 
 void renderer_writeToFB(){
-	LOG("renderer writeToFB\n");
 	uint32_t ui_x = (max(fbWidth - uiWidth, 0)) / 2;
 	uint32_t ui_y = (max(fbHeight - uiHeight, 0)) / 2;
 	for (int i = 0; i < uiHeight; i++){

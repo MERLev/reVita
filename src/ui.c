@@ -94,7 +94,7 @@ static char* str_settings[] = {
 	"Save as Global profile", 
 	"Load Global profile"
 };
-static char* str_funcs[HOOKS_NUM-1] = {
+static char* str_funcs[HOOKS_NUM-2] = {
 	"sceCtrlPeekBufferPositive",
 	"sceCtrlPeekBufferPositive2",
 	"sceCtrlReadBufferPositive",
@@ -107,10 +107,10 @@ static char* str_funcs[HOOKS_NUM-1] = {
 	"sceCtrlPeekBufferNegative2",
 	"sceCtrlReadBufferNegative",
 	"sceCtrlReadBufferNegative2",
-	"sceTouchRead",
-	"sceTouchRead2",
-	"sceTouchPeek",
-	"sceTouchPeek2"
+	"ksceTouchRead",
+	"ksceTouchRead2",
+	"ksceTouchPeek",
+	"ksceTouchPeek2",
 };
 static char* str_btns[PHYS_BUTTONS_NUM] = {
 	"Cross", "Circle", "Triangle", "Square",
@@ -159,8 +159,8 @@ int menu_i = MAIN_MENU;
 //Calculate starting index for scroll menu
 int calcStartingIndex(int idx, int entriesNum, int screenEntries){
 	int bottom_l = 3;
-	int ret = max(0, idx - (screenEntries - bottom_l));
-	while (ret > 0 && (entriesNum - ret - 2) < screenEntries) ret--;
+	int ret = max(0, idx - (screenEntries - bottom_l - 1));
+	while (ret > 0 && (entriesNum - ret) < screenEntries) ret--;
 	return ret;
 }
 
@@ -421,14 +421,15 @@ void drawMenu_controller(int avaliableEntries, int y){
 }
 
 void drawMenu_hooks(int avaliableEntries, int y){
-	for (int i = calcStartingIndex(cfg_i, HOOKS_NUM - 1, avaliableEntries); i < HOOKS_NUM - 1; i++) {
+	int idx = calcStartingIndex(cfg_i, HOOKS_NUM - 2, avaliableEntries);
+	for (int i = idx; i < min(idx + avaliableEntries, HOOKS_NUM - 2); i++) {
 		if (cfg_i == i){//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_0, y + CHA_H, "-");
 		}
 		renderer_setColor((i == cfg_i) ? COLOR_CURSOR : (used_funcs[i] ? COLOR_ACTIVE : COLOR_DEFAULT));
 		renderer_drawStringF(L_1, y += CHA_H, "%s : %s", str_funcs[i], used_funcs[i] ? "Yes" : "No");
-		if (y + 40 > UI_HEIGHT) break;
+		//if (y + 40 > UI_HEIGHT) break;
 	}
 }
 
@@ -467,7 +468,8 @@ void drawMenu_settings(int avaliableEntries, int y){
 }
 
 void drawMenu_credits(int avaliableEntries, int y){
-	for (int i = calcStartingIndex(cfg_i, CREDITS_NUM, avaliableEntries); i < CREDITS_NUM; i++) {	
+	int idx = calcStartingIndex(cfg_i, CREDITS_NUM, avaliableEntries);
+	for (int i = idx; i < min(CREDITS_NUM, idx + avaliableEntries); i++) {	
 		if (cfg_i == i){//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_0, y + CHA_H, "-");
@@ -475,7 +477,7 @@ void drawMenu_credits(int avaliableEntries, int y){
 		
 		renderer_setColor(COLOR_DEFAULT);
 		renderer_drawStringF(L_1, y += CHA_H, "%s", str_credits[i]);
-		if (y + 40 > UI_HEIGHT) break;
+		//if (y + 40 > UI_HEIGHT) break;
 	}
 }
 
@@ -518,23 +520,23 @@ void drawDirectlyToFB(){
 }
 
 void ui_draw(const SceDisplayFrameBuf *pParam){
-	LOG("ui_draw() %u\n", ui_opened);
 	if (ui_opened) {
 		new_frame = 1;
 		ticker++;
 		renderer_setFB(pParam);
-
+		LOG("1.BEFORE DRAW %llu\n", ksceKernelGetSystemTimeWide());
 		drawHeader();
 		drawBody();
 		drawFooter();
+		LOG("2.AFTER DRAW %llu\n", ksceKernelGetSystemTimeWide());
 
 		renderer_writeToFB();
+		LOG("3.AFTER COPY %llu\n", ksceKernelGetSystemTimeWide());
 		drawDirectlyToFB();	
 	}
 }
 
 void ui_open(const SceDisplayFrameBuf *pParam){
-	LOG("ui_open()\n");
 	ui_opened = 1;
 	cfg_i = 0;
 }
