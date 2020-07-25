@@ -58,7 +58,7 @@ void renderer_drawImageDirectlyToFB(uint32_t x, uint32_t y, uint32_t w, uint32_t
 	}
 }
 
-void clear() {
+void clear() { 
     for (int i = 0; i < uiWidth * (CHA_H + 4); i++)
         fb_base[i] = 0x00000000;
     for (int i = uiWidth * (CHA_H + 4); i < uiWidth * uiHeight - uiWidth * (CHA_H + 4); i++)
@@ -75,8 +75,7 @@ void renderer_drawRectangle(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint
 			fb_base[j * uiWidth + i] = clr;
 }
 
-//Could be used later
-/*uint32_t blendColor(uint32_t fg, uint32_t bg) {
+uint32_t blendColor(uint32_t fg, uint32_t bg) {
 	uint8_t* colorMain= (uint8_t*)&fg;
 	uint8_t* colorBg= (uint8_t*)&bg;
     uint8_t inv_alpha = 255 - colorMain[0];
@@ -90,14 +89,14 @@ void renderer_drawRectangle(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint
     return result;
 }
 
-//Could be used later
 void blendAlphaOverlay(){
     for (int i = 0; i < uiWidth * uiHeight; i++)
         fb_base[i] = blendColor(fb_base[i], 0xFF000000);
-}*/
+}
 
-//Could be used later
-/*void makeAlphaBackground(){
+void makeAlphaBackground(){
+	uint32_t ui_x = (max(fbWidth - uiWidth, 0)) / 2;
+	uint32_t ui_y = (max(fbHeight - uiHeight, 0)) / 2;
 	for (int i = 0; i < uiHeight; i++){
 		uint32_t off = 0;
 		if (i < UI_CORNER_RADIUS){
@@ -107,11 +106,11 @@ void blendAlphaOverlay(){
 		}
 		ksceKernelMemcpyUserToKernel(
 			&fb_base[i * uiWidth + off],
-			(uintptr_t)&fbfbBase_user[(UI_POS_Y + i) * fbWidth + UI_POS_X + off],
+			(uintptr_t)&fbfbBase_user[(ui_y + i) * fbWidth + ui_x + off],
 			sizeof(uint32_t) * (uiWidth - 2 * off));		
 	}
 	blendAlphaOverlay();
-}*/
+}
 
 void renderer_setFB(const SceDisplayFrameBuf *param){
 	fbWidth = param->width;
@@ -119,7 +118,7 @@ void renderer_setFB(const SceDisplayFrameBuf *param){
 	fbfbBase_user = param->base;
 	fbPitch = param->pitch;
 	LOG("renderer setFB\n");
-	clear();
+	//clear();
 }
 
 void renderer_writeToFB(){

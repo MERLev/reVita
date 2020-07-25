@@ -19,14 +19,17 @@
 #define SUBVERSION			1
 #define SUBSUBVERSION		0
 
-#define UI_WIDTH 480
-#define UI_HEIGHT 272
+#define UI_WIDTH            480
+#define UI_HEIGHT           272
+#define HEADER_HEIGHT		(CHA_H + 6)
 
 #define COLOR_DEFAULT     0x00C2C0BD
 #define COLOR_CURSOR      0x00FFFFFF
 #define COLOR_HEADER      0x00FF6600
 #define COLOR_ACTIVE      0x0000FFFF
-#define COLOR_DANGER     0x000000FF
+#define COLOR_DANGER      0x000000FF
+#define COLOR_BG_HEADER   0x00000000
+#define COLOR_BG_BODY     0x00171717
 #define L_0    5		//Left margin for text
 #define L_1    18		
 #define L_2    36
@@ -162,20 +165,22 @@ int calcStartingIndex(int idx, int entriesNum, int screenEntries){
 }
 
 void drawHeader(){
+	renderer_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, COLOR_BG_HEADER);//BG
+	renderer_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, COLOR_HEADER);//Separator
 	renderer_setColor(COLOR_HEADER);
 	if (menu_i == MAIN_MENU)
-		renderer_drawStringF(L_0, 2, "remaPSV2 v.%hhu.%hhu.%hhu", VERSION, SUBVERSION, SUBSUBVERSION);
+		renderer_drawStringF(L_0, 3, "remaPSV2 v.%hhu.%hhu.%hhu", VERSION, SUBVERSION, SUBSUBVERSION);
 	else	
-		renderer_drawString(L_0, 2, str_menus[menu_i]);
+		renderer_drawString(L_0, 3, str_menus[menu_i]);
 	
 	renderer_drawString(UI_WIDTH - CHA_W * strlen(titleid) - 10, 2, titleid);
-	renderer_drawRectangle(5, CHA_H + 3, UI_WIDTH - 10, 1, COLOR_HEADER);
 }
 
 void drawFooter(){
+	renderer_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, COLOR_HEADER);//Separator
+	renderer_drawRectangle(0, UI_HEIGHT - (HEADER_HEIGHT - 1), UI_WIDTH, HEADER_HEIGHT - 1, COLOR_BG_HEADER);//BG
 	renderer_setColor(COLOR_HEADER);                                                               
-	renderer_drawStringF(L_0, UI_HEIGHT-CHA_H - 2, str_footer[menu_i]);
-	renderer_drawRectangle(5, UI_HEIGHT-CHA_H - 5, UI_WIDTH - 10, 1, COLOR_HEADER);
+	renderer_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, str_footer[menu_i]);
 }
 
 void drawMenu_main(int avaliableEntries, int y){
@@ -488,12 +493,11 @@ void drawTouchPointer(){
 	renderer_drawImageDirectlyToFB(left - ic_hsize, top - ic_hsize, 64, 64, ICN_TOUCH);
 }
 
-void drawMenu() {
-	drawHeader();
+void drawBody() {
+	renderer_drawRectangle(0, HEADER_HEIGHT, UI_WIDTH, UI_HEIGHT -  2 * HEADER_HEIGHT, COLOR_BG_BODY);//BG
 	//Draw menu
-	int y = 6;
-	int screen_entries = ((float)UI_HEIGHT - 10) / CHA_H - 1;
-	int avaliableEntries = screen_entries - 4;
+	int y = HEADER_HEIGHT - CHA_H;
+	int avaliableEntries = ((float)(UI_HEIGHT - 2 * HEADER_HEIGHT)) / CHA_H;
 	switch (menu_i){
 		case MAIN_MENU: drawMenu_main(avaliableEntries, y); break;
 		case REMAP_MENU: drawMenu_remap(avaliableEntries, y); break;
@@ -506,7 +510,6 @@ void drawMenu() {
 		case CREDITS_MENU: drawMenu_credits(avaliableEntries, y); break;                                                             
 		default: break;
 	}
-	drawFooter();
 }
 
 //Draw directly to FB to overlay over everything else;
@@ -520,7 +523,11 @@ void ui_draw(const SceDisplayFrameBuf *pParam){
 		new_frame = 1;
 		ticker++;
 		renderer_setFB(pParam);
-		drawMenu();
+
+		drawHeader();
+		drawBody();
+		drawFooter();
+
 		renderer_writeToFB();
 		drawDirectlyToFB();	
 	}

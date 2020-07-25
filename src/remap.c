@@ -9,7 +9,6 @@
 #include "profile.h"
 #include "common.h"
 
-
 #define MULTITOUCH_FRONT_NUM		6
 #define MULTITOUCH_REAR_NUM			4
 
