@@ -11,17 +11,28 @@
 #define PROFILE_SETTINGS_NUM		4
 
 #define PROFILE_REMAP_DEF           16
+
+typedef struct Profile{
+    uint8_t remap[PROFILE_REMAP_NUM];
+    uint8_t analog[PROFILE_ANALOG_NUM];
+    uint8_t gyro[PROFILE_GYRO_NUM];
+    uint16_t touch[PROFILE_TOUCH_NUM];
+    uint8_t controller[PROFILE_CONTROLLER_NUM];
+}Profile;
+
 extern const uint8_t PROFILE_ANALOG_DEF[PROFILE_ANALOG_NUM];
 extern const uint16_t PROFILE_TOUCH_DEF[PROFILE_TOUCH_NUM];
 extern const uint8_t PROFILE_GYRO_DEF[PROFILE_GYRO_NUM];
 extern const uint8_t PROFILE_CONTROLLER_DEF[PROFILE_CONTROLLER_NUM];
 extern const uint8_t PROFILE_SETTINGS_DEF[PROFILE_SETTINGS_NUM];
 
-extern uint8_t profile_remap[PROFILE_REMAP_NUM];
-extern uint8_t profile_analog[PROFILE_ANALOG_NUM];
-extern uint8_t profile_gyro[PROFILE_GYRO_NUM];
-extern uint16_t profile_touch[PROFILE_TOUCH_NUM];
-extern uint8_t profile_controller[PROFILE_CONTROLLER_NUM];
+extern Profile profile;
+extern Profile profile_global;
+/*extern uint8_t profile.remap[PROFILE_REMAP_NUM];
+extern uint8_t profile.analog[PROFILE_ANALOG_NUM];
+extern uint8_t profile.gyro[PROFILE_GYRO_NUM];
+extern uint16_t profile.touch[PROFILE_TOUCH_NUM];
+extern uint8_t profile.controller[PROFILE_CONTROLLER_NUM];*/
 extern uint8_t profile_settings[PROFILE_SETTINGS_NUM];
 
 extern void profile_resetRemap();

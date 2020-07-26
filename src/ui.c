@@ -325,36 +325,36 @@ void drawMenu_remap(int y){
 		else if (i < PHYS_BUTTONS_NUM + 16) srcAction = str_analog_directions[i - PHYS_BUTTONS_NUM-12];
 		else if (i < PHYS_BUTTONS_NUM + 22) srcAction = str_gyro_directions[i - PHYS_BUTTONS_NUM-16];
 		//Target Section
-		if (profile_remap[i] < PHYS_BUTTONS_NUM) targetSection = str_sections[0];
-		else if (profile_remap[i] == PHYS_BUTTONS_NUM)  targetSection = str_sections[6];
-		else if (profile_remap[i] == PHYS_BUTTONS_NUM + 1)  targetSection = str_sections[7];
-		else if (profile_remap[i] < PHYS_BUTTONS_NUM + 6)  targetSection = str_sections[1];
-		else if (profile_remap[i] < PHYS_BUTTONS_NUM + 10)  targetSection = str_sections[2];
-		else if (profile_remap[i] < PHYS_BUTTONS_NUM + 18)  targetSection = str_sections[3];
-		else if (profile_remap[i] < PHYS_BUTTONS_NUM + 26)  targetSection = str_sections[4];
+		if (profile.remap[i] < PHYS_BUTTONS_NUM) targetSection = str_sections[0];
+		else if (profile.remap[i] == PHYS_BUTTONS_NUM)  targetSection = str_sections[6];
+		else if (profile.remap[i] == PHYS_BUTTONS_NUM + 1)  targetSection = str_sections[7];
+		else if (profile.remap[i] < PHYS_BUTTONS_NUM + 6)  targetSection = str_sections[1];
+		else if (profile.remap[i] < PHYS_BUTTONS_NUM + 10)  targetSection = str_sections[2];
+		else if (profile.remap[i] < PHYS_BUTTONS_NUM + 18)  targetSection = str_sections[3];
+		else if (profile.remap[i] < PHYS_BUTTONS_NUM + 26)  targetSection = str_sections[4];
 		//Target  Action
-		if (profile_remap[i] < PHYS_BUTTONS_NUM) targetAction = str_btns[profile_remap[i]];
-		else if (profile_remap[i] < PHYS_BUTTONS_NUM + 2)  targetAction = "";
-		else if (profile_remap[i] < PHYS_BUTTONS_NUM + 6) targetAction = str_analog_directions[profile_remap[i] - PHYS_BUTTONS_NUM-2];
-		else if (profile_remap[i] < PHYS_BUTTONS_NUM + 10) targetAction = str_analog_directions[profile_remap[i] - PHYS_BUTTONS_NUM-6];
-		else if (profile_remap[i] < PHYS_BUTTONS_NUM + 14) targetAction = str_touch_zones[profile_remap[i] - PHYS_BUTTONS_NUM-10];
-		else if (profile_remap[i] < PHYS_BUTTONS_NUM + 18) targetAction = str_touch_points[profile_remap[i] - PHYS_BUTTONS_NUM-14];
-		else if (profile_remap[i] < PHYS_BUTTONS_NUM + 22) targetAction = str_touch_zones[profile_remap[i] - PHYS_BUTTONS_NUM-18];
-		else if (profile_remap[i] < PHYS_BUTTONS_NUM + 26) targetAction = str_touch_points[profile_remap[i] - PHYS_BUTTONS_NUM-22];
+		if (profile.remap[i] < PHYS_BUTTONS_NUM) targetAction = str_btns[profile.remap[i]];
+		else if (profile.remap[i] < PHYS_BUTTONS_NUM + 2)  targetAction = "";
+		else if (profile.remap[i] < PHYS_BUTTONS_NUM + 6) targetAction = str_analog_directions[profile.remap[i] - PHYS_BUTTONS_NUM-2];
+		else if (profile.remap[i] < PHYS_BUTTONS_NUM + 10) targetAction = str_analog_directions[profile.remap[i] - PHYS_BUTTONS_NUM-6];
+		else if (profile.remap[i] < PHYS_BUTTONS_NUM + 14) targetAction = str_touch_zones[profile.remap[i] - PHYS_BUTTONS_NUM-10];
+		else if (profile.remap[i] < PHYS_BUTTONS_NUM + 18) targetAction = str_touch_points[profile.remap[i] - PHYS_BUTTONS_NUM-14];
+		else if (profile.remap[i] < PHYS_BUTTONS_NUM + 22) targetAction = str_touch_zones[profile.remap[i] - PHYS_BUTTONS_NUM-18];
+		else if (profile.remap[i] < PHYS_BUTTONS_NUM + 26) targetAction = str_touch_points[profile.remap[i] - PHYS_BUTTONS_NUM-22];
 
 		renderer_setColor(COLOR_HEADER);
 		renderer_drawString(L_0, y += CHA_H, srcSection);
 		
 		if (i == cfg_i) renderer_setColor(COLOR_CURSOR);
-		else if (profile_remap[i] == PHYS_BUTTONS_NUM) renderer_setColor(COLOR_DEFAULT);
-		else if (profile_remap[i] == PHYS_BUTTONS_NUM + 1) renderer_setColor(COLOR_DANGER);
+		else if (profile.remap[i] == PHYS_BUTTONS_NUM) renderer_setColor(COLOR_DEFAULT);
+		else if (profile.remap[i] == PHYS_BUTTONS_NUM + 1) renderer_setColor(COLOR_DANGER);
 		else renderer_setColor(COLOR_ACTIVE);
 		renderer_drawString(L_0 + CHA_W*11, y, srcAction);
 		
-		if (profile_remap[i] == PHYS_BUTTONS_NUM) renderer_setColor(COLOR_DEFAULT);
-		else if (profile_remap[i] == PHYS_BUTTONS_NUM + 1) renderer_setColor(COLOR_DANGER);
+		if (profile.remap[i] == PHYS_BUTTONS_NUM) renderer_setColor(COLOR_DEFAULT);
+		else if (profile.remap[i] == PHYS_BUTTONS_NUM + 1) renderer_setColor(COLOR_DANGER);
 		else renderer_setColor(COLOR_ACTIVE);
-		if (profile_remap[i] != PHYS_BUTTONS_NUM)
+		if (profile.remap[i] != PHYS_BUTTONS_NUM)
 			renderer_drawString(L_0 + CHA_W*21, y, " -> ");
 		
 		renderer_drawString(L_0 + CHA_W*25, y, targetSection);
@@ -371,13 +371,13 @@ void drawMenu_analog(int y){
 			setColorHeader(cfg_i == i);
 			renderer_drawString(L_1, y+=CHA_H, menu_analog[i].name);
 		} else if (idx < 4){
-			setColor(i == cfg_i, profile_analog[idx] == PROFILE_ANALOG_DEF[idx]);
+			setColor(i == cfg_i, profile.analog[idx] == PROFILE_ANALOG_DEF[idx]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %hhu", 
-					menu_analog[i].name, profile_analog[idx]);
+					menu_analog[i].name, profile.analog[idx]);
 		} else if (idx != HEADER_IDX) {
-			setColor(i == cfg_i, profile_analog[idx] == PROFILE_ANALOG_DEF[idx]);
+			setColor(i == cfg_i, profile.analog[idx] == PROFILE_ANALOG_DEF[idx]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", 
-					menu_analog[i].name, str_yes_no[profile_analog[idx]]);
+					menu_analog[i].name, str_yes_no[profile.analog[idx]]);
 		}
 
 		if (cfg_i == i && (idx != HEADER_IDX)){//Draw cursor
@@ -397,13 +397,13 @@ void drawMenu_touch(int y){
 			setColorHeader(cfg_i == i);
 			renderer_drawString(L_1, y+=CHA_H, menu_touch[i].name);
 		} else if (idx == 16 || idx == 17){
-			setColor(i == cfg_i, profile_touch[idx] == PROFILE_TOUCH_DEF[idx]);
+			setColor(i == cfg_i, profile.touch[idx] == PROFILE_TOUCH_DEF[idx]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", 
-					menu_touch[i].name, str_yes_no[profile_touch[idx]]);
+					menu_touch[i].name, str_yes_no[profile.touch[idx]]);
 		} else if (idx != HEADER_IDX) {
-			setColor(i == cfg_i, profile_touch[idx] == PROFILE_TOUCH_DEF[idx]);
+			setColor(i == cfg_i, profile.touch[idx] == PROFILE_TOUCH_DEF[idx]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", 
-					menu_touch[i].name, profile_touch[idx]);
+					menu_touch[i].name, profile.touch[idx]);
 		}
 
 		if (cfg_i == i && (idx != HEADER_IDX)){//Draw cursor
@@ -423,14 +423,14 @@ void drawMenu_gyro(int y){
 			setColorHeader(cfg_i == i);
 			renderer_drawString(L_1, y+=CHA_H, menu_gyro[i].name);
 		} else if (idx < 6){//Draw sens and deadzone option
-			setColor(i == cfg_i, profile_gyro[idx] == PROFILE_GYRO_DEF[idx]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %hhu", menu_gyro[i].name, profile_gyro[idx]);
+			setColor(i == cfg_i, profile.gyro[idx] == PROFILE_GYRO_DEF[idx]);
+			renderer_drawStringF(L_2, y += CHA_H, "%s: %hhu", menu_gyro[i].name, profile.gyro[idx]);
 		} else if (idx == 6) {//Draw deadband option
-			setColor(i == cfg_i, profile_gyro[idx] == PROFILE_GYRO_DEF[idx]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", menu_gyro[i].name, str_deadband[profile_gyro[idx]]);
+			setColor(i == cfg_i, profile.gyro[idx] == PROFILE_GYRO_DEF[idx]);
+			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", menu_gyro[i].name, str_deadband[profile.gyro[idx]]);
 		} else if (idx == 7) {//Draw wheel option
-			setColor(i == cfg_i, profile_gyro[idx] == PROFILE_GYRO_DEF[idx]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", menu_gyro[i].name, str_yes_no[profile_gyro[idx]]);
+			setColor(i == cfg_i, profile.gyro[idx] == PROFILE_GYRO_DEF[idx]);
+			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", menu_gyro[i].name, str_yes_no[profile.gyro[idx]]);
 		}
 
 		if (cfg_i == i && (idx != HEADER_IDX)) {//Draw cursor
@@ -453,12 +453,12 @@ void drawMenu_controller(int y){
 	for (int i = ii; i < min(ii + ui_lines, CONTROLLERS_MENU_NUM); i++) {		
 		int8_t idx = menu_controllers[i].idx;
 
-		setColor(i == cfg_i, profile_controller[idx] == PROFILE_CONTROLLER_DEF[idx]);
+		setColor(i == cfg_i, profile.controller[idx] == PROFILE_CONTROLLER_DEF[idx]);
 		if (idx == 0 || idx == 2)//Use external controller / buttons swap
-			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", menu_controllers[i].name, str_yes_no[profile_controller[idx]]);
+			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", menu_controllers[i].name, str_yes_no[profile.controller[idx]]);
 		else if (idx == 1){//Port selection
-			renderer_drawStringF(L_1, y += CHA_H, "%s: {%i} %s", menu_controllers[i].name, profile_controller[idx],
-					getControllerName(pi.port[profile_controller[1]]));
+			renderer_drawStringF(L_1, y += CHA_H, "%s: {%i} %s", menu_controllers[i].name, profile.controller[idx],
+					getControllerName(pi.port[profile.controller[1]]));
 		}
 
 		if (cfg_i == i && (idx != HEADER_IDX)) {//Draw cursor
@@ -535,10 +535,10 @@ void drawTouchPointer(){
 	if (menu_i != TOUCH_MENU || idx == HEADER_IDX ||  idx >= 16)
 		return;
 	int8_t ic_halfsize = ICN_TOUCH_X / 2;
-	int left = profile_touch[idx - (idx % 2)] - 8;
+	int left = profile.touch[idx - (idx % 2)] - 8;
 	left *= (float)fbWidth / ((idx < 8) ? TOUCH_SIZE[0] : TOUCH_SIZE[2]);
 	left = min((max(ic_halfsize, left)), fbWidth - ic_halfsize);
-	int top = profile_touch[idx - (idx % 2) + 1] - 10;
+	int top = profile.touch[idx - (idx % 2) + 1] - 10;
 	top *= (float)fbHeight / ((idx < 8) ? TOUCH_SIZE[1] : TOUCH_SIZE[3]); //Scale to framebuffer size
 	top = min((max(ic_halfsize, top)), fbHeight - ic_halfsize);//limit into screen
 	renderer_setColor((ticker % 8 < 4) ? COLOR_DANGER : COLOR_HEADER);

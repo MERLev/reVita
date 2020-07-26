@@ -75,8 +75,8 @@ void delayedStart(){
 	// Enabling gyro sampling
 	//_sceMotionReset();
 	//sceMotionStartSampling();
-	//if (profile_gyro[6] == 1) sceMotionSetDeadband(1);
-	//else if (profile_gyro[6] == 2) sceMotionSetDeadband(0);
+	//if (profile.gyro[6] == 1) sceMotionSetDeadband(1);
+	//else if (profile.gyro[6] == 2) sceMotionSetDeadband(0);
 	//ToDo decide on sceMotionSetTiltCorrection usage
 	//if (gyro_options[7] == 1) sceMotionSetTiltCorrection(0); 
 }
@@ -95,9 +95,9 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 		return nBufs;	
 
 	//Reset wheel gyro buttons pressed
-	if (profile_gyro[7] == 1 
-            && (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_gyro[8]]) 
-			&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_gyro[9]])) {
+	if (profile.gyro[7] == 1 
+            && (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile.gyro[8]]) 
+			&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile.gyro[9]])) {
 		//ToDo
         //sceMotionReset();		
 	}

@@ -30,10 +30,10 @@ void analogTouchPicker(SceCtrlData *ctrl){
 	int shiftX = ((float)(ctrl->rx - 127)) / 8;
 	int shiftY = ((float)(ctrl->ry - 127)) / 8;
 	if (abs(shiftX) > 30 / 8)
-		profile_touch[o_idx1] = clamp(profile_touch[o_idx1] + shiftX, 
+		profile.touch[o_idx1] = clamp(profile.touch[o_idx1] + shiftX, 
 			0, TOUCH_SIZE[(o_idx1 < 8) ? 0 : 2]);
 	if (abs(shiftY) > 30 / 8)
-		profile_touch[o_idx1+1] = clamp(profile_touch[o_idx1+1] + shiftY, 
+		profile.touch[o_idx1+1] = clamp(profile.touch[o_idx1+1] + shiftY, 
 			0, TOUCH_SIZE[((o_idx1+1) < 8) ? 1 : 3]);
 }
 //Set custom touch point xy using touch
@@ -46,8 +46,8 @@ void touchPicker(int padType){
 	int ret = ksceTouchPeek(padType, &std, 1);
 	internal_touch_call = 0;
 	if (ret && std.reportNum){
-		profile_touch[ui_opt.idx - (ui_opt.idx % 2)] = std.report[0].x;
-		profile_touch[ui_opt.idx - (ui_opt.idx % 2) + 1] = std.report[0].y;
+		profile.touch[ui_opt.idx - (ui_opt.idx % 2)] = std.report[0].x;
+		profile.touch[ui_opt.idx - (ui_opt.idx % 2) + 1] = std.report[0].y;
 	}
 }
 
@@ -83,58 +83,58 @@ void inputHandler_remap(uint32_t btn){
 			if (--cfg_i < 0) cfg_i = menu_entries  -1;
 			break;
 		case SCE_CTRL_RIGHT:
-			profile_remap[cfg_i] = (profile_remap[cfg_i] + 1) % TARGET_REMAPS;
+			profile.remap[cfg_i] = (profile.remap[cfg_i] + 1) % TARGET_REMAPS;
 			break;
 		case SCE_CTRL_LEFT:
-			if (profile_remap[cfg_i]) 	
-				profile_remap[cfg_i]--;
+			if (profile.remap[cfg_i]) 	
+				profile.remap[cfg_i]--;
 			else
-				profile_remap[cfg_i] = TARGET_REMAPS - 1;
+				profile.remap[cfg_i] = TARGET_REMAPS - 1;
 			break;
 		case SCE_CTRL_LTRIGGER:
 		case SCE_CTRL_L1: //Sections navigation
-			if (profile_remap[cfg_i] < 16)
-				profile_remap[cfg_i] = 38;	//Rear touch custom
-			else if (profile_remap[cfg_i] < 17)
-				profile_remap[cfg_i] = 0;	//HW Buttons
-			else if (profile_remap[cfg_i] < 18)
-				profile_remap[cfg_i] = 16;	//Original
-			else if (profile_remap[cfg_i] < 22)
-				profile_remap[cfg_i] = 17;	//Disabled
-			else if (profile_remap[cfg_i] < 26)
-				profile_remap[cfg_i] = 18;	//Left stick
-			else if (profile_remap[cfg_i] < 30)
-				profile_remap[cfg_i] = 22;	//Right stick
-			else if (profile_remap[cfg_i] < 34)
-				profile_remap[cfg_i] = 26;	//Front touch default
-			else if (profile_remap[cfg_i] < 38)
-				profile_remap[cfg_i] = 30;	//Front touch custom
+			if (profile.remap[cfg_i] < 16)
+				profile.remap[cfg_i] = 38;	//Rear touch custom
+			else if (profile.remap[cfg_i] < 17)
+				profile.remap[cfg_i] = 0;	//HW Buttons
+			else if (profile.remap[cfg_i] < 18)
+				profile.remap[cfg_i] = 16;	//Original
+			else if (profile.remap[cfg_i] < 22)
+				profile.remap[cfg_i] = 17;	//Disabled
+			else if (profile.remap[cfg_i] < 26)
+				profile.remap[cfg_i] = 18;	//Left stick
+			else if (profile.remap[cfg_i] < 30)
+				profile.remap[cfg_i] = 22;	//Right stick
+			else if (profile.remap[cfg_i] < 34)
+				profile.remap[cfg_i] = 26;	//Front touch default
+			else if (profile.remap[cfg_i] < 38)
+				profile.remap[cfg_i] = 30;	//Front touch custom
 			else 
-				profile_remap[cfg_i] = 34;	//Rear touch default
+				profile.remap[cfg_i] = 34;	//Rear touch default
 			break;
 		case SCE_CTRL_RTRIGGER:
 		case SCE_CTRL_R1://Sections navigation
-			if (profile_remap[cfg_i] < 16)
-				profile_remap[cfg_i] = 16;	//Original
-			else if (profile_remap[cfg_i] < 17)
-				profile_remap[cfg_i] = 17;	//Disabled
-			else if (profile_remap[cfg_i] < 18)
-				profile_remap[cfg_i] = 18;	//Left stick
-			else if (profile_remap[cfg_i] < 22)
-				profile_remap[cfg_i] = 22;	//Right stick
-			else if (profile_remap[cfg_i] < 26)
-				profile_remap[cfg_i] = 26;	//Front touch default
-			else if (profile_remap[cfg_i] < 30)
-				profile_remap[cfg_i] = 30;	//Front touch custom
-			else if (profile_remap[cfg_i] < 34)
-				profile_remap[cfg_i] = 34;	//Rear touch default
-			else if (profile_remap[cfg_i] < 38)
-				profile_remap[cfg_i] = 38;	//Rear touch custom
+			if (profile.remap[cfg_i] < 16)
+				profile.remap[cfg_i] = 16;	//Original
+			else if (profile.remap[cfg_i] < 17)
+				profile.remap[cfg_i] = 17;	//Disabled
+			else if (profile.remap[cfg_i] < 18)
+				profile.remap[cfg_i] = 18;	//Left stick
+			else if (profile.remap[cfg_i] < 22)
+				profile.remap[cfg_i] = 22;	//Right stick
+			else if (profile.remap[cfg_i] < 26)
+				profile.remap[cfg_i] = 26;	//Front touch default
+			else if (profile.remap[cfg_i] < 30)
+				profile.remap[cfg_i] = 30;	//Front touch custom
+			else if (profile.remap[cfg_i] < 34)
+				profile.remap[cfg_i] = 34;	//Rear touch default
+			else if (profile.remap[cfg_i] < 38)
+				profile.remap[cfg_i] = 38;	//Rear touch custom
 			else 
-				profile_remap[cfg_i] = 0;	//HW Buttons
+				profile.remap[cfg_i] = 0;	//HW Buttons
 			break;
 		case SCE_CTRL_SQUARE:
-			profile_remap[cfg_i] = PHYS_BUTTONS_NUM;
+			profile.remap[cfg_i] = PHYS_BUTTONS_NUM;
 			break;
 		case SCE_CTRL_START:
 			profile_resetRemap();
@@ -157,18 +157,18 @@ void inputHandler_analog(uint32_t btn){
 			break;
 		case SCE_CTRL_RIGHT:
 			if (idx == HEADER_IDX) break;
-			if (idx < 4) profile_analog[idx] = (profile_analog[idx] + 1) % 128;
-			else profile_analog[idx] = !profile_analog[idx];
+			if (idx < 4) profile.analog[idx] = (profile.analog[idx] + 1) % 128;
+			else profile.analog[idx] = !profile.analog[idx];
 			break;
 		case SCE_CTRL_LEFT:
 			if (idx == HEADER_IDX) break;
-			if (profile_analog[idx]) 	
-				profile_analog[idx]--;
+			if (profile.analog[idx]) 	
+				profile.analog[idx]--;
 			else
-				profile_analog[idx] = idx < 4 ? 127 : 1;
+				profile.analog[idx] = idx < 4 ? 127 : 1;
 			break;
 		case SCE_CTRL_SQUARE:
-			profile_analog[idx] = PROFILE_ANALOG_DEF[idx];
+			profile.analog[idx] = PROFILE_ANALOG_DEF[idx];
 			break;
 		case SCE_CTRL_CIRCLE:
 			menu_i = MAIN_MENU;
@@ -189,29 +189,29 @@ void inputHandler_touch(uint32_t btn){
 		case SCE_CTRL_RIGHT:
 			if (idx == HEADER_IDX) break;
 			else if (idx < 8)//Front Points xy
-				profile_touch[idx] = (profile_touch[idx] + 1) 
+				profile.touch[idx] = (profile.touch[idx] + 1) 
 					% ((idx % 2) ? TOUCH_SIZE[1] : TOUCH_SIZE[0]);
 			else if (idx < 16)//Rear Points xy
-				profile_touch[idx] = (profile_touch[idx] + 1)
+				profile.touch[idx] = (profile.touch[idx] + 1)
 					% ((idx % 2) ? TOUCH_SIZE[3] : TOUCH_SIZE[2]);
 			else 			//yes/no otion
-				profile_touch[idx] = !profile_touch[idx];
+				profile.touch[idx] = !profile.touch[idx];
 			break;
 		case SCE_CTRL_LEFT:
 			if (idx == HEADER_IDX) break;
-			else if (profile_touch[idx]) 	
-				profile_touch[idx]--;
+			else if (profile.touch[idx]) 	
+				profile.touch[idx]--;
 			else {
 				if (idx < 8)//front points xy
-					profile_touch[idx] = ((idx % 2) ? TOUCH_SIZE[1] - 1 : TOUCH_SIZE[0] - 1);
+					profile.touch[idx] = ((idx % 2) ? TOUCH_SIZE[1] - 1 : TOUCH_SIZE[0] - 1);
 				if (idx < 16)//rear points xy
-					profile_touch[idx] = ((idx % 2) ? TOUCH_SIZE[3] - 1 : TOUCH_SIZE[2] - 1);
+					profile.touch[idx] = ((idx % 2) ? TOUCH_SIZE[3] - 1 : TOUCH_SIZE[2] - 1);
 				else //yes/no options
-					profile_touch[idx] = !profile_touch[idx];
+					profile.touch[idx] = !profile.touch[idx];
 			}
 			break;
 		case SCE_CTRL_SQUARE:
-			profile_touch[idx] = PROFILE_TOUCH_DEF[idx];
+			profile.touch[idx] = PROFILE_TOUCH_DEF[idx];
 			break;
 		case SCE_CTRL_START:
 			profile_resetTouch();
@@ -234,31 +234,31 @@ void inputHandler_gyro(uint32_t btn){
 			break;
 		case SCE_CTRL_RIGHT:
 			if (idx < 6) //Sens & deadzone
-				profile_gyro[idx] = (profile_gyro[idx] + 1) % 200;
+				profile.gyro[idx] = (profile.gyro[idx] + 1) % 200;
 			else if (idx == 6) // Deadband
-				profile_gyro[idx] = min(2, profile_gyro[idx] + 1);
+				profile.gyro[idx] = min(2, profile.gyro[idx] + 1);
 			else if (idx == 7) // Wheel mode
-				profile_gyro[idx] = (profile_gyro[idx] + 1) % 2;
+				profile.gyro[idx] = (profile.gyro[idx] + 1) % 2;
 			/*else if (cfg_i < 10) // Reset wheel buttons
-				profile_gyro[cfg_i] 
-					= min(PHYS_BUTTONS_NUM - 1, profile_gyro[cfg_i] + 1);*/
+				profile.gyro[cfg_i] 
+					= min(PHYS_BUTTONS_NUM - 1, profile.gyro[cfg_i] + 1);*/
 			break;
 		case SCE_CTRL_LEFT:
-			if (profile_gyro[idx]) 	
-				profile_gyro[idx]--;
+			if (profile.gyro[idx]) 	
+				profile.gyro[idx]--;
 			else {
 				if (idx < 6) //Sens & deadzone
-					profile_gyro[idx] = 199;
+					profile.gyro[idx] = 199;
 				else if (idx == 6) // deadband
-					profile_gyro[idx] = max(0, profile_gyro[idx] - 1);
+					profile.gyro[idx] = max(0, profile.gyro[idx] - 1);
 				else if (idx == 7) //Wheel mode
-					profile_gyro[idx] = 1;
+					profile.gyro[idx] = 1;
 				/*else if (idx < 10)  // Reset wheel btns
-					profile_gyro[idx] = max(0, profile_gyro[idx] - 1);*/
+					profile.gyro[idx] = max(0, profile.gyro[idx] - 1);*/
 			}
 			break;
 		case SCE_CTRL_SQUARE:
-			profile_gyro[idx] = PROFILE_GYRO_DEF[idx];
+			profile.gyro[idx] = PROFILE_GYRO_DEF[idx];
 			break;
 		case SCE_CTRL_START:
 			profile_resetGyro();
@@ -285,18 +285,18 @@ void inputHandler_controller(uint32_t btn){
 			break;
 		case SCE_CTRL_RIGHT:
 			if (idx == 1)
-				profile_controller[idx] = min(5, profile_controller[idx] + 1);
+				profile.controller[idx] = min(5, profile.controller[idx] + 1);
 			else
-				profile_controller[idx] = !profile_controller[idx];
+				profile.controller[idx] = !profile.controller[idx];
 			break;
 		case SCE_CTRL_LEFT:
 			if (idx == 1)
-				profile_controller[idx] = max(0, profile_controller[idx] - 1);
+				profile.controller[idx] = max(0, profile.controller[idx] - 1);
 			else
-				profile_controller[idx] = !profile_controller[idx];
+				profile.controller[idx] = !profile.controller[idx];
 			break;
 		case SCE_CTRL_SQUARE:
-			profile_controller[idx] = PROFILE_CONTROLLER_DEF[idx];
+			profile.controller[idx] = PROFILE_CONTROLLER_DEF[idx];
 			break;
 		case SCE_CTRL_START:
 			profile_resetController();
