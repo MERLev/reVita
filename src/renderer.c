@@ -16,6 +16,7 @@ uint32_t* fbfbBase_user;
 uint32_t fbWidth, fbHeight, fbPitch;
 uint32_t uiWidth, uiHeight;
 
+
 #define UI_CORNER_RADIUS 9
 static const unsigned char UI_CORNER_OFF[UI_CORNER_RADIUS] = {9, 7, 5, 4, 3, 2, 2, 1, 1};
 
@@ -31,6 +32,10 @@ void renderer_drawImage(uint32_t x, uint32_t y, uint32_t w, uint32_t h, char* im
 			if (READ(img[idx], (7 - bitN)))
 				fb_base[(y + j) * uiWidth + x + i] = color;
 			bitN++;
+		}
+		if (bitN != 0){
+			idx++;			
+			bitN = 0;
 		}
 	}
 }

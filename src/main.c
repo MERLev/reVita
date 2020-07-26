@@ -225,13 +225,15 @@ DECL_FUNC_HOOK_PATCH_TOUCH(14, ksceTouchPeek)
 int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplayFrameBuf *pParam, int sync) {
     used_funcs[16] = 1;
 
-    ui_draw(pParam);
-
-    if (!head || !pParam)
+    if (pParam)  
+        ui_draw(pParam);
+    /*if (!head || !pParam)
         goto DISPLAY_HOOK_RET;
 
     if (is_in_pspemu)
-        goto DISPLAY_HOOK_RET;
+        goto DISPLAY_HOOK_RET;*/
+
+    //ui_draw(pParam);
 
     if (index && ksceAppMgrIsExclusiveProcessRunning())
         goto DISPLAY_HOOK_RET; // Do not draw over SceShell overlay
@@ -266,11 +268,11 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             }
 
             // Check titleid
-            ksceKernelGetProcessTitleId(pid, titleidLocal, sizeof(titleidLocal));
+            /*ksceKernelGetProcessTitleId(pid, titleidLocal, sizeof(titleidLocal));
             if (!strncmp(titleidLocal, "NPXS", 4))
                 goto PROCEVENT_UNLOCK_EXIT;
 
-            break;
+            break;*/
 
         case 3: // exit
         case 4: // suspend
@@ -313,9 +315,9 @@ static int main_thread(SceSize args, void *argp) {
             delayedStart();
         }
 
-        log_flush();
+        //log_flush();
         ksceKernelDelayThread(15 * 1000 * 1000);
-        //ksceKernelDelayThread(50 * 1000);
+        //ksceKernelDelayThread(10 * 1000);
     }
     return 0;
 }

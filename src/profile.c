@@ -275,3 +275,11 @@ void profile_loadLocal() {
 		ksceIoClose(fd);
 	}
 }
+
+void profile_deleteGlobal(){
+	
+}
+
+void profile_deleteLocal(){
+	
+}

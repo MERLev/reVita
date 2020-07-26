@@ -37,5 +37,7 @@ extern void profile_saveGlobal();
 extern void profile_saveLocal();
 extern void profile_loadGlobal();
 extern void profile_loadLocal();
+extern void profile_deleteGlobal();
+extern void profile_deleteLocal();
 
 #endif
