@@ -4,7 +4,7 @@
 
 #define INVALID_PID -1
 
-#define HOOKS_NUM 18
+#define HOOKS_NUM 20
 
 extern SceUID processId;
 extern char titleid[32];

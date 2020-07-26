@@ -311,7 +311,7 @@ void inputHandler_controller(uint32_t btn){
 void inputHandler_hooks(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_DOWN:
-			ui_setIdx(min(cfg_i + 1, HOOKS_NUM -2 - 10));
+			ui_setIdx(min(cfg_i + 1, HOOKS_MENU_NUM - ui_lines));
 			break;
 		case SCE_CTRL_UP:
 			ui_setIdx(max(0, cfg_i - 1));
@@ -326,7 +326,7 @@ void inputHandler_hooks(uint32_t btn){
 void inputHandler_credits(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_DOWN:
-			ui_setIdx(min(cfg_i + 1, CREDITS_NUM - 1));
+			ui_setIdx(min(cfg_i + 1, CREDITS_NUM - ui_lines));
 			break;
 		case SCE_CTRL_UP:
 			ui_setIdx(max(0, cfg_i - 1));

@@ -39,9 +39,11 @@ typedef struct MenuOpt{
 #define GYRO_MENU_NUM 11
 #define SETTINGS_MENU_NUM 4
 #define PROFILE_MENU_NUM 8
+#define HOOKS_MENU_NUM 18
 #define CONTROLLERS_MENU_NUM 3
 
 extern uint8_t ui_opened;
+extern uint8_t ui_lines;
 extern uint8_t new_frame;
 extern int cfg_i;
 extern int menu_i;

@@ -81,6 +81,14 @@ void delayedStart(){
 	//if (gyro_options[7] == 1) sceMotionSetTiltCorrection(0); 
 }
 
+int onKernelInput(SceCtrlData *ctrl, int nBufs, int hookId){
+    return nBufs;
+}
+
+int onKernelInputNegative(SceCtrlData *ctrl, int nBufs, int hookId){
+    return nBufs;
+}
+
 int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 	//Nothing to do here
 	if (nBufs < 1)
@@ -195,6 +203,7 @@ DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(8, sceCtrlPeekBufferNegative)
 DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(9, sceCtrlPeekBufferNegative2)
 DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(10, sceCtrlReadBufferNegative)
 DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(11, sceCtrlReadBufferNegative2)
+
 #define DECL_FUNC_HOOK_PATCH_CTRL_EXT(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
@@ -211,19 +220,40 @@ DECL_FUNC_HOOK_PATCH_CTRL_EXT(4, sceCtrlPeekBufferPositiveExt)
 DECL_FUNC_HOOK_PATCH_CTRL_EXT(5, sceCtrlPeekBufferPositiveExt2)
 DECL_FUNC_HOOK_PATCH_CTRL_EXT(6, sceCtrlReadBufferPositiveExt)
 DECL_FUNC_HOOK_PATCH_CTRL_EXT(7, sceCtrlReadBufferPositiveExt2)
+
+#define DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(index, name) \
+    static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
+		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
+        if (ret < 1 || ret > BUFFERS_NUM) return ret; \
+		ret = onKernelInput(ctrl, ret, (index)); \
+		used_funcs[(index)] = 1; \
+        return ret; \
+    }
+DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(12, ksceCtrlReadBufferPositive)
+DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(13, ksceCtrlPeekBufferPositive)
+
+#define DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(index, name) \
+    static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
+		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
+        if (ret < 1 || ret > BUFFERS_NUM) return ret; \
+		ret = onKernelInput(ctrl, ret, (index)); \
+		used_funcs[(index)] = 1; \
+        return ret; \
+    }
+DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(14, ksceCtrlReadBufferNegative)
+DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(15, ksceCtrlPeekBufferNegative)
+
 #define DECL_FUNC_HOOK_PATCH_TOUCH(index, name) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
 		used_funcs[(index)] = 1; \
-        return remap_touch(port, pData, ret, (index - 12)); \
+        return remap_touch(port, pData, ret, (index - 16)); \
     }
-DECL_FUNC_HOOK_PATCH_TOUCH(12, ksceTouchRead)
-//DECL_FUNC_HOOK_PATCH_TOUCH(13, ksceTouchRead2)
-DECL_FUNC_HOOK_PATCH_TOUCH(14, ksceTouchPeek)
-//DECL_FUNC_HOOK_PATCH_TOUCH(15, ksceTouchPeek2)
+DECL_FUNC_HOOK_PATCH_TOUCH(16, ksceTouchRead)
+DECL_FUNC_HOOK_PATCH_TOUCH(17, ksceTouchPeek)
 
 int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplayFrameBuf *pParam, int sync) {
-    used_funcs[16] = 1;
+    used_funcs[18] = 1;
 
     if (pParam)  
         ui_draw(pParam);
@@ -240,10 +270,11 @@ int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplay
 
 
 DISPLAY_HOOK_RET:
-    return TAI_CONTINUE(int, refs[16], head, index, pParam, sync);
+    return TAI_CONTINUE(int, refs[18], head, index, pParam, sync);
 }
 
 int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, int *a5, int a6) {
+    used_funcs[19] = 1;
     char titleidLocal[sizeof(titleid)];
     int ret = ksceKernelLockMutex(mutex_procevent_uid, 1, NULL);
     if (ret < 0)
@@ -303,7 +334,7 @@ PROCEVENT_UNLOCK_EXIT:
     ksceKernelUnlockMutex(mutex_procevent_uid, 1);
 
 PROCEVENT_EXIT:
-    return TAI_CONTINUE(int, refs[17], pid, ev, a3, a4, a5, a6);
+    return TAI_CONTINUE(int, refs[19], pid, ev, a3, a4, a5, a6);
 }
 
 static int main_thread(SceSize args, void *argp) {
@@ -314,9 +345,9 @@ static int main_thread(SceSize args, void *argp) {
             && startTick + profile_settings[3] * 1000000 < ksceKernelGetSystemTimeWide()){
             delayedStart();
         }
-
+        
         //log_flush();
-        ksceKernelDelayThread(15 * 1000 * 1000);
+        ksceKernelDelayThread(5 * 1000 * 1000);
         //ksceKernelDelayThread(10 * 1000);
     }
     return 0;
@@ -338,7 +369,7 @@ int module_start(SceSize argc, const void *args) {
 
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
 
-// Hooking functions
+    // Hooking functions
     hook( 0,"SceCtrl", 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
     hook( 1,"SceCtrl", 0xD197E3C7, 0x15F81E8C, sceCtrlPeekBufferPositive2_patched);
     hook( 2,"SceCtrl", 0xD197E3C7, 0x67E7AB83, sceCtrlReadBufferPositive_patched);
@@ -353,23 +384,21 @@ int module_start(SceSize argc, const void *args) {
     hook( 9,"SceCtrl", 0xD197E3C7, 0x81A89660, sceCtrlPeekBufferNegative2_patched);
     hook(10,"SceCtrl", 0xD197E3C7, 0x15F96FB0, sceCtrlReadBufferNegative_patched);
     hook(11,"SceCtrl", 0xD197E3C7, 0x27A0C5FB, sceCtrlReadBufferNegative2_patched);
+    
+    hook(12,"SceCtrl", 0x7823A5D1, 0x9B96A1AA, ksceCtrlReadBufferPositive_patched);
+    hook(13,"SceCtrl", 0x7823A5D1, 0xEA1D3A34, ksceCtrlPeekBufferPositive_patched);
 
-    // Hooks for user touch functions aren`t working
-    // hook(12,"SceTouch", 0x3E4F4A81, 0x169A1D58, sceTouchRead_patched);
-    // hook(13,"SceTouch", 0x3E4F4A81, 0x39401BEA, sceTouchRead2_patched);
-    // hook(14,"SceTouch", 0x3E4F4A81, 0xFF082DF0, sceTouchPeek_patched);
-    // hook(15,"SceTouch", 0x3E4F4A81, 0x3AD3D0A1, sceTouchPeek2_patched);
+    hook(14,"SceCtrl", 0x7823A5D1, 0x8D4E0DD1, ksceCtrlReadBufferNegative_patched);
+    hook(15,"SceCtrl", 0x7823A5D1, 0x19895843, ksceCtrlPeekBufferNegative_patched);
 
-    //Mby we would need some additional addresses here
-    hook(12,"SceTouch", TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead_patched);
-    //hook(13,"SceTouch", TAI_ANY_LIBRARY, 0x9A91F624, sceTouchRead2_patched);
-    hook(14,"SceTouch", TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek_patched);
-    //hook(15,"SceTouch", TAI_ANY_LIBRARY, 0x9B3F7207, sceTouchPeek2_patched);
+    
+    hook(16,"SceTouch", TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead_patched);
+    hook(17,"SceTouch", TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek_patched);
 
-	hook(16,"SceDisplay", 0x9FED47AC, 0x16466675, ksceDisplaySetFrameBufInternal_patched);
+	hook(18,"SceDisplay", 0x9FED47AC, 0x16466675, ksceDisplaySetFrameBufInternal_patched);
 				
-	hooks[17] = taiHookFunctionImportForKernel(KERNEL_PID, &refs[17],
-            "SceProcessmgr", 0x887F19D0, 0x414CC813, ksceKernelInvokeProcEventHandler_patched);
+	hooks[19] = taiHookFunctionImportForKernel(KERNEL_PID, &refs[19],
+           "SceProcessmgr", 0x887F19D0, 0x414CC813, ksceKernelInvokeProcEventHandler_patched);
 
     int ret = module_get_export_func(KERNEL_PID, "SceKernelModulemgr", 0xC445FA63, 0x20A27FA9, 
 			(uintptr_t *)&_ksceKernelGetProcessMainModule); // 3.60

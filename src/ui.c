@@ -35,9 +35,9 @@
 #define COLOR_CURSOR_DANGER	0x000000DD
 #define COLOR_BG_HEADER   	0x00000000
 #define COLOR_BG_BODY     	0x00171717
-#define L_0    5		//Left margin for text
-#define L_1    18		
-#define L_2    36
+#define L_0    				5		//Left margin for menu
+#define L_1    				18		
+#define L_2    				36
 
 static const char* str_menus[MENU_MODES] = {
 	"MAIN MENU", 
@@ -84,23 +84,25 @@ static const char* str_credits[CREDITS_NUM] = {
 static const char* str_yes_no[] = {
 	"No", "Yes"
 };
-static const char* str_funcs[HOOKS_NUM-2] = {
-	"sceCtrlPeekBufferPositive",
-	"sceCtrlPeekBufferPositive2",
-	"sceCtrlReadBufferPositive",
-	"sceCtrlReadBufferPositive2",
-	"sceCtrlPeekBufferPositiveExt",
+static const char* str_funcs[HOOKS_MENU_NUM] = {
+	"sceCtrlPeekBufferPositive    ",
+	"sceCtrlPeekBufferPositive2   ",
+	"sceCtrlReadBufferPositive    ",
+	"sceCtrlReadBufferPositive2   ",
+	"sceCtrlPeekBufferPositiveExt ",
 	"sceCtrlPeekBufferPositiveExt2",
-	"sceCtrlReadBufferPositiveExt",
+	"sceCtrlReadBufferPositiveExt ",
 	"sceCtrlReadBufferPositiveExt2",
-	"sceCtrlPeekBufferNegative",
-	"sceCtrlPeekBufferNegative2",
-	"sceCtrlReadBufferNegative",
-	"sceCtrlReadBufferNegative2",
-	"ksceTouchRead",
-	"ksceTouchRead2",
-	"ksceTouchPeek",
-	"ksceTouchPeek2",
+	"sceCtrlPeekBufferNegative    ",
+	"sceCtrlPeekBufferNegative2   ",
+	"sceCtrlReadBufferNegative    ",
+	"sceCtrlReadBufferNegative2   ",    
+	"ksceCtrlReadBufferPositive   ",
+    "ksceCtrlPeekBufferPositive   ",
+    "ksceCtrlReadBufferNegative   ",
+    "ksceCtrlPeekBufferNegative   ",
+	"ksceTouchRead                ",
+	"ksceTouchPeek                "
 };
 static const char* str_btns[PHYS_BUTTONS_NUM] = {
 	"Cross", "Circle", "Triangle", "Square",
@@ -220,6 +222,7 @@ static struct MenuOpt menu_controllers[CONTROLLERS_MENU_NUM] = {
 };
 
 uint8_t ui_opened = 0;
+uint8_t ui_lines = 10;
 uint8_t new_frame = 1;
 static uint32_t ticker;
 int cfg_i = 0;
@@ -292,16 +295,15 @@ void drawFooter(){
 	renderer_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, str_footer[menu_i]);
 }
 
-void drawMenu_main(int avaliableEntries, int y){
-	int ii = calcStartingIndex(cfg_i, MAIN_MENU_NUM, avaliableEntries, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + avaliableEntries, MAIN_MENU_NUM); i++) {
+void drawMenu_main(int y){
+	int ii = calcStartingIndex(cfg_i, MAIN_MENU_NUM, ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, MAIN_MENU_NUM); i++) {
 		setColor(i == cfg_i, 1);
 		renderer_drawString(L_1, y += CHA_H, menu_main[i].name);
 	}
 }
-
-void drawMenu_remap(int avaliableEntries, int y){
-	for (int i = calcStartingIndex(cfg_i, PROFILE_REMAP_NUM, avaliableEntries, BOTTOM_OFFSET); i < PROFILE_REMAP_NUM; i++) {
+void drawMenu_remap(int y){
+	for (int i = calcStartingIndex(cfg_i, PROFILE_REMAP_NUM, ui_lines, BOTTOM_OFFSET); i < PROFILE_REMAP_NUM; i++) {
 		if (cfg_i == i){//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_0 + CHA_W*10, y + CHA_H, (ticker % 16 < 8) ? "<" : ">");
@@ -360,10 +362,9 @@ void drawMenu_remap(int avaliableEntries, int y){
 		if (y + 60 > UI_HEIGHT) break;
 	}
 }
-
-void drawMenu_analog(int avaliableEntries, int y){
-	int ii = calcStartingIndex(cfg_i, ANALOG_MENU_NUM , avaliableEntries, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + avaliableEntries, ANALOG_MENU_NUM); i++) {			
+void drawMenu_analog(int y){
+	int ii = calcStartingIndex(cfg_i, ANALOG_MENU_NUM , ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, ANALOG_MENU_NUM); i++) {			
 		int8_t idx = menu_analog[i].idx;
 
 		if (idx == HEADER_IDX){
@@ -385,12 +386,11 @@ void drawMenu_analog(int avaliableEntries, int y){
 			//drawEditPointer(L_2 + 17*CHA_W, y + 2);
 		}
 	}
-	drawFullScroll(ii > 0, ii + avaliableEntries < ANALOG_MENU_NUM, ((float)cfg_i) / (ANALOG_MENU_NUM-1));
+	drawFullScroll(ii > 0, ii + ui_lines < ANALOG_MENU_NUM, ((float)cfg_i) / (ANALOG_MENU_NUM-1));
 }
-
-void drawMenu_touch(int avaliableEntries, int y){
-	int ii = calcStartingIndex(cfg_i, TOUCH_MENU_NUM , avaliableEntries, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + avaliableEntries, TOUCH_MENU_NUM); i++) {			
+void drawMenu_touch(int y){
+	int ii = calcStartingIndex(cfg_i, TOUCH_MENU_NUM , ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, TOUCH_MENU_NUM); i++) {			
 		int8_t idx = menu_touch[i].idx;
 
 		if (idx == HEADER_IDX){
@@ -411,13 +411,12 @@ void drawMenu_touch(int avaliableEntries, int y){
 			renderer_drawString(L_2+ 20*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
-	//drawScroll(ii > 0, ii + avaliableEntries < TOUCH_MENU_NUM);
-	drawFullScroll(ii > 0, ii + avaliableEntries < TOUCH_MENU_NUM, ((float)cfg_i) / (TOUCH_MENU_NUM - 1));
+	//drawScroll(ii > 0, ii + ui_lines < TOUCH_MENU_NUM);
+	drawFullScroll(ii > 0, ii + ui_lines < TOUCH_MENU_NUM, ((float)cfg_i) / (TOUCH_MENU_NUM - 1));
 }
-
-void drawMenu_gyro(int avaliableEntries, int y){
-	int ii = calcStartingIndex(cfg_i, GYRO_MENU_NUM , avaliableEntries, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + avaliableEntries, GYRO_MENU_NUM); i++) {		
+void drawMenu_gyro(int y){
+	int ii = calcStartingIndex(cfg_i, GYRO_MENU_NUM , ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, GYRO_MENU_NUM); i++) {		
 		int8_t idx = menu_gyro[i].idx;
 		
 		if (idx == HEADER_IDX){
@@ -439,10 +438,9 @@ void drawMenu_gyro(int avaliableEntries, int y){
 			renderer_drawString(L_2 + 11 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
-	drawFullScroll(ii > 0, ii + avaliableEntries < GYRO_MENU_NUM, ((float)cfg_i)/(GYRO_MENU_NUM-1));
+	drawFullScroll(ii > 0, ii + ui_lines < GYRO_MENU_NUM, ((float)cfg_i)/(GYRO_MENU_NUM-1));
 }
-
-void drawMenu_controller(int avaliableEntries, int y){
+void drawMenu_controller(int y){
 	SceCtrlPortInfo pi;
 	int res = ksceCtrlGetControllerPortInfo(&pi);
 	if (res != 0){//Should not ever trigger
@@ -451,8 +449,8 @@ void drawMenu_controller(int avaliableEntries, int y){
 		return;
 	}
 	
-	int ii = calcStartingIndex(cfg_i, CONTROLLERS_MENU_NUM , avaliableEntries, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + avaliableEntries, CONTROLLERS_MENU_NUM); i++) {		
+	int ii = calcStartingIndex(cfg_i, CONTROLLERS_MENU_NUM , ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, CONTROLLERS_MENU_NUM); i++) {		
 		int8_t idx = menu_controllers[i].idx;
 
 		setColor(i == cfg_i, profile_controller[idx] == PROFILE_CONTROLLER_DEF[idx]);
@@ -479,20 +477,18 @@ void drawMenu_controller(int avaliableEntries, int y){
 		renderer_drawStringF(L_2, y += CHA_H, "Port %i: %s", i, getControllerName(pi.port[i]));
 	}
 }
-
-void drawMenu_hooks(int avaliableEntries, int y){
-	int ii = calcStartingIndex(cfg_i, HOOKS_NUM - 2, avaliableEntries, avaliableEntries - 1);
-	for (int i = ii; i < min(ii + avaliableEntries, HOOKS_NUM - 2); i++) {
+void drawMenu_hooks(int y){
+	int ii = calcStartingIndex(cfg_i, HOOKS_MENU_NUM, ui_lines, ui_lines - 1);
+	for (int i = ii; i < min(ii + ui_lines, HOOKS_MENU_NUM); i++) {
 		renderer_setColor((used_funcs[i] ? COLOR_ACTIVE : COLOR_DEFAULT));
 		renderer_drawStringF(L_1, y += CHA_H, "%s : %s", str_funcs[i], str_yes_no[used_funcs[i]]);
 	}
-	drawFullScroll(ii > 0, ii + avaliableEntries < HOOKS_NUM - 2, 
-			((float)cfg_i)/(HOOKS_NUM - 2 - (avaliableEntries - 1) - 1));
+	drawFullScroll(ii > 0, ii + ui_lines < HOOKS_MENU_NUM, 
+			((float)cfg_i)/(HOOKS_MENU_NUM - (ui_lines - 1) - 1));
 }
-
-void drawMenu_settings(int avaliableEntries, int y){
-	int ii = calcStartingIndex(cfg_i, SETTINGS_MENU_NUM , avaliableEntries, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + avaliableEntries, SETTINGS_MENU_NUM); i++) {		
+void drawMenu_settings(int y){
+	int ii = calcStartingIndex(cfg_i, SETTINGS_MENU_NUM , ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, SETTINGS_MENU_NUM); i++) {		
 		
 		int8_t idx = menu_settings[i].idx;
 		
@@ -510,12 +506,11 @@ void drawMenu_settings(int avaliableEntries, int y){
 			renderer_drawString(L_1 + 23 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
-	drawFullScroll(ii > 0, ii + avaliableEntries < GYRO_MENU_NUM, ((float)cfg_i) / (SETTINGS_MENU_NUM-1));
+	drawFullScroll(ii > 0, ii + ui_lines < GYRO_MENU_NUM, ((float)cfg_i) / (SETTINGS_MENU_NUM-1));
 }
-
-void drawMenu_profiles(int avaliableEntries, int y){
-	int ii = calcStartingIndex(cfg_i, PROFILE_MENU_NUM, avaliableEntries, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + avaliableEntries, PROFILE_MENU_NUM); i++) {
+void drawMenu_profiles(int y){
+	int ii = calcStartingIndex(cfg_i, PROFILE_MENU_NUM, ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, PROFILE_MENU_NUM); i++) {
 		if (menu_profiles[i].idx == HEADER_IDX){
 			setColorHeader(cfg_i == i);
 			renderer_drawString(L_1, y+=CHA_H, menu_profiles[i].name);
@@ -525,15 +520,14 @@ void drawMenu_profiles(int avaliableEntries, int y){
 		}
 	}
 }
-
-void drawMenu_credits(int avaliableEntries, int y){
-	int ii = calcStartingIndex(cfg_i, CREDITS_NUM, avaliableEntries, avaliableEntries - 1);
-	for (int i = ii; i < min(CREDITS_NUM, ii + avaliableEntries); i++) {	
+void drawMenu_credits(int y){
+	int ii = calcStartingIndex(cfg_i, CREDITS_NUM, ui_lines, ui_lines - 1);
+	for (int i = ii; i < min(CREDITS_NUM, ii + ui_lines); i++) {	
 		renderer_setColor(COLOR_DEFAULT);
 		renderer_drawString(L_0, y += CHA_H, str_credits[i]);
 	}
-	drawFullScroll(ii > 0, ii + avaliableEntries < CREDITS_NUM, 
-			((float)cfg_i)/(CREDITS_NUM - (avaliableEntries - 1) - 1));
+	drawFullScroll(ii > 0, ii + ui_lines < CREDITS_NUM, 
+			((float)cfg_i)/(CREDITS_NUM - (ui_lines - 1) - 1));
 }
 
 void drawTouchPointer(){
@@ -555,18 +549,18 @@ void drawBody() {
 	renderer_drawRectangle(0, HEADER_HEIGHT, UI_WIDTH, UI_HEIGHT -  2 * HEADER_HEIGHT, COLOR_BG_BODY);//BG
 	//Draw menu
 	int y = HEADER_HEIGHT - CHA_H / 2;
-	int avaliableEntries = ((float)(UI_HEIGHT - 2 * HEADER_HEIGHT)) / CHA_H - 1;
+	ui_lines = ((float)(UI_HEIGHT - 2 * HEADER_HEIGHT)) / CHA_H - 1;
 	switch (menu_i){
-		case MAIN_MENU: drawMenu_main(avaliableEntries, y); break;
-		case REMAP_MENU: drawMenu_remap(avaliableEntries, y); break;
-		case ANALOG_MENU: drawMenu_analog(avaliableEntries, y); break;
-		case TOUCH_MENU: drawMenu_touch(avaliableEntries, y); break;
-		case GYRO_MENU: drawMenu_gyro(avaliableEntries, y); break;
-		case CNTRL_MENU: drawMenu_controller(avaliableEntries, y); break;
-		case FUNCS_LIST: drawMenu_hooks(avaliableEntries, y); break;  
-		case PROFILES_MENU: drawMenu_profiles(avaliableEntries, y); break; 
-		case SETTINGS_MENU: drawMenu_settings(avaliableEntries, y); break; 
-		case CREDITS_MENU: drawMenu_credits(avaliableEntries, y); break;                                                             
+		case MAIN_MENU: drawMenu_main(y); break;
+		case REMAP_MENU: drawMenu_remap(y); break;
+		case ANALOG_MENU: drawMenu_analog(y); break;
+		case TOUCH_MENU: drawMenu_touch(y); break;
+		case GYRO_MENU: drawMenu_gyro(y); break;
+		case CNTRL_MENU: drawMenu_controller(y); break;
+		case FUNCS_LIST: drawMenu_hooks(y); break;  
+		case PROFILES_MENU: drawMenu_profiles(y); break; 
+		case SETTINGS_MENU: drawMenu_settings(y); break; 
+		case CREDITS_MENU: drawMenu_credits(y); break;                                                             
 		default: break;
 	}
 }
