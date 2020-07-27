@@ -70,8 +70,8 @@ void applyRemapRule(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos) {
 		if (profile.remap[btn_idx] < PHYS_BUTTONS_NUM + 14){		//Front touch default
 			if (etFront.num == MULTITOUCH_FRONT_NUM) return;
 			storeTouchPoint(&etFront,
-				PROFILE_TOUCH_DEF[(profile.remap[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2],
-				PROFILE_TOUCH_DEF[(profile.remap[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2 + 1]);
+				profile_def.touch[(profile.remap[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2],
+				profile_def.touch[(profile.remap[btn_idx] - (PHYS_BUTTONS_NUM + 10)) * 2 + 1]);
 		} else if (profile.remap[btn_idx] < PHYS_BUTTONS_NUM + 18){	//Front touch custom
 			if (etFront.num == MULTITOUCH_FRONT_NUM) return;
 			storeTouchPoint(&etFront,
@@ -80,8 +80,8 @@ void applyRemapRule(uint8_t btn_idx, uint32_t* map, uint32_t* stickpos) {
 		} else if (profile.remap[btn_idx] < PHYS_BUTTONS_NUM + 22){	//Rear  touch default
 			if (etRear.num == MULTITOUCH_REAR_NUM) return;
 			storeTouchPoint(&etRear,
-				PROFILE_TOUCH_DEF[8 + (profile.remap[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2],
-				PROFILE_TOUCH_DEF[8 + (profile.remap[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2 + 1]);
+				profile_def.touch[8 + (profile.remap[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2],
+				profile_def.touch[8 + (profile.remap[btn_idx] - (PHYS_BUTTONS_NUM + 18)) * 2 + 1]);
 		} else if (profile.remap[btn_idx] < PHYS_BUTTONS_NUM + 26){	//Rear touch custom
 			if (etRear.num == MULTITOUCH_REAR_NUM) return;
 			storeTouchPoint(&etRear,

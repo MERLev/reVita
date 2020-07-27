@@ -6,45 +6,11 @@
 #include "main.h"
 #include "profile.h"
 
-const uint8_t PROFILE_ANALOG_DEF[PROFILE_ANALOG_NUM] = {
-	30, 30, 30, 30,		//Deadzone
-	0, 0, 0, 0			//Force digital
-};
-
-const uint16_t PROFILE_TOUCH_DEF[PROFILE_TOUCH_NUM] = {
-	600,  272,	//Front TL
-	1280, 272,	//		TR
-	600,  816,	//		BL
-	1280, 816,	//		BR
-	600,  272,	//Rear	TL
-	1280, 272,	//		TR
-	600,  608,	//		BL
-	1280, 608,	//		BR
-	1, 1		//Touch mode
-};
-
-const uint8_t PROFILE_GYRO_DEF[PROFILE_GYRO_NUM] = {
-	127, 127, 127,	//Sensivity
-	15, 15, 15,		//Deadzone
-	0,				//Deadband
-	0,				//Whel mode
-	6,				//Reset wheel btn 1 | LTrigger
-	7,				//Reset wheel btn 2 | RTrigger
-	0
-};
-
-const uint8_t PROFILE_CONTROLLER_DEF[PROFILE_CONTROLLER_NUM] = {
-	0, 0, 0
-};
-
-const uint8_t PROFILE_SETTINGS_DEF[PROFILE_SETTINGS_NUM] = {
-	4, 3, //Opening keys
-	1,	  //Autosave game profile
-	10	  //Startup delay
-};
 Profile profile;
+Profile profile_def;
 Profile profile_global;
 uint8_t profile_settings[PROFILE_SETTINGS_NUM];
+uint8_t profile_settings_def[PROFILE_SETTINGS_NUM];
 
 static char fname[128];
 
@@ -55,23 +21,23 @@ void profile_resetRemap(){
 }
 void profile_resetAnalog(){
 	for (int i = 0; i < PROFILE_ANALOG_NUM; i++)
-		profile.analog[i] = PROFILE_ANALOG_DEF[i];
+		profile.analog[i] = profile_def.analog[i];
 }
 void profile_resetTouch(){
 	for (int i = 0; i < PROFILE_TOUCH_NUM; i++)
-		profile.touch[i] = PROFILE_TOUCH_DEF[i];
+		profile.touch[i] = profile_def.touch[i];
 }
 void profile_resetGyro() {
 	for (int i = 0; i < PROFILE_GYRO_NUM; i++)
-		profile.gyro[i] = PROFILE_GYRO_DEF[i];
+		profile.gyro[i] = profile_def.gyro[i];
 }
 void profile_resetController(){
 	for (int i = 0; i < PROFILE_CONTROLLER_NUM; i++)
-		profile.controller[i] = PROFILE_CONTROLLER_DEF[i];
+		profile.controller[i] = profile_def.controller[i];
 }
 void profile_resetSettings(){
 	for (int i = 0; i < PROFILE_SETTINGS_NUM; i++)
-		profile_settings[i] = PROFILE_SETTINGS_DEF[i];
+		profile_settings[i] = profile_settings_def[i];
 }
 
 void profile_saveSettings(){
@@ -277,5 +243,62 @@ void profile_deleteGlobal(){
 }
 
 void profile_deleteLocal(){
+	
+}
+
+void profile_init(){
+	for (int i = 0; i < PROFILE_REMAP_NUM; i++)
+		profile_def.remap[i] = PROFILE_REMAP_DEF;
+
+	profile_def.analog[PROFILE_ANALOG_LEFT_DEADZONE_X] = 30;
+	profile_def.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y] = 30;
+	profile_def.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X] = 30;
+	profile_def.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y] = 30;
+	profile_def.analog[PROFILE_ANALOG_LEFT_DIGITAL_X] = 0;
+	profile_def.analog[PROFILE_ANALOG_LEFT_DIGITAL_Y] = 0;
+	profile_def.analog[PROFILE_ANALOG_RIGHT_DIGITAL_X] = 0;
+	profile_def.analog[PROFILE_ANALOG_RIGHT_DIGITAL_Y] = 0;
+
+	profile_def.touch[PROFILE_TOUCH_FRONT_POINT1_X] = 600;
+	profile_def.touch[PROFILE_TOUCH_FRONT_POINT1_Y] = 272;
+	profile_def.touch[PROFILE_TOUCH_FRONT_POINT2_X] = 1280;
+	profile_def.touch[PROFILE_TOUCH_FRONT_POINT2_Y] = 272;
+	profile_def.touch[PROFILE_TOUCH_FRONT_POINT3_X] = 600;
+	profile_def.touch[PROFILE_TOUCH_FRONT_POINT3_Y] = 816;
+	profile_def.touch[PROFILE_TOUCH_FRONT_POINT4_X] = 1280;
+	profile_def.touch[PROFILE_TOUCH_FRONT_POINT4_Y] = 816;
+	profile_def.touch[PROFILE_TOUCH_REAR_POINT1_X] = 600;
+	profile_def.touch[PROFILE_TOUCH_REAR_POINT1_Y] = 272;
+	profile_def.touch[PROFILE_TOUCH_REAR_POINT2_X] = 1280;
+	profile_def.touch[PROFILE_TOUCH_REAR_POINT2_Y] = 272;
+	profile_def.touch[PROFILE_TOUCH_REAR_POINT3_X] = 600;
+	profile_def.touch[PROFILE_TOUCH_REAR_POINT3_Y] = 608;
+	profile_def.touch[PROFILE_TOUCH_REAR_POINT4_X] = 1280;
+	profile_def.touch[PROFILE_TOUCH_REAR_POINT4_Y] = 608;
+	profile_def.touch[PROFILE_TOUCH_FRONT_DISABLE] = 1;
+	profile_def.touch[PROFILE_TOUCH_REAR_DISABLE] = 1;
+
+	profile_def.gyro[PROFILE_GYRO_SENSIVITY_X] = 127;
+	profile_def.gyro[PROFILE_GYRO_SENSIVITY_Y] = 127;
+	profile_def.gyro[PROFILE_GYRO_SENSIVITY_Z] = 127;
+	profile_def.gyro[PROFILE_GYRO_DEADZONE_X] = 0;
+	profile_def.gyro[PROFILE_GYRO_DEADZONE_Y] = 0;
+	profile_def.gyro[PROFILE_GYRO_DEADZONE_Z] = 0;
+	profile_def.gyro[PROFILE_GYRO_DEADBAND] = 0;
+	profile_def.gyro[PROFILE_GYRO_WHEEL] = 0;
+	profile_def.gyro[PROFILE_GYRO_RESET_BTN1] = 6;
+	profile_def.gyro[PROFILE_GYRO_RESET_BTN2] = 7;
+
+	profile_def.controller[PROFILE_CONTROLLER_ENABLED] = 0;
+	profile_def.controller[PROFILE_CONTROLLER_PORT] = 0;
+	profile_def.controller[PROFILE_CONTROLLER_SWAP_BUTTONS] = 0;
+
+	profile_settings_def[PROFILE_SETTINGS_KEY1] = 4;
+	profile_settings_def[PROFILE_SETTINGS_KEY2] = 3;
+	profile_settings_def[PROFILE_SETTINGS_AUTOSAVE] = 1;
+	profile_settings_def[PROFILE_SETTINGS_DELAY] = 10;
+}
+
+void profile_destroy(){
 	
 }

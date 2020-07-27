@@ -362,6 +362,7 @@ void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
     LOG("Started\n");
 
+    profile_init();
     ui_init();
     ctrl_init();
     remap_init();
@@ -438,9 +439,10 @@ int module_stop(SceSize argc, const void *args) {
     if (mutex_procevent_uid >= 0)
         ksceKernelDeleteMutex(mutex_procevent_uid);
 
-    remap_destroy();
+    profile_destroy();
     ui_destroy();
     ctrl_destroy();
+    remap_destroy();
     log_flush();
     return SCE_KERNEL_STOP_SUCCESS;
 }

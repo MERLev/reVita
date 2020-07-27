@@ -371,11 +371,11 @@ void drawMenu_analog(int y){
 			setColorHeader(cfg_i == i);
 			renderer_drawString(L_1, y+=CHA_H, menu_analog[i].name);
 		} else if (idx < 4){
-			setColor(i == cfg_i, profile.analog[idx] == PROFILE_ANALOG_DEF[idx]);
+			setColor(i == cfg_i, profile.analog[idx] == profile_def.analog[idx]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %hhu", 
 					menu_analog[i].name, profile.analog[idx]);
 		} else if (idx != HEADER_IDX) {
-			setColor(i == cfg_i, profile.analog[idx] == PROFILE_ANALOG_DEF[idx]);
+			setColor(i == cfg_i, profile.analog[idx] == profile_def.analog[idx]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", 
 					menu_analog[i].name, str_yes_no[profile.analog[idx]]);
 		}
@@ -397,11 +397,11 @@ void drawMenu_touch(int y){
 			setColorHeader(cfg_i == i);
 			renderer_drawString(L_1, y+=CHA_H, menu_touch[i].name);
 		} else if (idx == 16 || idx == 17){
-			setColor(i == cfg_i, profile.touch[idx] == PROFILE_TOUCH_DEF[idx]);
+			setColor(i == cfg_i, profile.touch[idx] == profile_def.touch[idx]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", 
 					menu_touch[i].name, str_yes_no[profile.touch[idx]]);
 		} else if (idx != HEADER_IDX) {
-			setColor(i == cfg_i, profile.touch[idx] == PROFILE_TOUCH_DEF[idx]);
+			setColor(i == cfg_i, profile.touch[idx] == profile_def.touch[idx]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", 
 					menu_touch[i].name, profile.touch[idx]);
 		}
@@ -423,13 +423,13 @@ void drawMenu_gyro(int y){
 			setColorHeader(cfg_i == i);
 			renderer_drawString(L_1, y+=CHA_H, menu_gyro[i].name);
 		} else if (idx < 6){//Draw sens and deadzone option
-			setColor(i == cfg_i, profile.gyro[idx] == PROFILE_GYRO_DEF[idx]);
+			setColor(i == cfg_i, profile.gyro[idx] == profile_def.gyro[idx]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %hhu", menu_gyro[i].name, profile.gyro[idx]);
 		} else if (idx == 6) {//Draw deadband option
-			setColor(i == cfg_i, profile.gyro[idx] == PROFILE_GYRO_DEF[idx]);
+			setColor(i == cfg_i, profile.gyro[idx] == profile_def.gyro[idx]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", menu_gyro[i].name, str_deadband[profile.gyro[idx]]);
 		} else if (idx == 7) {//Draw wheel option
-			setColor(i == cfg_i, profile.gyro[idx] == PROFILE_GYRO_DEF[idx]);
+			setColor(i == cfg_i, profile.gyro[idx] == profile_def.gyro[idx]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", menu_gyro[i].name, str_yes_no[profile.gyro[idx]]);
 		}
 
@@ -453,7 +453,7 @@ void drawMenu_controller(int y){
 	for (int i = ii; i < min(ii + ui_lines, CONTROLLERS_MENU_NUM); i++) {		
 		int8_t idx = menu_controllers[i].idx;
 
-		setColor(i == cfg_i, profile.controller[idx] == PROFILE_CONTROLLER_DEF[idx]);
+		setColor(i == cfg_i, profile.controller[idx] == profile_def.controller[idx]);
 		if (idx == 0 || idx == 2)//Use external controller / buttons swap
 			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", menu_controllers[i].name, str_yes_no[profile.controller[idx]]);
 		else if (idx == 1){//Port selection
@@ -492,7 +492,7 @@ void drawMenu_settings(int y){
 		
 		int8_t idx = menu_settings[i].idx;
 		
-		setColor(i == cfg_i, profile_settings[idx] == PROFILE_SETTINGS_DEF[idx]);
+		setColor(i == cfg_i, profile_settings[idx] == profile_settings_def[idx]);
 		if (idx < 2){//Draw opening buttons
 			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", menu_settings[i].name, str_btns[profile_settings[idx]]);
 		} else if (idx == 2) {//Draw Save profile on close

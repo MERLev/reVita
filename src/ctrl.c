@@ -168,7 +168,7 @@ void inputHandler_analog(uint32_t btn){
 				profile.analog[idx] = idx < 4 ? 127 : 1;
 			break;
 		case SCE_CTRL_SQUARE:
-			profile.analog[idx] = PROFILE_ANALOG_DEF[idx];
+			profile.analog[idx] = profile_def.analog[idx];
 			break;
 		case SCE_CTRL_CIRCLE:
 			menu_i = MAIN_MENU;
@@ -211,7 +211,7 @@ void inputHandler_touch(uint32_t btn){
 			}
 			break;
 		case SCE_CTRL_SQUARE:
-			profile.touch[idx] = PROFILE_TOUCH_DEF[idx];
+			profile.touch[idx] = profile_def.touch[idx];
 			break;
 		case SCE_CTRL_START:
 			profile_resetTouch();
@@ -258,7 +258,7 @@ void inputHandler_gyro(uint32_t btn){
 			}
 			break;
 		case SCE_CTRL_SQUARE:
-			profile.gyro[idx] = PROFILE_GYRO_DEF[idx];
+			profile.gyro[idx] = profile_def.gyro[idx];
 			break;
 		case SCE_CTRL_START:
 			profile_resetGyro();
@@ -296,7 +296,7 @@ void inputHandler_controller(uint32_t btn){
 				profile.controller[idx] = !profile.controller[idx];
 			break;
 		case SCE_CTRL_SQUARE:
-			profile.controller[idx] = PROFILE_CONTROLLER_DEF[idx];
+			profile.controller[idx] = profile_def.controller[idx];
 			break;
 		case SCE_CTRL_START:
 			profile_resetController();
@@ -369,7 +369,7 @@ void inputHandler_settings(uint32_t btn){
 			break;
 		case SCE_CTRL_SQUARE:
 			if (idx <= 2)
-				profile_settings[idx] = PROFILE_SETTINGS_DEF[idx];
+				profile_settings[idx] = profile_settings_def[idx];
 			break;
 		case SCE_CTRL_START:
 			profile_resetSettings();
