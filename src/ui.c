@@ -14,6 +14,7 @@
 #include "profile.h"
 #include "common.h"
 #include "log.h"
+#include "remap.h"
 
 #define VERSION				2
 #define SUBVERSION			1
@@ -49,7 +50,20 @@ static const char* str_menus[MENU_MODES] = {
 	"HOOKS",
 	"SETTINGS",
 	"CREDITS",
-	"PROFILES"
+	"PROFILES",
+	"REMAP",
+	"SELECT TRIGGER TYPE",
+	"SELECT BUTTON",
+	"SELECT BUTTONS",
+	"SELECT ANALOG STICK",
+	"SELECT TOUCH POINT",
+	"SELECT GYRO ACTION",
+	"SELECT WHAT TO EMULATE",
+	"SELECT BUTTON",
+	"SELECT BUTTONS",
+	"SELECT ANALOG STICK",
+	"SELECT ANALOG STICK",
+	"SELECT TOUCH POINT"
 };
 static const char* str_footer[MENU_MODES] = {
 	"",
@@ -60,6 +74,19 @@ static const char* str_footer[MENU_MODES] = {
 	"([]):reset  (start):reset all", 
 	"",
 	"([]):reset  (start):reset all",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
 	"",
 	""
 };
@@ -141,93 +168,140 @@ char* getControllerName(int id){
 	else 									return "Unknown";
 }
 
-static struct MenuOpt menu_main[MAIN_MENU_NUM] = {
-	(MenuOpt){.name = "Remap rules", .idx = REMAP_MENU},
-	(MenuOpt){.name = "Analog sticks", .idx = ANALOG_MENU},
-	(MenuOpt){.name = "Touch", .idx = TOUCH_MENU},
-	(MenuOpt){.name = "Gyroscope", .idx = GYRO_MENU},
-	(MenuOpt){.name = "External gamepads", .idx = CNTRL_MENU},
-	(MenuOpt){.name = "[DEBUG] Show hooks", .idx = FUNCS_LIST},
-	(MenuOpt){.name = "Settings", .idx = SETTINGS_MENU},
-	(MenuOpt){.name = "Profiles", .idx = PROFILES_MENU},
-	(MenuOpt){.name = "Credits", .idx = CREDITS_MENU},
+static struct MenuEntry menu_main_entries[MAIN_MENU_NUM] = {
+	(MenuEntry){.name = "Remap rules", .id = REMAP_MENU},
+	(MenuEntry){.name = "Analog sticks", .id = ANALOG_MENU},
+	(MenuEntry){.name = "Touch", .id = TOUCH_MENU},
+	(MenuEntry){.name = "Gyroscope", .id = GYRO_MENU},
+	(MenuEntry){.name = "External gamepads", .id = CNTRL_MENU},
+	(MenuEntry){.name = "[DEBUG] Show hooks", .id = HOOKS_MENU},
+	(MenuEntry){.name = "Settings", .id = SETTINGS_MENU},
+	(MenuEntry){.name = "Profiles", .id = PROFILES_MENU},
+	(MenuEntry){.name = "Credits", .id = CREDITS_MENU},
 };
-static struct MenuOpt menu_analog[ANALOG_MENU_NUM] = {
-	(MenuOpt){.name = "Deadzone", .idx = HEADER_IDX},
-	(MenuOpt){.name = "Left Analog  [X]", .idx = 0},
-	(MenuOpt){.name = "             [Y]", .idx = 1},
-	(MenuOpt){.name = "Right Analog [X]", .idx = 2},
-	(MenuOpt){.name = "             [Y]", .idx = 3},
-	(MenuOpt){.name = "Force digital", .idx = HEADER_IDX},
-	(MenuOpt){.name = "Left Analog  [X]", .idx = 4},
-	(MenuOpt){.name = "             [Y]", .idx = 5},
-	(MenuOpt){.name = "Right Analog [X]", .idx = 6},
-	(MenuOpt){.name = "             [Y]", .idx = 7}
+static struct Menu menu_main = (Menu){.id = MAIN_MENU, .num = MAIN_MENU_NUM, .name = "MAIN MENU", .entries = menu_main_entries};
+static struct MenuEntry menu_analog_entries[ANALOG_MENU_NUM] = {
+	(MenuEntry){.name = "Deadzone", .id = HEADER_IDX},
+	(MenuEntry){.name = "Left Analog  [X]", .id = 0},
+	(MenuEntry){.name = "             [Y]", .id = 1},
+	(MenuEntry){.name = "Right Analog [X]", .id = 2},
+	(MenuEntry){.name = "             [Y]", .id = 3},
+	(MenuEntry){.name = "Force digital", .id = HEADER_IDX},
+	(MenuEntry){.name = "Left Analog  [X]", .id = 4},
+	(MenuEntry){.name = "             [Y]", .id = 5},
+	(MenuEntry){.name = "Right Analog [X]", .id = 6},
+	(MenuEntry){.name = "             [Y]", .id = 7}
 };
-static struct MenuOpt menu_touch[TOUCH_MENU_NUM] = {
-	(MenuOpt){.name = "Front", .idx = HEADER_IDX},
-	(MenuOpt){.name = "Point A           x", .idx = 0},
-	(MenuOpt){.name = "                  y", .idx = 1},
-	(MenuOpt){.name = "Point B           x", .idx = 2},
-	(MenuOpt){.name = "                  y", .idx = 3},
-	(MenuOpt){.name = "Point C           x", .idx = 4},
-	(MenuOpt){.name = "                  y", .idx = 5},
-	(MenuOpt){.name = "Point D           x", .idx = 6},
-	(MenuOpt){.name = "                  y", .idx = 7},
-	(MenuOpt){.name = "Disable if remapped", .idx = 16},
-	(MenuOpt){.name = "Rear", .idx = HEADER_IDX},
-	(MenuOpt){.name = "Point A           x", .idx = 8},
-	(MenuOpt){.name = "                  y", .idx = 9},
-	(MenuOpt){.name = "Point B           x", .idx = 10},
-	(MenuOpt){.name = "                  y", .idx = 11},
-	(MenuOpt){.name = "Point C           x", .idx = 12},
-	(MenuOpt){.name = "                  y", .idx = 13},
-	(MenuOpt){.name = "Point D           x", .idx = 14},
-	(MenuOpt){.name = "                  y", .idx = 15},
-	(MenuOpt){.name = "Disable if remapped", .idx = 17}
+static struct Menu menu_analog = (Menu){.id = ANALOG_MENU, .num = ANALOG_MENU_NUM, .name = "REMAP RULES", .entries = menu_analog_entries};
+static struct MenuEntry menu_touch_entries[TOUCH_MENU_NUM] = {
+	(MenuEntry){.name = "Front", .id = HEADER_IDX},
+	(MenuEntry){.name = "Point A           x", .id = 0},
+	(MenuEntry){.name = "                  y", .id = 1},
+	(MenuEntry){.name = "Point B           x", .id = 2},
+	(MenuEntry){.name = "                  y", .id = 3},
+	(MenuEntry){.name = "Point C           x", .id = 4},
+	(MenuEntry){.name = "                  y", .id = 5},
+	(MenuEntry){.name = "Point D           x", .id = 6},
+	(MenuEntry){.name = "                  y", .id = 7},
+	(MenuEntry){.name = "Disable if remapped", .id = 16},
+	(MenuEntry){.name = "Rear", .id = HEADER_IDX},
+	(MenuEntry){.name = "Point A           x", .id = 8},
+	(MenuEntry){.name = "                  y", .id = 9},
+	(MenuEntry){.name = "Point B           x", .id = 10},
+	(MenuEntry){.name = "                  y", .id = 11},
+	(MenuEntry){.name = "Point C           x", .id = 12},
+	(MenuEntry){.name = "                  y", .id = 13},
+	(MenuEntry){.name = "Point D           x", .id = 14},
+	(MenuEntry){.name = "                  y", .id = 15},
+	(MenuEntry){.name = "Disable if remapped", .id = 17}
 };
-static struct MenuOpt menu_gyro[GYRO_MENU_NUM] = {
-	(MenuOpt){.name = "Sensivity", .idx = HEADER_IDX},
-	(MenuOpt){.name = "    X Axis", .idx = 0},
-	(MenuOpt){.name = "    Y Axis", .idx = 1},
-	(MenuOpt){.name = "    Z Axis", .idx = 2},
-	(MenuOpt){.name = "Deadzone", .idx = HEADER_IDX},
-	(MenuOpt){.name = "    X Axis", .idx = 3},
-	(MenuOpt){.name = "    Y Axis", .idx = 4},
-	(MenuOpt){.name = "    Z Axis", .idx = 5},
-	(MenuOpt){.name = "More", .idx = HEADER_IDX},
-	(MenuOpt){.name = "Deadband  ", .idx = 6},
-	(MenuOpt){.name = "Wheel mode", .idx = 7},
+static struct Menu menu_touch = (Menu){.id = TOUCH_MENU, .num = TOUCH_MENU_NUM, .name = "TOUCH", .entries = menu_touch_entries};
+static struct MenuEntry menu_gyro_entries[GYRO_MENU_NUM] = {
+	(MenuEntry){.name = "Sensivity", .id = HEADER_IDX},
+	(MenuEntry){.name = "    X Axis", .id = 0},
+	(MenuEntry){.name = "    Y Axis", .id = 1},
+	(MenuEntry){.name = "    Z Axis", .id = 2},
+	(MenuEntry){.name = "Deadzone", .id = HEADER_IDX},
+	(MenuEntry){.name = "    X Axis", .id = 3},
+	(MenuEntry){.name = "    Y Axis", .id = 4},
+	(MenuEntry){.name = "    Z Axis", .id = 5},
+	(MenuEntry){.name = "More", .id = HEADER_IDX},
+	(MenuEntry){.name = "Deadband  ", .id = 6},
+	(MenuEntry){.name = "Wheel mode", .id = 7},
 };
-static struct MenuOpt menu_settings[SETTINGS_MENU_NUM] = {
-	(MenuOpt){.name = "Menu trigger first key", .idx = 0},
-	(MenuOpt){.name = "            second key", .idx = 1},
-	(MenuOpt){.name = "Save profile on close ", .idx = 2},
-	(MenuOpt){.name = "Startup delay         ", .idx = 3}
+static struct Menu menu_gyro = (Menu){.id = GYRO_MENU, .num = GYRO_MENU_NUM, .name = "GYROSCOPE", .entries = menu_gyro_entries};
+static struct MenuEntry menu_controllers_entries[CONTROLLERS_MENU_NUM] = {
+	(MenuEntry){.name = "Use external       ", .id = 0},
+	(MenuEntry){.name = "Selected controller", .id = 1},
+	(MenuEntry){.name = "Swap L1<>LT R1<>RT ", .id = 2}
 };
-static struct MenuOpt menu_profiles[PROFILE_MENU_NUM] = {
-	(MenuOpt){.name = "Global", .idx = HEADER_IDX},
-	(MenuOpt){.name = "Save", .idx = PROFILE_GLOBAL_SAVE},
-	(MenuOpt){.name = "Load", .idx = PROFILE_GLOABL_LOAD},
-	(MenuOpt){.name = "Delete", .idx = PROFILE_GLOBAL_DELETE},
-	(MenuOpt){.name = "Game", .idx = HEADER_IDX},
-	(MenuOpt){.name = "Save", .idx = PROFILE_LOCAL_SAVE},
-	(MenuOpt){.name = "Load", .idx = PROFILE_LOCAL_LOAD},
-	(MenuOpt){.name = "Delete", .idx = PROFILE_LOCAL_DELETE}
+static struct Menu menu_controllers = (Menu){.id = CNTRL_MENU, .num = CONTROLLERS_MENU_NUM, .name = "CONTROLLER", .entries = menu_controllers_entries};
+static struct MenuEntry menu_settings_entries[SETTINGS_MENU_NUM] = {
+	(MenuEntry){.name = "Menu trigger first key", .id = 0},
+	(MenuEntry){.name = "            second key", .id = 1},
+	(MenuEntry){.name = "Save profile on close ", .id = 2},
+	(MenuEntry){.name = "Startup delay         ", .id = 3}
 };
-static struct MenuOpt menu_controllers[CONTROLLERS_MENU_NUM] = {
-	(MenuOpt){.name = "Use external       ", .idx = 0},
-	(MenuOpt){.name = "Selected controller", .idx = 1},
-	(MenuOpt){.name = "Swap L1<>LT R1<>RT ", .idx = 2}
+static struct Menu menu_settings = (Menu){.id = SETTINGS_MENU, .num = SETTINGS_MENU_NUM, .name = "SETTINGS", .entries = menu_settings_entries};
+static struct MenuEntry menu_profiles_entries[PROFILE_MENU_NUM] = {
+	(MenuEntry){.name = "Global", .id = HEADER_IDX},
+	(MenuEntry){.name = "Save", .id = PROFILE_GLOBAL_SAVE},
+	(MenuEntry){.name = "Load", .id = PROFILE_GLOABL_LOAD},
+	(MenuEntry){.name = "Delete", .id = PROFILE_GLOBAL_DELETE},
+	(MenuEntry){.name = "Game", .id = HEADER_IDX},
+	(MenuEntry){.name = "Save", .id = PROFILE_LOCAL_SAVE},
+	(MenuEntry){.name = "Load", .id = PROFILE_LOCAL_LOAD},
+	(MenuEntry){.name = "Delete", .id = PROFILE_LOCAL_DELETE}
+};
+static struct Menu menu_profiles = (Menu){.id = PROFILES_MENU, .num = PROFILE_MENU_NUM, .name = "PROFILES", .entries = menu_profiles_entries};
+
+static struct Menu menu_hooks = (Menu){.id = HOOKS_MENU, .num = HOOKS_MENU_NUM, .name = "HOOKS"};
+static struct Menu menu_credits = (Menu){.id = CREDITS_MENU, .num = CREDITS_NUM, .name = "CREDITS"};
+
+static struct MenuEntry menu_remap_entries[REMAP_MENU_NUM] = {
+	(MenuEntry){.name = "<new remap rule>", .id = 0}
+};
+static struct Menu menu_remap = (Menu){.id = REMAP_MENU, .num = REMAP_MENU_NUM, .name = "REMAP RULES", .entries = menu_remap_entries};
+static struct MenuEntry submenu_remap_trigger_group[REMAP_TRIGGER_GROUP_SUB_NUM] = {
+	(MenuEntry){.name = "Button", .id = REMAP_TYPE_BUTTON},
+	(MenuEntry){.name = "Buttons combo", .id = REMAP_TYPE_COMBO},
+	(MenuEntry){.name = "Analog Stick Left", .id = REMAP_TYPE_LEFT_ANALOG},
+	(MenuEntry){.name = "Analog Stick Left [DIGITAL]", .id = REMAP_TYPE_LEFT_ANALOG_DIGITAL},
+	(MenuEntry){.name = "Analog Stick Right", .id = REMAP_TYPE_RIGHT_ANALOG},
+	(MenuEntry){.name = "Analog Stick Right [DIGITAL]", .id = REMAP_TYPE_RIGHT_ANALOG_DIGITAL},
+	(MenuEntry){.name = "Touch - Front Panel", .id = REMAP_TYPE_FRONT_TOUCH_POINT},
+	(MenuEntry){.name = "Touch - Back Panel", .id = REMAP_TYPE_BACK_TOUCH__ZONE},
+	(MenuEntry){.name = "Gyroscope", .id = REMAP_TYPE_GYROSCOPE}
+};
+static struct MenuEntry submenu_remap_trigger_btn[REMAP_TRIGGER_BTN_SUB_NUM];
+static struct MenuEntry submenu_remap_trigger_combo[REMAP_TRIGGER_BTN_SUB_NUM];
+static struct MenuEntry submenu_remap_trigger_analog[REMAP_TRIGGER_ANALOG_SUB_NUM] = {
+	(MenuEntry){.name = "Move left", .id = REMAP_ANALOG_LEFT},
+	(MenuEntry){.name = "Move right", .id = REMAP_ANALOG_RIGHT},
+	(MenuEntry){.name = "Move up", .id = REMAP_ANALOG_UP},
+	(MenuEntry){.name = "Move down", .id = REMAP_ANALOG_DOWN}
+};
+static struct MenuEntry submenu_remap_trigger_touch[REMAP_TRIGGER_TOUCH_SUB_NUM] = {
+	(MenuEntry){.name = "Top Left Zone", .id = REMAP_TOUCH_ZONE_TL},
+	(MenuEntry){.name = "Top Right Zone", .id = REMAP_TOUCH_ZONE_TR},
+	(MenuEntry){.name = "Bottom Left Zone", .id = REMAP_TOUCH_ZONE_BL},
+	(MenuEntry){.name = "Bottom Right Zone", .id = REMAP_TOUCH_ZONE_BR}
+};
+static struct MenuEntry submenu_remap_trigger_gyro[REMAP_TRIGGER_GYRO_SUB_NUM] = {
+	(MenuEntry){.name = "Move left", .id = REMAP_GYRO_LEFT},
+	(MenuEntry){.name = "Move right", .id = REMAP_GYRO_RIGHT},
+	(MenuEntry){.name = "Move up", .id = REMAP_GYRO_UP},
+	(MenuEntry){.name = "Move down", .id = REMAP_GYRO_DOWN},
+	(MenuEntry){.name = "Roll left", .id = REMAP_GYRO_ROLL_LEFT},
+	(MenuEntry){.name = "Roll right", .id = REMAP_GYRO_ROLL_RIGHT}
 };
 
 uint8_t ui_opened = 0;
 uint8_t ui_lines = 10;
 uint8_t new_frame = 1;
 static uint32_t ticker;
-int cfg_i = 0;
-MenuOpt ui_opt;
-int menu_i = MAIN_MENU;
+Menu* ui_menu;
+MenuEntry* ui_entry;
 
 //Calculate starting index for scroll menu
 int calcStartingIndex(int idx, int entriesNum, int screenEntries, int bottomOffset){
@@ -280,10 +354,10 @@ void drawHeader(){
 	renderer_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, COLOR_BG_HEADER);//BG
 	renderer_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, COLOR_HEADER);//Separator
 	renderer_setColor(COLOR_HEADER);
-	if (menu_i == MAIN_MENU)
+	if (ui_menu->id == MAIN_MENU)
 		renderer_drawStringF(L_0, 3, "remaPSV2 v.%hhu.%hhu.%hhu", VERSION, SUBVERSION, SUBSUBVERSION);
 	else	
-		renderer_drawString(L_0, 3, str_menus[menu_i]);
+		renderer_drawString(L_0, 3, str_menus[ui_menu->id]);
 	
 	renderer_drawString(UI_WIDTH - CHA_W * strlen(titleid) - 10, 2, titleid);
 }
@@ -292,19 +366,19 @@ void drawFooter(){
 	renderer_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, COLOR_HEADER);//Separator
 	renderer_drawRectangle(0, UI_HEIGHT - (HEADER_HEIGHT - 1), UI_WIDTH, HEADER_HEIGHT - 1, COLOR_BG_HEADER);//BG
 	renderer_setColor(COLOR_HEADER);                                                               
-	renderer_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, str_footer[menu_i]);
+	renderer_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, str_footer[ui_menu->id]);
 }
 
 void drawMenu_main(int y){
-	int ii = calcStartingIndex(cfg_i, MAIN_MENU_NUM, ui_lines, BOTTOM_OFFSET);
+	int ii = calcStartingIndex(ui_menu->idx, MAIN_MENU_NUM, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, MAIN_MENU_NUM); i++) {
-		setColor(i == cfg_i, 1);
-		renderer_drawString(L_1, y += CHA_H, menu_main[i].name);
+		setColor(i == ui_menu->idx, 1);
+		renderer_drawString(L_1, y += CHA_H, menu_main_entries[i].name);
 	}
 }
 void drawMenu_remap(int y){
-	for (int i = calcStartingIndex(cfg_i, PROFILE_REMAP_NUM, ui_lines, BOTTOM_OFFSET); i < PROFILE_REMAP_NUM; i++) {
-		if (cfg_i == i){//Draw cursor
+	for (int i = calcStartingIndex(ui_menu->idx, PROFILE_REMAP_NUM, ui_lines, BOTTOM_OFFSET); i < PROFILE_REMAP_NUM; i++) {
+		if (ui_menu->idx == i){//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_0 + CHA_W*10, y + CHA_H, (ticker % 16 < 8) ? "<" : ">");
 		}
@@ -345,7 +419,7 @@ void drawMenu_remap(int y){
 		renderer_setColor(COLOR_HEADER);
 		renderer_drawString(L_0, y += CHA_H, srcSection);
 		
-		if (i == cfg_i) renderer_setColor(COLOR_CURSOR);
+		if (i == ui_menu->idx) renderer_setColor(COLOR_CURSOR);
 		else if (profile.remap[i] == PHYS_BUTTONS_NUM) renderer_setColor(COLOR_DEFAULT);
 		else if (profile.remap[i] == PHYS_BUTTONS_NUM + 1) renderer_setColor(COLOR_DANGER);
 		else renderer_setColor(COLOR_ACTIVE);
@@ -363,82 +437,82 @@ void drawMenu_remap(int y){
 	}
 }
 void drawMenu_analog(int y){
-	int ii = calcStartingIndex(cfg_i, ANALOG_MENU_NUM , ui_lines, BOTTOM_OFFSET);
+	int ii = calcStartingIndex(ui_menu->idx, ANALOG_MENU_NUM , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ANALOG_MENU_NUM); i++) {			
-		int8_t idx = menu_analog[i].idx;
+		int8_t id = menu_analog_entries[i].id;
 
-		if (idx == HEADER_IDX){
-			setColorHeader(cfg_i == i);
-			renderer_drawString(L_1, y+=CHA_H, menu_analog[i].name);
-		} else if (idx < 4){
-			setColor(i == cfg_i, profile.analog[idx] == profile_def.analog[idx]);
+		if (id == HEADER_IDX){
+			setColorHeader(ui_menu->idx == i);
+			renderer_drawString(L_1, y+=CHA_H, menu_analog_entries[i].name);
+		} else if (id < 4){
+			setColor(i == ui_menu->idx, profile.analog[id] == profile_def.analog[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %hhu", 
-					menu_analog[i].name, profile.analog[idx]);
-		} else if (idx != HEADER_IDX) {
-			setColor(i == cfg_i, profile.analog[idx] == profile_def.analog[idx]);
+					menu_analog_entries[i].name, profile.analog[id]);
+		} else if (id != HEADER_IDX) {
+			setColor(i == ui_menu->idx, profile.analog[id] == profile_def.analog[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", 
-					menu_analog[i].name, str_yes_no[profile.analog[idx]]);
+					menu_analog_entries[i].name, str_yes_no[profile.analog[id]]);
 		}
 
-		if (cfg_i == i && (idx != HEADER_IDX)){//Draw cursor
+		if (ui_menu->idx == i && (id != HEADER_IDX)){//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_2 + 17*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 			//drawEditPointer(L_2 + 17*CHA_W, y + 2);
 		}
 	}
-	drawFullScroll(ii > 0, ii + ui_lines < ANALOG_MENU_NUM, ((float)cfg_i) / (ANALOG_MENU_NUM-1));
+	drawFullScroll(ii > 0, ii + ui_lines < ANALOG_MENU_NUM, ((float)ui_menu->idx) / (ANALOG_MENU_NUM-1));
 }
 void drawMenu_touch(int y){
-	int ii = calcStartingIndex(cfg_i, TOUCH_MENU_NUM , ui_lines, BOTTOM_OFFSET);
+	int ii = calcStartingIndex(ui_menu->idx, TOUCH_MENU_NUM , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, TOUCH_MENU_NUM); i++) {			
-		int8_t idx = menu_touch[i].idx;
+		int8_t id = menu_touch_entries[i].id;
 
-		if (idx == HEADER_IDX){
-			setColorHeader(cfg_i == i);
-			renderer_drawString(L_1, y+=CHA_H, menu_touch[i].name);
-		} else if (idx == 16 || idx == 17){
-			setColor(i == cfg_i, profile.touch[idx] == profile_def.touch[idx]);
+		if (id == HEADER_IDX){
+			setColorHeader(ui_menu->idx == i);
+			renderer_drawString(L_1, y+=CHA_H, menu_touch_entries[i].name);
+		} else if (id == 16 || id == 17){
+			setColor(i == ui_menu->idx, profile.touch[id] == profile_def.touch[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", 
-					menu_touch[i].name, str_yes_no[profile.touch[idx]]);
-		} else if (idx != HEADER_IDX) {
-			setColor(i == cfg_i, profile.touch[idx] == profile_def.touch[idx]);
+					menu_touch_entries[i].name, str_yes_no[profile.touch[id]]);
+		} else if (id != HEADER_IDX) {
+			setColor(i == ui_menu->idx, profile.touch[id] == profile_def.touch[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", 
-					menu_touch[i].name, profile.touch[idx]);
+					menu_touch_entries[i].name, profile.touch[id]);
 		}
 
-		if (cfg_i == i && (idx != HEADER_IDX)){//Draw cursor
+		if (ui_menu->idx == i && (id != HEADER_IDX)){//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_2+ 20*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
 	//drawScroll(ii > 0, ii + ui_lines < TOUCH_MENU_NUM);
-	drawFullScroll(ii > 0, ii + ui_lines < TOUCH_MENU_NUM, ((float)cfg_i) / (TOUCH_MENU_NUM - 1));
+	drawFullScroll(ii > 0, ii + ui_lines < TOUCH_MENU_NUM, ((float)ui_menu->idx) / (TOUCH_MENU_NUM - 1));
 }
 void drawMenu_gyro(int y){
-	int ii = calcStartingIndex(cfg_i, GYRO_MENU_NUM , ui_lines, BOTTOM_OFFSET);
+	int ii = calcStartingIndex(ui_menu->idx, GYRO_MENU_NUM , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, GYRO_MENU_NUM); i++) {		
-		int8_t idx = menu_gyro[i].idx;
+		int8_t id = menu_gyro_entries[i].id;
 		
-		if (idx == HEADER_IDX){
-			setColorHeader(cfg_i == i);
-			renderer_drawString(L_1, y+=CHA_H, menu_gyro[i].name);
-		} else if (idx < 6){//Draw sens and deadzone option
-			setColor(i == cfg_i, profile.gyro[idx] == profile_def.gyro[idx]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %hhu", menu_gyro[i].name, profile.gyro[idx]);
-		} else if (idx == 6) {//Draw deadband option
-			setColor(i == cfg_i, profile.gyro[idx] == profile_def.gyro[idx]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", menu_gyro[i].name, str_deadband[profile.gyro[idx]]);
-		} else if (idx == 7) {//Draw wheel option
-			setColor(i == cfg_i, profile.gyro[idx] == profile_def.gyro[idx]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", menu_gyro[i].name, str_yes_no[profile.gyro[idx]]);
+		if (id == HEADER_IDX){
+			setColorHeader(ui_menu->idx == i);
+			renderer_drawString(L_1, y+=CHA_H, menu_gyro_entries[i].name);
+		} else if (id < 6){//Draw sens and deadzone option
+			setColor(i == ui_menu->idx, profile.gyro[id] == profile_def.gyro[id]);
+			renderer_drawStringF(L_2, y += CHA_H, "%s: %hhu", menu_gyro_entries[i].name, profile.gyro[id]);
+		} else if (id == 6) {//Draw deadband option
+			setColor(i == ui_menu->idx, profile.gyro[id] == profile_def.gyro[id]);
+			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", menu_gyro_entries[i].name, str_deadband[profile.gyro[id]]);
+		} else if (id == 7) {//Draw wheel option
+			setColor(i == ui_menu->idx, profile.gyro[id] == profile_def.gyro[id]);
+			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", menu_gyro_entries[i].name, str_yes_no[profile.gyro[id]]);
 		}
 
-		if (cfg_i == i && (idx != HEADER_IDX)) {//Draw cursor
+		if (ui_menu->idx == i && (id != HEADER_IDX)) {//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_2 + 11 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
-	drawFullScroll(ii > 0, ii + ui_lines < GYRO_MENU_NUM, ((float)cfg_i)/(GYRO_MENU_NUM-1));
+	drawFullScroll(ii > 0, ii + ui_lines < GYRO_MENU_NUM, ((float)ui_menu->idx)/(GYRO_MENU_NUM-1));
 }
 void drawMenu_controller(int y){
 	SceCtrlPortInfo pi;
@@ -449,19 +523,19 @@ void drawMenu_controller(int y){
 		return;
 	}
 	
-	int ii = calcStartingIndex(cfg_i, CONTROLLERS_MENU_NUM , ui_lines, BOTTOM_OFFSET);
+	int ii = calcStartingIndex(ui_menu->idx, CONTROLLERS_MENU_NUM , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, CONTROLLERS_MENU_NUM); i++) {		
-		int8_t idx = menu_controllers[i].idx;
+		int8_t id = menu_controllers_entries[i].id;
 
-		setColor(i == cfg_i, profile.controller[idx] == profile_def.controller[idx]);
-		if (idx == 0 || idx == 2)//Use external controller / buttons swap
-			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", menu_controllers[i].name, str_yes_no[profile.controller[idx]]);
-		else if (idx == 1){//Port selection
-			renderer_drawStringF(L_1, y += CHA_H, "%s: {%i} %s", menu_controllers[i].name, profile.controller[idx],
+		setColor(i == ui_menu->idx, profile.controller[id] == profile_def.controller[id]);
+		if (id == 0 || id == 2)//Use external controller / buttons swap
+			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", menu_controllers_entries[i].name, str_yes_no[profile.controller[id]]);
+		else if (id == 1){//Port selection
+			renderer_drawStringF(L_1, y += CHA_H, "%s: {%i} %s", menu_controllers_entries[i].name, profile.controller[id],
 					getControllerName(pi.port[profile.controller[1]]));
 		}
 
-		if (cfg_i == i && (idx != HEADER_IDX)) {//Draw cursor
+		if (ui_menu->idx == i && (id != HEADER_IDX)) {//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_1 + 20 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
@@ -478,61 +552,60 @@ void drawMenu_controller(int y){
 	}
 }
 void drawMenu_hooks(int y){
-	int ii = calcStartingIndex(cfg_i, HOOKS_MENU_NUM, ui_lines, ui_lines - 1);
+	int ii = calcStartingIndex(ui_menu->idx, HOOKS_MENU_NUM, ui_lines, ui_lines - 1);
 	for (int i = ii; i < min(ii + ui_lines, HOOKS_MENU_NUM); i++) {
 		renderer_setColor((used_funcs[i] ? COLOR_ACTIVE : COLOR_DEFAULT));
 		renderer_drawStringF(L_1, y += CHA_H, "%s : %s", str_funcs[i], str_yes_no[used_funcs[i]]);
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < HOOKS_MENU_NUM, 
-			((float)cfg_i)/(HOOKS_MENU_NUM - (ui_lines - 1) - 1));
+			((float)ui_menu->idx)/(HOOKS_MENU_NUM - (ui_lines - 1) - 1));
 }
 void drawMenu_settings(int y){
-	int ii = calcStartingIndex(cfg_i, SETTINGS_MENU_NUM , ui_lines, BOTTOM_OFFSET);
+	int ii = calcStartingIndex(ui_menu->idx, SETTINGS_MENU_NUM , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, SETTINGS_MENU_NUM); i++) {		
+		int8_t id = menu_settings_entries[i].id;
 		
-		int8_t idx = menu_settings[i].idx;
-		
-		setColor(i == cfg_i, profile_settings[idx] == profile_settings_def[idx]);
-		if (idx < 2){//Draw opening buttons
-			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", menu_settings[i].name, str_btns[profile_settings[idx]]);
-		} else if (idx == 2) {//Draw Save profile on close
-			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", menu_settings[i].name, str_yes_no[profile_settings[idx]]);
-		} else if (idx == 3) {//Startup delay
-			renderer_drawStringF(L_1, y += CHA_H, "%s: %hhu", menu_settings[i].name, profile_settings[idx]);
+		setColor(i == ui_menu->idx, profile_settings[id] == profile_settings_def[id]);
+		if (id < 2){//Draw opening buttons
+			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", menu_settings_entries[i].name, str_btns[profile_settings[id]]);
+		} else if (id == 2) {//Draw Save profile on close
+			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", menu_settings_entries[i].name, str_yes_no[profile_settings[id]]);
+		} else if (id == 3) {//Startup delay
+			renderer_drawStringF(L_1, y += CHA_H, "%s: %hhu", menu_settings_entries[i].name, profile_settings[id]);
 		}
 
-		if (cfg_i == i && (idx != HEADER_IDX)) {//Draw cursor
+		if (ui_menu->idx == i && (id != HEADER_IDX)) {//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_1 + 23 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
-	drawFullScroll(ii > 0, ii + ui_lines < GYRO_MENU_NUM, ((float)cfg_i) / (SETTINGS_MENU_NUM-1));
+	drawFullScroll(ii > 0, ii + ui_lines < GYRO_MENU_NUM, ((float)ui_menu->idx) / (SETTINGS_MENU_NUM-1));
 }
 void drawMenu_profiles(int y){
-	int ii = calcStartingIndex(cfg_i, PROFILE_MENU_NUM, ui_lines, BOTTOM_OFFSET);
+	int ii = calcStartingIndex(ui_menu->idx, PROFILE_MENU_NUM, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, PROFILE_MENU_NUM); i++) {
-		if (menu_profiles[i].idx == HEADER_IDX){
-			setColorHeader(cfg_i == i);
-			renderer_drawString(L_1, y+=CHA_H, menu_profiles[i].name);
+		if (menu_profiles_entries[i].id == HEADER_IDX){
+			setColorHeader(ui_menu->idx == i);
+			renderer_drawString(L_1, y+=CHA_H, menu_profiles_entries[i].name);
 		} else {
-			setColor(i == cfg_i, 1);
-			renderer_drawString(L_2, y += CHA_H, menu_profiles[i].name);
+			setColor(i == ui_menu->idx, 1);
+			renderer_drawString(L_2, y += CHA_H, menu_profiles_entries[i].name);
 		}
 	}
 }
 void drawMenu_credits(int y){
-	int ii = calcStartingIndex(cfg_i, CREDITS_NUM, ui_lines, ui_lines - 1);
+	int ii = calcStartingIndex(ui_menu->idx, CREDITS_NUM, ui_lines, ui_lines - 1);
 	for (int i = ii; i < min(CREDITS_NUM, ii + ui_lines); i++) {	
 		renderer_setColor(COLOR_DEFAULT);
 		renderer_drawString(L_0, y += CHA_H, str_credits[i]);
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < CREDITS_NUM, 
-			((float)cfg_i)/(CREDITS_NUM - (ui_lines - 1) - 1));
+			((float)ui_menu->idx)/(CREDITS_NUM - (ui_lines - 1) - 1));
 }
 
 void drawTouchPointer(){
-	int8_t idx = ui_opt.idx;
-	if (menu_i != TOUCH_MENU || idx == HEADER_IDX ||  idx >= 16)
+	int8_t idx = ui_entry->id;
+	if (ui_menu->id != TOUCH_MENU || idx == HEADER_IDX ||  idx >= 16)
 		return;
 	int8_t ic_halfsize = ICN_TOUCH_X / 2;
 	int left = profile.touch[idx - (idx % 2)] - 8;
@@ -550,14 +623,14 @@ void drawBody() {
 	//Draw menu
 	int y = HEADER_HEIGHT - CHA_H / 2;
 	ui_lines = ((float)(UI_HEIGHT - 2 * HEADER_HEIGHT)) / CHA_H - 1;
-	switch (menu_i){
+	switch (ui_menu->id){
 		case MAIN_MENU: drawMenu_main(y); break;
 		case REMAP_MENU: drawMenu_remap(y); break;
 		case ANALOG_MENU: drawMenu_analog(y); break;
 		case TOUCH_MENU: drawMenu_touch(y); break;
 		case GYRO_MENU: drawMenu_gyro(y); break;
 		case CNTRL_MENU: drawMenu_controller(y); break;
-		case FUNCS_LIST: drawMenu_hooks(y); break;  
+		case HOOKS_MENU: drawMenu_hooks(y); break;  
 		case PROFILES_MENU: drawMenu_profiles(y); break; 
 		case SETTINGS_MENU: drawMenu_settings(y); break; 
 		case CREDITS_MENU: drawMenu_credits(y); break;                                                             
@@ -565,21 +638,59 @@ void drawBody() {
 	}
 }
 
-void ui_setIdx(int i){
-	cfg_i = i;
-	switch (menu_i){
-		case MAIN_MENU: ui_opt = menu_main[i]; break;
+void ui_setIdx(int idx){
+	//cfg_i = idx;
+	ui_menu->idx = idx;
+	if (ui_menu->entries != NULL)
+		ui_entry = &ui_menu->entries[idx];
+	/*switch (menu_i){
+		case MAIN_MENU: ui_entry = menu_main_entries[idx]; break;
 		case REMAP_MENU:  break;
-		case ANALOG_MENU: ui_opt = menu_analog[i]; break;
-		case TOUCH_MENU: ui_opt = menu_touch[i]; break;
-		case GYRO_MENU: ui_opt = menu_gyro[i]; break;
-		case CNTRL_MENU: ui_opt = menu_controllers[i]; break;
-		case FUNCS_LIST: break;                                                               
-		case PROFILES_MENU: ui_opt = menu_profiles[i]; break;   
-		case SETTINGS_MENU: ui_opt = menu_settings[i]; break; 
+		case ANALOG_MENU: ui_entry = menu_analog_entries[idx]; break;
+		case TOUCH_MENU: ui_entry = menu_touch_entries[idx]; break;
+		case GYRO_MENU: ui_entry = menu_gyro_entries[idx]; break;
+		case CNTRL_MENU: ui_entry = menu_controllers_entries[idx]; break;
+		case HOOKS_MENU: break;                                                               
+		case PROFILES_MENU: ui_entry = menu_profiles_entries[idx]; break;   
+		case SETTINGS_MENU: ui_entry = menu_settings_entries[idx]; break; 
 		case CREDITS_MENU: break;                                                          
 		default: break;
+	}*/
+}
+
+struct Menu* getMenuById(int menuId){
+	switch (menuId){
+		case MAIN_MENU: return &menu_main;
+		case REMAP_MENU:  return &menu_remap;
+		case ANALOG_MENU: return &menu_analog;
+		case TOUCH_MENU: return &menu_touch;
+		case GYRO_MENU: return &menu_gyro;
+		case CNTRL_MENU: return &menu_controllers;
+		case HOOKS_MENU: return &menu_hooks;                                                               
+		case PROFILES_MENU: return &menu_profiles;   
+		case SETTINGS_MENU: return &menu_settings; 
+		case CREDITS_MENU: return &menu_credits;
 	}
+	return NULL;
+}
+
+void ui_setMenu(int menuId){
+	ui_menu = getMenuById(menuId);
+	//ui_menu = menuId;
+}
+
+void ui_nextEntry(){
+	if (ui_menu->id == CREDITS_MENU || ui_menu->id == HOOKS_MENU)
+		ui_setIdx(min(ui_menu->idx + 1, ui_menu->num - ui_lines));
+	else 
+		ui_setIdx((ui_menu->idx + 1) % ui_menu->num);
+}
+
+void ui_prevEntry(){
+	if (ui_menu->id == CREDITS_MENU || ui_menu->id == HOOKS_MENU)
+		ui_setIdx(max(0, ui_menu->idx - 1));
+	else
+		ui_setIdx((ui_menu->idx - 1 < 0) ? ui_menu->num - 1 : ui_menu->idx - 1);
 }
 
 //Draw directly to FB to overlay over everything else;
@@ -602,12 +713,18 @@ void ui_draw(const SceDisplayFrameBuf *pParam){
 
 void ui_open(const SceDisplayFrameBuf *pParam){
 	ui_opened = 1;
-	cfg_i = 0;
-	ui_opt = menu_main[0];
+	ui_entry = &menu_main_entries[0];
 }
 
 void ui_init(){
-	ui_opt = menu_main[0];
+	for (int i = 0; i < REMAP_TRIGGER_BTN_SUB_NUM; i++)
+		submenu_remap_trigger_btn[i] = (MenuEntry){.name = (char *)str_btns[i], .id = i};
+	for (int i = 0; i < REMAP_TRIGGER_BTN_SUB_NUM; i++)
+		submenu_remap_trigger_combo[i] = (MenuEntry){.name = (char *)str_btns[i], .id = i};
+
+	ui_entry = &menu_main_entries[0];
+	ui_menu = getMenuById(MAIN_MENU);
+
     renderer_init(UI_WIDTH, UI_HEIGHT);
 }
 

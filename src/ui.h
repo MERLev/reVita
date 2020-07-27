@@ -8,7 +8,7 @@
 	TOUCH_MENU,
 	GYRO_MENU,
 	CNTRL_MENU,
-	FUNCS_LIST,
+	HOOKS_MENU,
 	SETTINGS_MENU,
 	CREDITS_MENU,
 	PROFILES_MENU,
@@ -36,17 +36,25 @@ enum PROFILE_ACTIONS{
 	PROFILE_LOCAL_DELETE
 }PROFILE_ACTIONS;
 
-#define MENU_MODES          10  // Menu modes num
+#define MENU_MODES          23  // Menu modes num
 #define CREDITS_NUM			16
 #define HEADER_IDX          -1
 #define TEXT_IDX            -2
 
-typedef struct MenuOpt{
+typedef struct Menu{
+	uint8_t id;
+	uint8_t num;
+	uint8_t idx;
 	char* name;
-	int8_t idx;
-} MenuOpt;
+	struct MenuEntry* entries;
+}Menu;
+typedef struct MenuEntry{
+	char* name;
+	int8_t id;
+} MenuEntry;
 
 #define MAIN_MENU_NUM 9
+#define REMAP_MENU_NUM 1
 #define ANALOG_MENU_NUM 10
 #define TOUCH_MENU_NUM 20
 #define GYRO_MENU_NUM 11
@@ -54,14 +62,21 @@ typedef struct MenuOpt{
 #define PROFILE_MENU_NUM 8
 #define HOOKS_MENU_NUM 18
 #define CONTROLLERS_MENU_NUM 3
+#define REMAP_TRIGGER_GROUP_SUB_NUM 9
+#define REMAP_TRIGGER_BTN_SUB_NUM 16
+#define REMAP_TRIGGER_ANALOG_SUB_NUM 4
+#define REMAP_TRIGGER_TOUCH_SUB_NUM 4
+#define REMAP_TRIGGER_GYRO_SUB_NUM 6
 
 extern uint8_t ui_opened;
 extern uint8_t ui_lines;
 extern uint8_t new_frame;
-extern int cfg_i;
-extern int menu_i;
-extern MenuOpt ui_opt;
+Menu* ui_menu;
+MenuEntry* ui_entry;
 
+void ui_setMenu(int menuId);
+void ui_nextEntry();
+void ui_prevEntry();
 extern void ui_draw(const SceDisplayFrameBuf *pParam);
 extern void ui_open();
 extern void ui_init();
