@@ -37,7 +37,6 @@ enum PROFILE_ACTIONS{
 }PROFILE_ACTIONS;
 
 #define MENU_MODES          23  // Menu modes num
-#define CREDITS_NUM			16
 #define HEADER_IDX          -1
 #define TEXT_IDX            -2
 
@@ -52,21 +51,6 @@ typedef struct MenuEntry{
 	char* name;
 	int8_t id;
 } MenuEntry;
-
-#define MAIN_MENU_NUM 9
-#define REMAP_MENU_NUM 1
-#define ANALOG_MENU_NUM 10
-#define TOUCH_MENU_NUM 20
-#define GYRO_MENU_NUM 11
-#define SETTINGS_MENU_NUM 4
-#define PROFILE_MENU_NUM 8
-#define HOOKS_MENU_NUM 18
-#define CONTROLLERS_MENU_NUM 3
-#define REMAP_TRIGGER_GROUP_SUB_NUM 9
-#define REMAP_TRIGGER_BTN_SUB_NUM 16
-#define REMAP_TRIGGER_ANALOG_SUB_NUM 4
-#define REMAP_TRIGGER_TOUCH_SUB_NUM 4
-#define REMAP_TRIGGER_GYRO_SUB_NUM 6
 
 extern uint8_t ui_opened;
 extern uint8_t ui_lines;

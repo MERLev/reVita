@@ -40,31 +40,8 @@
 #define L_1    				18		
 #define L_2    				36
 
-static const char* str_menus[MENU_MODES] = {
-	"MAIN MENU", 
-	"REMAP RULES", 
-	"ANALOG STICKS", 
-	"TOUCH", 
-	"GYROSCOPE", 
-	"CONNECTED CONTROLLERS", 
-	"HOOKS",
-	"SETTINGS",
-	"CREDITS",
-	"PROFILES",
-	"REMAP",
-	"SELECT TRIGGER TYPE",
-	"SELECT BUTTON",
-	"SELECT BUTTONS",
-	"SELECT ANALOG STICK",
-	"SELECT TOUCH POINT",
-	"SELECT GYRO ACTION",
-	"SELECT WHAT TO EMULATE",
-	"SELECT BUTTON",
-	"SELECT BUTTONS",
-	"SELECT ANALOG STICK",
-	"SELECT ANALOG STICK",
-	"SELECT TOUCH POINT"
-};
+
+
 static const char* str_footer[MENU_MODES] = {
 	"",
 	"(L)(R):section ([])/(start):reset/all", 
@@ -90,46 +67,8 @@ static const char* str_footer[MENU_MODES] = {
 	"",
 	""
 };
-static const char* str_credits[CREDITS_NUM] = {
-	"                     updated by Mer1e ",
-	"               with the help of S1ngy ",
-	"       original author Rinnegatamante ",
-	"",
-	"Thanks to",
-	"  Cassie, W0lfwang, TheIronUniverse,",
-	"  Kiiro Yakumo and mantixero",
-	"     for enduring endless crashes",
-	"         while testing this thing",
-	"  Vita Nuova community",
-	"    for all the help I got there",
-	"",
-	"Original Rinnegatamante's thanks to", 
-	"  Tain Sueiras, nobodywasishere and",
-	"  RaveHeart for their awesome",
-	"    support on Patreon"
-};
 static const char* str_yes_no[] = {
 	"No", "Yes"
-};
-static const char* str_funcs[HOOKS_MENU_NUM] = {
-	"sceCtrlPeekBufferPositive    ",
-	"sceCtrlPeekBufferPositive2   ",
-	"sceCtrlReadBufferPositive    ",
-	"sceCtrlReadBufferPositive2   ",
-	"sceCtrlPeekBufferPositiveExt ",
-	"sceCtrlPeekBufferPositiveExt2",
-	"sceCtrlReadBufferPositiveExt ",
-	"sceCtrlReadBufferPositiveExt2",
-	"sceCtrlPeekBufferNegative    ",
-	"sceCtrlPeekBufferNegative2   ",
-	"sceCtrlReadBufferNegative    ",
-	"sceCtrlReadBufferNegative2   ",    
-	"ksceCtrlReadBufferPositive   ",
-    "ksceCtrlPeekBufferPositive   ",
-    "ksceCtrlReadBufferNegative   ",
-    "ksceCtrlPeekBufferNegative   ",
-	"ksceTouchRead                ",
-	"ksceTouchPeek                "
 };
 static const char* str_btns[PHYS_BUTTONS_NUM] = {
 	"Cross", "Circle", "Triangle", "Square",
@@ -168,6 +107,7 @@ char* getControllerName(int id){
 	else 									return "Unknown";
 }
 
+#define MAIN_MENU_NUM 9
 static struct MenuEntry menu_main_entries[MAIN_MENU_NUM] = {
 	(MenuEntry){.name = "Remap rules", .id = REMAP_MENU},
 	(MenuEntry){.name = "Analog sticks", .id = ANALOG_MENU},
@@ -180,6 +120,14 @@ static struct MenuEntry menu_main_entries[MAIN_MENU_NUM] = {
 	(MenuEntry){.name = "Credits", .id = CREDITS_MENU},
 };
 static struct Menu menu_main = (Menu){.id = MAIN_MENU, .num = MAIN_MENU_NUM, .name = "MAIN MENU", .entries = menu_main_entries};
+
+#define REMAP_MENU_NUM 1
+static struct MenuEntry menu_remap_entries[REMAP_MENU_NUM] = {
+	(MenuEntry){.name = "<new remap rule>", .id = 0}
+};
+static struct Menu menu_remap = (Menu){.id = REMAP_MENU, .num = REMAP_MENU_NUM, .name = "REMAP RULES", .entries = menu_remap_entries};
+
+#define ANALOG_MENU_NUM 10
 static struct MenuEntry menu_analog_entries[ANALOG_MENU_NUM] = {
 	(MenuEntry){.name = "Deadzone", .id = HEADER_IDX},
 	(MenuEntry){.name = "Left Analog  [X]", .id = 0},
@@ -193,6 +141,8 @@ static struct MenuEntry menu_analog_entries[ANALOG_MENU_NUM] = {
 	(MenuEntry){.name = "             [Y]", .id = 7}
 };
 static struct Menu menu_analog = (Menu){.id = ANALOG_MENU, .num = ANALOG_MENU_NUM, .name = "REMAP RULES", .entries = menu_analog_entries};
+
+#define TOUCH_MENU_NUM 20
 static struct MenuEntry menu_touch_entries[TOUCH_MENU_NUM] = {
 	(MenuEntry){.name = "Front", .id = HEADER_IDX},
 	(MenuEntry){.name = "Point A           x", .id = 0},
@@ -216,6 +166,8 @@ static struct MenuEntry menu_touch_entries[TOUCH_MENU_NUM] = {
 	(MenuEntry){.name = "Disable if remapped", .id = 17}
 };
 static struct Menu menu_touch = (Menu){.id = TOUCH_MENU, .num = TOUCH_MENU_NUM, .name = "TOUCH", .entries = menu_touch_entries};
+
+#define GYRO_MENU_NUM 11
 static struct MenuEntry menu_gyro_entries[GYRO_MENU_NUM] = {
 	(MenuEntry){.name = "Sensivity", .id = HEADER_IDX},
 	(MenuEntry){.name = "    X Axis", .id = 0},
@@ -230,12 +182,16 @@ static struct MenuEntry menu_gyro_entries[GYRO_MENU_NUM] = {
 	(MenuEntry){.name = "Wheel mode", .id = 7},
 };
 static struct Menu menu_gyro = (Menu){.id = GYRO_MENU, .num = GYRO_MENU_NUM, .name = "GYROSCOPE", .entries = menu_gyro_entries};
+
+#define CONTROLLERS_MENU_NUM 3
 static struct MenuEntry menu_controllers_entries[CONTROLLERS_MENU_NUM] = {
 	(MenuEntry){.name = "Use external       ", .id = 0},
 	(MenuEntry){.name = "Selected controller", .id = 1},
 	(MenuEntry){.name = "Swap L1<>LT R1<>RT ", .id = 2}
 };
 static struct Menu menu_controllers = (Menu){.id = CNTRL_MENU, .num = CONTROLLERS_MENU_NUM, .name = "CONTROLLER", .entries = menu_controllers_entries};
+
+#define SETTINGS_MENU_NUM 4
 static struct MenuEntry menu_settings_entries[SETTINGS_MENU_NUM] = {
 	(MenuEntry){.name = "Menu trigger first key", .id = 0},
 	(MenuEntry){.name = "            second key", .id = 1},
@@ -243,6 +199,8 @@ static struct MenuEntry menu_settings_entries[SETTINGS_MENU_NUM] = {
 	(MenuEntry){.name = "Startup delay         ", .id = 3}
 };
 static struct Menu menu_settings = (Menu){.id = SETTINGS_MENU, .num = SETTINGS_MENU_NUM, .name = "SETTINGS", .entries = menu_settings_entries};
+
+#define PROFILE_MENU_NUM 8
 static struct MenuEntry menu_profiles_entries[PROFILE_MENU_NUM] = {
 	(MenuEntry){.name = "Global", .id = HEADER_IDX},
 	(MenuEntry){.name = "Save", .id = PROFILE_GLOBAL_SAVE},
@@ -255,13 +213,51 @@ static struct MenuEntry menu_profiles_entries[PROFILE_MENU_NUM] = {
 };
 static struct Menu menu_profiles = (Menu){.id = PROFILES_MENU, .num = PROFILE_MENU_NUM, .name = "PROFILES", .entries = menu_profiles_entries};
 
-static struct Menu menu_hooks = (Menu){.id = HOOKS_MENU, .num = HOOKS_MENU_NUM, .name = "HOOKS"};
-static struct Menu menu_credits = (Menu){.id = CREDITS_MENU, .num = CREDITS_NUM, .name = "CREDITS"};
-
-static struct MenuEntry menu_remap_entries[REMAP_MENU_NUM] = {
-	(MenuEntry){.name = "<new remap rule>", .id = 0}
+#define HOOKS_MENU_NUM 18
+static struct MenuEntry menu_hooks_entries[HOOKS_MENU_NUM] = {
+	(MenuEntry){.name = "sceCtrlPeekBufferPositive    "},
+	(MenuEntry){.name = "sceCtrlPeekBufferPositive2   "},
+	(MenuEntry){.name = "sceCtrlReadBufferPositive    "},
+	(MenuEntry){.name = "sceCtrlReadBufferPositive2   "},
+	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt "},
+	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt2"},
+	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt "},
+	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt2"},
+	(MenuEntry){.name = "sceCtrlPeekBufferNegative    "},
+	(MenuEntry){.name = "sceCtrlPeekBufferNegative2   "},
+	(MenuEntry){.name = "sceCtrlReadBufferNegative    "},
+	(MenuEntry){.name = "sceCtrlReadBufferNegative2   "},    
+	(MenuEntry){.name = "ksceCtrlReadBufferPositive   "},
+    (MenuEntry){.name = "ksceCtrlPeekBufferPositive   "},
+    (MenuEntry){.name = "ksceCtrlReadBufferNegative   "},
+    (MenuEntry){.name = "ksceCtrlPeekBufferNegative   "},
+	(MenuEntry){.name = "ksceTouchRead                "},
+	(MenuEntry){.name = "ksceTouchPeek                "}
 };
-static struct Menu menu_remap = (Menu){.id = REMAP_MENU, .num = REMAP_MENU_NUM, .name = "REMAP RULES", .entries = menu_remap_entries};
+static struct Menu menu_hooks = (Menu){.id = HOOKS_MENU, .num = HOOKS_MENU_NUM, .name = "HOOKS", .entries = menu_hooks_entries};
+
+#define CREDITS_MENU_NUM			16
+static struct MenuEntry menu_credits_entries[CREDITS_MENU_NUM] = {
+	(MenuEntry){.name = "                     updated by Mer1e "},
+	(MenuEntry){.name = "               with the help of S1ngy "},
+	(MenuEntry){.name = "       original author Rinnegatamante "},
+	(MenuEntry){.name = ""},
+	(MenuEntry){.name = "Thanks to"},
+	(MenuEntry){.name = "  Cassie, W0lfwang, TheIronUniverse,"},
+	(MenuEntry){.name = "  Kiiro Yakumo and mantixero"},
+	(MenuEntry){.name = "     for enduring endless crashes"},
+	(MenuEntry){.name = "         while testing this thing"},
+	(MenuEntry){.name = "  Vita Nuova community"},
+	(MenuEntry){.name = "    for all the help I got there"},
+	(MenuEntry){.name = ""},
+	(MenuEntry){.name = "Original Rinnegatamante's thanks to"},
+	(MenuEntry){.name = "  Tain Sueiras, nobodywasishere and"},
+	(MenuEntry){.name = "  RaveHeart for their awesome"},
+	(MenuEntry){.name = "    support on Patreon"}
+};
+static struct Menu menu_credits = (Menu){.id = CREDITS_MENU, .num = CREDITS_MENU_NUM, .name = "CREDITS", .entries = menu_credits_entries};
+
+#define REMAP_TRIGGER_GROUP_SUB_NUM 9
 static struct MenuEntry submenu_remap_trigger_group[REMAP_TRIGGER_GROUP_SUB_NUM] = {
 	(MenuEntry){.name = "Button", .id = REMAP_TYPE_BUTTON},
 	(MenuEntry){.name = "Buttons combo", .id = REMAP_TYPE_COMBO},
@@ -273,20 +269,30 @@ static struct MenuEntry submenu_remap_trigger_group[REMAP_TRIGGER_GROUP_SUB_NUM]
 	(MenuEntry){.name = "Touch - Back Panel", .id = REMAP_TYPE_BACK_TOUCH__ZONE},
 	(MenuEntry){.name = "Gyroscope", .id = REMAP_TYPE_GYROSCOPE}
 };
+
+#define REMAP_TRIGGER_BTN_SUB_NUM 16
 static struct MenuEntry submenu_remap_trigger_btn[REMAP_TRIGGER_BTN_SUB_NUM];
-static struct MenuEntry submenu_remap_trigger_combo[REMAP_TRIGGER_BTN_SUB_NUM];
+
+#define REMAP_TRIGGER_COMBO_SUB_NUM 16
+static struct MenuEntry submenu_remap_trigger_combo[REMAP_TRIGGER_COMBO_SUB_NUM];
+
+#define REMAP_TRIGGER_ANALOG_SUB_NUM 4
 static struct MenuEntry submenu_remap_trigger_analog[REMAP_TRIGGER_ANALOG_SUB_NUM] = {
 	(MenuEntry){.name = "Move left", .id = REMAP_ANALOG_LEFT},
 	(MenuEntry){.name = "Move right", .id = REMAP_ANALOG_RIGHT},
 	(MenuEntry){.name = "Move up", .id = REMAP_ANALOG_UP},
 	(MenuEntry){.name = "Move down", .id = REMAP_ANALOG_DOWN}
 };
+
+#define REMAP_TRIGGER_TOUCH_SUB_NUM 4
 static struct MenuEntry submenu_remap_trigger_touch[REMAP_TRIGGER_TOUCH_SUB_NUM] = {
 	(MenuEntry){.name = "Top Left Zone", .id = REMAP_TOUCH_ZONE_TL},
 	(MenuEntry){.name = "Top Right Zone", .id = REMAP_TOUCH_ZONE_TR},
 	(MenuEntry){.name = "Bottom Left Zone", .id = REMAP_TOUCH_ZONE_BL},
 	(MenuEntry){.name = "Bottom Right Zone", .id = REMAP_TOUCH_ZONE_BR}
 };
+
+#define REMAP_TRIGGER_GYRO_SUB_NUM 6
 static struct MenuEntry submenu_remap_trigger_gyro[REMAP_TRIGGER_GYRO_SUB_NUM] = {
 	(MenuEntry){.name = "Move left", .id = REMAP_GYRO_LEFT},
 	(MenuEntry){.name = "Move right", .id = REMAP_GYRO_RIGHT},
@@ -300,6 +306,7 @@ uint8_t ui_opened = 0;
 uint8_t ui_lines = 10;
 uint8_t new_frame = 1;
 static uint32_t ticker;
+
 Menu* ui_menu;
 MenuEntry* ui_entry;
 
@@ -357,7 +364,7 @@ void drawHeader(){
 	if (ui_menu->id == MAIN_MENU)
 		renderer_drawStringF(L_0, 3, "remaPSV2 v.%hhu.%hhu.%hhu", VERSION, SUBVERSION, SUBSUBVERSION);
 	else	
-		renderer_drawString(L_0, 3, str_menus[ui_menu->id]);
+		renderer_drawString(L_0, 3, ui_menu->name);
 	
 	renderer_drawString(UI_WIDTH - CHA_W * strlen(titleid) - 10, 2, titleid);
 }
@@ -370,13 +377,13 @@ void drawFooter(){
 }
 
 void drawMenu_main(int y){
-	int ii = calcStartingIndex(ui_menu->idx, MAIN_MENU_NUM, ui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + ui_lines, MAIN_MENU_NUM); i++) {
+	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
 		setColor(i == ui_menu->idx, 1);
 		renderer_drawString(L_1, y += CHA_H, menu_main_entries[i].name);
 	}
 }
-void drawMenu_remap(int y){
+/*void drawMenu_remap(int y){
 	for (int i = calcStartingIndex(ui_menu->idx, PROFILE_REMAP_NUM, ui_lines, BOTTOM_OFFSET); i < PROFILE_REMAP_NUM; i++) {
 		if (ui_menu->idx == i){//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
@@ -435,10 +442,13 @@ void drawMenu_remap(int y){
 		renderer_drawString(L_0 + CHA_W*36, y, targetAction);
 		if (y + 60 > UI_HEIGHT) break;
 	}
+}*/
+void drawMenu_remap(int y){
+
 }
 void drawMenu_analog(int y){
-	int ii = calcStartingIndex(ui_menu->idx, ANALOG_MENU_NUM , ui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + ui_lines, ANALOG_MENU_NUM); i++) {			
+	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {			
 		int8_t id = menu_analog_entries[i].id;
 
 		if (id == HEADER_IDX){
@@ -460,11 +470,11 @@ void drawMenu_analog(int y){
 			//drawEditPointer(L_2 + 17*CHA_W, y + 2);
 		}
 	}
-	drawFullScroll(ii > 0, ii + ui_lines < ANALOG_MENU_NUM, ((float)ui_menu->idx) / (ANALOG_MENU_NUM-1));
+	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num-1));
 }
 void drawMenu_touch(int y){
-	int ii = calcStartingIndex(ui_menu->idx, TOUCH_MENU_NUM , ui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + ui_lines, TOUCH_MENU_NUM); i++) {			
+	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {			
 		int8_t id = menu_touch_entries[i].id;
 
 		if (id == HEADER_IDX){
@@ -485,12 +495,12 @@ void drawMenu_touch(int y){
 			renderer_drawString(L_2+ 20*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
-	//drawScroll(ii > 0, ii + ui_lines < TOUCH_MENU_NUM);
-	drawFullScroll(ii > 0, ii + ui_lines < TOUCH_MENU_NUM, ((float)ui_menu->idx) / (TOUCH_MENU_NUM - 1));
+	//drawScroll(ii > 0, ii + ui_lines < ui_menu->num);
+	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
 }
 void drawMenu_gyro(int y){
-	int ii = calcStartingIndex(ui_menu->idx, GYRO_MENU_NUM , ui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + ui_lines, GYRO_MENU_NUM); i++) {		
+	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {		
 		int8_t id = menu_gyro_entries[i].id;
 		
 		if (id == HEADER_IDX){
@@ -512,7 +522,7 @@ void drawMenu_gyro(int y){
 			renderer_drawString(L_2 + 11 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
-	drawFullScroll(ii > 0, ii + ui_lines < GYRO_MENU_NUM, ((float)ui_menu->idx)/(GYRO_MENU_NUM-1));
+	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx)/(ui_menu->num-1));
 }
 void drawMenu_controller(int y){
 	SceCtrlPortInfo pi;
@@ -523,8 +533,8 @@ void drawMenu_controller(int y){
 		return;
 	}
 	
-	int ii = calcStartingIndex(ui_menu->idx, CONTROLLERS_MENU_NUM , ui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + ui_lines, CONTROLLERS_MENU_NUM); i++) {		
+	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {		
 		int8_t id = menu_controllers_entries[i].id;
 
 		setColor(i == ui_menu->idx, profile.controller[id] == profile_def.controller[id]);
@@ -552,17 +562,17 @@ void drawMenu_controller(int y){
 	}
 }
 void drawMenu_hooks(int y){
-	int ii = calcStartingIndex(ui_menu->idx, HOOKS_MENU_NUM, ui_lines, ui_lines - 1);
-	for (int i = ii; i < min(ii + ui_lines, HOOKS_MENU_NUM); i++) {
+	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, ui_lines - 1);
+	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
 		renderer_setColor((used_funcs[i] ? COLOR_ACTIVE : COLOR_DEFAULT));
-		renderer_drawStringF(L_1, y += CHA_H, "%s : %s", str_funcs[i], str_yes_no[used_funcs[i]]);
+		renderer_drawStringF(L_1, y += CHA_H, "%s : %s", ui_menu->entries[i].name, str_yes_no[used_funcs[ui_menu->entries[i].id]]);
 	}
-	drawFullScroll(ii > 0, ii + ui_lines < HOOKS_MENU_NUM, 
-			((float)ui_menu->idx)/(HOOKS_MENU_NUM - (ui_lines - 1) - 1));
+	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, 
+			((float)ui_menu->idx)/(ui_menu->num - (ui_lines - 1) - 1));
 }
 void drawMenu_settings(int y){
-	int ii = calcStartingIndex(ui_menu->idx, SETTINGS_MENU_NUM , ui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + ui_lines, SETTINGS_MENU_NUM); i++) {		
+	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {		
 		int8_t id = menu_settings_entries[i].id;
 		
 		setColor(i == ui_menu->idx, profile_settings[id] == profile_settings_def[id]);
@@ -579,11 +589,11 @@ void drawMenu_settings(int y){
 			renderer_drawString(L_1 + 23 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
-	drawFullScroll(ii > 0, ii + ui_lines < GYRO_MENU_NUM, ((float)ui_menu->idx) / (SETTINGS_MENU_NUM-1));
+	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num-1));
 }
 void drawMenu_profiles(int y){
-	int ii = calcStartingIndex(ui_menu->idx, PROFILE_MENU_NUM, ui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + ui_lines, PROFILE_MENU_NUM); i++) {
+	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
+	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
 		if (menu_profiles_entries[i].id == HEADER_IDX){
 			setColorHeader(ui_menu->idx == i);
 			renderer_drawString(L_1, y+=CHA_H, menu_profiles_entries[i].name);
@@ -594,13 +604,13 @@ void drawMenu_profiles(int y){
 	}
 }
 void drawMenu_credits(int y){
-	int ii = calcStartingIndex(ui_menu->idx, CREDITS_NUM, ui_lines, ui_lines - 1);
-	for (int i = ii; i < min(CREDITS_NUM, ii + ui_lines); i++) {	
+	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, ui_lines - 1);
+	for (int i = ii; i < min(ui_menu->num, ii + ui_lines); i++) {	
 		renderer_setColor(COLOR_DEFAULT);
-		renderer_drawString(L_0, y += CHA_H, str_credits[i]);
+		renderer_drawString(L_0, y += CHA_H, ui_menu->entries[i].name);
 	}
-	drawFullScroll(ii > 0, ii + ui_lines < CREDITS_NUM, 
-			((float)ui_menu->idx)/(CREDITS_NUM - (ui_lines - 1) - 1));
+	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, 
+			((float)ui_menu->idx)/(ui_menu->num - (ui_lines - 1) - 1));
 }
 
 void drawTouchPointer(){
@@ -639,23 +649,9 @@ void drawBody() {
 }
 
 void ui_setIdx(int idx){
-	//cfg_i = idx;
 	ui_menu->idx = idx;
 	if (ui_menu->entries != NULL)
 		ui_entry = &ui_menu->entries[idx];
-	/*switch (menu_i){
-		case MAIN_MENU: ui_entry = menu_main_entries[idx]; break;
-		case REMAP_MENU:  break;
-		case ANALOG_MENU: ui_entry = menu_analog_entries[idx]; break;
-		case TOUCH_MENU: ui_entry = menu_touch_entries[idx]; break;
-		case GYRO_MENU: ui_entry = menu_gyro_entries[idx]; break;
-		case CNTRL_MENU: ui_entry = menu_controllers_entries[idx]; break;
-		case HOOKS_MENU: break;                                                               
-		case PROFILES_MENU: ui_entry = menu_profiles_entries[idx]; break;   
-		case SETTINGS_MENU: ui_entry = menu_settings_entries[idx]; break; 
-		case CREDITS_MENU: break;                                                          
-		default: break;
-	}*/
 }
 
 struct Menu* getMenuById(int menuId){
