@@ -1,6 +1,9 @@
+#include "remap.h"
+
 #ifndef _PROFILE_H_
 #define _PROFILE_H_
 
+#define REMAP_NUM                   25
 #define TARGET_REMAPS               42 // Supported target remaps num
 
 #define PROFILE_REMAP_NUM           38 // Supported buttons num
@@ -65,8 +68,9 @@ enum{
 	PROFILE_SETTINGS_AUTOSAVE,
 	PROFILE_SETTINGS_DELAY
 };
-
 typedef struct Profile{
+    struct RemapRule remaps[REMAP_NUM];
+    uint8_t remapsNum;
     uint8_t remap[PROFILE_REMAP_NUM];
     uint8_t analog[PROFILE_ANALOG_NUM];
     uint8_t gyro[PROFILE_GYRO_NUM];
@@ -79,6 +83,9 @@ extern Profile profile_def;
 extern Profile profile_global;
 extern uint8_t profile_settings[PROFILE_SETTINGS_NUM];
 extern uint8_t profile_settings_def[PROFILE_SETTINGS_NUM];
+
+
+void profile_addRemapRule(struct RemapRule rule);
 
 extern void profile_resetRemap();
 extern void profile_resetAnalog();

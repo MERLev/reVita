@@ -9,6 +9,7 @@
 #include "ui.h"
 #include "profile.h"
 #include "common.h"
+#include "remap.h"
 
 static uint32_t curr_buttons;
 static uint32_t old_buttons;
@@ -51,16 +52,18 @@ void touchPicker(int padType){
 	}
 }
 
+void inputHandler_generic(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_DOWN: ui_nextEntry(); break;
+		case SCE_CTRL_UP: ui_prevEntry(); break;
+		case SCE_CTRL_CIRCLE: ui_openMenuParent(); break;
+	}
+}
+
 void inputHandler_main(uint32_t btn){
 	switch (btn) {
-		case SCE_CTRL_DOWN:
-			ui_nextEntry();
-			break;
-		case SCE_CTRL_UP:
-			ui_prevEntry();
-			break;
 		case SCE_CTRL_CROSS:
-			ui_setMenu(ui_menu->entries[ui_menu->idx].id);
+			ui_openMenu(ui_menu->entries[ui_menu->idx].id);
 			ui_setIdx(0);
 			break;
 		case SCE_CTRL_CIRCLE:
@@ -70,10 +73,24 @@ void inputHandler_main(uint32_t btn){
 				profile_saveLocal();
 			delayedStart();
 			break;
+		default: inputHandler_generic(btn);
 	}
 }
 
 void inputHandler_remap(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS: 
+			//ToDo fix
+			ui_openMenu(REMAP_NEW_TRIGGER_GROUP_SUB); 
+			break;
+		case SCE_CTRL_SQUARE:
+			rule.active = !rule.active;
+			break;
+		case SCE_CTRL_START: profile_resetRemap(); break;
+		default: inputHandler_generic(btn);
+	}
+}
+/*void inputHandler_remap(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_DOWN:
 			ui_nextEntry();
@@ -139,21 +156,14 @@ void inputHandler_remap(uint32_t btn){
 			profile_resetRemap();
 			break;
 		case SCE_CTRL_CIRCLE:
-			ui_setMenu(MAIN_MENU);
+			ui_openMenu(MAIN_MENU);
 			ui_setIdx(0);
 			break;
 	}
-}
-
+}*/
 void inputHandler_analog(uint32_t btn){
 	int8_t id = ui_entry->id;
 	switch (btn) {
-		case SCE_CTRL_DOWN:
-			ui_nextEntry();
-			break;
-		case SCE_CTRL_UP:
-			ui_prevEntry();
-			break;
 		case SCE_CTRL_RIGHT:
 			if (id == HEADER_IDX) break;
 			if (id < 4) profile.analog[id] = (profile.analog[id] + 1) % 128;
@@ -169,22 +179,14 @@ void inputHandler_analog(uint32_t btn){
 		case SCE_CTRL_SQUARE:
 			profile.analog[id] = profile_def.analog[id];
 			break;
-		case SCE_CTRL_CIRCLE:
-			ui_setMenu(MAIN_MENU);
-			ui_setIdx(0);
-			break;
+		case SCE_CTRL_START: profile_resetAnalog(); break;
+		default: inputHandler_generic(btn);
 	}
 }
 
 void inputHandler_touch(uint32_t btn){
 	int8_t idx = ui_entry->id;
 	switch (btn) {
-		case SCE_CTRL_DOWN:
-			ui_nextEntry();
-			break;
-		case SCE_CTRL_UP:
-			ui_prevEntry();
-			break;
 		case SCE_CTRL_RIGHT:
 			if (idx == HEADER_IDX) break;
 			else if (idx < 8)//Front Points xy
@@ -212,25 +214,14 @@ void inputHandler_touch(uint32_t btn){
 		case SCE_CTRL_SQUARE:
 			profile.touch[idx] = profile_def.touch[idx];
 			break;
-		case SCE_CTRL_START:
-			profile_resetTouch();
-			break;
-		case SCE_CTRL_CIRCLE:
-			ui_setMenu(MAIN_MENU);
-			ui_setIdx(0);
-			break;
+		case SCE_CTRL_START: profile_resetTouch(); break;
+		default: inputHandler_generic(btn);
 	}
 }
 
 void inputHandler_gyro(uint32_t btn){
 	int8_t id = ui_entry->id;
 	switch (btn) {
-		case SCE_CTRL_DOWN:
-			ui_nextEntry();
-			break;
-		case SCE_CTRL_UP:
-			ui_prevEntry();
-			break;
 		case SCE_CTRL_RIGHT:
 			if (id < 6) //Sens & deadzone
 				profile.gyro[id] = (profile.gyro[id] + 1) % 200;
@@ -259,29 +250,14 @@ void inputHandler_gyro(uint32_t btn){
 		case SCE_CTRL_SQUARE:
 			profile.gyro[id] = profile_def.gyro[id];
 			break;
-		case SCE_CTRL_START:
-			profile_resetGyro();
-			break;
-		case SCE_CTRL_CROSS:
-			//if (idx == 10){
-				//sceMotionReset();
-			break;
-		case SCE_CTRL_CIRCLE:
-			ui_setMenu(MAIN_MENU);
-			ui_setIdx(0);
-			break;
+		case SCE_CTRL_START: profile_resetGyro(); break;
+		default: inputHandler_generic(btn);
 	}
 }
 
 void inputHandler_controller(uint32_t btn){
 	int8_t id = ui_entry->id;
 	switch (btn) {
-		case SCE_CTRL_DOWN:
-			ui_nextEntry();
-			break;
-		case SCE_CTRL_UP:
-			ui_prevEntry();
-			break;
 		case SCE_CTRL_RIGHT:
 			if (id == 1)
 				profile.controller[id] = min(5, profile.controller[id] + 1);
@@ -297,55 +273,14 @@ void inputHandler_controller(uint32_t btn){
 		case SCE_CTRL_SQUARE:
 			profile.controller[id] = profile_def.controller[id];
 			break;
-		case SCE_CTRL_START:
-			profile_resetController();
-			break;
-		case SCE_CTRL_CIRCLE:
-			ui_setMenu(MAIN_MENU);
-			ui_setIdx(0);
-			break;
-	}
-}
-
-void inputHandler_hooks(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_DOWN:
-			ui_nextEntry();
-			break;
-		case SCE_CTRL_UP:
-			ui_prevEntry();
-			break;
-		case SCE_CTRL_CIRCLE:
-			ui_setMenu(MAIN_MENU);
-			ui_setIdx(0);
-			break;
-	}
-}
-
-void inputHandler_credits(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_DOWN:
-			ui_nextEntry();
-			break;
-		case SCE_CTRL_UP:
-			ui_prevEntry();
-			break;
-		case SCE_CTRL_CIRCLE:
-			ui_setMenu(MAIN_MENU);
-			ui_setIdx(0);
-			break;
+		case SCE_CTRL_START: profile_resetController(); break;
+		default: inputHandler_generic(btn);
 	}
 }
 
 void inputHandler_settings(uint32_t btn){
 	int8_t id = ui_entry->id;
 	switch (btn) {
-		case SCE_CTRL_DOWN:
-			ui_nextEntry();
-			break;
-		case SCE_CTRL_UP:
-			ui_prevEntry();
-			break;
 		case SCE_CTRL_RIGHT:
 			if (id < 2)
 				profile_settings[id] 
@@ -370,24 +305,13 @@ void inputHandler_settings(uint32_t btn){
 			if (id <= 2)
 				profile_settings[id] = profile_settings_def[id];
 			break;
-		case SCE_CTRL_START:
-			profile_resetSettings();
-			break;
-		case SCE_CTRL_CIRCLE:
-			ui_setMenu(MAIN_MENU);
-			ui_setIdx(0);
-			break;
+		case SCE_CTRL_START: profile_resetSettings(); break;
+		default: inputHandler_generic(btn);
 	}
 }
 
 void inputHandler_profiles(uint32_t btn){
 	switch (btn) {
-		case SCE_CTRL_DOWN:
-			ui_nextEntry();
-			break;
-		case SCE_CTRL_UP:
-			ui_prevEntry();
-			break;
 		case SCE_CTRL_CROSS:
 			switch (ui_entry->id){
 				case PROFILE_GLOBAL_SAVE: profile_saveGlobal(); break;
@@ -399,10 +323,118 @@ void inputHandler_profiles(uint32_t btn){
 				default: break;
 			}
 			break;
-		case SCE_CTRL_CIRCLE:
-			ui_setMenu(MAIN_MENU);
-			ui_setIdx(0);
+		default: inputHandler_generic(btn);
+	}
+}
+
+void inputHandler_remap_trigger_group(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			rule.trigger.type = ui_entry->id;
+			switch(ui_entry->id){
+				case REMAP_TYPE_BUTTON: ui_openMenu(REMAP_NEW_TRIGGER_BTN_SUB); break;
+				case REMAP_TYPE_COMBO: ui_openMenu(REMAP_NEW_TRIGGER_COMBO_SUB); break;
+				case REMAP_TYPE_LEFT_ANALOG:
+				case REMAP_TYPE_RIGHT_ANALOG: ui_openMenu(REMAP_NEW_TRIGGER_ANALOG_SUB); break;
+				case REMAP_TYPE_FRONT_TOUCH_ZONE:
+				case REMAP_TYPE_BACK_TOUCH_ZONE: ui_openMenu(REMAP_NEW_TRIGGER_TOUCH_SUB); break;
+				case REMAP_TYPE_GYROSCOPE: ui_openMenu(REMAP_NEW_TRIGGER_GYRO_SUB); break;
+			};
 			break;
+		default: inputHandler_generic(btn);
+	}
+}
+void inputHandler_remap_trigger_btn(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			rule.trigger.param.btn = HW_BUTTONS[ui_entry->id];
+			ui_openMenu(REMAP_NEW_EMU_GROUP_SUB);
+			break;
+		default: inputHandler_generic(btn);
+	}
+}
+void inputHandler_remap_trigger_combo(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_SQUARE:
+			btn_toggle(&rule.trigger.param.btn, HW_BUTTONS[ui_entry->id]);
+			break;
+		case SCE_CTRL_CROSS:
+			if (rule.trigger.param.btn)
+				ui_openMenu(REMAP_NEW_EMU_GROUP_SUB);
+			break;
+		default: inputHandler_generic(btn);
+	}
+}
+void inputHandler_remap_trigger_analog_touch_gyro(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			rule.trigger.action = ui_entry->id;
+			ui_openMenu(REMAP_NEW_EMU_GROUP_SUB);
+			break;
+		default: inputHandler_generic(btn);
+	}
+}
+void inputHandler_remap_emu_group(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			rule.emu.type = ui_entry->id;
+			switch(ui_entry->id){
+				case REMAP_TYPE_BUTTON: ui_openMenu(REMAP_NEW_EMU_BTN_SUB); break;
+				case REMAP_TYPE_COMBO: ui_openMenu(REMAP_NEW_EMU_COMBO_SUB); break;
+				case REMAP_TYPE_LEFT_ANALOG:
+				case REMAP_TYPE_LEFT_ANALOG_DIGITAL:
+				case REMAP_TYPE_RIGHT_ANALOG:
+				case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: ui_openMenu(REMAP_NEW_EMU_ANALOG_SUB); break;
+				case REMAP_TYPE_FRONT_TOUCH_POINT:
+				case REMAP_TYPE_BACK_TOUCH_POINT: ui_openMenu(REMAP_NEW_EMU_TOUCH_SUB); break;
+			};
+			break;
+		default: inputHandler_generic(btn);
+	}
+}
+void inputHandler_remap_emu_btn(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			rule.emu.param.btn = HW_BUTTONS[ui_entry->id];
+			profile_addRemapRule(rule);
+			ui_openMenu(REMAP_MENU);
+			break;
+		default: inputHandler_generic(btn);
+	}
+}
+void inputHandler_remap_emu_combo(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_SQUARE:
+			btn_toggle(&rule.emu.param.btn, HW_BUTTONS[ui_entry->id]);
+			break;
+		case SCE_CTRL_CROSS:
+			if (rule.emu.param.btn){
+				profile_addRemapRule(rule);
+				ui_openMenu(REMAP_MENU);
+			}
+			break;
+		default: inputHandler_generic(btn);
+	}
+}
+void inputHandler_remap_emu_analog(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			rule.emu.action = ui_entry->id;
+			profile_addRemapRule(rule);
+			ui_openMenu(REMAP_MENU);
+			break;
+		default: inputHandler_generic(btn);
+	}
+}
+void inputHandler_remap_emu_touch(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			rule.emu.action = ui_entry->id;
+			//ToDo handle custom touch
+			profile_addRemapRule(rule);
+			ui_openMenu(REMAP_MENU);
+			break;
+		default: inputHandler_generic(btn);
 	}
 }
 
@@ -437,10 +469,22 @@ void ctrl_inputHandler(SceCtrlData *ctrl) {
 				case TOUCH_MENU: inputHandler_touch(HW_BUTTONS[i]); break;
 				case GYRO_MENU: inputHandler_gyro(HW_BUTTONS[i]); break;
 				case CNTRL_MENU: inputHandler_controller(HW_BUTTONS[i]); break;
-				case HOOKS_MENU: inputHandler_hooks(HW_BUTTONS[i]); break;
 				case SETTINGS_MENU: inputHandler_settings(HW_BUTTONS[i]); break;
 				case PROFILES_MENU: inputHandler_profiles(HW_BUTTONS[i]); break;
-				case CREDITS_MENU: inputHandler_credits(HW_BUTTONS[i]); break;
+				case REMAP_NEW_TRIGGER_GROUP_SUB: inputHandler_remap_trigger_group(HW_BUTTONS[i]); break;
+				case REMAP_NEW_TRIGGER_BTN_SUB: inputHandler_remap_trigger_btn(HW_BUTTONS[i]); break;
+				case REMAP_NEW_TRIGGER_COMBO_SUB: inputHandler_remap_trigger_combo(HW_BUTTONS[i]); break;
+				case REMAP_NEW_TRIGGER_ANALOG_SUB:
+				case REMAP_NEW_TRIGGER_TOUCH_SUB: 
+				case REMAP_NEW_TRIGGER_GYRO_SUB: inputHandler_remap_trigger_analog_touch_gyro(HW_BUTTONS[i]); break;                                                     
+				case REMAP_NEW_EMU_GROUP_SUB: inputHandler_remap_emu_group(HW_BUTTONS[i]); break; 
+				case REMAP_NEW_EMU_BTN_SUB: inputHandler_remap_emu_btn(HW_BUTTONS[i]); break;
+				case REMAP_NEW_EMU_COMBO_SUB: inputHandler_remap_emu_combo(HW_BUTTONS[i]); break;
+				case REMAP_NEW_EMU_ANALOG_SUB:
+				case REMAP_NEW_EMU_DIGITAL_ANALOG_SUB: inputHandler_remap_emu_analog(HW_BUTTONS[i]); break;
+				case REMAP_NEW_EMU_TOUCH_SUB: inputHandler_remap_emu_touch(HW_BUTTONS[i]); break;
+				case HOOKS_MENU:
+				case CREDITS_MENU: inputHandler_generic(HW_BUTTONS[i]); break;
 				default: break;
 			}
 		}

@@ -14,6 +14,13 @@ uint8_t profile_settings_def[PROFILE_SETTINGS_NUM];
 
 static char fname[128];
 
+void profile_addRemapRule(struct RemapRule rule){
+	if (profile.remapsNum < (REMAP_NUM - 1)){
+		profile.remaps[profile.remapsNum] = rule;
+		profile.remapsNum++;
+	}
+}
+
 // Reset options per-menu
 void profile_resetRemap(){
 	for (int i = 0; i < PROFILE_REMAP_NUM; i++)

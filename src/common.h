@@ -14,4 +14,9 @@
 extern const uint32_t HW_BUTTONS[PHYS_BUTTONS_NUM];
 
 extern int32_t clamp(int32_t value, int32_t mini, int32_t maxi);
+uint32_t btn_has(uint32_t btns, uint32_t btn);
+void btn_add(uint32_t* btns, uint32_t btn);
+void btn_del(uint32_t* btns, uint32_t btn);
+void btn_toggle(uint32_t* btns, uint32_t btn);
+
 #endif

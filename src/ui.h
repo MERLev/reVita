@@ -13,12 +13,14 @@
 	CREDITS_MENU,
 	PROFILES_MENU,
 	REMAP_LIST,
+
 	REMAP_NEW_TRIGGER_GROUP_SUB,
 	REMAP_NEW_TRIGGER_BTN_SUB,
 	REMAP_NEW_TRIGGER_COMBO_SUB,
 	REMAP_NEW_TRIGGER_ANALOG_SUB,
 	REMAP_NEW_TRIGGER_TOUCH_SUB,
 	REMAP_NEW_TRIGGER_GYRO_SUB,
+	
 	REMAP_NEW_EMU_GROUP_SUB,
 	REMAP_NEW_EMU_BTN_SUB,
 	REMAP_NEW_EMU_COMBO_SUB,
@@ -39,11 +41,14 @@ enum PROFILE_ACTIONS{
 #define MENU_MODES          23  // Menu modes num
 #define HEADER_IDX          -1
 #define TEXT_IDX            -2
+#define NEW_RULE_IDX        -3
 
+//typedef struct Menu Menu;
 typedef struct Menu{
 	uint8_t id;
 	uint8_t num;
 	uint8_t idx;
+	struct Menu* parent;
 	char* name;
 	struct MenuEntry* entries;
 }Menu;
@@ -55,10 +60,14 @@ typedef struct MenuEntry{
 extern uint8_t ui_opened;
 extern uint8_t ui_lines;
 extern uint8_t new_frame;
-Menu* ui_menu;
+struct Menu* ui_menu;
 MenuEntry* ui_entry;
 
-void ui_setMenu(int menuId);
+struct RemapRule rule; //Rule currently edited
+
+void ui_openMenu(int menuId);
+void ui_prevMenu();
+void ui_openMenuParent();
 void ui_nextEntry();
 void ui_prevEntry();
 extern void ui_draw(const SceDisplayFrameBuf *pParam);
