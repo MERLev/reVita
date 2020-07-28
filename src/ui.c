@@ -52,28 +52,6 @@ const char* str_remap_action[REMAP_ACTION_NUM] = {
 	"TL", "TR", "BL", "BR", "CU", 
 	"UP", "DN", "LT", "RT", "RL", "RT"
 };
-static const char* str_footer[MENU_ID_NUM] = {
-	"",
-	"(L)(R):section ([])/(start):reset/all", 
-	"([]):reset  (start):reset all", 
-	"[TOUCH](RS):change  ([])/(start):reset", 
-	"([]):reset  (start):reset all", 
-	"([]):reset  (start):reset all", 
-	"",
-	"([]):reset  (start):reset all",
-	"",
-	"",
-	"",
-	"",
-	"",
-	"",
-	"",
-	"",
-	"",
-	"",
-	"",
-	""
-};
 static const char* str_yes_no[] = {
 	"No", "Yes"
 };
@@ -123,6 +101,7 @@ static struct Menu menu_remap = (Menu){
 	.parent = MAIN_MENU,
 	.num = 0, 
 	.name = "REMAP RULES", 
+	.footer = "([]):toggle (start):remove",
 	.entries = menu_remap_entries};
 
 #define ANALOG_MENU_NUM 10
@@ -142,6 +121,7 @@ static struct Menu menu_analog = (Menu){
 	.parent = MAIN_MENU,
 	.num = ANALOG_MENU_NUM, 
 	.name = "ANALOG STICKS", 
+	.footer = "([]):reset  (start):reset all",
 	.entries = menu_analog_entries};
 
 #define TOUCH_MENU_NUM 20
@@ -171,6 +151,7 @@ static struct Menu menu_touch = (Menu){
 	.parent = MAIN_MENU,
 	.num = TOUCH_MENU_NUM, 
 	.name = "TOUCH", 
+	.footer = "[TOUCH](RS):change  ([])/(start):reset",
 	.entries = menu_touch_entries};
 
 #define GYRO_MENU_NUM 11
@@ -191,6 +172,7 @@ static struct Menu menu_gyro = (Menu){
 	.parent = MAIN_MENU,
 	.num = GYRO_MENU_NUM, 
 	.name = "GYROSCOPE", 
+	.footer = "([]):reset  (start):reset all",
 	.entries = menu_gyro_entries};
 
 #define CONTROLLERS_MENU_NUM 3
@@ -203,6 +185,7 @@ static struct Menu menu_controllers = (Menu){
 	.parent = MAIN_MENU,
 	.num = CONTROLLERS_MENU_NUM, 
 	.name = "CONTROLLER", 
+	.footer = "([]):reset  (start):reset all",
 	.entries = menu_controllers_entries};
 
 #define SETTINGS_MENU_NUM 4
@@ -216,6 +199,7 @@ static struct Menu menu_settings = (Menu){
 	.parent = MAIN_MENU,
 	.num = SETTINGS_MENU_NUM, 
 	.name = "SETTINGS", 
+	.footer = "([]):reset  (start):reset all",
 	.entries = menu_settings_entries};
 
 #define PROFILE_MENU_NUM 8
@@ -463,8 +447,9 @@ void drawHeader(){
 void drawFooter(){
 	renderer_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, COLOR_HEADER);//Separator
 	renderer_drawRectangle(0, UI_HEIGHT - (HEADER_HEIGHT - 1), UI_WIDTH, HEADER_HEIGHT - 1, COLOR_BG_HEADER);//BG
-	renderer_setColor(COLOR_HEADER);                                                               
-	renderer_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, str_footer[ui_menu->id]);
+	renderer_setColor(COLOR_HEADER);   
+	if (ui_menu->footer)                                                            
+		renderer_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, ui_menu->footer);
 }
 
 void drawMenu_generic(int y){

@@ -53,6 +53,7 @@ typedef struct Menu{
 	enum MENU_ID next;
 	enum MENU_ID parent;
 	char* name;
+	char* footer;
 	struct MenuEntry* entries;
 	uint32_t data;
 }Menu;
