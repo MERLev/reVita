@@ -95,14 +95,20 @@ extern void profile_resetGyro();
 extern void profile_resetController();
 extern void profile_resetSettings();
 
-extern void profile_saveSettings();
-extern void profile_loadSettings();
-extern void profile_saveGlobal();
-extern void profile_saveLocal();
-extern void profile_loadGlobal();
-extern void profile_loadLocal();
-extern void profile_deleteGlobal();
-extern void profile_deleteLocal();
+int profile_saveSettings();
+int profile_loadSettings();
+
+int profile_save(char* titleId);
+int profile_saveGlobal();
+int profile_saveHome();
+int profile_load(char* titleId);
+int profile_loadGlobal();
+void profile_loadGlobalCached();
+int profile_loadHome();
+void profile_loadHomeCached();
+
+extern void profile_resetGlobal();
+extern void profile_delete(char* titleid);
 
 extern void profile_init();
 extern void profile_destroy();

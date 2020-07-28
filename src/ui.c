@@ -441,7 +441,6 @@ void drawHeader(){
 		renderer_drawString(L_0, 3, ui_menu->name);
 	
 }
-
 void drawFooter(){
 	renderer_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, COLOR_HEADER);//Separator
 	renderer_drawRectangle(0, UI_HEIGHT - (HEADER_HEIGHT - 1), UI_WIDTH, HEADER_HEIGHT - 1, COLOR_BG_HEADER);//BG
@@ -811,14 +810,12 @@ void ui_openMenuParent(){
 	ui_menu = findMenuById(ui_menu->parent);
 	ui_setIdx(ui_menu->idx);
 }
-
 void ui_nextEntry(){
 	if (ui_menu->id == MENU_CREDITS_ID || ui_menu->id == MENU_HOKS_ID)
 		ui_setIdx(min(ui_menu->idx + 1, ui_menu->num - ui_lines));
 	else 
 		ui_setIdx((ui_menu->idx + 1) % ui_menu->num);
 }
-
 void ui_prevEntry(){
 	if (ui_menu->id == MENU_CREDITS_ID || ui_menu->id == MENU_HOKS_ID)
 		ui_setIdx(max(0, ui_menu->idx - 1));
@@ -843,10 +840,12 @@ void ui_draw(const SceDisplayFrameBuf *pParam){
 		drawDirectlyToFB();	
 	}
 }
-
 void ui_open(const SceDisplayFrameBuf *pParam){
 	ui_opened = 1;
 	ui_entry = &menu_main_entries[0];
+}
+void ui_close(){
+	ui_opened = 0;
 }
 
 void ui_init(){
@@ -872,7 +871,6 @@ void ui_init(){
 
     renderer_init(UI_WIDTH, UI_HEIGHT);
 }
-
 void ui_destroy(){
 	//ksceKernelFreeMemBlock(mem_uid);
 	renderer_destroy();

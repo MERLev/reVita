@@ -70,7 +70,7 @@ void inputHandler_main(uint32_t btn){
 			ui_opened = 0;
 			profile_saveSettings();
 			if (profile_settings[0])
-				profile_saveLocal();
+				profile_save(titleid);
 			delayedStart();
 			break;
 		default: inputHandler_generic(btn);
@@ -247,10 +247,10 @@ void inputHandler_profiles(uint32_t btn){
 			switch (ui_entry->id){
 				case PROFILE_GLOBAL_SAVE: profile_saveGlobal(); break;
 				case PROFILE_GLOABL_LOAD: profile_loadGlobal(); break;
-				case PROFILE_GLOBAL_DELETE: profile_deleteGlobal(); break;
-				case PROFILE_LOCAL_SAVE: profile_saveLocal(); break;
-				case PROFILE_LOCAL_LOAD: profile_loadLocal(); break;
-				case PROFILE_LOCAL_DELETE: profile_deleteLocal(); break;
+				case PROFILE_GLOBAL_DELETE: profile_resetGlobal(); break;
+				case PROFILE_LOCAL_SAVE: profile_save(titleid); break;
+				case PROFILE_LOCAL_LOAD: profile_load(titleid); break;
+				case PROFILE_LOCAL_DELETE: profile_delete(titleid); break;
 				default: break;
 			}
 			break;

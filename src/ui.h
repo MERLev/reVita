@@ -72,6 +72,7 @@ void ui_nextEntry();
 void ui_prevEntry();
 extern void ui_draw(const SceDisplayFrameBuf *pParam);
 extern void ui_open();
+extern void ui_close();
 extern void ui_init();
 extern void ui_destroy();
 

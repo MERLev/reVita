@@ -16,6 +16,8 @@
 #include "common.h"
 #include "log.h"
 
+#define HOME "HOME"
+
 int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintptr_t *addr);
 int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uint32_t funcnid, uintptr_t *func);
 bool ksceAppMgrIsExclusiveProcessRunning();
@@ -103,12 +105,20 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 	}
 	
 	//Combo to save profile used
-	if (!ui_opened 
-			&& (ctrl[nBufs - 1].buttons & SCE_CTRL_START) 
-			&& (ctrl[nBufs - 1].buttons & SCE_CTRL_TRIANGLE)) {
-		profile_loadGlobal();
-		profile_saveLocal();
-	}
+	// if (!ui_opened 
+	// 		&& (ctrl[nBufs - 1].buttons & SCE_CTRL_START) 
+	// 		&& (ctrl[nBufs - 1].buttons & SCE_CTRL_TRIANGLE)) {
+	// 	profile_loadGlobal();
+	// 	profile_save(titleid);
+	// }
+
+	//Checking for menu triggering
+	// if (!ui_opened 
+	// 		&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_settings[0]]) 
+	// 		&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_settings[1]])) {
+	// 	remap_resetCtrlBuffers(hookId);
+	// 	ui_open();
+	// }
 
 	//Checking for menu triggering
 	if (!ui_opened 
@@ -117,6 +127,7 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 		remap_resetCtrlBuffers(hookId);
 		ui_open();
 	}
+
 	//In-menu inputs handling
 	if (ui_opened){
 		ctrl_inputHandler(&ctrl[nBufs - 1]);
@@ -265,11 +276,11 @@ int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplay
 
     //ui_draw(pParam);
 
-    if (index && ksceAppMgrIsExclusiveProcessRunning())
-        goto DISPLAY_HOOK_RET; // Do not draw over SceShell overlay
+    // if (index && ksceAppMgrIsExclusiveProcessRunning())
+        // goto DISPLAY_HOOK_RET; // Do not draw over SceShell overlay
 
 
-DISPLAY_HOOK_RET:
+//DISPLAY_HOOK_RET:
     return TAI_CONTINUE(int, refs[18], head, index, pParam, sync);
 }
 
@@ -279,59 +290,47 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
     int ret = ksceKernelLockMutex(mutex_procevent_uid, 1, NULL);
     if (ret < 0)
         goto PROCEVENT_EXIT;
-
+    ksceKernelGetProcessTitleId(pid, titleidLocal, sizeof(titleidLocal));
+    if (!strncmp(titleidLocal, "main", sizeof(titleidLocal)))
+        strncpy(titleidLocal, HOME, sizeof(titleidLocal));
+    LOG("  ev = %i : %s\n", ev, titleidLocal);
     switch (ev) {
-        case 1: // startup
-        case 5: // resume
-            // Ignore startup events if exclusive proc is already running
-            if (ksceAppMgrIsExclusiveProcessRunning()
-                    && strncmp(titleid, "main", 4) != 0)
-                goto PROCEVENT_UNLOCK_EXIT;
-
-            // Check if pid is PspEmu
-            SceKernelModuleInfo info;
-            info.size = sizeof(SceKernelModuleInfo);
-            _ksceKernelGetModuleInfo(pid, _ksceKernelGetProcessMainModule(pid), &info);
-            if (!strncmp(info.module_name, "ScePspemu", 9)) {
-                is_in_pspemu = true;
-                //snprintf(titleidLocal, sizeof(titleidLocal), "ScePspemu");
-                //break;
+        case 1: //Start
+        case 5: //Resume
+            if (!strncmp(titleidLocal, "NPXS", 4)){ //If system app
+                SceKernelModuleInfo info;
+                info.size = sizeof(SceKernelModuleInfo);
+                _ksceKernelGetModuleInfo(pid, _ksceKernelGetProcessMainModule(pid), &info);
+                if(strncmp(info.module_name, "ScePspemu", 9) &&
+			        strcmp(titleidLocal, "NPXS10012") && //not PS3Link
+			        strcmp(titleidLocal, "NPXS10013")) //not PS4Link
+                        break; //Use MAIN profile
             }
-
-            // Check titleid
-            /*ksceKernelGetProcessTitleId(pid, titleidLocal, sizeof(titleidLocal));
-            if (!strncmp(titleidLocal, "NPXS", 4))
-                goto PROCEVENT_UNLOCK_EXIT;
-
-            break;*/
-
-        case 3: // exit
-        case 4: // suspend
-            // Check titleid
-            ksceKernelGetProcessTitleId(pid, titleidLocal, sizeof(titleidLocal));
-            if (!strncmp(titleidLocal, "NPXS", 4))
-                goto PROCEVENT_UNLOCK_EXIT;
-
-            snprintf(titleidLocal, sizeof(titleidLocal), "main");
+            
+            if (strncmp(titleid, titleidLocal, sizeof(titleid))) {
+                strncpy(titleid, titleidLocal, sizeof(titleid));
+                LOG("LOAD PROFILE_1: %s\n", titleid);
+                ui_close();
+                profile_load(titleid);
+            }
+            break;
+        case 3: //Close
+        case 4: //Suspend
+            if (!strcmp(titleid, titleidLocal)){ //If current app suspended
+                if (strncmp(titleid, HOME, sizeof(titleid))) {
+                    strncpy(titleid, HOME, sizeof(titleid));
+                    LOG("LOAD PROFILE_2: %s\n", titleid);
+                    ui_close();
+                    profile_loadHomeCached();
+                }
+            }
+            break;
+        default:
             break;
     }
 
-    if (ev == 1 || ev == 5 || ev == 3 || ev == 4) {
-        if (strncmp(titleid, titleidLocal, sizeof(titleid))) {
-            strncpy(titleid, titleidLocal, sizeof(titleid));
-            // Set current pid
-            processId = (ev == 1 || ev == 5) ? pid : INVALID_PID;
-            delayedStartDone = 0;
-            for (int i = 0; i < HOOKS_NUM; i++)
-		        used_funcs[i] = 0;
-            startTick = ksceKernelGetSystemTimeWide();
-            profile_loadGlobal();
-            profile_loadLocal();
-        }
-    }
-
-PROCEVENT_UNLOCK_EXIT:
-    ksceKernelUnlockMutex(mutex_procevent_uid, 1);
+// PROCEVENT_UNLOCK_EXIT:
+     ksceKernelUnlockMutex(mutex_procevent_uid, 1);
 
 PROCEVENT_EXIT:
     return TAI_CONTINUE(int, refs[19], pid, ev, a3, a4, a5, a6);
@@ -346,7 +345,7 @@ static int main_thread(SceSize args, void *argp) {
             delayedStart();
         }
         
-        //log_flush();
+        log_flush();
         ksceKernelDelayThread(5 * 1000 * 1000);
         //ksceKernelDelayThread(10 * 1000);
     }
@@ -360,8 +359,13 @@ void hook(uint8_t hookId, const char *module, uint32_t library_nid, uint32_t fun
 
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
-    LOG("Started\n");
+    LOG("\n\n RemaPSV2 started\n");
 
+    // Load main profile
+    snprintf(titleid, sizeof(titleid), HOME);
+	// profile_loadSettings();
+	// profile_loadGlobal();
+	// profile_loadLocal();
     profile_init();
     ui_init();
     ctrl_init();
@@ -411,12 +415,6 @@ int module_start(SceSize argc, const void *args) {
     if (ret < 0)
         module_get_export_func(KERNEL_PID, "SceKernelModulemgr", 0x92C9FFC2, 0xDAA90093, 
 			(uintptr_t *)&_ksceKernelGetModuleInfo); // 3.65
-
-    // Load main profile
-    snprintf(titleid, sizeof(titleid), "main");
-	profile_loadSettings();
-	profile_loadGlobal();
-	profile_loadLocal();
 
     thread_uid = ksceKernelCreateThread("remaPSV2_thread", main_thread, 0x3C, 0x3000, 0, 0x10000, 0);
     ksceKernelStartThread(thread_uid, 0, NULL);
