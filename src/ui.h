@@ -15,17 +15,17 @@
 	REMAP_LIST,
 
 	REMAP_NEW_TRIGGER_GROUP_SUB,
-	REMAP_NEW_TRIGGER_BTN_SUB,
+	// REMAP_NEW_TRIGGER_BTN_SUB,
 	REMAP_NEW_TRIGGER_COMBO_SUB,
 	REMAP_NEW_TRIGGER_ANALOG_SUB,
 	REMAP_NEW_TRIGGER_TOUCH_SUB,
 	REMAP_NEW_TRIGGER_GYRO_SUB,
 	
 	REMAP_NEW_EMU_GROUP_SUB,
-	REMAP_NEW_EMU_BTN_SUB,
-	REMAP_NEW_EMU_COMBO_SUB,
-	REMAP_NEW_EMU_ANALOG_SUB,
-	REMAP_NEW_EMU_DIGITAL_ANALOG_SUB,
+	// REMAP_NEW_EMU_BTN_SUB,
+	// REMAP_NEW_EMU_COMBO_SUB,
+	//REMAP_NEW_EMU_ANALOG_SUB,
+	// REMAP_NEW_EMU_DIGITAL_ANALOG_SUB,
 	REMAP_NEW_EMU_TOUCH_SUB,
 
 	MENU_ID_NUM
@@ -54,6 +54,7 @@ typedef struct Menu{
 	enum MENU_ID parent;
 	char* name;
 	struct MenuEntry* entries;
+	uint32_t data;
 }Menu;
 typedef struct MenuEntry{
 	char* name;
@@ -69,8 +70,9 @@ MenuEntry* ui_entry;
 struct RemapRule rule; //Rule currently edited
 
 void ui_openMenu(enum MENU_ID id);
-void ui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId);
-void ui_prevMenu();
+void ui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, uint32_t data);
+void ui_openMenuPrev();
+void ui_openMenuNext();
 void ui_openMenuParent();
 void ui_nextEntry();
 void ui_prevEntry();

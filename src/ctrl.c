@@ -263,10 +263,12 @@ void inputHandler_remap_trigger_group(uint32_t btn){
 		case SCE_CTRL_CROSS:
 			rule.trigger.type = ui_entry->id;
 			switch(ui_entry->id){
-				case REMAP_TYPE_BUTTON: ui_openMenu(REMAP_NEW_TRIGGER_BTN_SUB); break;
-				case REMAP_TYPE_COMBO: ui_openMenu(REMAP_NEW_TRIGGER_COMBO_SUB); break;
-				case REMAP_TYPE_LEFT_ANALOG:
-				case REMAP_TYPE_RIGHT_ANALOG: ui_openMenu(REMAP_NEW_TRIGGER_ANALOG_SUB); break;
+				case REMAP_TYPE_BUTTON: 
+				case REMAP_TYPE_COMBO: ui_openMenuSmart(REMAP_NEW_TRIGGER_COMBO_SUB, 
+					ui_menu->id, REMAP_NEW_EMU_GROUP_SUB, (uint32_t)&rule.trigger.param.btn); break;
+				case REMAP_TYPE_LEFT_ANALOG: 
+				case REMAP_TYPE_RIGHT_ANALOG: ui_openMenuSmart(REMAP_NEW_TRIGGER_ANALOG_SUB,
+					ui_menu->id, REMAP_NEW_EMU_GROUP_SUB, (uint32_t)&rule.trigger.action); break;
 				case REMAP_TYPE_FRONT_TOUCH_ZONE:
 				case REMAP_TYPE_BACK_TOUCH_ZONE: ui_openMenu(REMAP_NEW_TRIGGER_TOUCH_SUB); break;
 				case REMAP_TYPE_GYROSCOPE: ui_openMenu(REMAP_NEW_TRIGGER_GYRO_SUB); break;
@@ -275,28 +277,36 @@ void inputHandler_remap_trigger_group(uint32_t btn){
 		default: inputHandler_generic(btn);
 	}
 }
-void inputHandler_remap_trigger_btn(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_CROSS:
-			rule.trigger.param.btn = HW_BUTTONS[ui_entry->id];
-			ui_openMenu(REMAP_NEW_EMU_GROUP_SUB);
-			break;
-		default: inputHandler_generic(btn);
-	}
-}
 void inputHandler_remap_trigger_combo(uint32_t btn){
+	uint32_t* btnP = (uint32_t *)ui_menu->data;
 	switch (btn) {
 		case SCE_CTRL_SQUARE:
-			btn_toggle(&rule.trigger.param.btn, HW_BUTTONS[ui_entry->id]);
+			btn_toggle(btnP, HW_BUTTONS[ui_entry->id]);
 			break;
 		case SCE_CTRL_CROSS:
-			if (rule.trigger.param.btn)
-				ui_openMenu(REMAP_NEW_EMU_GROUP_SUB);
+			if (!*btnP) break;
+			if (ui_menu->next == REMAP_MENU)
+				profile_addRemapRule(rule);
+			ui_openMenuNext();
 			break;
+		case SCE_CTRL_CIRCLE: ui_openMenuPrev(); break;
 		default: inputHandler_generic(btn);
 	}
 }
-void inputHandler_remap_trigger_analog_touch_gyro(uint32_t btn){
+void inputHandler_remap_trigger_analog(uint32_t btn){
+	enum REMAP_ACTION* actn = (enum REMAP_ACTION*)ui_menu->data;
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			*actn = ui_entry->id;
+			if (ui_menu->next == REMAP_MENU)
+				profile_addRemapRule(rule);
+			ui_openMenuNext();
+			break;
+		case SCE_CTRL_CIRCLE: ui_openMenuPrev();
+		default: inputHandler_generic(btn);
+	}
+}
+void inputHandler_remap_trigger_touch_gyro(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
 			rule.trigger.action = ui_entry->id;
@@ -310,49 +320,21 @@ void inputHandler_remap_emu_group(uint32_t btn){
 		case SCE_CTRL_CROSS:
 			rule.emu.type = ui_entry->id;
 			switch(ui_entry->id){
-				case REMAP_TYPE_BUTTON: ui_openMenu(REMAP_NEW_EMU_BTN_SUB); break;
-				case REMAP_TYPE_COMBO: ui_openMenu(REMAP_NEW_EMU_COMBO_SUB); break;
+				case REMAP_TYPE_BUTTON: 
+				case REMAP_TYPE_COMBO: 
+					ui_openMenuSmart(REMAP_NEW_TRIGGER_COMBO_SUB, 
+						ui_menu->id, REMAP_MENU, (uint32_t)&rule.emu.param.btn); 
+					break;
 				case REMAP_TYPE_LEFT_ANALOG:
 				case REMAP_TYPE_LEFT_ANALOG_DIGITAL:
 				case REMAP_TYPE_RIGHT_ANALOG:
-				case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: ui_openMenu(REMAP_NEW_EMU_ANALOG_SUB); break;
+				case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: 
+					ui_openMenuSmart(REMAP_NEW_TRIGGER_ANALOG_SUB,
+						ui_menu->id, REMAP_MENU, (uint32_t)&rule.emu.action); 
+					break;
 				case REMAP_TYPE_FRONT_TOUCH_POINT:
 				case REMAP_TYPE_BACK_TOUCH_POINT: ui_openMenu(REMAP_NEW_EMU_TOUCH_SUB); break;
 			};
-			break;
-		default: inputHandler_generic(btn);
-	}
-}
-void inputHandler_remap_emu_btn(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_CROSS:
-			rule.emu.param.btn = HW_BUTTONS[ui_entry->id];
-			profile_addRemapRule(rule);
-			ui_openMenu(REMAP_MENU);
-			break;
-		default: inputHandler_generic(btn);
-	}
-}
-void inputHandler_remap_emu_combo(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_SQUARE:
-			btn_toggle(&rule.emu.param.btn, HW_BUTTONS[ui_entry->id]);
-			break;
-		case SCE_CTRL_CROSS:
-			if (rule.emu.param.btn){
-				profile_addRemapRule(rule);
-				ui_openMenu(REMAP_MENU);
-			}
-			break;
-		default: inputHandler_generic(btn);
-	}
-}
-void inputHandler_remap_emu_analog(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_CROSS:
-			rule.emu.action = ui_entry->id;
-			profile_addRemapRule(rule);
-			ui_openMenu(REMAP_MENU);
 			break;
 		default: inputHandler_generic(btn);
 	}
@@ -403,16 +385,11 @@ void ctrl_inputHandler(SceCtrlData *ctrl) {
 				case SETTINGS_MENU: inputHandler_settings(HW_BUTTONS[i]); break;
 				case PROFILES_MENU: inputHandler_profiles(HW_BUTTONS[i]); break;
 				case REMAP_NEW_TRIGGER_GROUP_SUB: inputHandler_remap_trigger_group(HW_BUTTONS[i]); break;
-				case REMAP_NEW_TRIGGER_BTN_SUB: inputHandler_remap_trigger_btn(HW_BUTTONS[i]); break;
 				case REMAP_NEW_TRIGGER_COMBO_SUB: inputHandler_remap_trigger_combo(HW_BUTTONS[i]); break;
-				case REMAP_NEW_TRIGGER_ANALOG_SUB:
+				case REMAP_NEW_TRIGGER_ANALOG_SUB: inputHandler_remap_trigger_analog(HW_BUTTONS[i]); break;
 				case REMAP_NEW_TRIGGER_TOUCH_SUB: 
-				case REMAP_NEW_TRIGGER_GYRO_SUB: inputHandler_remap_trigger_analog_touch_gyro(HW_BUTTONS[i]); break;                                                     
+				case REMAP_NEW_TRIGGER_GYRO_SUB: inputHandler_remap_trigger_touch_gyro(HW_BUTTONS[i]); break;                                                     
 				case REMAP_NEW_EMU_GROUP_SUB: inputHandler_remap_emu_group(HW_BUTTONS[i]); break; 
-				case REMAP_NEW_EMU_BTN_SUB: inputHandler_remap_emu_btn(HW_BUTTONS[i]); break;
-				case REMAP_NEW_EMU_COMBO_SUB: inputHandler_remap_emu_combo(HW_BUTTONS[i]); break;
-				case REMAP_NEW_EMU_ANALOG_SUB:
-				case REMAP_NEW_EMU_DIGITAL_ANALOG_SUB: inputHandler_remap_emu_analog(HW_BUTTONS[i]); break;
 				case REMAP_NEW_EMU_TOUCH_SUB: inputHandler_remap_emu_touch(HW_BUTTONS[i]); break;
 				case HOOKS_MENU:
 				case CREDITS_MENU: inputHandler_generic(HW_BUTTONS[i]); break;

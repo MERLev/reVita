@@ -72,9 +72,6 @@ static const char* str_footer[MENU_ID_NUM] = {
 	"",
 	"",
 	"",
-	"",
-	"",
-	"",
 	""
 };
 static const char* str_yes_no[] = {
@@ -310,15 +307,6 @@ static struct Menu submenu_remap_trigger_group = (Menu){
 	.name = "SELECT TRIGGER", 
 	.entries = submenu_remap_trigger_group_entries};
 
-#define REMAP_TRIGGER_BTN_SUB_NUM 16
-static struct MenuEntry submenu_remap_trigger_btn_entries[REMAP_TRIGGER_BTN_SUB_NUM];
-static struct Menu submenu_remap_trigger_btn = (Menu){
-	.id = REMAP_NEW_TRIGGER_BTN_SUB, 
-	.parent = REMAP_NEW_TRIGGER_GROUP_SUB,
-	.num = REMAP_TRIGGER_BTN_SUB_NUM, 
-	.name = "SELECT ONE BUTTON", 
-	.entries = submenu_remap_trigger_btn_entries};
-
 #define REMAP_TRIGGER_COMBO_SUB_NUM 16
 static struct MenuEntry submenu_remap_trigger_combo_entries[REMAP_TRIGGER_COMBO_SUB_NUM];
 static struct Menu submenu_remap_trigger_combo = (Menu){
@@ -390,37 +378,6 @@ static struct Menu submenu_remap_emu_group = (Menu){
 	.name = "SELECT EMU", 
 	.entries = submenu_remap_emu_group_entries};
 
-#define REMAP_EMU_BTN_SUB_NUM 16
-static struct MenuEntry submenu_remap_emu_btn_entries[REMAP_EMU_BTN_SUB_NUM];
-static struct Menu submenu_remap_emu_btn = (Menu){
-	.id = REMAP_NEW_EMU_BTN_SUB, 
-	.parent = REMAP_NEW_EMU_GROUP_SUB,
-	.num = REMAP_EMU_BTN_SUB_NUM, 
-	.name = "SELECT ONE BUTTON", 
-	.entries = submenu_remap_emu_btn_entries};
-
-#define REMAP_EMU_COMBO_SUB_NUM 16
-static struct MenuEntry submenu_remap_emu_combo_entries[REMAP_EMU_COMBO_SUB_NUM];
-static struct Menu submenu_remap_emu_combo = (Menu){
-	.id = REMAP_NEW_EMU_COMBO_SUB, 
-	.parent = REMAP_NEW_EMU_GROUP_SUB,
-	.num = REMAP_EMU_COMBO_SUB_NUM, 
-	.name = "SELECT SEVERAL BUTTONS", 
-	.entries = submenu_remap_emu_combo_entries};
-
-#define REMAP_EMU_ANALOG_SUB_NUM 4
-static struct MenuEntry submenu_remap_emu_analog_entries[REMAP_EMU_ANALOG_SUB_NUM] = {
-	(MenuEntry){.name = "Move left", .id = REMAP_ANALOG_LEFT},
-	(MenuEntry){.name = "Move right", .id = REMAP_ANALOG_RIGHT},
-	(MenuEntry){.name = "Move up", .id = REMAP_ANALOG_UP},
-	(MenuEntry){.name = "Move down", .id = REMAP_ANALOG_DOWN}};
-static struct Menu submenu_remap_emu_analog = (Menu){
-	.id = REMAP_NEW_EMU_ANALOG_SUB, 
-	.parent = REMAP_NEW_EMU_GROUP_SUB,
-	.num = REMAP_EMU_ANALOG_SUB_NUM, 
-	.name = "SELECT ANALOG STICK DIRECTION", 
-	.entries = submenu_remap_emu_analog_entries};
-
 #define REMAP_EMU_TOUCH_SUB_NUM 5
 static struct MenuEntry submenu_remap_emu_touch_entries[REMAP_EMU_TOUCH_SUB_NUM] = {
 	(MenuEntry){.name = "Top Left Touch", .id = REMAP_TOUCH_ZONE_TL},
@@ -483,9 +440,6 @@ void drawScroll(int8_t up, int8_t down){
 void drawFullScroll(int8_t up, int8_t down, float pos){
 	if (!up && !down) return;
 	renderer_setColor(COLOR_HEADER);
-	// uint16_t calculatedPos = HEADER_HEIGHT + 4 + ICN_ARROW_Y + pos * (UI_HEIGHT - 2 * HEADER_HEIGHT - 4 * ICN_ARROW_Y - 8);
-	// renderer_drawImage(UI_WIDTH - ICN_ARROW_X - 3, calculatedPos, ICN_ARROW_X, ICN_ARROW_Y, ICN_ARROW_UP);
-	// renderer_drawImage(UI_WIDTH - ICN_ARROW_X - 3, calculatedPos + ICN_ARROW_Y, ICN_ARROW_X, ICN_ARROW_Y, ICN_ARROW_DOWN);
 	uint16_t calculatedPos = HEADER_HEIGHT + 4 + ICN_ARROW_Y + pos * (UI_HEIGHT - 2 * HEADER_HEIGHT - 2 * ICN_ARROW_Y - ICN_SLIDER_Y - 8);
 	renderer_drawImage(UI_WIDTH - ICN_ARROW_X - 3, calculatedPos, ICN_SLIDER_X, ICN_SLIDER_Y, ICN_SLIDER);
 	drawScroll(1,1);
@@ -534,18 +488,13 @@ void drawMenu_remap(int y){
 			renderer_stripped(0);
 		}
 	}
+	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
 }
 void drawMenu_sub_trigger_combo(int y){
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
-		setColor(i == ui_menu->idx, !btn_has(rule.trigger.param.btn, HW_BUTTONS[ui_menu->entries[i].id]));
-		renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
-	}
-}
-void drawMenu_sub_emu_combo(int y){
-	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
-		setColor(i == ui_menu->idx, !btn_has(rule.emu.param.btn, HW_BUTTONS[ui_menu->entries[i].id]));
+		uint32_t btns = *(uint32_t*)ui_menu->data;
+		setColor(i == ui_menu->idx, !btn_has(btns, HW_BUTTONS[ui_menu->entries[i].id]));
 		renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
 	}
 }
@@ -570,7 +519,6 @@ void drawMenu_analog(int y){
 		if (ui_menu->idx == i && (id != HEADER_IDX)){//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_2 + 17*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
-			//drawEditPointer(L_2 + 17*CHA_W, y + 2);
 		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num-1));
@@ -598,7 +546,6 @@ void drawMenu_touch(int y){
 			renderer_drawString(L_2+ 20*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
-	//drawScroll(ii > 0, ii + ui_lines < ui_menu->num);
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
 }
 void drawMenu_gyro(int y){
@@ -659,7 +606,6 @@ void drawMenu_controller(int y){
 	renderer_setColor(COLOR_HEADER);
 	renderer_drawString(L_1, y+= CHA_H, "Detected controllers:");
 	for (int i = 0; i < 5; i++){
-		//setColor(0, pi.port[i] != SCE_CTRL_TYPE_UNPAIRED);
 		renderer_setColor((pi.port[i] == SCE_CTRL_TYPE_UNPAIRED) ? COLOR_DANGER : COLOR_ACTIVE);
 		renderer_drawStringF(L_2, y += CHA_H, "Port %i: %s", i, getControllerName(pi.port[i]));
 	}
@@ -747,17 +693,12 @@ void drawBody() {
 		case CREDITS_MENU: drawMenu_credits(y); break; 
 		case REMAP_MENU: drawMenu_remap(y); break;
 		case REMAP_NEW_TRIGGER_COMBO_SUB: drawMenu_sub_trigger_combo(y); break;
-		case REMAP_NEW_EMU_COMBO_SUB: drawMenu_sub_emu_combo(y); break;
 		case MAIN_MENU: 
 		case REMAP_NEW_TRIGGER_GROUP_SUB:
-		case REMAP_NEW_TRIGGER_BTN_SUB:
 		case REMAP_NEW_TRIGGER_ANALOG_SUB:
 		case REMAP_NEW_TRIGGER_TOUCH_SUB: 
 		case REMAP_NEW_TRIGGER_GYRO_SUB:                                                       
 		case REMAP_NEW_EMU_GROUP_SUB:
-		case REMAP_NEW_EMU_BTN_SUB:
-		case REMAP_NEW_EMU_ANALOG_SUB:
-		case REMAP_NEW_EMU_DIGITAL_ANALOG_SUB:
 		case REMAP_NEW_EMU_TOUCH_SUB: drawMenu_generic(y); break;
 		default: break;
 	}
@@ -846,15 +787,11 @@ struct Menu* findMenuById(enum MENU_ID menuId){
 		case SETTINGS_MENU: return &menu_settings; 
 		case CREDITS_MENU: return &menu_credits;
 		case REMAP_NEW_TRIGGER_GROUP_SUB: return &submenu_remap_trigger_group;
-		case REMAP_NEW_TRIGGER_BTN_SUB: return &submenu_remap_trigger_btn;
 		case REMAP_NEW_TRIGGER_COMBO_SUB: return &submenu_remap_trigger_combo;
 		case REMAP_NEW_TRIGGER_ANALOG_SUB: return &submenu_remap_trigger_analog;
 		case REMAP_NEW_TRIGGER_TOUCH_SUB: return &submenu_remap_trigger_touch;
 		case REMAP_NEW_TRIGGER_GYRO_SUB: return &submenu_remap_trigger_gyro;
 		case REMAP_NEW_EMU_GROUP_SUB: return &submenu_remap_emu_group;
-		case REMAP_NEW_EMU_BTN_SUB: return &submenu_remap_emu_btn;
-		case REMAP_NEW_EMU_COMBO_SUB: return &submenu_remap_emu_combo;
-		case REMAP_NEW_EMU_ANALOG_SUB: return &submenu_remap_emu_analog;
 		case REMAP_NEW_EMU_TOUCH_SUB:  return &submenu_remap_emu_touch;
 		default: break;
 	}
@@ -868,23 +805,28 @@ void ui_openMenu(enum MENU_ID id){
 	ui_menu = new_menu;
 	ui_setIdx(ui_menu->idx);
 }
-
-void ui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId){
+void ui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, uint32_t data){
 	buildDynamicMenu(id);
 	ui_menu = findMenuById(id);
 	ui_menu->next = nextId;
 	ui_menu->prev = prevId;
+	ui_menu->data = data;
 	ui_setIdx(ui_menu->idx);
 }
-void ui_prevMenu(){
+void ui_openMenuPrev(){
+	buildDynamicMenu(ui_menu->prev);
 	ui_menu = findMenuById(ui_menu->prev);
+	ui_setIdx(ui_menu->idx);
 }
-void ui_nextMenu(){
+void ui_openMenuNext(){
+	buildDynamicMenu(ui_menu->next);
 	ui_menu = findMenuById(ui_menu->next);
+	ui_setIdx(ui_menu->idx);
 }
-
 void ui_openMenuParent(){
+	buildDynamicMenu(ui_menu->parent);
 	ui_menu = findMenuById(ui_menu->parent);
+	ui_setIdx(ui_menu->idx);
 }
 
 void ui_nextEntry(){
@@ -926,15 +868,10 @@ void ui_open(const SceDisplayFrameBuf *pParam){
 
 void ui_init(){
 	//Init Button remap menus with proper button names
-	for (int i = 0; i < REMAP_TRIGGER_BTN_SUB_NUM; i++)
-		submenu_remap_trigger_btn_entries[i] = (MenuEntry){.name = (char *)str_btns[i], .id = i};
+	// for (int i = 0; i < REMAP_TRIGGER_BTN_SUB_NUM; i++)
 	for (int i = 0; i < REMAP_TRIGGER_COMBO_SUB_NUM; i++)
 		submenu_remap_trigger_combo_entries[i] = (MenuEntry){.name = (char *)str_btns[i], .id = i};
-	for (int i = 0; i < REMAP_EMU_BTN_SUB_NUM; i++)
-		submenu_remap_emu_btn_entries[i] = (MenuEntry){.name = (char *)str_btns[i], .id = i};
-	for (int i = 0; i < REMAP_EMU_COMBO_SUB_NUM; i++)
-		submenu_remap_emu_combo_entries[i] = (MenuEntry){.name = (char *)str_btns[i], .id = i};
-
+	
 	ui_menu = &menu_main;
 	ui_setIdx(0);
 
