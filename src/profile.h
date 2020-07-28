@@ -99,7 +99,7 @@ int profile_saveSettings();
 int profile_loadSettings();
 
 int profile_save(char* titleId);
-int profile_saveGlobal();
+int profile_saveAsGlobal();
 int profile_saveHome();
 int profile_load(char* titleId);
 int profile_loadGlobal();

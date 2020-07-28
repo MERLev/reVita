@@ -103,22 +103,6 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 		//ToDo
         //sceMotionReset();		
 	}
-	
-	//Combo to save profile used
-	// if (!ui_opened 
-	// 		&& (ctrl[nBufs - 1].buttons & SCE_CTRL_START) 
-	// 		&& (ctrl[nBufs - 1].buttons & SCE_CTRL_TRIANGLE)) {
-	// 	profile_loadGlobal();
-	// 	profile_save(titleid);
-	// }
-
-	//Checking for menu triggering
-	// if (!ui_opened 
-	// 		&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_settings[0]]) 
-	// 		&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_settings[1]])) {
-	// 	remap_resetCtrlBuffers(hookId);
-	// 	ui_open();
-	// }
 
 	//Checking for menu triggering
 	if (!ui_opened 

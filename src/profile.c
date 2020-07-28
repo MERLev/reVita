@@ -80,7 +80,7 @@ int readProfile(struct Profile* p, char* name){
 	fd = ksceIoOpen(fname, SCE_O_RDONLY, 0777);
 	//LOG("1: \n");
 	if (!fd) return 0;
-	ret = ksceIoRead(fd, &profile, sizeof(profile));
+	ret = ksceIoRead(fd, p, sizeof(Profile));
 	//LOG("2: %i\n", ret);
 	if (ret < 0) return 0;
 	ksceIoClose(fd);
@@ -98,7 +98,7 @@ int writeProfile(struct Profile* p, char* name){
 	sprintf(fname, "%s/%s.%s", PATH, name, EXT);
 	fd = ksceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
 	if (!fd) return -0;
-	ret = ksceIoWrite(fd, &profile, sizeof(profile));
+	ret = ksceIoWrite(fd, p, sizeof(Profile));
 	if (ret < 0) return 0;
 	ret = ksceIoClose(fd);
 	if (ret < 0) return 0;
@@ -138,7 +138,7 @@ int profile_loadSettings(){
 int profile_save(char* titleId) {
 	return writeProfile(&profile, titleId);
 }
-int profile_saveGlobal() {
+int profile_saveAsGlobal() {
 	profile_global = profile;
 	return writeProfile(&profile_global, NAME_GLOBAL);
 }
@@ -161,7 +161,7 @@ void profile_loadGlobalCached(){
 	profile = profile_global;
 }
 int profile_loadHome() {
-	return readProfile(&profile_global, NAME_HOME);
+	return readProfile(&profile_home, NAME_HOME);
 }
 void profile_loadHomeCached() {
 	profile = profile_home;
@@ -173,7 +173,7 @@ void profile_delete(char* titleId){
 }
 void profile_resetGlobal(){
 	profile_global = profile_def;
-	profile_saveGlobal();
+	profile_saveAsGlobal();
 }
 
 void setDefProfile(){
@@ -231,19 +231,14 @@ void setDefProfile(){
 void profile_init(){
 	setDefProfile();
 	profile = profile_def;
-	//LOG("Profile set to def\n");
 	if (!profile_loadGlobal()){
-		//LOG("No global profile found - saving def as global");
-		profile_saveGlobal();
+		profile_saveAsGlobal();
 	}
 	profile = profile_global;
-	//LOG("profile = profile_global\n");
 	if (!profile_loadHome()){
-		//LOG("No home profile found - saving global as home");
 		profile_saveHome();
 	}
 	profile = profile_home;
-	//LOG("Profile init done");
 	profile_loadSettings();
 }
 void profile_destroy(){

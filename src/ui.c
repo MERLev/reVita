@@ -278,8 +278,8 @@ static struct Menu menu_pick_button = (Menu){
 	.id = MENU_PICK_BUTTON_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_PICK_BUTTON_NUM, 
-	.name = "SELECT SEVERAL BUTTONS", 
-	.footer = "([]):toggle (X):continue", 
+	.name = "SELECT BUTTONS", 
+	.footer = "([]):select (X):continue", 
 	.entries = menu_pick_button_entries};
 
 #define MENU_PICK_ANALOG_NUM 4
@@ -295,10 +295,9 @@ static struct Menu menu_pick_analog = (Menu){
 	.name = "SELECT ANALOG STICK DIRECTION", 
 	.entries = menu_pick_analog_entries};
 
-#define MENU_REMAP_TRIGGER_TYPE_NUM 7
+#define MENU_REMAP_TRIGGER_TYPE_NUM 6
 static struct MenuEntry menu_remap_trigger_type_entries[MENU_REMAP_TRIGGER_TYPE_NUM] = {
-	(MenuEntry){.name = "Button", .id = REMAP_TYPE_BUTTON},
-	(MenuEntry){.name = "Buttons combo", .id = REMAP_TYPE_COMBO},
+	(MenuEntry){.name = "Buttons", .id = REMAP_TYPE_BUTTON},
 	(MenuEntry){.name = "Analog Stick Left", .id = REMAP_TYPE_LEFT_ANALOG},
 	(MenuEntry){.name = "Analog Stick Right", .id = REMAP_TYPE_RIGHT_ANALOG},
 	(MenuEntry){.name = "Touch - Front Panel", .id = REMAP_TYPE_FRONT_TOUCH_ZONE},
@@ -342,10 +341,9 @@ static struct Menu menu_remap_trigger_gyro = (Menu){
 	.name = "SELECT GYRO MOVEMENT", 
 	.entries = menu_remap_trigger_gyro_entries};
 
-#define MENU_REMAP_EMU_TYPE_NUM 8
+#define MENU_REMAP_EMU_TYPE_NUM 7
 static struct MenuEntry menu_remap_emu_type_entries[MENU_REMAP_EMU_TYPE_NUM] = {
-	(MenuEntry){.name = "Button", .id = REMAP_TYPE_BUTTON},
-	(MenuEntry){.name = "Buttons combo", .id = REMAP_TYPE_COMBO},
+	(MenuEntry){.name = "Buttons", .id = REMAP_TYPE_BUTTON},
 	(MenuEntry){.name = "Analog Stick Left", .id = REMAP_TYPE_LEFT_ANALOG},
 	(MenuEntry){.name = "Analog Stick Left [DIGITAL]", .id = REMAP_TYPE_LEFT_ANALOG_DIGITAL},
 	(MenuEntry){.name = "Analog Stick Right", .id = REMAP_TYPE_RIGHT_ANALOG},
@@ -472,7 +470,7 @@ void drawMenu_remap(int y){
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
 }
-void drawMenu_pickAnalog(int y){
+void drawMenu_pickButton(int y){
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
 		uint32_t btns = *(uint32_t*)ui_menu->data;
@@ -674,13 +672,13 @@ void drawBody() {
 		case MENU_SETTINGS_ID: drawMenu_settings(y); break; 
 		case MENU_CREDITS_ID: drawMenu_credits(y); break; 
 		case MENU_REMAP_ID: drawMenu_remap(y); break;
-		case MENU_PICK_ANALOG_ID: drawMenu_pickAnalog(y); break;
+		case MENU_PICK_BUTTON_ID: drawMenu_pickButton(y); break;
 		case MENU_MAIN_ID: 
 		case MENU_REMAP_TRIGGER_TYPE_ID:
-		case MENU_PICK_BUTTON_ID:
 		case MENU_REMAP_TRIGGER_TOUCH_ID: 
 		case MENU_REMAP_TRIGGER_GYRO_ID:                                                       
 		case MENU_REMAP_EMU_TYPE_ID:
+		case MENU_PICK_ANALOG_ID:
 		case MENU_REMAP_EMU_TOUCH_ID: drawMenu_generic(y); break;
 		default: break;
 	}
@@ -841,8 +839,10 @@ void ui_draw(const SceDisplayFrameBuf *pParam){
 	}
 }
 void ui_open(const SceDisplayFrameBuf *pParam){
+	ui_menu = &menu_main;
+	ui_setIdx(0);
+	ui_setIdx(0);
 	ui_opened = 1;
-	ui_entry = &menu_main_entries[0];
 }
 void ui_close(){
 	ui_opened = 0;

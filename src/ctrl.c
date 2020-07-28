@@ -245,7 +245,7 @@ void inputHandler_profiles(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
 			switch (ui_entry->id){
-				case PROFILE_GLOBAL_SAVE: profile_saveGlobal(); break;
+				case PROFILE_GLOBAL_SAVE: profile_saveAsGlobal(); break;
 				case PROFILE_GLOABL_LOAD: profile_loadGlobal(); break;
 				case PROFILE_GLOBAL_DELETE: profile_resetGlobal(); break;
 				case PROFILE_LOCAL_SAVE: profile_save(titleid); break;
