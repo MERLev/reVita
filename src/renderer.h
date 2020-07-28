@@ -13,6 +13,7 @@ void renderer_setFB(const SceDisplayFrameBuf *param);
 void renderer_writeToFB();
 void renderer_cpy();
 
+void renderer_stripped(uint8_t flag);
 void renderer_drawImage(uint32_t x, uint32_t y, uint32_t w, uint32_t h, char* img);
 void renderer_drawImageDirectlyToFB(uint32_t x, uint32_t y, uint32_t w, uint32_t h, char* img);
 void renderer_drawCharacter(int character, int x, int y);

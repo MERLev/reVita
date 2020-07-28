@@ -21,6 +21,18 @@ void profile_addRemapRule(struct RemapRule rule){
 	}
 }
 
+void profile_removeRemapRule(uint8_t idx){
+	if (idx < 0 || idx >= profile.remapsNum)
+		return;
+	for (int i = idx; i < profile.remapsNum - 1; i++)
+		profile.remaps[i] = profile.remaps[i + 1];
+	profile.remapsNum--;
+}
+
+void profile_resetRemapRules(){
+	profile.remapsNum = 0;
+}
+
 // Reset options per-menu
 void profile_resetRemap(){
 	for (int i = 0; i < PROFILE_REMAP_NUM; i++)

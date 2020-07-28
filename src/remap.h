@@ -57,7 +57,7 @@ typedef struct RemapRule{
 	RemapAction trigger;
 	RemapAction emu;
 	uint8_t propagate;
-	uint8_t active;
+	uint8_t disabled;
 }Rule;
 
 extern int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId);

@@ -9,13 +9,13 @@
 #include "log.h"
 
 uint32_t color;
+uint8_t stripped;
 
 SceUID fbuf_uid;
 uint32_t* fb_base;
 uint32_t* fbfbBase_user;
 uint32_t fbWidth, fbHeight, fbPitch;
 uint32_t uiWidth, uiHeight;
-
 
 #define UI_CORNER_RADIUS 9
 static const unsigned char UI_CORNER_OFF[UI_CORNER_RADIUS] = {9, 7, 5, 4, 3, 2, 2, 1, 1};
@@ -165,9 +165,16 @@ void renderer_drawCharacter(int character, int x, int y){
     }
 }
 
+void renderer_stripped(uint8_t flag){
+	stripped = flag;
+}
+
 void renderer_drawString(int x, int y, const char *str){
     for (size_t i = 0; i < strlen(str); i++)
-        renderer_drawCharacter(str[i], x + i * 12, y);
+		if (str[i] != ' ')
+        	renderer_drawCharacter(str[i], x + i * 12, y);
+	if (stripped)
+		renderer_drawRectangle(x, y + CHA_H / 2, (strlen(str)) * CHA_W, 2, color);
 }
 
 void renderer_drawStringF(int x, int y, const char *format, ...){

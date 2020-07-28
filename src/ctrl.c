@@ -80,87 +80,18 @@ void inputHandler_main(uint32_t btn){
 void inputHandler_remap(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS: 
-			//ToDo fix
+			if (ui_entry->id != NEW_RULE_IDX)
+				rule = profile.remaps[ui_entry->id];
 			ui_openMenu(REMAP_NEW_TRIGGER_GROUP_SUB); 
 			break;
 		case SCE_CTRL_SQUARE:
-			rule.active = !rule.active;
+			if (ui_entry->id != NEW_RULE_IDX)
+				profile.remaps[ui_entry->id].disabled = !profile.remaps[ui_entry->id].disabled;
 			break;
 		case SCE_CTRL_START: profile_resetRemap(); break;
 		default: inputHandler_generic(btn);
 	}
 }
-/*void inputHandler_remap(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_DOWN:
-			ui_nextEntry();
-			break;
-		case SCE_CTRL_UP:
-			ui_prevEntry();
-			break;
-		case SCE_CTRL_RIGHT:
-			profile.remap[ui_menu->idx] = (profile.remap[ui_menu->idx] + 1) % TARGET_REMAPS;
-			break;
-		case SCE_CTRL_LEFT:
-			if (profile.remap[ui_menu->idx]) 	
-				profile.remap[ui_menu->idx]--;
-			else
-				profile.remap[ui_menu->idx] = TARGET_REMAPS - 1;
-			break;
-		case SCE_CTRL_LTRIGGER:
-		case SCE_CTRL_L1: //Sections navigation
-			if (profile.remap[ui_menu->idx] < 16)
-				profile.remap[ui_menu->idx] = 38;	//Rear touch custom
-			else if (profile.remap[ui_menu->idx] < 17)
-				profile.remap[ui_menu->idx] = 0;	//HW Buttons
-			else if (profile.remap[ui_menu->idx] < 18)
-				profile.remap[ui_menu->idx] = 16;	//Original
-			else if (profile.remap[ui_menu->idx] < 22)
-				profile.remap[ui_menu->idx] = 17;	//Disabled
-			else if (profile.remap[ui_menu->idx] < 26)
-				profile.remap[ui_menu->idx] = 18;	//Left stick
-			else if (profile.remap[ui_menu->idx] < 30)
-				profile.remap[ui_menu->idx] = 22;	//Right stick
-			else if (profile.remap[ui_menu->idx] < 34)
-				profile.remap[ui_menu->idx] = 26;	//Front touch default
-			else if (profile.remap[ui_menu->idx] < 38)
-				profile.remap[ui_menu->idx] = 30;	//Front touch custom
-			else 
-				profile.remap[ui_menu->idx] = 34;	//Rear touch default
-			break;
-		case SCE_CTRL_RTRIGGER:
-		case SCE_CTRL_R1://Sections navigation
-			if (profile.remap[ui_menu->idx] < 16)
-				profile.remap[ui_menu->idx] = 16;	//Original
-			else if (profile.remap[ui_menu->idx] < 17)
-				profile.remap[ui_menu->idx] = 17;	//Disabled
-			else if (profile.remap[ui_menu->idx] < 18)
-				profile.remap[ui_menu->idx] = 18;	//Left stick
-			else if (profile.remap[ui_menu->idx] < 22)
-				profile.remap[ui_menu->idx] = 22;	//Right stick
-			else if (profile.remap[ui_menu->idx] < 26)
-				profile.remap[ui_menu->idx] = 26;	//Front touch default
-			else if (profile.remap[ui_menu->idx] < 30)
-				profile.remap[ui_menu->idx] = 30;	//Front touch custom
-			else if (profile.remap[ui_menu->idx] < 34)
-				profile.remap[ui_menu->idx] = 34;	//Rear touch default
-			else if (profile.remap[ui_menu->idx] < 38)
-				profile.remap[ui_menu->idx] = 38;	//Rear touch custom
-			else 
-				profile.remap[ui_menu->idx] = 0;	//HW Buttons
-			break;
-		case SCE_CTRL_SQUARE:
-			profile.remap[ui_menu->idx] = PHYS_BUTTONS_NUM;
-			break;
-		case SCE_CTRL_START:
-			profile_resetRemap();
-			break;
-		case SCE_CTRL_CIRCLE:
-			ui_openMenu(MAIN_MENU);
-			ui_setIdx(0);
-			break;
-	}
-}*/
 void inputHandler_analog(uint32_t btn){
 	int8_t id = ui_entry->id;
 	switch (btn) {

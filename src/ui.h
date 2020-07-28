@@ -1,7 +1,7 @@
 #ifndef _UI_H_
 #define _UI_H_
 
-;enum MENU_IDS{
+;enum MENU_ID{
 	MAIN_MENU = 0,
 	REMAP_MENU,
 	ANALOG_MENU,
@@ -26,8 +26,10 @@
 	REMAP_NEW_EMU_COMBO_SUB,
 	REMAP_NEW_EMU_ANALOG_SUB,
 	REMAP_NEW_EMU_DIGITAL_ANALOG_SUB,
-	REMAP_NEW_EMU_TOUCH_SUB
-}MENU_IDS;
+	REMAP_NEW_EMU_TOUCH_SUB,
+
+	MENU_ID_NUM
+}MENU_ID;
 
 enum PROFILE_ACTIONS{
 	PROFILE_GLOBAL_SAVE = 0,
@@ -38,17 +40,18 @@ enum PROFILE_ACTIONS{
 	PROFILE_LOCAL_DELETE
 }PROFILE_ACTIONS;
 
-#define MENU_MODES          23  // Menu modes num
 #define HEADER_IDX          -1
 #define TEXT_IDX            -2
 #define NEW_RULE_IDX        -3
 
 //typedef struct Menu Menu;
 typedef struct Menu{
-	uint8_t id;
+	enum MENU_ID id;
 	uint8_t num;
 	uint8_t idx;
-	struct Menu* parent;
+	enum MENU_ID prev;
+	enum MENU_ID next;
+	enum MENU_ID parent;
 	char* name;
 	struct MenuEntry* entries;
 }Menu;
@@ -65,7 +68,8 @@ MenuEntry* ui_entry;
 
 struct RemapRule rule; //Rule currently edited
 
-void ui_openMenu(int menuId);
+void ui_openMenu(enum MENU_ID id);
+void ui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId);
 void ui_prevMenu();
 void ui_openMenuParent();
 void ui_nextEntry();

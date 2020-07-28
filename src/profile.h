@@ -84,8 +84,9 @@ extern Profile profile_global;
 extern uint8_t profile_settings[PROFILE_SETTINGS_NUM];
 extern uint8_t profile_settings_def[PROFILE_SETTINGS_NUM];
 
-
 void profile_addRemapRule(struct RemapRule rule);
+void profile_removeRemapRule(uint8_t idx);
+void profile_resetRemapRules();
 
 extern void profile_resetRemap();
 extern void profile_resetAnalog();
