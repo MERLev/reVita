@@ -16,9 +16,7 @@
 #include "log.h"
 #include "remap.h"
 
-#define VERSION				2
-#define SUBVERSION			1
-#define SUBSUBVERSION		0
+#define VERSION				"2.1.0"
 
 #define UI_WIDTH            480
 #define UI_HEIGHT           272
@@ -74,38 +72,25 @@ char* getControllerName(int id){
 	else 									return "Unknown";
 }
 
-#define MAIN_MENU_NUM 9
-static struct MenuEntry menu_main_entries[MAIN_MENU_NUM] = {
-	(MenuEntry){.name = "Remap rules", .id = REMAP_MENU},
-	(MenuEntry){.name = "Analog sticks", .id = ANALOG_MENU},
-	(MenuEntry){.name = "Touch", .id = TOUCH_MENU},
-	(MenuEntry){.name = "Gyroscope", .id = GYRO_MENU},
-	(MenuEntry){.name = "External gamepads", .id = CNTRL_MENU},
-	(MenuEntry){.name = "[DEBUG] Show hooks", .id = HOOKS_MENU},
-	(MenuEntry){.name = "Settings", .id = SETTINGS_MENU},
-	(MenuEntry){.name = "Profiles", .id = PROFILES_MENU},
-	(MenuEntry){.name = "Credits", .id = CREDITS_MENU},};
+#define MENU_MAIN_NUM 9
+static struct MenuEntry menu_main_entries[MENU_MAIN_NUM] = {
+	(MenuEntry){.name = "Remap rules", .id = MENU_REMAP_ID},
+	(MenuEntry){.name = "Analog sticks", .id = MENU_ANALOG_ID},
+	(MenuEntry){.name = "Touch", .id = MENU_TOUCH_ID},
+	(MenuEntry){.name = "Gyroscope", .id = MENU_GYRO_ID},
+	(MenuEntry){.name = "External gamepads", .id = MENU_CONTROLLER_ID},
+	(MenuEntry){.name = "[DEBUG] Show hooks", .id = MENU_HOKS_ID},
+	(MenuEntry){.name = "Settings", .id = MENU_SETTINGS_ID},
+	(MenuEntry){.name = "Profiles", .id = MENU_PROFILE_ID},
+	(MenuEntry){.name = "Credits", .id = MENU_CREDITS_ID},};
 static struct Menu menu_main = (Menu){
-	.id = MAIN_MENU, 
-	.num = MAIN_MENU_NUM, 
+	.id = MENU_MAIN_ID, 
+	.num = MENU_MAIN_NUM, 
 	.name = "MAIN MENU",
 	.entries = menu_main_entries};
 
-#define REMAP_MENU_NUM 1
-char str_remaps[REMAP_NUM + REMAP_MENU_NUM][STR_SIZE];
-static struct MenuEntry menu_remap_entries_def[REMAP_MENU_NUM] = {
-	(MenuEntry){.name = "<new remap rule>", .id = NEW_RULE_IDX}};
-static struct MenuEntry menu_remap_entries[REMAP_NUM + REMAP_MENU_NUM];
-static struct Menu menu_remap = (Menu){
-	.id = REMAP_MENU, 
-	.parent = MAIN_MENU,
-	.num = 0, 
-	.name = "REMAP RULES", 
-	.footer = "([]):toggle (start):remove",
-	.entries = menu_remap_entries};
-
-#define ANALOG_MENU_NUM 10
-static struct MenuEntry menu_analog_entries[ANALOG_MENU_NUM] = {
+#define MENU_ANALOG_NUM 10
+static struct MenuEntry menu_analog_entries[MENU_ANALOG_NUM] = {
 	(MenuEntry){.name = "Deadzone", .id = HEADER_IDX},
 	(MenuEntry){.name = "Left Analog  [X]", .id = 0},
 	(MenuEntry){.name = "             [Y]", .id = 1},
@@ -117,15 +102,15 @@ static struct MenuEntry menu_analog_entries[ANALOG_MENU_NUM] = {
 	(MenuEntry){.name = "Right Analog [X]", .id = 6},
 	(MenuEntry){.name = "             [Y]", .id = 7}};
 static struct Menu menu_analog = (Menu){
-	.id = ANALOG_MENU, 
-	.parent = MAIN_MENU,
-	.num = ANALOG_MENU_NUM, 
+	.id = MENU_ANALOG_ID, 
+	.parent = MENU_MAIN_ID,
+	.num = MENU_ANALOG_NUM, 
 	.name = "ANALOG STICKS", 
 	.footer = "([]):reset  (start):reset all",
 	.entries = menu_analog_entries};
 
-#define TOUCH_MENU_NUM 20
-static struct MenuEntry menu_touch_entries[TOUCH_MENU_NUM] = {
+#define MENU_TOUCH_NUM 20
+static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
 	(MenuEntry){.name = "Front", .id = HEADER_IDX},
 	(MenuEntry){.name = "Point A           x", .id = 0},
 	(MenuEntry){.name = "                  y", .id = 1},
@@ -147,15 +132,15 @@ static struct MenuEntry menu_touch_entries[TOUCH_MENU_NUM] = {
 	(MenuEntry){.name = "                  y", .id = 15},
 	(MenuEntry){.name = "Disable if remapped", .id = 17}};
 static struct Menu menu_touch = (Menu){
-	.id = TOUCH_MENU, 
-	.parent = MAIN_MENU,
-	.num = TOUCH_MENU_NUM, 
+	.id = MENU_TOUCH_ID, 
+	.parent = MENU_MAIN_ID,
+	.num = MENU_TOUCH_NUM, 
 	.name = "TOUCH", 
 	.footer = "[TOUCH](RS):change  ([])/(start):reset",
 	.entries = menu_touch_entries};
 
-#define GYRO_MENU_NUM 11
-static struct MenuEntry menu_gyro_entries[GYRO_MENU_NUM] = {
+#define MENU_GYRO_NUM 11
+static struct MenuEntry menu_gyro_entries[MENU_GYRO_NUM] = {
 	(MenuEntry){.name = "Sensivity", .id = HEADER_IDX},
 	(MenuEntry){.name = "    X Axis", .id = 0},
 	(MenuEntry){.name = "    Y Axis", .id = 1},
@@ -168,42 +153,42 @@ static struct MenuEntry menu_gyro_entries[GYRO_MENU_NUM] = {
 	(MenuEntry){.name = "Deadband  ", .id = 6},
 	(MenuEntry){.name = "Wheel mode", .id = 7},};
 static struct Menu menu_gyro = (Menu){
-	.id = GYRO_MENU, 
-	.parent = MAIN_MENU,
-	.num = GYRO_MENU_NUM, 
+	.id = MENU_GYRO_ID, 
+	.parent = MENU_MAIN_ID,
+	.num = MENU_GYRO_NUM, 
 	.name = "GYROSCOPE", 
 	.footer = "([]):reset  (start):reset all",
 	.entries = menu_gyro_entries};
 
-#define CONTROLLERS_MENU_NUM 3
-static struct MenuEntry menu_controllers_entries[CONTROLLERS_MENU_NUM] = {
+#define MENU_CONTROLLER_NUM 3
+static struct MenuEntry menu_controllers_entries[MENU_CONTROLLER_NUM] = {
 	(MenuEntry){.name = "Use external       ", .id = 0},
 	(MenuEntry){.name = "Selected controller", .id = 1},
 	(MenuEntry){.name = "Swap L1<>LT R1<>RT ", .id = 2}};
 static struct Menu menu_controllers = (Menu){
-	.id = CNTRL_MENU, 
-	.parent = MAIN_MENU,
-	.num = CONTROLLERS_MENU_NUM, 
+	.id = MENU_CONTROLLER_ID, 
+	.parent = MENU_MAIN_ID,
+	.num = MENU_CONTROLLER_NUM, 
 	.name = "CONTROLLER", 
 	.footer = "([]):reset  (start):reset all",
 	.entries = menu_controllers_entries};
 
-#define SETTINGS_MENU_NUM 4
-static struct MenuEntry menu_settings_entries[SETTINGS_MENU_NUM] = {
+#define MENU_SETTINGS_NUM 4
+static struct MenuEntry menu_settings_entries[MENU_SETTINGS_NUM] = {
 	(MenuEntry){.name = "Menu trigger first key", .id = 0},
 	(MenuEntry){.name = "            second key", .id = 1},
 	(MenuEntry){.name = "Save profile on close ", .id = 2},
 	(MenuEntry){.name = "Startup delay         ", .id = 3}};
 static struct Menu menu_settings = (Menu){
-	.id = SETTINGS_MENU, 
-	.parent = MAIN_MENU,
-	.num = SETTINGS_MENU_NUM, 
+	.id = MENU_SETTINGS_ID, 
+	.parent = MENU_MAIN_ID,
+	.num = MENU_SETTINGS_NUM, 
 	.name = "SETTINGS", 
 	.footer = "([]):reset  (start):reset all",
 	.entries = menu_settings_entries};
 
-#define PROFILE_MENU_NUM 8
-static struct MenuEntry menu_profiles_entries[PROFILE_MENU_NUM] = {
+#define MENU_PROFILE_NUM 8
+static struct MenuEntry menu_profiles_entries[MENU_PROFILE_NUM] = {
 	(MenuEntry){.name = "Global", .id = HEADER_IDX},
 	(MenuEntry){.name = "Save", .id = PROFILE_GLOBAL_SAVE},
 	(MenuEntry){.name = "Load", .id = PROFILE_GLOABL_LOAD},
@@ -214,14 +199,14 @@ static struct MenuEntry menu_profiles_entries[PROFILE_MENU_NUM] = {
 	(MenuEntry){.name = "Delete", .id = PROFILE_LOCAL_DELETE}
 };
 static struct Menu menu_profiles = (Menu){
-	.id = PROFILES_MENU, 
-	.parent = MAIN_MENU,
-	.num = PROFILE_MENU_NUM, 
+	.id = MENU_PROFILE_ID, 
+	.parent = MENU_MAIN_ID,
+	.num = MENU_PROFILE_NUM, 
 	.name = "PROFILES", 
 	.entries = menu_profiles_entries};
 
-#define HOOKS_MENU_NUM 18
-static struct MenuEntry menu_hooks_entries[HOOKS_MENU_NUM] = {
+#define MENU_HOKS_NUM 18
+static struct MenuEntry menu_hooks_entries[MENU_HOKS_NUM] = {
 	(MenuEntry){.name = "sceCtrlPeekBufferPositive    "},
 	(MenuEntry){.name = "sceCtrlPeekBufferPositive2   "},
 	(MenuEntry){.name = "sceCtrlReadBufferPositive    "},
@@ -242,14 +227,14 @@ static struct MenuEntry menu_hooks_entries[HOOKS_MENU_NUM] = {
 	(MenuEntry){.name = "ksceTouchPeek                "}
 };
 static struct Menu menu_hooks = (Menu){
-	.id = HOOKS_MENU, 
-	.parent = MAIN_MENU,
-	.num = HOOKS_MENU_NUM, 
+	.id = MENU_HOKS_ID, 
+	.parent = MENU_MAIN_ID,
+	.num = MENU_HOKS_NUM, 
 	.name = "HOOKS", 
 	.entries = menu_hooks_entries};
 
-#define CREDITS_MENU_NUM			16
-static struct MenuEntry menu_credits_entries[CREDITS_MENU_NUM] = {
+#define MENU_CREDITS_NUM			16
+static struct MenuEntry menu_credits_entries[MENU_CREDITS_NUM] = {
 	(MenuEntry){.name = "                     updated by Mer1e "},
 	(MenuEntry){.name = "               with the help of S1ngy "},
 	(MenuEntry){.name = "       original author Rinnegatamante "},
@@ -268,14 +253,50 @@ static struct MenuEntry menu_credits_entries[CREDITS_MENU_NUM] = {
 	(MenuEntry){.name = "    support on Patreon"}
 };
 static struct Menu menu_credits = (Menu){
-	.id = CREDITS_MENU, 
-	.parent = MAIN_MENU,
-	.num = CREDITS_MENU_NUM, 
+	.id = MENU_CREDITS_ID, 
+	.parent = MENU_MAIN_ID,
+	.num = MENU_CREDITS_NUM, 
 	.name = "CREDITS", 
 	.entries = menu_credits_entries};
 
-#define REMAP_TRIGGER_GROUP_SUB_NUM 7
-static struct MenuEntry submenu_remap_trigger_group_entries[REMAP_TRIGGER_GROUP_SUB_NUM] = {
+#define MENU_REMAP_NUM 1
+char str_remaps[REMAP_NUM + MENU_REMAP_NUM][STR_SIZE];
+static struct MenuEntry menu_remap_entries_def[MENU_REMAP_NUM] = {
+	(MenuEntry){.name = "<new remap rule>", .id = NEW_RULE_IDX}};
+static struct MenuEntry menu_remap_entries[REMAP_NUM + MENU_REMAP_NUM];
+static struct Menu menu_remap = (Menu){
+	.id = MENU_REMAP_ID, 
+	.parent = MENU_MAIN_ID,
+	.num = 0, 
+	.name = "REMAP RULES", 
+	.footer = "([]):toggle (start):remove",
+	.entries = menu_remap_entries};
+
+#define MENU_PICK_BUTTON_NUM 16
+static struct MenuEntry menu_pick_button_entries[MENU_PICK_BUTTON_NUM];
+static struct Menu menu_pick_button = (Menu){
+	.id = MENU_PICK_BUTTON_ID, 
+	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
+	.num = MENU_PICK_BUTTON_NUM, 
+	.name = "SELECT SEVERAL BUTTONS", 
+	.footer = "([]):toggle (X):continue", 
+	.entries = menu_pick_button_entries};
+
+#define MENU_PICK_ANALOG_NUM 4
+static struct MenuEntry menu_pick_analog_entries[MENU_PICK_ANALOG_NUM] = {
+	(MenuEntry){.name = "Move left", .id = REMAP_ANALOG_LEFT},
+	(MenuEntry){.name = "Move right", .id = REMAP_ANALOG_RIGHT},
+	(MenuEntry){.name = "Move up", .id = REMAP_ANALOG_UP},
+	(MenuEntry){.name = "Move down", .id = REMAP_ANALOG_DOWN}};
+static struct Menu menu_pick_analog = (Menu){
+	.id = MENU_PICK_BUTTON_ID, 
+	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
+	.num = MENU_PICK_ANALOG_NUM, 
+	.name = "SELECT ANALOG STICK DIRECTION", 
+	.entries = menu_pick_analog_entries};
+
+#define MENU_REMAP_TRIGGER_TYPE_NUM 7
+static struct MenuEntry menu_remap_trigger_type_entries[MENU_REMAP_TRIGGER_TYPE_NUM] = {
 	(MenuEntry){.name = "Button", .id = REMAP_TYPE_BUTTON},
 	(MenuEntry){.name = "Buttons combo", .id = REMAP_TYPE_COMBO},
 	(MenuEntry){.name = "Analog Stick Left", .id = REMAP_TYPE_LEFT_ANALOG},
@@ -284,52 +305,29 @@ static struct MenuEntry submenu_remap_trigger_group_entries[REMAP_TRIGGER_GROUP_
 	(MenuEntry){.name = "Touch - Back Panel", .id = REMAP_TYPE_BACK_TOUCH_ZONE},
 	(MenuEntry){.name = "Gyroscope", .id = REMAP_TYPE_GYROSCOPE}
 };
-static struct Menu submenu_remap_trigger_group = (Menu){
-	.id = REMAP_NEW_TRIGGER_GROUP_SUB, 
-	.parent = REMAP_MENU,
-	.num = REMAP_TRIGGER_GROUP_SUB_NUM, 
+static struct Menu menu_remap_trigger_type = (Menu){
+	.id = MENU_REMAP_TRIGGER_TYPE_ID, 
+	.parent = MENU_REMAP_ID,
+	.num = MENU_REMAP_TRIGGER_TYPE_NUM, 
 	.name = "SELECT TRIGGER", 
-	.entries = submenu_remap_trigger_group_entries};
+	.entries = menu_remap_trigger_type_entries};
 
-#define REMAP_TRIGGER_COMBO_SUB_NUM 16
-static struct MenuEntry submenu_remap_trigger_combo_entries[REMAP_TRIGGER_COMBO_SUB_NUM];
-static struct Menu submenu_remap_trigger_combo = (Menu){
-	.id = REMAP_NEW_TRIGGER_COMBO_SUB, 
-	.parent = REMAP_NEW_TRIGGER_GROUP_SUB,
-	.num = REMAP_TRIGGER_COMBO_SUB_NUM, 
-	.name = "SELECT SEVERAL BUTTONS", 
-	.entries = submenu_remap_trigger_combo_entries};
-
-#define REMAP_TRIGGER_ANALOG_SUB_NUM 4
-static struct MenuEntry submenu_remap_trigger_analog_entries[REMAP_TRIGGER_ANALOG_SUB_NUM] = {
-	(MenuEntry){.name = "Move left", .id = REMAP_ANALOG_LEFT},
-	(MenuEntry){.name = "Move right", .id = REMAP_ANALOG_RIGHT},
-	(MenuEntry){.name = "Move up", .id = REMAP_ANALOG_UP},
-	(MenuEntry){.name = "Move down", .id = REMAP_ANALOG_DOWN}
-};
-static struct Menu submenu_remap_trigger_analog = (Menu){
-	.id = REMAP_NEW_TRIGGER_ANALOG_SUB, 
-	.parent = REMAP_NEW_TRIGGER_GROUP_SUB,
-	.num = REMAP_TRIGGER_ANALOG_SUB_NUM, 
-	.name = "SELECT ANALOG STICK DIRECTION", 
-	.entries = submenu_remap_trigger_analog_entries};
-
-#define REMAP_TRIGGER_TOUCH_SUB_NUM 4
-static struct MenuEntry submenu_remap_trigger_touch_entries[REMAP_TRIGGER_TOUCH_SUB_NUM] = {
+#define MENU_REMAP_TRIGGER_TOUCH_NUM 4
+static struct MenuEntry menu_remap_trigger_touch_entries[MENU_REMAP_TRIGGER_TOUCH_NUM] = {
 	(MenuEntry){.name = "Top Left Zone", .id = REMAP_TOUCH_ZONE_TL},
 	(MenuEntry){.name = "Top Right Zone", .id = REMAP_TOUCH_ZONE_TR},
 	(MenuEntry){.name = "Bottom Left Zone", .id = REMAP_TOUCH_ZONE_BL},
 	(MenuEntry){.name = "Bottom Right Zone", .id = REMAP_TOUCH_ZONE_BR}
 };
-static struct Menu submenu_remap_trigger_touch = (Menu){
-	.id = REMAP_NEW_TRIGGER_TOUCH_SUB, 
-	.parent = REMAP_NEW_TRIGGER_GROUP_SUB,
-	.num = REMAP_TRIGGER_TOUCH_SUB_NUM, 
+static struct Menu menu_remap_trigger_touch = (Menu){
+	.id = MENU_REMAP_TRIGGER_TOUCH_ID, 
+	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
+	.num = MENU_REMAP_TRIGGER_TOUCH_NUM, 
 	.name = "SELECT TOUCH POINT", 
-	.entries = submenu_remap_trigger_touch_entries};
+	.entries = menu_remap_trigger_touch_entries};
 
-#define REMAP_TRIGGER_GYRO_SUB_NUM 6
-static struct MenuEntry submenu_remap_trigger_gyro_entries[REMAP_TRIGGER_GYRO_SUB_NUM] = {
+#define MENU_REMAP_TRIGGER_GYRO_NUM 6
+static struct MenuEntry menu_remap_trigger_gyro_entries[MENU_REMAP_TRIGGER_GYRO_NUM] = {
 	(MenuEntry){.name = "Move left", .id = REMAP_GYRO_LEFT},
 	(MenuEntry){.name = "Move right", .id = REMAP_GYRO_RIGHT},
 	(MenuEntry){.name = "Move up", .id = REMAP_GYRO_UP},
@@ -337,15 +335,15 @@ static struct MenuEntry submenu_remap_trigger_gyro_entries[REMAP_TRIGGER_GYRO_SU
 	(MenuEntry){.name = "Roll left", .id = REMAP_GYRO_ROLL_LEFT},
 	(MenuEntry){.name = "Roll right", .id = REMAP_GYRO_ROLL_RIGHT}
 };
-static struct Menu submenu_remap_trigger_gyro = (Menu){
-	.id = REMAP_NEW_TRIGGER_GYRO_SUB, 
-	.parent = REMAP_NEW_TRIGGER_GROUP_SUB,
-	.num = REMAP_TRIGGER_GYRO_SUB_NUM, 
+static struct Menu menu_remap_trigger_gyro = (Menu){
+	.id = MENU_REMAP_TRIGGER_GYRO_ID, 
+	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
+	.num = MENU_REMAP_TRIGGER_GYRO_NUM, 
 	.name = "SELECT GYRO MOVEMENT", 
-	.entries = submenu_remap_trigger_gyro_entries};
+	.entries = menu_remap_trigger_gyro_entries};
 
-#define REMAP_EMU_GROUP_SUB_NUM 8
-static struct MenuEntry submenu_remap_emu_group_entries[REMAP_EMU_GROUP_SUB_NUM] = {
+#define MENU_REMAP_EMU_TYPE_NUM 8
+static struct MenuEntry menu_remap_emu_type_entries[MENU_REMAP_EMU_TYPE_NUM] = {
 	(MenuEntry){.name = "Button", .id = REMAP_TYPE_BUTTON},
 	(MenuEntry){.name = "Buttons combo", .id = REMAP_TYPE_COMBO},
 	(MenuEntry){.name = "Analog Stick Left", .id = REMAP_TYPE_LEFT_ANALOG},
@@ -355,26 +353,26 @@ static struct MenuEntry submenu_remap_emu_group_entries[REMAP_EMU_GROUP_SUB_NUM]
 	(MenuEntry){.name = "Front Touch", .id = REMAP_TYPE_FRONT_TOUCH_POINT},
 	(MenuEntry){.name = "Rear Touch", .id = REMAP_TYPE_BACK_TOUCH_POINT}
 };
-static struct Menu submenu_remap_emu_group = (Menu){
-	.id = REMAP_NEW_EMU_GROUP_SUB, 
-	.parent = REMAP_MENU,
-	.num = REMAP_EMU_GROUP_SUB_NUM, 
+static struct Menu menu_remap_emu_type = (Menu){
+	.id = MENU_REMAP_EMU_TYPE_ID, 
+	.parent = MENU_REMAP_ID,
+	.num = MENU_REMAP_EMU_TYPE_NUM, 
 	.name = "SELECT EMU", 
-	.entries = submenu_remap_emu_group_entries};
+	.entries = menu_remap_emu_type_entries};
 
-#define REMAP_EMU_TOUCH_SUB_NUM 5
-static struct MenuEntry submenu_remap_emu_touch_entries[REMAP_EMU_TOUCH_SUB_NUM] = {
+#define MENU_REMAP_EMU_TOUCH_NUM 5
+static struct MenuEntry menu_remap_emu_touch_entries[MENU_REMAP_EMU_TOUCH_NUM] = {
 	(MenuEntry){.name = "Top Left Touch", .id = REMAP_TOUCH_ZONE_TL},
 	(MenuEntry){.name = "Top Right Touch", .id = REMAP_TOUCH_ZONE_TR},
 	(MenuEntry){.name = "Bottom Left Touch", .id = REMAP_TOUCH_ZONE_BL},
 	(MenuEntry){.name = "Bottom Right Touch", .id = REMAP_TOUCH_ZONE_BR},
 	(MenuEntry){.name = "Custom Touch", .id = REMAP_TOUCH_CUSTOM}};
-static struct Menu submenu_remap_emu_touch = (Menu){
-	.id = REMAP_NEW_EMU_TOUCH_SUB, 
-	.parent = REMAP_NEW_EMU_GROUP_SUB,
-	.num = REMAP_EMU_TOUCH_SUB_NUM, 
+static struct Menu menu_remap_emu_touch = (Menu){
+	.id = MENU_REMAP_EMU_TOUCH_ID, 
+	.parent = MENU_REMAP_EMU_TYPE_ID,
+	.num = MENU_REMAP_EMU_TOUCH_NUM, 
 	.name = "SELECT TOUCH ZONE", 
-	.entries = submenu_remap_emu_touch_entries};
+	.entries = menu_remap_emu_touch_entries};
 
 SceUID mem_uid;
 
@@ -386,7 +384,7 @@ static uint32_t ticker;
 Menu* ui_menu;
 MenuEntry* ui_entry;
 
-struct RemapRule rule; //Rule currently edited
+struct RemapRule ui_ruleEdited; //Rule currently edited
 
 //Calculate starting index for scroll menu
 int calcStartingIndex(int idx, int entriesNum, int screenEntries, int bottomOffset){
@@ -436,12 +434,12 @@ void drawHeader(){
 	renderer_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, COLOR_BG_HEADER);//BG
 	renderer_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, COLOR_HEADER);//Separator
 	renderer_setColor(COLOR_HEADER);
-	if (ui_menu->id == MAIN_MENU)
-		renderer_drawStringF(L_0, 3, "remaPSV2 v.%hhu.%hhu.%hhu", VERSION, SUBVERSION, SUBSUBVERSION);
-	else	
+	if (ui_menu->id == MENU_MAIN_ID){
+		renderer_drawStringF(L_0, 3, "remaPSV2 v.%s", VERSION);
+		renderer_drawString(UI_WIDTH - CHA_W * strlen(titleid) - 10, 2, titleid);
+	} else	
 		renderer_drawString(L_0, 3, ui_menu->name);
 	
-	renderer_drawString(UI_WIDTH - CHA_W * strlen(titleid) - 10, 2, titleid);
 }
 
 void drawFooter(){
@@ -475,7 +473,7 @@ void drawMenu_remap(int y){
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
 }
-void drawMenu_sub_trigger_combo(int y){
+void drawMenu_pickAnalog(int y){
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
 		uint32_t btns = *(uint32_t*)ui_menu->data;
@@ -649,7 +647,7 @@ void drawMenu_credits(int y){
 
 void drawTouchPointer(){
 	int8_t idx = ui_entry->id;
-	if (ui_menu->id != TOUCH_MENU || idx == HEADER_IDX ||  idx >= 16)
+	if (ui_menu->id != MENU_TOUCH_ID || idx == HEADER_IDX ||  idx >= 16)
 		return;
 	int8_t ic_halfsize = ICN_TOUCH_X / 2;
 	int left = profile.touch[idx - (idx % 2)] - 8;
@@ -668,23 +666,23 @@ void drawBody() {
 	int y = HEADER_HEIGHT - CHA_H / 2;
 	ui_lines = ((float)(UI_HEIGHT - 2 * HEADER_HEIGHT)) / CHA_H - 1;
 	switch (ui_menu->id){
-		case ANALOG_MENU: drawMenu_analog(y); break;
-		case TOUCH_MENU: drawMenu_touch(y); break;
-		case GYRO_MENU: drawMenu_gyro(y); break;
-		case CNTRL_MENU: drawMenu_controller(y); break;
-		case HOOKS_MENU: drawMenu_hooks(y); break;  
-		case PROFILES_MENU: drawMenu_profiles(y); break; 
-		case SETTINGS_MENU: drawMenu_settings(y); break; 
-		case CREDITS_MENU: drawMenu_credits(y); break; 
-		case REMAP_MENU: drawMenu_remap(y); break;
-		case REMAP_NEW_TRIGGER_COMBO_SUB: drawMenu_sub_trigger_combo(y); break;
-		case MAIN_MENU: 
-		case REMAP_NEW_TRIGGER_GROUP_SUB:
-		case REMAP_NEW_TRIGGER_ANALOG_SUB:
-		case REMAP_NEW_TRIGGER_TOUCH_SUB: 
-		case REMAP_NEW_TRIGGER_GYRO_SUB:                                                       
-		case REMAP_NEW_EMU_GROUP_SUB:
-		case REMAP_NEW_EMU_TOUCH_SUB: drawMenu_generic(y); break;
+		case MENU_ANALOG_ID: drawMenu_analog(y); break;
+		case MENU_TOUCH_ID: drawMenu_touch(y); break;
+		case MENU_GYRO_ID: drawMenu_gyro(y); break;
+		case MENU_CONTROLLER_ID: drawMenu_controller(y); break;
+		case MENU_HOKS_ID: drawMenu_hooks(y); break;  
+		case MENU_PROFILE_ID: drawMenu_profiles(y); break; 
+		case MENU_SETTINGS_ID: drawMenu_settings(y); break; 
+		case MENU_CREDITS_ID: drawMenu_credits(y); break; 
+		case MENU_REMAP_ID: drawMenu_remap(y); break;
+		case MENU_PICK_ANALOG_ID: drawMenu_pickAnalog(y); break;
+		case MENU_MAIN_ID: 
+		case MENU_REMAP_TRIGGER_TYPE_ID:
+		case MENU_PICK_BUTTON_ID:
+		case MENU_REMAP_TRIGGER_TOUCH_ID: 
+		case MENU_REMAP_TRIGGER_GYRO_ID:                                                       
+		case MENU_REMAP_EMU_TYPE_ID:
+		case MENU_REMAP_EMU_TOUCH_ID: drawMenu_generic(y); break;
 		default: break;
 	}
 }
@@ -699,50 +697,50 @@ void generateBtnComboName(char* str, uint32_t btns){
 		strcat(tmp, "~");
 	strcat(str, tmp);
 }
-void generateRemapRuleName(char* str, struct RemapRule* rule){
+void generateRemapRuleName(char* str, struct RemapRule* ui_ruleEdited){
 	strcpy(str, "");
-	switch (rule->trigger.type){
+	switch (ui_ruleEdited->trigger.type){
 		case REMAP_TYPE_BUTTON :
 		case REMAP_TYPE_COMBO :  
-			strcat(str, str_remap_type[rule->trigger.type]);
+			strcat(str, str_remap_type[ui_ruleEdited->trigger.type]);
 			strcat(str, "{");
-			generateBtnComboName(str, rule->trigger.param.btn);
+			generateBtnComboName(str, ui_ruleEdited->trigger.param.btn);
 			strcat(str, "}");
 			break;
 		default:
-			strcat(str, str_remap_type[rule->trigger.type]);
+			strcat(str, str_remap_type[ui_ruleEdited->trigger.type]);
 			strcat(str, "{");
-			strcat(str, str_remap_action[rule->trigger.action]);
+			strcat(str, str_remap_action[ui_ruleEdited->trigger.action]);
 			strcat(str, "}");
 			break;
 		}
 	strcat(str, " -> ");
-	switch (rule->emu.type){
+	switch (ui_ruleEdited->emu.type){
 		case REMAP_TYPE_BUTTON :
 		case REMAP_TYPE_COMBO :  
-			strcat(str, str_remap_type[rule->emu.type]);
+			strcat(str, str_remap_type[ui_ruleEdited->emu.type]);
 			strcat(str, "{");
-			generateBtnComboName(str, rule->emu.param.btn);
+			generateBtnComboName(str, ui_ruleEdited->emu.param.btn);
 			strcat(str, "}");
 			break;
 		default:
-			strcat(str, str_remap_type[rule->emu.type]);
+			strcat(str, str_remap_type[ui_ruleEdited->emu.type]);
 			strcat(str, "{");
-			strcat(str, str_remap_action[rule->emu.action]);
+			strcat(str, str_remap_action[ui_ruleEdited->emu.action]);
 			strcat(str, "}");
 			break;
 		}
 }
 void buildDynamicMenu(enum MENU_ID menuId){
 	switch (menuId){
-		case REMAP_MENU:
-			memset(&rule, 0, sizeof(rule));
-			menu_remap.num = profile.remapsNum + REMAP_MENU_NUM;
+		case MENU_REMAP_ID:
+			memset(&ui_ruleEdited, 0, sizeof(ui_ruleEdited));
+			menu_remap.num = profile.remapsNum + MENU_REMAP_NUM;
 			for (int i = 0; i < profile.remapsNum; i++){
 				menu_remap_entries[i].id = i;
 				generateRemapRuleName(menu_remap_entries[i].name, &profile.remaps[i]);
 			}
-			for (int i = 0; i < REMAP_MENU_NUM; i++){
+			for (int i = 0; i < MENU_REMAP_NUM; i++){
 				int idx = i + profile.remapsNum;
 				menu_remap_entries[idx].id = menu_remap_entries_def[i].id;
 				strcpy(menu_remap_entries[idx].name,
@@ -761,23 +759,23 @@ void ui_setIdx(int idx){
 
 struct Menu* findMenuById(enum MENU_ID menuId){
 	switch (menuId){
-		case MAIN_MENU: return &menu_main;
-		case REMAP_MENU:  return &menu_remap;
-		case ANALOG_MENU: return &menu_analog;
-		case TOUCH_MENU: return &menu_touch;
-		case GYRO_MENU: return &menu_gyro;
-		case CNTRL_MENU: return &menu_controllers;
-		case HOOKS_MENU: return &menu_hooks;                                                               
-		case PROFILES_MENU: return &menu_profiles;   
-		case SETTINGS_MENU: return &menu_settings; 
-		case CREDITS_MENU: return &menu_credits;
-		case REMAP_NEW_TRIGGER_GROUP_SUB: return &submenu_remap_trigger_group;
-		case REMAP_NEW_TRIGGER_COMBO_SUB: return &submenu_remap_trigger_combo;
-		case REMAP_NEW_TRIGGER_ANALOG_SUB: return &submenu_remap_trigger_analog;
-		case REMAP_NEW_TRIGGER_TOUCH_SUB: return &submenu_remap_trigger_touch;
-		case REMAP_NEW_TRIGGER_GYRO_SUB: return &submenu_remap_trigger_gyro;
-		case REMAP_NEW_EMU_GROUP_SUB: return &submenu_remap_emu_group;
-		case REMAP_NEW_EMU_TOUCH_SUB:  return &submenu_remap_emu_touch;
+		case MENU_MAIN_ID: return &menu_main;
+		case MENU_REMAP_ID:  return &menu_remap;
+		case MENU_ANALOG_ID: return &menu_analog;
+		case MENU_TOUCH_ID: return &menu_touch;
+		case MENU_GYRO_ID: return &menu_gyro;
+		case MENU_CONTROLLER_ID: return &menu_controllers;
+		case MENU_HOKS_ID: return &menu_hooks;                                                               
+		case MENU_PROFILE_ID: return &menu_profiles;   
+		case MENU_SETTINGS_ID: return &menu_settings; 
+		case MENU_CREDITS_ID: return &menu_credits;
+		case MENU_REMAP_TRIGGER_TYPE_ID: return &menu_remap_trigger_type;
+		case MENU_PICK_ANALOG_ID: return &menu_pick_button;
+		case MENU_PICK_BUTTON_ID: return &menu_pick_analog;
+		case MENU_REMAP_TRIGGER_TOUCH_ID: return &menu_remap_trigger_touch;
+		case MENU_REMAP_TRIGGER_GYRO_ID: return &menu_remap_trigger_gyro;
+		case MENU_REMAP_EMU_TYPE_ID: return &menu_remap_emu_type;
+		case MENU_REMAP_EMU_TOUCH_ID:  return &menu_remap_emu_touch;
 		default: break;
 	}
 	return NULL;
@@ -815,14 +813,14 @@ void ui_openMenuParent(){
 }
 
 void ui_nextEntry(){
-	if (ui_menu->id == CREDITS_MENU || ui_menu->id == HOOKS_MENU)
+	if (ui_menu->id == MENU_CREDITS_ID || ui_menu->id == MENU_HOKS_ID)
 		ui_setIdx(min(ui_menu->idx + 1, ui_menu->num - ui_lines));
 	else 
 		ui_setIdx((ui_menu->idx + 1) % ui_menu->num);
 }
 
 void ui_prevEntry(){
-	if (ui_menu->id == CREDITS_MENU || ui_menu->id == HOOKS_MENU)
+	if (ui_menu->id == MENU_CREDITS_ID || ui_menu->id == MENU_HOKS_ID)
 		ui_setIdx(max(0, ui_menu->idx - 1));
 	else
 		ui_setIdx((ui_menu->idx - 1 < 0) ? ui_menu->num - 1 : ui_menu->idx - 1);
@@ -854,8 +852,8 @@ void ui_open(const SceDisplayFrameBuf *pParam){
 void ui_init(){
 	//Init Button remap menus with proper button names
 	// for (int i = 0; i < REMAP_TRIGGER_BTN_SUB_NUM; i++)
-	for (int i = 0; i < REMAP_TRIGGER_COMBO_SUB_NUM; i++)
-		submenu_remap_trigger_combo_entries[i] = (MenuEntry){.name = (char *)str_btns[i], .id = i};
+	for (int i = 0; i < MENU_PICK_BUTTON_NUM; i++)
+		menu_pick_button_entries[i] = (MenuEntry){.name = (char *)str_btns[i], .id = i};
 	
 	ui_menu = &menu_main;
 	ui_setIdx(0);
@@ -868,7 +866,7 @@ void ui_init(){
 	for (int i = 0; i < REMAP_NUM; i++){
 		menu_remap_entries[i].name = &mem_pointer[STR_SIZE * i];
 	}*/
-	for (int i = 0; i < REMAP_NUM + REMAP_MENU_NUM; i++){
+	for (int i = 0; i < REMAP_NUM + MENU_REMAP_NUM; i++){
 		menu_remap_entries[i].name = &str_remaps[i][0];
 	}
 

@@ -14,9 +14,9 @@ uint8_t profile_settings_def[PROFILE_SETTINGS_NUM];
 
 static char fname[128];
 
-void profile_addRemapRule(struct RemapRule rule){
+void profile_addRemapRule(struct RemapRule ui_ruleEdited){
 	if (profile.remapsNum < (REMAP_NUM - 1)){
-		profile.remaps[profile.remapsNum] = rule;
+		profile.remaps[profile.remapsNum] = ui_ruleEdited;
 		profile.remapsNum++;
 	}
 }
