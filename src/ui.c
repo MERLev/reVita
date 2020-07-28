@@ -207,24 +207,24 @@ static struct Menu menu_profiles = (Menu){
 
 #define MENU_HOKS_NUM 18
 static struct MenuEntry menu_hooks_entries[MENU_HOKS_NUM] = {
-	(MenuEntry){.name = "sceCtrlPeekBufferPositive    "},
-	(MenuEntry){.name = "sceCtrlPeekBufferPositive2   "},
-	(MenuEntry){.name = "sceCtrlReadBufferPositive    "},
-	(MenuEntry){.name = "sceCtrlReadBufferPositive2   "},
-	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt "},
-	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt2"},
-	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt "},
-	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt2"},
-	(MenuEntry){.name = "sceCtrlPeekBufferNegative    "},
-	(MenuEntry){.name = "sceCtrlPeekBufferNegative2   "},
-	(MenuEntry){.name = "sceCtrlReadBufferNegative    "},
-	(MenuEntry){.name = "sceCtrlReadBufferNegative2   "},    
-	(MenuEntry){.name = "ksceCtrlReadBufferPositive   "},
-    (MenuEntry){.name = "ksceCtrlPeekBufferPositive   "},
-    (MenuEntry){.name = "ksceCtrlReadBufferNegative   "},
-    (MenuEntry){.name = "ksceCtrlPeekBufferNegative   "},
-	(MenuEntry){.name = "ksceTouchRead                "},
-	(MenuEntry){.name = "ksceTouchPeek                "}
+	(MenuEntry){.name = "sceCtrlPeekBufferPositive    ", .id = 0},
+	(MenuEntry){.name = "sceCtrlPeekBufferPositive2   ", .id = 1},
+	(MenuEntry){.name = "sceCtrlReadBufferPositive    ", .id = 2},
+	(MenuEntry){.name = "sceCtrlReadBufferPositive2   ", .id = 3},
+	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt ", .id = 4},
+	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt2", .id = 5},
+	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt ", .id = 6},
+	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt2", .id = 7},
+	(MenuEntry){.name = "sceCtrlPeekBufferNegative    ", .id = 8},
+	(MenuEntry){.name = "sceCtrlPeekBufferNegative2   ", .id = 9},
+	(MenuEntry){.name = "sceCtrlReadBufferNegative    ", .id =10},
+	(MenuEntry){.name = "sceCtrlReadBufferNegative2   ", .id =11},    
+	(MenuEntry){.name = "ksceCtrlReadBufferPositive   ", .id =12},
+    (MenuEntry){.name = "ksceCtrlPeekBufferPositive   ", .id =13},
+    (MenuEntry){.name = "ksceCtrlReadBufferNegative   ", .id =14},
+    (MenuEntry){.name = "ksceCtrlPeekBufferNegative   ", .id =15},
+	(MenuEntry){.name = "ksceTouchRead                ", .id =16},
+	(MenuEntry){.name = "ksceTouchPeek                ", .id =17}
 };
 static struct Menu menu_hooks = (Menu){
 	.id = MENU_HOKS_ID, 
@@ -593,7 +593,7 @@ void drawMenu_controller(int y){
 void drawMenu_hooks(int y){
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, ui_lines - 1);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
-		renderer_setColor((used_funcs[i] ? COLOR_ACTIVE : COLOR_DEFAULT));
+		renderer_setColor((used_funcs[ui_menu->entries[i].id] ? COLOR_ACTIVE : COLOR_DEFAULT));
 		renderer_drawStringF(L_1, y += CHA_H, "%s : %s", ui_menu->entries[i].name, str_yes_no[used_funcs[ui_menu->entries[i].id]]);
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, 

@@ -295,6 +295,8 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
                 strncpy(titleid, titleidLocal, sizeof(titleid));
                 LOG("LOAD PROFILE_1: %s\n", titleid);
                 ui_close();
+                for (int i = 0; i < HOOKS_NUM; i++)
+                    hooks[i] = 0;
                 profile_load(titleid);
             }
             break;
@@ -305,6 +307,8 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
                     strncpy(titleid, HOME, sizeof(titleid));
                     LOG("LOAD PROFILE_2: %s\n", titleid);
                     ui_close();
+                    for (int i = 0; i < HOOKS_NUM; i++)
+                        hooks[i] = 0;
                     profile_loadHomeCached();
                 }
             }
@@ -345,11 +349,7 @@ void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
     LOG("\n\n RemaPSV2 started\n");
 
-    // Load main profile
     snprintf(titleid, sizeof(titleid), HOME);
-	// profile_loadSettings();
-	// profile_loadGlobal();
-	// profile_loadLocal();
     profile_init();
     ui_init();
     ctrl_init();
@@ -359,6 +359,8 @@ int module_start(SceSize argc, const void *args) {
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
 
     // Hooking functions
+    for (int i = 0; i < HOOKS_NUM; i++)
+        hooks[i] = 0;
     hook( 0,"SceCtrl", 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
     hook( 1,"SceCtrl", 0xD197E3C7, 0x15F81E8C, sceCtrlPeekBufferPositive2_patched);
     hook( 2,"SceCtrl", 0xD197E3C7, 0x67E7AB83, sceCtrlReadBufferPositive_patched);
