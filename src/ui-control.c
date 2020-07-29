@@ -50,7 +50,7 @@ void onInput_touchPicker(SceCtrlData *ctrl){
 	} else if (ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE){
 		TouchPoint* tpA = &ra->param.zone.a;
 		TouchPoint* tpB = &ra->param.zone.b;
-		touchPicker((ui_entry->id < 2) ? tpA : tpB, SCE_TOUCH_PORT_FRONT);
+		touchPicker((ui_entry->data < 2) ? tpA : tpB, SCE_TOUCH_PORT_FRONT);
 		analogTouchPicker(tpA, ctrl, port == SCE_TOUCH_PORT_FRONT, 0);
 		analogTouchPicker(tpB, ctrl, port == SCE_TOUCH_PORT_FRONT, 1);
 	}
@@ -67,7 +67,7 @@ void onButton_generic(uint32_t btn){
 void onButton_main(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
-			ui_openMenu(ui_menu->entries[ui_menu->idx].id);
+			ui_openMenu(ui_menu->entries[ui_menu->idx].data);
 			ui_setIdx(0);
 			break;
 		case SCE_CTRL_CIRCLE:
@@ -81,7 +81,7 @@ void onButton_main(uint32_t btn){
 	}
 }
 void onButton_analog(uint32_t btn){
-	int8_t id = ui_entry->id;
+	int8_t id = ui_entry->data;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
 			if (id == HEADER_IDX) break;
@@ -103,14 +103,14 @@ void onButton_analog(uint32_t btn){
 	}
 }
 void onButton_touch(uint32_t btn){
-	int8_t idx = ui_entry->id;
+	int8_t idx = ui_entry->data;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
 			if (idx == HEADER_IDX) break;
 			else if (idx < 8)//Front Points xy
 				profile.touch[idx] = (profile.touch[idx] + 1) 
 					% ((idx % 2) ? T_FRONT_SIZE.y : T_FRONT_SIZE.x);
-			else if (idx < 16)//Rear Points xy
+			else if (idx < 16)//Back Points xy
 				profile.touch[idx] = (profile.touch[idx] + 1)
 					% ((idx % 2) ? T_BACK_SIZE.y : T_BACK_SIZE.x);
 			else 			//yes/no otion
@@ -137,7 +137,7 @@ void onButton_touch(uint32_t btn){
 	}
 }
 void onButton_gyro(uint32_t btn){
-	int8_t id = ui_entry->id;
+	int8_t id = ui_entry->data;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
 			if (id < 6) //Sens & deadzone
@@ -172,7 +172,7 @@ void onButton_gyro(uint32_t btn){
 	}
 }
 void onButton_controller(uint32_t btn){
-	int8_t id = ui_entry->id;
+	int8_t id = ui_entry->data;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
 			if (id == 1)
@@ -194,7 +194,7 @@ void onButton_controller(uint32_t btn){
 	}
 }
 void onButton_settings(uint32_t btn){
-	int8_t id = ui_entry->id;
+	int8_t id = ui_entry->data;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
 			if (id < 2)
@@ -227,7 +227,7 @@ void onButton_settings(uint32_t btn){
 void onButton_profiles(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
-			switch (ui_entry->id){
+			switch (ui_entry->data){
 				case PROFILE_GLOBAL_SAVE: profile_saveAsGlobal(); break;
 				case PROFILE_GLOABL_LOAD: profile_loadGlobal(); break;
 				case PROFILE_GLOBAL_DELETE: profile_resetGlobal(); break;
@@ -245,7 +245,7 @@ void onButton_pickButton(uint32_t btn){
 	uint32_t* btnP = (uint32_t *)ui_menu->data;
 	switch (btn) {
 		case SCE_CTRL_SQUARE:
-			btn_toggle(btnP, HW_BUTTONS[ui_entry->id]);
+			btn_toggle(btnP, HW_BUTTONS[ui_entry->data]);
 			break;
 		case SCE_CTRL_CROSS:
 			if (!*btnP) break;
@@ -261,7 +261,7 @@ void onButton_pickAnalog(uint32_t btn){
 	enum REMAP_ACTION* actn = (enum REMAP_ACTION*)ui_menu->data;
 	switch (btn) {
 		case SCE_CTRL_CROSS:
-			*actn = ui_entry->id;
+			*actn = ui_entry->data;
 			if (ui_menu->next == MENU_REMAP_ID)
 				profile_addRemapRule(ui_ruleEdited);
 			ui_openMenuNext();
@@ -279,13 +279,13 @@ void onButton_pickTouchPoint(uint32_t btn){
 				profile_addRemapRule(ui_ruleEdited);
 			ui_openMenuNext();
 		case SCE_CTRL_RIGHT:
-			switch (ui_entry->id){
+			switch (ui_entry->data){
 				case 0: ra->param.touch.x = min(ra->param.touch.x + 1, isFront ? T_FRONT_SIZE.x : T_BACK_SIZE.x); break;
 				case 1: ra->param.touch.y = min(ra->param.touch.y + 1, isFront ? T_FRONT_SIZE.y : T_BACK_SIZE.y); break;
 			}
 			break;
 		case SCE_CTRL_LEFT:
-			switch (ui_entry->id){
+			switch (ui_entry->data){
 				case 0: ra->param.touch.x = max(ra->param.touch.x - 1, 0); break;
 				case 1: ra->param.touch.y = max(ra->param.touch.y - 1, 0); break;
 			}
@@ -303,7 +303,7 @@ void onButton_pickTouchZone(uint32_t btn){
 				profile_addRemapRule(ui_ruleEdited);
 			ui_openMenuNext();
 		case SCE_CTRL_RIGHT:
-			switch (ui_entry->id){
+			switch (ui_entry->data){
 				case 0: ra->param.zone.a.x = min(ra->param.zone.a.x + 1, isFront ? T_FRONT_SIZE.x : T_BACK_SIZE.x); break;
 				case 1: ra->param.zone.a.y = min(ra->param.zone.a.y + 1, isFront ? T_FRONT_SIZE.y : T_BACK_SIZE.y); break;
 				case 2: ra->param.zone.b.x = min(ra->param.zone.b.x + 1, isFront ? T_FRONT_SIZE.x : T_BACK_SIZE.x); break;
@@ -311,7 +311,7 @@ void onButton_pickTouchZone(uint32_t btn){
 			}
 			break;
 		case SCE_CTRL_LEFT:
-			switch (ui_entry->id){
+			switch (ui_entry->data){
 				case 0: ra->param.zone.a.x = max(ra->param.zone.a.x - 1, 0); break;
 				case 1: ra->param.zone.a.y = max(ra->param.zone.a.y - 1, 0); break;
 				case 2: ra->param.zone.b.x = max(ra->param.zone.b.x - 1, 0); break;
@@ -326,23 +326,23 @@ void onButton_pickTouchZone(uint32_t btn){
 void onButton_remap(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS: 
-			if (ui_entry->id != NEW_RULE_IDX)
-				ui_ruleEdited = profile.remaps[ui_entry->id];
+			if (ui_entry->data != NEW_RULE_IDX)
+				ui_ruleEdited = profile.remaps[ui_entry->data];
 			ui_openMenu(MENU_REMAP_TRIGGER_TYPE_ID); 
 			break;
 		case SCE_CTRL_SQUARE:
-			if (ui_entry->id != NEW_RULE_IDX)
-				profile.remaps[ui_entry->id].disabled = !profile.remaps[ui_entry->id].disabled;
+			if (ui_entry->data != NEW_RULE_IDX)
+				profile.remaps[ui_entry->data].disabled = !profile.remaps[ui_entry->data].disabled;
 			break;
 		case SCE_CTRL_TRIANGLE:
-			if (ui_entry->id != NEW_RULE_IDX){
-				profile.remaps[ui_entry->id].propagate = !profile.remaps[ui_entry->id].propagate;
+			if (ui_entry->data != NEW_RULE_IDX){
+				profile.remaps[ui_entry->data].propagate = !profile.remaps[ui_entry->data].propagate;
 				ui_menu->onBuild(ui_menu);
 			}
 			break;
 		case SCE_CTRL_START:
-			if (ui_entry->id != NEW_RULE_IDX){
-				profile_removeRemapRule(ui_entry->id);
+			if (ui_entry->data != NEW_RULE_IDX){
+				profile_removeRemapRule(ui_entry->data);
 				ui_menu->onBuild(ui_menu);
 			}
 			break;
@@ -352,8 +352,8 @@ void onButton_remap(uint32_t btn){
 void onButton_remapTriggerType(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
-			ui_ruleEdited.trigger.type = ui_entry->id;
-			switch(ui_entry->id){
+			ui_ruleEdited.trigger.type = ui_entry->data;
+			switch(ui_entry->data){
 				case REMAP_TYPE_BUTTON: ui_openMenuSmart(MENU_PICK_BUTTON_ID, 
 					ui_menu->id, MENU_REMAP_EMU_TYPE_ID, (uint32_t)&ui_ruleEdited.trigger.param.btn); break;
 				case REMAP_TYPE_LEFT_ANALOG: 
@@ -370,8 +370,8 @@ void onButton_remapTriggerType(uint32_t btn){
 void onButton_remapTriggerTouch(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
-			ui_ruleEdited.trigger.action = ui_entry->id;
-			if (ui_entry->id == REMAP_TOUCH_CUSTOM){
+			ui_ruleEdited.trigger.action = ui_entry->data;
+			if (ui_entry->data == REMAP_TOUCH_CUSTOM){
 				ui_openMenuSmart(MENU_PICK_TOUCH_ZONE_ID, ui_menu->id, MENU_REMAP_EMU_TYPE_ID, 
 					(uint32_t)&ui_ruleEdited.trigger);
 				break;
@@ -385,7 +385,7 @@ void onButton_remapTriggerTouch(uint32_t btn){
 void onButton_remapTriggerGyro(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
-			ui_ruleEdited.trigger.action = ui_entry->id;
+			ui_ruleEdited.trigger.action = ui_entry->data;
 			ui_openMenu(MENU_REMAP_EMU_TYPE_ID);
 			break;
 		default: onButton_generic(btn);
@@ -394,8 +394,8 @@ void onButton_remapTriggerGyro(uint32_t btn){
 void onButton_remapEmuType(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
-			ui_ruleEdited.emu.type = ui_entry->id;
-			switch(ui_entry->id){
+			ui_ruleEdited.emu.type = ui_entry->data;
+			switch(ui_entry->data){
 				case REMAP_TYPE_BUTTON: 
 					ui_openMenuSmart(MENU_PICK_BUTTON_ID, 
 						ui_menu->id, MENU_REMAP_ID, (uint32_t)&ui_ruleEdited.emu.param.btn); 
@@ -417,8 +417,8 @@ void onButton_remapEmuType(uint32_t btn){
 void onButton_remapEmuTouch(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
-			ui_ruleEdited.emu.action = ui_entry->id;
-			if (ui_entry->id == REMAP_TOUCH_CUSTOM){
+			ui_ruleEdited.emu.action = ui_entry->data;
+			if (ui_entry->data == REMAP_TOUCH_CUSTOM){
 				ui_openMenuSmart(MENU_PICK_TOUCH_POINT_ID, ui_menu->id, MENU_REMAP_ID, 
 					(uint32_t)&ui_ruleEdited.emu);
 				break;
@@ -435,6 +435,7 @@ void ctrl_onInput(SceCtrlData *ctrl) {
 	if ((ctrl->buttons & HW_BUTTONS[profile_settings[0]]) 
 			&& (ctrl->buttons & HW_BUTTONS[profile_settings[1]]))
 		return; //Menu trigger butoons should not trigger any menu actions on menu open
+		
 	if (new_frame) {
 		new_frame = 0;
 		

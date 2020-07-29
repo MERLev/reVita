@@ -189,16 +189,16 @@ void setDefProfile(){
 	profile_def.touch[PROFILE_TOUCH_FRONT_POINT3_Y] = 816;
 	profile_def.touch[PROFILE_TOUCH_FRONT_POINT4_X] = 1280;
 	profile_def.touch[PROFILE_TOUCH_FRONT_POINT4_Y] = 816;
-	profile_def.touch[PROFILE_TOUCH_REAR_POINT1_X] = 600;
-	profile_def.touch[PROFILE_TOUCH_REAR_POINT1_Y] = 272;
-	profile_def.touch[PROFILE_TOUCH_REAR_POINT2_X] = 1280;
-	profile_def.touch[PROFILE_TOUCH_REAR_POINT2_Y] = 272;
-	profile_def.touch[PROFILE_TOUCH_REAR_POINT3_X] = 600;
-	profile_def.touch[PROFILE_TOUCH_REAR_POINT3_Y] = 608;
-	profile_def.touch[PROFILE_TOUCH_REAR_POINT4_X] = 1280;
-	profile_def.touch[PROFILE_TOUCH_REAR_POINT4_Y] = 608;
+	profile_def.touch[PROFILE_TOUCH_BACK_POINT1_X] = 600;
+	profile_def.touch[PROFILE_TOUCH_BACK_POINT1_Y] = 272;
+	profile_def.touch[PROFILE_TOUCH_BACK_POINT2_X] = 1280;
+	profile_def.touch[PROFILE_TOUCH_BACK_POINT2_Y] = 272;
+	profile_def.touch[PROFILE_TOUCH_BACK_POINT3_X] = 600;
+	profile_def.touch[PROFILE_TOUCH_BACK_POINT3_Y] = 608;
+	profile_def.touch[PROFILE_TOUCH_BACK_POINT4_X] = 1280;
+	profile_def.touch[PROFILE_TOUCH_BACK_POINT4_Y] = 608;
 	profile_def.touch[PROFILE_TOUCH_FRONT_DISABLE] = 1;
-	profile_def.touch[PROFILE_TOUCH_REAR_DISABLE] = 1;
+	profile_def.touch[PROFILE_TOUCH_BACK_DISABLE] = 1;
 
 	profile_def.gyro[PROFILE_GYRO_SENSIVITY_X] = 127;
 	profile_def.gyro[PROFILE_GYRO_SENSIVITY_Y] = 127;

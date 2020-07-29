@@ -5,7 +5,7 @@
 
 ## Functionality
 
-- ability to remap buttons, analog sticks, rear and front touch zones, gyroscope movements
+- ability to remap buttons, analog sticks, back and front touch zones, gyroscope movements
 - ability to emulate buttons, analog sticks, touch events
 - 4 pre-defined and 4 customizable touch points to emulate
 - improve gyro sensivity in any game by disabling gyro deadband

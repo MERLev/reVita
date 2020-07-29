@@ -65,7 +65,7 @@ typedef struct Menu{
 }Menu;
 typedef struct MenuEntry{
 	char* name;
-	int8_t id;
+	int8_t data;
 } MenuEntry;
 
 extern uint8_t ui_opened;

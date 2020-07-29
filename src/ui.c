@@ -7,41 +7,40 @@
 #include "profile.h"
 #include "log.h"
 
-#define STR_SIZE			30
+#define STR_SIZE 30
 
 Menu* menus[MENU_ID__NUM];
+
 void onBuild_remap(Menu* m);
 
-#define MENU_MAIN_NUM 9
-static struct MenuEntry menu_main_entries[MENU_MAIN_NUM] = {
-	(MenuEntry){.name = "Remap rules", .id = MENU_REMAP_ID},
-	(MenuEntry){.name = "Analog sticks", .id = MENU_ANALOG_ID},
-	(MenuEntry){.name = "Touch", .id = MENU_TOUCH_ID},
-	(MenuEntry){.name = "Gyroscope", .id = MENU_GYRO_ID},
-	(MenuEntry){.name = "External gamepads", .id = MENU_CONTROLLER_ID},
-	(MenuEntry){.name = "[DEBUG] Show hooks", .id = MENU_HOKS_ID},
-	(MenuEntry){.name = "Settings", .id = MENU_SETTINGS_ID},
-	(MenuEntry){.name = "Profiles", .id = MENU_PROFILE_ID},
-	(MenuEntry){.name = "Credits", .id = MENU_CREDITS_ID},};
+static struct MenuEntry menu_main_entries[] = {
+	(MenuEntry){.name = "Remap rules", .data = MENU_REMAP_ID},
+	(MenuEntry){.name = "Analog sticks", .data = MENU_ANALOG_ID},
+	(MenuEntry){.name = "Touch", .data = MENU_TOUCH_ID},
+	(MenuEntry){.name = "Gyroscope", .data = MENU_GYRO_ID},
+	(MenuEntry){.name = "External gamepads", .data = MENU_CONTROLLER_ID},
+	(MenuEntry){.name = "[DEBUG] Show hooks", .data = MENU_HOKS_ID},
+	(MenuEntry){.name = "Settings", .data = MENU_SETTINGS_ID},
+	(MenuEntry){.name = "Profiles", .data = MENU_PROFILE_ID},
+	(MenuEntry){.name = "Credits", .data = MENU_CREDITS_ID},};
 static struct Menu menu_main = (Menu){
 	.id = MENU_MAIN_ID, 
-	.num = MENU_MAIN_NUM, 
 	.name = "MAIN MENU",
 	.onButton = onButton_main,
 	.entries = menu_main_entries};
 
 #define MENU_ANALOG_NUM 10
 static struct MenuEntry menu_analog_entries[MENU_ANALOG_NUM] = {
-	(MenuEntry){.name = "Deadzone", .id = HEADER_IDX},
-	(MenuEntry){.name = "Left Analog  [X]", .id = 0},
-	(MenuEntry){.name = "             [Y]", .id = 1},
-	(MenuEntry){.name = "Right Analog [X]", .id = 2},
-	(MenuEntry){.name = "             [Y]", .id = 3},
-	(MenuEntry){.name = "Force digital", .id = HEADER_IDX},
-	(MenuEntry){.name = "Left Analog  [X]", .id = 4},
-	(MenuEntry){.name = "             [Y]", .id = 5},
-	(MenuEntry){.name = "Right Analog [X]", .id = 6},
-	(MenuEntry){.name = "             [Y]", .id = 7}};
+	(MenuEntry){.name = "Deadzone", .data = HEADER_IDX},
+	(MenuEntry){.name = "Left Analog  [X]", .data = 0},
+	(MenuEntry){.name = "             [Y]", .data = 1},
+	(MenuEntry){.name = "Right Analog [X]", .data = 2},
+	(MenuEntry){.name = "             [Y]", .data = 3},
+	(MenuEntry){.name = "Force digital", .data = HEADER_IDX},
+	(MenuEntry){.name = "Left Analog  [X]", .data = 4},
+	(MenuEntry){.name = "             [Y]", .data = 5},
+	(MenuEntry){.name = "Right Analog [X]", .data = 6},
+	(MenuEntry){.name = "             [Y]", .data = 7}};
 static struct Menu menu_analog = (Menu){
 	.id = MENU_ANALOG_ID, 
 	.parent = MENU_MAIN_ID,
@@ -54,26 +53,26 @@ static struct Menu menu_analog = (Menu){
 
 #define MENU_TOUCH_NUM 20
 static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
-	(MenuEntry){.name = "Front", .id = HEADER_IDX},
-	(MenuEntry){.name = "Point A           x", .id = 0},
-	(MenuEntry){.name = "                  y", .id = 1},
-	(MenuEntry){.name = "Point B           x", .id = 2},
-	(MenuEntry){.name = "                  y", .id = 3},
-	(MenuEntry){.name = "Point C           x", .id = 4},
-	(MenuEntry){.name = "                  y", .id = 5},
-	(MenuEntry){.name = "Point D           x", .id = 6},
-	(MenuEntry){.name = "                  y", .id = 7},
-	(MenuEntry){.name = "Disable if remapped", .id = 16},
-	(MenuEntry){.name = "Rear", .id = HEADER_IDX},
-	(MenuEntry){.name = "Point A           x", .id = 8},
-	(MenuEntry){.name = "                  y", .id = 9},
-	(MenuEntry){.name = "Point B           x", .id = 10},
-	(MenuEntry){.name = "                  y", .id = 11},
-	(MenuEntry){.name = "Point C           x", .id = 12},
-	(MenuEntry){.name = "                  y", .id = 13},
-	(MenuEntry){.name = "Point D           x", .id = 14},
-	(MenuEntry){.name = "                  y", .id = 15},
-	(MenuEntry){.name = "Disable if remapped", .id = 17}};
+	(MenuEntry){.name = "Front", .data = HEADER_IDX},
+	(MenuEntry){.name = "Point A           x", .data = 0},
+	(MenuEntry){.name = "                  y", .data = 1},
+	(MenuEntry){.name = "Point B           x", .data = 2},
+	(MenuEntry){.name = "                  y", .data = 3},
+	(MenuEntry){.name = "Point C           x", .data = 4},
+	(MenuEntry){.name = "                  y", .data = 5},
+	(MenuEntry){.name = "Point D           x", .data = 6},
+	(MenuEntry){.name = "                  y", .data = 7},
+	(MenuEntry){.name = "Disable if remapped", .data = 16},
+	(MenuEntry){.name = "Back", .data = HEADER_IDX},
+	(MenuEntry){.name = "Point A           x", .data = 8},
+	(MenuEntry){.name = "                  y", .data = 9},
+	(MenuEntry){.name = "Point B           x", .data = 10},
+	(MenuEntry){.name = "                  y", .data = 11},
+	(MenuEntry){.name = "Point C           x", .data = 12},
+	(MenuEntry){.name = "                  y", .data = 13},
+	(MenuEntry){.name = "Point D           x", .data = 14},
+	(MenuEntry){.name = "                  y", .data = 15},
+	(MenuEntry){.name = "Disable if remapped", .data = 17}};
 static struct Menu menu_touch = (Menu){
 	.id = MENU_TOUCH_ID, 
 	.parent = MENU_MAIN_ID,
@@ -86,17 +85,17 @@ static struct Menu menu_touch = (Menu){
 
 #define MENU_GYRO_NUM 11
 static struct MenuEntry menu_gyro_entries[MENU_GYRO_NUM] = {
-	(MenuEntry){.name = "Sensivity", .id = HEADER_IDX},
-	(MenuEntry){.name = "    X Axis", .id = 0},
-	(MenuEntry){.name = "    Y Axis", .id = 1},
-	(MenuEntry){.name = "    Z Axis", .id = 2},
-	(MenuEntry){.name = "Deadzone", .id = HEADER_IDX},
-	(MenuEntry){.name = "    X Axis", .id = 3},
-	(MenuEntry){.name = "    Y Axis", .id = 4},
-	(MenuEntry){.name = "    Z Axis", .id = 5},
-	(MenuEntry){.name = "More", .id = HEADER_IDX},
-	(MenuEntry){.name = "Deadband  ", .id = 6},
-	(MenuEntry){.name = "Wheel mode", .id = 7},};
+	(MenuEntry){.name = "Sensivity", .data = HEADER_IDX},
+	(MenuEntry){.name = "    X Axis", .data = 0},
+	(MenuEntry){.name = "    Y Axis", .data = 1},
+	(MenuEntry){.name = "    Z Axis", .data = 2},
+	(MenuEntry){.name = "Deadzone", .data = HEADER_IDX},
+	(MenuEntry){.name = "    X Axis", .data = 3},
+	(MenuEntry){.name = "    Y Axis", .data = 4},
+	(MenuEntry){.name = "    Z Axis", .data = 5},
+	(MenuEntry){.name = "More", .data = HEADER_IDX},
+	(MenuEntry){.name = "Deadband  ", .data = 6},
+	(MenuEntry){.name = "Wheel mode", .data = 7},};
 static struct Menu menu_gyro = (Menu){
 	.id = MENU_GYRO_ID, 
 	.parent = MENU_MAIN_ID,
@@ -109,9 +108,9 @@ static struct Menu menu_gyro = (Menu){
 
 #define MENU_CONTROLLER_NUM 3
 static struct MenuEntry menu_controllers_entries[MENU_CONTROLLER_NUM] = {
-	(MenuEntry){.name = "Use external       ", .id = 0},
-	(MenuEntry){.name = "Selected controller", .id = 1},
-	(MenuEntry){.name = "Swap L1<>LT R1<>RT ", .id = 2}};
+	(MenuEntry){.name = "Use external       ", .data = 0},
+	(MenuEntry){.name = "Selected controller", .data = 1},
+	(MenuEntry){.name = "Swap L1<>LT R1<>RT ", .data = 2}};
 static struct Menu menu_controllers = (Menu){
 	.id = MENU_CONTROLLER_ID, 
 	.parent = MENU_MAIN_ID,
@@ -124,10 +123,10 @@ static struct Menu menu_controllers = (Menu){
 
 #define MENU_SETTINGS_NUM 4
 static struct MenuEntry menu_settings_entries[MENU_SETTINGS_NUM] = {
-	(MenuEntry){.name = "Menu trigger first key", .id = 0},
-	(MenuEntry){.name = "            second key", .id = 1},
-	(MenuEntry){.name = "Save profile on close ", .id = 2},
-	(MenuEntry){.name = "Startup delay         ", .id = 3}};
+	(MenuEntry){.name = "Menu trigger first key", .data = 0},
+	(MenuEntry){.name = "            second key", .data = 1},
+	(MenuEntry){.name = "Save profile on close ", .data = 2},
+	(MenuEntry){.name = "Startup delay         ", .data = 3}};
 static struct Menu menu_settings = (Menu){
 	.id = MENU_SETTINGS_ID, 
 	.parent = MENU_MAIN_ID,
@@ -140,14 +139,14 @@ static struct Menu menu_settings = (Menu){
 
 #define MENU_PROFILE_NUM 8
 static struct MenuEntry menu_profiles_entries[MENU_PROFILE_NUM] = {
-	(MenuEntry){.name = "Global", .id = HEADER_IDX},
-	(MenuEntry){.name = "Save", .id = PROFILE_GLOBAL_SAVE},
-	(MenuEntry){.name = "Load", .id = PROFILE_GLOABL_LOAD},
-	(MenuEntry){.name = "Delete", .id = PROFILE_GLOBAL_DELETE},
-	(MenuEntry){.name = "Game", .id = HEADER_IDX},
-	(MenuEntry){.name = "Save", .id = PROFILE_LOCAL_SAVE},
-	(MenuEntry){.name = "Load", .id = PROFILE_LOCAL_LOAD},
-	(MenuEntry){.name = "Delete", .id = PROFILE_LOCAL_DELETE}
+	(MenuEntry){.name = "Global", .data = HEADER_IDX},
+	(MenuEntry){.name = "Save", .data = PROFILE_GLOBAL_SAVE},
+	(MenuEntry){.name = "Load", .data = PROFILE_GLOABL_LOAD},
+	(MenuEntry){.name = "Delete", .data = PROFILE_GLOBAL_DELETE},
+	(MenuEntry){.name = "Game", .data = HEADER_IDX},
+	(MenuEntry){.name = "Save", .data = PROFILE_LOCAL_SAVE},
+	(MenuEntry){.name = "Load", .data = PROFILE_LOCAL_LOAD},
+	(MenuEntry){.name = "Delete", .data = PROFILE_LOCAL_DELETE}
 };
 static struct Menu menu_profiles = (Menu){
 	.id = MENU_PROFILE_ID, 
@@ -160,24 +159,24 @@ static struct Menu menu_profiles = (Menu){
 
 #define MENU_HOKS_NUM 18
 static struct MenuEntry menu_hooks_entries[MENU_HOKS_NUM] = {
-	(MenuEntry){.name = "sceCtrlPeekBufferPositive    ", .id = 0},
-	(MenuEntry){.name = "sceCtrlPeekBufferPositive2   ", .id = 1},
-	(MenuEntry){.name = "sceCtrlReadBufferPositive    ", .id = 2},
-	(MenuEntry){.name = "sceCtrlReadBufferPositive2   ", .id = 3},
-	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt ", .id = 4},
-	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt2", .id = 5},
-	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt ", .id = 6},
-	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt2", .id = 7},
-	(MenuEntry){.name = "sceCtrlPeekBufferNegative    ", .id = 8},
-	(MenuEntry){.name = "sceCtrlPeekBufferNegative2   ", .id = 9},
-	(MenuEntry){.name = "sceCtrlReadBufferNegative    ", .id =10},
-	(MenuEntry){.name = "sceCtrlReadBufferNegative2   ", .id =11},    
-	(MenuEntry){.name = "ksceCtrlReadBufferPositive   ", .id =12},
-    (MenuEntry){.name = "ksceCtrlPeekBufferPositive   ", .id =13},
-    (MenuEntry){.name = "ksceCtrlReadBufferNegative   ", .id =14},
-    (MenuEntry){.name = "ksceCtrlPeekBufferNegative   ", .id =15},
-	(MenuEntry){.name = "ksceTouchRead                ", .id =16},
-	(MenuEntry){.name = "ksceTouchPeek                ", .id =17}
+	(MenuEntry){.name = "sceCtrlPeekBufferPositive    ", .data = 0},
+	(MenuEntry){.name = "sceCtrlPeekBufferPositive2   ", .data = 1},
+	(MenuEntry){.name = "sceCtrlReadBufferPositive    ", .data = 2},
+	(MenuEntry){.name = "sceCtrlReadBufferPositive2   ", .data = 3},
+	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt ", .data = 4},
+	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt2", .data = 5},
+	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt ", .data = 6},
+	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt2", .data = 7},
+	(MenuEntry){.name = "sceCtrlPeekBufferNegative    ", .data = 8},
+	(MenuEntry){.name = "sceCtrlPeekBufferNegative2   ", .data = 9},
+	(MenuEntry){.name = "sceCtrlReadBufferNegative    ", .data =10},
+	(MenuEntry){.name = "sceCtrlReadBufferNegative2   ", .data =11},    
+	(MenuEntry){.name = "ksceCtrlReadBufferPositive   ", .data =12},
+    (MenuEntry){.name = "ksceCtrlPeekBufferPositive   ", .data =13},
+    (MenuEntry){.name = "ksceCtrlReadBufferNegative   ", .data =14},
+    (MenuEntry){.name = "ksceCtrlPeekBufferNegative   ", .data =15},
+	(MenuEntry){.name = "ksceTouchRead                ", .data =16},
+	(MenuEntry){.name = "ksceTouchPeek                ", .data =17}
 };
 static struct Menu menu_hooks = (Menu){
 	.id = MENU_HOKS_ID, 
@@ -228,10 +227,10 @@ static struct Menu menu_pick_button = (Menu){
 
 #define MENU_PICK_ANALOG_NUM 4
 static struct MenuEntry menu_pick_analog_entries[MENU_PICK_ANALOG_NUM] = {
-	(MenuEntry){.name = "Move left", .id = REMAP_ANALOG_LEFT},
-	(MenuEntry){.name = "Move right", .id = REMAP_ANALOG_RIGHT},
-	(MenuEntry){.name = "Move up", .id = REMAP_ANALOG_UP},
-	(MenuEntry){.name = "Move down", .id = REMAP_ANALOG_DOWN}};
+	(MenuEntry){.name = "Move left", .data = REMAP_ANALOG_LEFT},
+	(MenuEntry){.name = "Move right", .data = REMAP_ANALOG_RIGHT},
+	(MenuEntry){.name = "Move up", .data = REMAP_ANALOG_UP},
+	(MenuEntry){.name = "Move down", .data = REMAP_ANALOG_DOWN}};
 static struct Menu menu_pick_analog = (Menu){
 	.id = MENU_PICK_ANALOG_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
@@ -242,8 +241,8 @@ static struct Menu menu_pick_analog = (Menu){
 
 #define MENU_PICK_TOUCH_POINT_NUM 2
 static struct MenuEntry menu_pick_touch_point_entries[MENU_PICK_TOUCH_POINT_NUM] = {
-	(MenuEntry){.name = "Point x", .id = 0},
-	(MenuEntry){.name = "      y", .id = 1}};
+	(MenuEntry){.name = "Point x", .data = 0},
+	(MenuEntry){.name = "      y", .data = 1}};
 static struct Menu menu_pick_touch_point = (Menu){
 	.id = MENU_PICK_TOUCH_POINT_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
@@ -256,10 +255,10 @@ static struct Menu menu_pick_touch_point = (Menu){
 
 #define MENU_PICK_TOUCH_ZONE_NUM 4
 static struct MenuEntry menu_pick_touch_zone_entries[MENU_PICK_TOUCH_ZONE_NUM] = {
-	(MenuEntry){.name = "Corner point 1 x", .id = 0},
-	(MenuEntry){.name = "               y", .id = 1},
-	(MenuEntry){.name = "Corner point 2 x", .id = 2},
-	(MenuEntry){.name = "               y", .id = 3}};
+	(MenuEntry){.name = "Corner point 1 x", .data = 0},
+	(MenuEntry){.name = "               y", .data = 1},
+	(MenuEntry){.name = "Corner point 2 x", .data = 2},
+	(MenuEntry){.name = "               y", .data = 3}};
 static struct Menu menu_pick_touch_zone = (Menu){
 	.id = MENU_PICK_TOUCH_ZONE_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
@@ -273,7 +272,7 @@ static struct Menu menu_pick_touch_zone = (Menu){
 #define MENU_REMAP_NUM 1
 char str_remaps[REMAP_NUM + MENU_REMAP_NUM][STR_SIZE];
 static struct MenuEntry menu_remap_entries_def[MENU_REMAP_NUM] = {
-	(MenuEntry){.name = "<new remap rule>", .id = NEW_RULE_IDX}};
+	(MenuEntry){.name = "<new remap rule>", .data = NEW_RULE_IDX}};
 static struct MenuEntry menu_remap_entries[REMAP_NUM + MENU_REMAP_NUM];
 static struct Menu menu_remap = (Menu){
 	.id = MENU_REMAP_ID, 
@@ -288,12 +287,12 @@ static struct Menu menu_remap = (Menu){
 
 #define MENU_REMAP_TRIGGER_TYPE_NUM 6
 static struct MenuEntry menu_remap_trigger_type_entries[MENU_REMAP_TRIGGER_TYPE_NUM] = {
-	(MenuEntry){.name = "Buttons", .id = REMAP_TYPE_BUTTON},
-	(MenuEntry){.name = "Analog Stick Left", .id = REMAP_TYPE_LEFT_ANALOG},
-	(MenuEntry){.name = "Analog Stick Right", .id = REMAP_TYPE_RIGHT_ANALOG},
-	(MenuEntry){.name = "Touch - Front Panel", .id = REMAP_TYPE_FRONT_TOUCH_ZONE},
-	(MenuEntry){.name = "Touch - Back Panel", .id = REMAP_TYPE_BACK_TOUCH_ZONE},
-	(MenuEntry){.name = "Gyroscope", .id = REMAP_TYPE_GYROSCOPE}
+	(MenuEntry){.name = "Buttons", .data = REMAP_TYPE_BUTTON},
+	(MenuEntry){.name = "Analog Stick Left", .data = REMAP_TYPE_LEFT_ANALOG},
+	(MenuEntry){.name = "Analog Stick Right", .data = REMAP_TYPE_RIGHT_ANALOG},
+	(MenuEntry){.name = "Touch - Front Panel", .data = REMAP_TYPE_FRONT_TOUCH_ZONE},
+	(MenuEntry){.name = "Touch - Back Panel", .data = REMAP_TYPE_BACK_TOUCH_ZONE},
+	(MenuEntry){.name = "Gyroscope", .data = REMAP_TYPE_GYROSCOPE}
 };
 static struct Menu menu_remap_trigger_type = (Menu){
 	.id = MENU_REMAP_TRIGGER_TYPE_ID, 
@@ -305,11 +304,11 @@ static struct Menu menu_remap_trigger_type = (Menu){
 
 #define MENU_REMAP_TRIGGER_TOUCH_NUM 5
 static struct MenuEntry menu_remap_trigger_touch_entries[MENU_REMAP_TRIGGER_TOUCH_NUM] = {
-	(MenuEntry){.name = "Top Left Zone", .id = REMAP_TOUCH_ZONE_TL},
-	(MenuEntry){.name = "Top Right Zone", .id = REMAP_TOUCH_ZONE_TR},
-	(MenuEntry){.name = "Bottom Left Zone", .id = REMAP_TOUCH_ZONE_BL},
-	(MenuEntry){.name = "Bottom Right Zone", .id = REMAP_TOUCH_ZONE_BR},
-	(MenuEntry){.name = "Custom Zone", .id = REMAP_TOUCH_CUSTOM}
+	(MenuEntry){.name = "Top Left Zone", .data = REMAP_TOUCH_ZONE_TL},
+	(MenuEntry){.name = "Top Right Zone", .data = REMAP_TOUCH_ZONE_TR},
+	(MenuEntry){.name = "Bottom Left Zone", .data = REMAP_TOUCH_ZONE_BL},
+	(MenuEntry){.name = "Bottom Right Zone", .data = REMAP_TOUCH_ZONE_BR},
+	(MenuEntry){.name = "Custom Zone", .data = REMAP_TOUCH_CUSTOM}
 };
 static struct Menu menu_remap_trigger_touch = (Menu){
 	.id = MENU_REMAP_TRIGGER_TOUCH_ID, 
@@ -321,12 +320,12 @@ static struct Menu menu_remap_trigger_touch = (Menu){
 
 #define MENU_REMAP_TRIGGER_GYRO_NUM 6
 static struct MenuEntry menu_remap_trigger_gyro_entries[MENU_REMAP_TRIGGER_GYRO_NUM] = {
-	(MenuEntry){.name = "Move left", .id = REMAP_GYRO_LEFT},
-	(MenuEntry){.name = "Move right", .id = REMAP_GYRO_RIGHT},
-	(MenuEntry){.name = "Move up", .id = REMAP_GYRO_UP},
-	(MenuEntry){.name = "Move down", .id = REMAP_GYRO_DOWN},
-	(MenuEntry){.name = "Roll left", .id = REMAP_GYRO_ROLL_LEFT},
-	(MenuEntry){.name = "Roll right", .id = REMAP_GYRO_ROLL_RIGHT}
+	(MenuEntry){.name = "Move left", .data = REMAP_GYRO_LEFT},
+	(MenuEntry){.name = "Move right", .data = REMAP_GYRO_RIGHT},
+	(MenuEntry){.name = "Move up", .data = REMAP_GYRO_UP},
+	(MenuEntry){.name = "Move down", .data = REMAP_GYRO_DOWN},
+	(MenuEntry){.name = "Roll left", .data = REMAP_GYRO_ROLL_LEFT},
+	(MenuEntry){.name = "Roll right", .data = REMAP_GYRO_ROLL_RIGHT}
 };
 static struct Menu menu_remap_trigger_gyro = (Menu){
 	.id = MENU_REMAP_TRIGGER_GYRO_ID, 
@@ -338,13 +337,13 @@ static struct Menu menu_remap_trigger_gyro = (Menu){
 
 #define MENU_REMAP_EMU_TYPE_NUM 7
 static struct MenuEntry menu_remap_emu_type_entries[MENU_REMAP_EMU_TYPE_NUM] = {
-	(MenuEntry){.name = "Buttons", .id = REMAP_TYPE_BUTTON},
-	(MenuEntry){.name = "Analog Stick Left", .id = REMAP_TYPE_LEFT_ANALOG},
-	(MenuEntry){.name = "Analog Stick Left [DIGITAL]", .id = REMAP_TYPE_LEFT_ANALOG_DIGITAL},
-	(MenuEntry){.name = "Analog Stick Right", .id = REMAP_TYPE_RIGHT_ANALOG},
-	(MenuEntry){.name = "Analog Stick Right [DIGITAL]", .id = REMAP_TYPE_RIGHT_ANALOG_DIGITAL},
-	(MenuEntry){.name = "Front Touch", .id = REMAP_TYPE_FRONT_TOUCH_POINT},
-	(MenuEntry){.name = "Rear Touch", .id = REMAP_TYPE_BACK_TOUCH_POINT}
+	(MenuEntry){.name = "Buttons", .data = REMAP_TYPE_BUTTON},
+	(MenuEntry){.name = "Analog Stick Left", .data = REMAP_TYPE_LEFT_ANALOG},
+	(MenuEntry){.name = "Analog Stick Left [DIGITAL]", .data = REMAP_TYPE_LEFT_ANALOG_DIGITAL},
+	(MenuEntry){.name = "Analog Stick Right", .data = REMAP_TYPE_RIGHT_ANALOG},
+	(MenuEntry){.name = "Analog Stick Right [DIGITAL]", .data = REMAP_TYPE_RIGHT_ANALOG_DIGITAL},
+	(MenuEntry){.name = "Front Touch", .data = REMAP_TYPE_FRONT_TOUCH_POINT},
+	(MenuEntry){.name = "Back Touch", .data = REMAP_TYPE_BACK_TOUCH_POINT}
 };
 static struct Menu menu_remap_emu_type = (Menu){
 	.id = MENU_REMAP_EMU_TYPE_ID, 
@@ -356,11 +355,11 @@ static struct Menu menu_remap_emu_type = (Menu){
 
 #define MENU_REMAP_EMU_TOUCH_NUM 5
 static struct MenuEntry menu_remap_emu_touch_entries[MENU_REMAP_EMU_TOUCH_NUM] = {
-	(MenuEntry){.name = "Top Left Touch", .id = REMAP_TOUCH_ZONE_TL},
-	(MenuEntry){.name = "Top Right Touch", .id = REMAP_TOUCH_ZONE_TR},
-	(MenuEntry){.name = "Bottom Left Touch", .id = REMAP_TOUCH_ZONE_BL},
-	(MenuEntry){.name = "Bottom Right Touch", .id = REMAP_TOUCH_ZONE_BR},
-	(MenuEntry){.name = "Custom Touch", .id = REMAP_TOUCH_CUSTOM}};
+	(MenuEntry){.name = "Top Left Touch", .data = REMAP_TOUCH_ZONE_TL},
+	(MenuEntry){.name = "Top Right Touch", .data = REMAP_TOUCH_ZONE_TR},
+	(MenuEntry){.name = "Bottom Left Touch", .data = REMAP_TOUCH_ZONE_BL},
+	(MenuEntry){.name = "Bottom Right Touch", .data = REMAP_TOUCH_ZONE_BR},
+	(MenuEntry){.name = "Custom Touch", .data = REMAP_TOUCH_CUSTOM}};
 static struct Menu menu_remap_emu_touch = (Menu){
 	.id = MENU_REMAP_EMU_TOUCH_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
@@ -371,6 +370,7 @@ static struct Menu menu_remap_emu_touch = (Menu){
 
 void registerMenu(Menu* m){
 	menus[m->id] = m;
+	m->num = sizeof(m->entries);
 }
 void registerMenus(){
 	registerMenu(&menu_main);
@@ -417,12 +417,12 @@ void onBuild_remap(Menu* m){
 	memset(&ui_ruleEdited, 0, sizeof(ui_ruleEdited));
 	m->num = profile.remapsNum + MENU_REMAP_NUM;
 	for (int i = 0; i < profile.remapsNum; i++){
-		m->entries[i].id = i;
+		m->entries[i].data = i;
 		generateRemapRuleName(menu_remap_entries[i].name, &profile.remaps[i]);
 	}
 	for (int i = 0; i < MENU_REMAP_NUM; i++){
 		int idx = i + profile.remapsNum;
-		menu_remap_entries[idx].id = menu_remap_entries_def[i].id;
+		menu_remap_entries[idx].data = menu_remap_entries_def[i].data;
 		strcpy(menu_remap_entries[idx].name,
 			menu_remap_entries_def[i].name);
 	}
@@ -494,7 +494,7 @@ void ui_init(){
 	//ToDo fix this not working
 	//Init Button remap menus with proper button names
 	for (int i = 0; i < MENU_PICK_BUTTON_NUM; i++)
-		menu_pick_button_entries[i] = (MenuEntry){.name = (char *)&str_btns[i], .id = i};
+		menu_pick_button_entries[i] = (MenuEntry){.name = (char *)&str_btns[i], .data = i};
 
 	registerMenus();
 

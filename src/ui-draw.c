@@ -185,12 +185,12 @@ void onDraw_remap(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
-		if (ui_menu->entries[i].id == NEW_RULE_IDX){
+		if (ui_menu->entries[i].data == NEW_RULE_IDX){
 			setColor(i == ui_menu->idx, 1);
 			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
 		} else {
-			setColor(i == ui_menu->idx, profile.remaps[ui_menu->entries[i].id].disabled);
-			renderer_stripped(profile.remaps[ui_menu->entries[i].id].disabled);
+			setColor(i == ui_menu->idx, profile.remaps[ui_menu->entries[i].data].disabled);
+			renderer_stripped(profile.remaps[ui_menu->entries[i].data].disabled);
 			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
 			renderer_stripped(0);
 		}
@@ -202,15 +202,15 @@ void onDraw_pickButton(){
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
 		uint32_t btns = *(uint32_t*)ui_menu->data;
-		setColor(i == ui_menu->idx, !btn_has(btns, HW_BUTTONS[ui_menu->entries[i].id]));
-		renderer_drawString(L_1, y += CHA_H, str_btns[ui_menu->entries[i].id]);
+		setColor(i == ui_menu->idx, !btn_has(btns, HW_BUTTONS[ui_menu->entries[i].data]));
+		renderer_drawString(L_1, y += CHA_H, str_btns[ui_menu->entries[i].data]);
 	}
 }
 void onDraw_analog(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {			
-		int8_t id = ui_menu->entries[i].id;
+		int8_t id = ui_menu->entries[i].data;
 
 		if (id == HEADER_IDX){
 			setColorHeader(ui_menu->idx == i);
@@ -236,7 +236,7 @@ void onDraw_touch(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {			
-		int8_t id = ui_menu->entries[i].id;
+		int8_t id = ui_menu->entries[i].data;
 
 		if (id == HEADER_IDX){
 			setColorHeader(ui_menu->idx == i);
@@ -263,7 +263,7 @@ void onDraw_pickTouchPoint(){
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);	
 	RemapAction* ra = (RemapAction*)ui_menu->data;
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {	
-		int8_t id = ui_menu->entries[i].id;
+		int8_t id = ui_menu->entries[i].data;
 		int coord = (id == 0) ? ra->param.touch.x : ra->param.touch.y;
 		setColor(i == ui_menu->idx, 1);
 		//LOG("%i", coord);
@@ -280,7 +280,7 @@ void onDraw_pickTouchZone(){
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);	
 	RemapAction* ra = (RemapAction*)ui_menu->data;
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {	
-		int8_t id = ui_menu->entries[i].id;
+		int8_t id = ui_menu->entries[i].data;
 		int coord = 0;
 		switch (id){
 			case 0: coord = ra->param.zone.a.x; break;
@@ -301,7 +301,7 @@ void onDraw_gyro(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {		
-		int8_t id = ui_menu->entries[i].id;
+		int8_t id = ui_menu->entries[i].data;
 		
 		if (id == HEADER_IDX){
 			setColorHeader(ui_menu->idx == i);
@@ -336,7 +336,7 @@ void onDraw_controller(){
 	
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {		
-		int8_t id = ui_menu->entries[i].id;
+		int8_t id = ui_menu->entries[i].data;
 
 		setColor(i == ui_menu->idx, profile.controller[id] == profile_def.controller[id]);
 		if (id == 0 || id == 2)//Use external controller / buttons swap
@@ -365,8 +365,8 @@ void onDraw_hooks(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, ui_lines - 1);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
-		renderer_setColor((used_funcs[ui_menu->entries[i].id] ? COLOR_ACTIVE : COLOR_DEFAULT));
-		renderer_drawStringF(L_1, y += CHA_H, "%s : %s", ui_menu->entries[i].name, str_yes_no[used_funcs[ui_menu->entries[i].id]]);
+		renderer_setColor((used_funcs[ui_menu->entries[i].data] ? COLOR_ACTIVE : COLOR_DEFAULT));
+		renderer_drawStringF(L_1, y += CHA_H, "%s : %s", ui_menu->entries[i].name, str_yes_no[used_funcs[ui_menu->entries[i].data]]);
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, 
 			((float)ui_menu->idx)/(ui_menu->num - (ui_lines - 1) - 1));
@@ -375,7 +375,7 @@ void onDraw_settings(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {		
-		int8_t id = ui_menu->entries[i].id;
+		int8_t id = ui_menu->entries[i].data;
 		
 		setColor(i == ui_menu->idx, profile_settings[id] == profile_settings_def[id]);
 		if (id < 2){//Draw opening buttons
@@ -397,7 +397,7 @@ void onDraw_profiles(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
-		if (ui_menu->entries[i].id == HEADER_IDX){
+		if (ui_menu->entries[i].data == HEADER_IDX){
 			setColorHeader(ui_menu->idx == i);
 			renderer_drawString(L_1, y+=CHA_H, ui_menu->entries[i].name);
 		} else {

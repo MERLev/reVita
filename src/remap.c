@@ -11,7 +11,7 @@
 #include "log.h"
 
 #define MULTITOUCH_FRONT_NUM		6
-#define MULTITOUCH_REAR_NUM			4
+#define MULTITOUCH_BACK_NUM			4
 
 TouchPoint T_FRONT_SIZE = (TouchPoint){1920, 1080};
 TouchPoint T_BACK_SIZE  = (TouchPoint){1920, 890};
@@ -30,7 +30,7 @@ typedef struct EmulatedTouch{
 //For now let's store them on the stack
 static SceCtrlData _remappedBuffers[HOOKS_NUM-5][BUFFERS_NUM];
 static SceTouchData _remappedBuffersFront[4][BUFFERS_NUM];
-static SceTouchData _remappedBuffersRear[4][BUFFERS_NUM];
+static SceTouchData _remappedBuffersBack[4][BUFFERS_NUM];
 
 //Circular cache to store remapped keys buffers per each ctrs hook
 static SceCtrlData *remappedBuffers[HOOKS_NUM-5];
@@ -41,15 +41,15 @@ static int remappedBuffersIdxs[HOOKS_NUM];
 static SceTouchData *remappedBuffersFront[4];
 static int remappedBuffersFrontSizes[4];
 static int remappedBuffersFrontIdxs[4];
-static SceTouchData *remappedBuffersRear[4];
-static int remappedBuffersRearSizes[4];
-static int remappedBuffersRearIdxs[4];
+static SceTouchData *remappedBuffersBack[4];
+static int remappedBuffersBackSizes[4];
+static int remappedBuffersBackIdxs[4];
 uint8_t newEmulatedFrontTouchBuffer = 0;
-uint8_t newEmulatedRearTouchBuffer = 0;
+uint8_t newEmulatedBackTouchBuffer = 0;
 
-static EmulatedTouch etFront, etRear, prevEtFront, prevEtRear;
+static EmulatedTouch etFront, etBack, prevEtFront, prevEtBack;
 static uint8_t etFrontIdCounter = 64;
-static uint8_t etRearIdCounter = 64;
+static uint8_t etBackIdCounter = 64;
 
 
 void storeTouchPoint(EmulatedTouch *et, TouchPoint tp){
@@ -92,11 +92,11 @@ void addEmu(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick) {
 			break;
 		case REMAP_TYPE_BACK_TOUCH_POINT: 
 			switch (emu->action){
-				case REMAP_TOUCH_ZONE_TL: storeTouchPoint(&etRear, T_BACK_TL); break;
-				case REMAP_TOUCH_ZONE_TR: storeTouchPoint(&etRear, T_BACK_TR); break;
-				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etRear, T_BACK_BL); break;
-				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etRear, T_BACK_BR); break;
-				case REMAP_TOUCH_CUSTOM: storeTouchPoint(&etRear, emu->param.touch); break;
+				case REMAP_TOUCH_ZONE_TL: storeTouchPoint(&etBack, T_BACK_TL); break;
+				case REMAP_TOUCH_ZONE_TR: storeTouchPoint(&etBack, T_BACK_TR); break;
+				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etBack, T_BACK_BL); break;
+				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etBack, T_BACK_BR); break;
+				case REMAP_TOUCH_CUSTOM: storeTouchPoint(&etBack, emu->param.touch); break;
 				default: break;
 			}
 			break;
@@ -137,10 +137,10 @@ void addEmuFromGyro(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emust
 
 void applyRemap(SceCtrlData *ctrl) {
 	// Gathering real touch data
-	SceTouchData front, rear;
+	SceTouchData front, back;
 	internal_touch_call = 1;
 	ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
-	ksceTouchPeek(SCE_TOUCH_PORT_BACK, &rear, 1);
+	ksceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
 	internal_touch_call = 0;
 
 	uint32_t btns = ctrl->buttons;
@@ -169,7 +169,7 @@ void applyRemap(SceCtrlData *ctrl) {
 		struct RemapAction* trigger = &rr->trigger;
 
 		//Touch stuff
-		std = &rear;
+		std = &back;
 		int left = T_BACK_SIZE.x / 2; 
 		int top  = T_BACK_SIZE.x / 2;
 
@@ -364,7 +364,7 @@ void applyRemap(SceCtrlData *ctrl) {
 
 	//Telling that new emulated touch buffer is ready to be takn
 	newEmulatedFrontTouchBuffer = 1;
-	newEmulatedRearTouchBuffer = 1;
+	newEmulatedBackTouchBuffer = 1;
 }
 
 int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId) {	
@@ -428,11 +428,11 @@ uint8_t generateTouchId(int x, int y, int panel){
 		etFrontIdCounter = (etFrontIdCounter + 1) % 127;
 		return etFrontIdCounter;
 	} else {
-		for (int i = 0; i < prevEtRear.num; i++)
-			if (prevEtRear.reports[i].x == x && prevEtRear.reports[i].y == y)
-				return prevEtRear.reports[i].id;
-		etRearIdCounter = (etRearIdCounter + 1) % 127;
-		return etRearIdCounter;
+		for (int i = 0; i < prevEtBack.num; i++)
+			if (prevEtBack.reports[i].x == x && prevEtBack.reports[i].y == y)
+				return prevEtBack.reports[i].id;
+		etBackIdCounter = (etBackIdCounter + 1) % 127;
+		return etBackIdCounter;
 	}
 }
 
@@ -486,17 +486,17 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 		// 		 profile.remap[PHYS_BUTTONS_NUM+7] == PHYS_BUTTONS_NUM+1)
 		// 	pData->reportNum = 0; //Disable pad
 			
-		if (!newEmulatedRearTouchBuffer){//New touchbuffer not ready - using previous one
-			addVirtualTouches(pData, &prevEtRear, 
-				MULTITOUCH_REAR_NUM, SCE_TOUCH_PORT_BACK);
+		if (!newEmulatedBackTouchBuffer){//New touchbuffer not ready - using previous one
+			addVirtualTouches(pData, &prevEtBack, 
+				MULTITOUCH_BACK_NUM, SCE_TOUCH_PORT_BACK);
 			return;
 		}
 		
-		addVirtualTouches(pData, &etRear, 
-			MULTITOUCH_REAR_NUM, SCE_TOUCH_PORT_BACK);
-		prevEtRear = etRear;
-		etRear.num = 0;
-		newEmulatedRearTouchBuffer = 0;
+		addVirtualTouches(pData, &etBack, 
+			MULTITOUCH_BACK_NUM, SCE_TOUCH_PORT_BACK);
+		prevEtBack = etBack;
+		etBack.num = 0;
+		newEmulatedBackTouchBuffer = 0;
 	}
 }
 
@@ -522,22 +522,22 @@ int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t ho
 				[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
 	} else {
 		//Real index
-		int buffIdx = (remappedBuffersRearIdxs[hookId] + 1) % BUFFERS_NUM;
+		int buffIdx = (remappedBuffersBackIdxs[hookId] + 1) % BUFFERS_NUM;
 
 		//Storing copy of latest buffer
-		remappedBuffersRearIdxs[hookId] = buffIdx;
-		remappedBuffersRearSizes[hookId] = min(remappedBuffersRearSizes[hookId] + 1, BUFFERS_NUM);
-		remappedBuffersRear[hookId][buffIdx] = pData[nBufs-1];
+		remappedBuffersBackIdxs[hookId] = buffIdx;
+		remappedBuffersBackSizes[hookId] = min(remappedBuffersBackSizes[hookId] + 1, BUFFERS_NUM);
+		remappedBuffersBack[hookId][buffIdx] = pData[nBufs-1];
 		
 		//Updating latest buffer with simulated touches
-		updateTouchInfo(port, &remappedBuffersRear[hookId][buffIdx]);
+		updateTouchInfo(port, &remappedBuffersBack[hookId][buffIdx]);
 		
 		//Limit returned buufers num with what we have stored
-		nBufs = min(nBufs, remappedBuffersRearSizes[hookId]);
+		nBufs = min(nBufs, remappedBuffersBackSizes[hookId]);
 		
 		//Restoring stored buffers
 		for (int i = 0; i < nBufs; i++)
-			pData[i] = remappedBuffersRear[hookId]
+			pData[i] = remappedBuffersBack[hookId]
 				[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
 	}
 	return nBufs;
@@ -549,9 +549,9 @@ void remap_resetCtrlBuffers(uint8_t hookId){
 }
 void remap_resetTouchBuffers(uint8_t hookId){
 	remappedBuffersFrontIdxs[hookId] = 0;
-	remappedBuffersRearIdxs[hookId] = 0;
+	remappedBuffersBackIdxs[hookId] = 0;
 	remappedBuffersFrontSizes[hookId] = 0;
-	remappedBuffersRearSizes[hookId] = 0;
+	remappedBuffersBackSizes[hookId] = 0;
 }
 
 void remap_init(){
@@ -560,7 +560,7 @@ void remap_init(){
 
 	for (int i = 0; i < 4; i++){
 		remappedBuffersFront[i] = (SceTouchData*)&_remappedBuffersFront[i][0];
-		remappedBuffersRear[i] = (SceTouchData*)&_remappedBuffersRear[i][0];
+		remappedBuffersBack[i] = (SceTouchData*)&_remappedBuffersBack[i][0];
 	}
 
 	T_FRONT_TL = (TouchPoint){T_FRONT_SIZE.x / 6, T_FRONT_SIZE.y / 4};
