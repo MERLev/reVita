@@ -27,7 +27,8 @@ add_executable(${PROJECT_NAME}
   src/common.c
   src/remap.c
   src/ui.c
-  src/ctrl.c
+  src/ui-control.c
+  src/ui-draw.c
   src/renderer.c
   src/log.c
 )

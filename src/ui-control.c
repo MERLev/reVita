@@ -452,6 +452,8 @@ void ctrl_onInput(SceCtrlData *ctrl) {
 				continue;
 			if (ui_menu->onButton)
 				ui_menu->onButton(HW_BUTTONS[i]);
+			else 
+				onButton_generic(HW_BUTTONS[i]);
 
 		}
 		old_buttons = curr_buttons;

@@ -1,6 +1,29 @@
 #ifndef _UI_H_
 #define _UI_H_
 
+#define VERSION				"2.1.0"
+
+#define UI_WIDTH            480
+#define UI_HEIGHT           272
+#define HEADER_HEIGHT		(CHA_H + 6)
+#define STR_SIZE			30
+
+#define BOTTOM_OFFSET		5
+
+#define COLOR_DEFAULT     	0x00C2C0BD
+#define COLOR_CURSOR      	0x00FFFFFF
+#define COLOR_HEADER      	0x00FF6600
+#define COLOR_CURSOR_HEADER	0x00FFAA22
+#define COLOR_ACTIVE      	0x0000B0B0
+#define COLOR_CURSOR_ACTIVE	0x0000DDDD
+#define COLOR_DANGER      	0x00000099
+#define COLOR_CURSOR_DANGER	0x000000DD
+#define COLOR_BG_HEADER   	0x00000000
+#define COLOR_BG_BODY     	0x00171717
+#define L_0    				5		//Left margin for menu
+#define L_1    				18		
+#define L_2    				36
+
 ;enum MENU_ID{
 	MENU_MAIN_ID = 0,
 	MENU_ANALOG_ID,
@@ -39,20 +62,28 @@ enum PROFILE_ACTIONS{
 #define TEXT_IDX            -2
 #define NEW_RULE_IDX        -3
 
-typedef   void (*onButtonF)(uint32_t btn);
-typedef   void (*onInputF)(SceCtrlData *ctrl);
+struct Menu;
+typedef void (*onButtonF)(uint32_t btn);
+typedef void (*onInputF)(SceCtrlData *ctrl);
+typedef void (*onDrawF)();
+typedef void (*onBuildF)(struct Menu* m);
 typedef struct Menu{
 	enum MENU_ID id;
-	uint8_t num;
-	uint8_t idx;
 	enum MENU_ID prev;
 	enum MENU_ID next;
 	enum MENU_ID parent;
+
+	uint8_t idx;
 	char* name;
 	char* footer;
+	uint8_t num;
+	struct MenuEntry* entries;
+
 	onButtonF onButton;
 	onInputF onInput;
-	struct MenuEntry* entries;
+	onDrawF onDraw;
+	onBuildF onBuild;
+
 	uint32_t data;
 }Menu;
 typedef struct MenuEntry{

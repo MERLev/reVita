@@ -1,5 +1,5 @@
-#ifndef _CTRL_H_
-#define _CTRL_H_
+#ifndef _UI_CONTROL_H_
+#define _UI_CONTROL_H_
 #include <psp2kern/ctrl.h> 
 
 void ctrl_init();
