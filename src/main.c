@@ -10,7 +10,6 @@
 #include "vitasdkext.h"
 #include "main.h"
 #include "ui.h"
-#include "ctrl.h"
 #include "remap.h"
 #include "profile.h"
 #include "common.h"
@@ -114,7 +113,7 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 
 	//In-menu inputs handling
 	if (ui_opened){
-		ctrl_inputHandler(&ctrl[nBufs - 1]);
+		ui_onInput(&ctrl[nBufs - 1]);
 		
 		//Nullify all inputs
 		for (int i = 0; i < nBufs; i++)
@@ -352,7 +351,6 @@ int module_start(SceSize argc, const void *args) {
     snprintf(titleid, sizeof(titleid), HOME);
     profile_init();
     ui_init();
-    ctrl_init();
     remap_init();
     startTick = ksceKernelGetSystemTimeWide();
 
@@ -425,7 +423,6 @@ int module_stop(SceSize argc, const void *args) {
 
     profile_destroy();
     ui_destroy();
-    ctrl_destroy();
     remap_destroy();
     log_flush();
     return SCE_KERNEL_STOP_SUCCESS;

@@ -43,7 +43,7 @@ void touchPicker(TouchPoint* tp, int port){
 		tp->y =std.report[0].y;
 	}
 }
-void touchPointZonePicker(SceCtrlData *ctrl){
+void onInput_touchPicker(SceCtrlData *ctrl){
 	RemapAction* ra = (RemapAction*)ui_menu->data;
 	int port = (ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE) ?
 		SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
@@ -59,7 +59,7 @@ void touchPointZonePicker(SceCtrlData *ctrl){
 	}
 }
 
-void inputHandler_generic(uint32_t btn){
+void onButton_generic(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_DOWN: ui_nextEntry(); break;
 		case SCE_CTRL_UP: ui_prevEntry(); break;
@@ -67,7 +67,7 @@ void inputHandler_generic(uint32_t btn){
 	}
 }
 
-void inputHandler_main(uint32_t btn){
+void onButton_main(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
 			ui_openMenu(ui_menu->entries[ui_menu->idx].id);
@@ -80,31 +80,10 @@ void inputHandler_main(uint32_t btn){
 				profile_save(titleid);
 			delayedStart();
 			break;
-		default: inputHandler_generic(btn);
+		default: onButton_generic(btn);
 	}
 }
-
-void inputHandler_remap(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_CROSS: 
-			if (ui_entry->id != NEW_RULE_IDX)
-				ui_ruleEdited = profile.remaps[ui_entry->id];
-			ui_openMenu(MENU_REMAP_TRIGGER_TYPE_ID); 
-			break;
-		case SCE_CTRL_SQUARE:
-			if (ui_entry->id != NEW_RULE_IDX)
-				profile.remaps[ui_entry->id].disabled = !profile.remaps[ui_entry->id].disabled;
-			break;
-		case SCE_CTRL_START:
-			if (ui_entry->id != NEW_RULE_IDX){
-				profile_removeRemapRule(ui_entry->id);
-				ui_openMenu(ui_menu->id);
-			}
-			break;
-		default: inputHandler_generic(btn);
-	}
-}
-void inputHandler_analog(uint32_t btn){
+void onButton_analog(uint32_t btn){
 	int8_t id = ui_entry->id;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
@@ -123,11 +102,10 @@ void inputHandler_analog(uint32_t btn){
 			profile.analog[id] = profile_def.analog[id];
 			break;
 		case SCE_CTRL_START: profile_resetAnalog(); break;
-		default: inputHandler_generic(btn);
+		default: onButton_generic(btn);
 	}
 }
-
-void inputHandler_touch(uint32_t btn){
+void onButton_touch(uint32_t btn){
 	int8_t idx = ui_entry->id;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
@@ -158,11 +136,10 @@ void inputHandler_touch(uint32_t btn){
 			profile.touch[idx] = profile_def.touch[idx];
 			break;
 		case SCE_CTRL_START: profile_resetTouch(); break;
-		default: inputHandler_generic(btn);
+		default: onButton_generic(btn);
 	}
 }
-
-void inputHandler_gyro(uint32_t btn){
+void onButton_gyro(uint32_t btn){
 	int8_t id = ui_entry->id;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
@@ -194,11 +171,10 @@ void inputHandler_gyro(uint32_t btn){
 			profile.gyro[id] = profile_def.gyro[id];
 			break;
 		case SCE_CTRL_START: profile_resetGyro(); break;
-		default: inputHandler_generic(btn);
+		default: onButton_generic(btn);
 	}
 }
-
-void inputHandler_controller(uint32_t btn){
+void onButton_controller(uint32_t btn){
 	int8_t id = ui_entry->id;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
@@ -217,11 +193,10 @@ void inputHandler_controller(uint32_t btn){
 			profile.controller[id] = profile_def.controller[id];
 			break;
 		case SCE_CTRL_START: profile_resetController(); break;
-		default: inputHandler_generic(btn);
+		default: onButton_generic(btn);
 	}
 }
-
-void inputHandler_settings(uint32_t btn){
+void onButton_settings(uint32_t btn){
 	int8_t id = ui_entry->id;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
@@ -249,11 +224,10 @@ void inputHandler_settings(uint32_t btn){
 				profile_settings[id] = profile_settings_def[id];
 			break;
 		case SCE_CTRL_START: profile_resetSettings(); break;
-		default: inputHandler_generic(btn);
+		default: onButton_generic(btn);
 	}
 }
-
-void inputHandler_profiles(uint32_t btn){
+void onButton_profiles(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
 			switch (ui_entry->id){
@@ -266,30 +240,11 @@ void inputHandler_profiles(uint32_t btn){
 				default: break;
 			}
 			break;
-		default: inputHandler_generic(btn);
+		default: onButton_generic(btn);
 	}
 }
 
-void inputHandler_remapTriggerType(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_CROSS:
-			ui_ruleEdited.trigger.type = ui_entry->id;
-			switch(ui_entry->id){
-				case REMAP_TYPE_BUTTON: 
-				case REMAP_TYPE_COMBO: ui_openMenuSmart(MENU_PICK_ANALOG_ID, 
-					ui_menu->id, MENU_REMAP_EMU_TYPE_ID, (uint32_t)&ui_ruleEdited.trigger.param.btn); break;
-				case REMAP_TYPE_LEFT_ANALOG: 
-				case REMAP_TYPE_RIGHT_ANALOG: ui_openMenuSmart(MENU_PICK_BUTTON_ID,
-					ui_menu->id, MENU_REMAP_EMU_TYPE_ID, (uint32_t)&ui_ruleEdited.trigger.action); break;
-				case REMAP_TYPE_FRONT_TOUCH_ZONE:
-				case REMAP_TYPE_BACK_TOUCH_ZONE: ui_openMenu(MENU_REMAP_TRIGGER_TOUCH_ID); break;
-				case REMAP_TYPE_GYROSCOPE: ui_openMenu(MENU_REMAP_TRIGGER_GYRO_ID); break;
-			};
-			break;
-		default: inputHandler_generic(btn);
-	}
-}
-void inputHandler_pickButton(uint32_t btn){
+void onButton_pickButton(uint32_t btn){
 	uint32_t* btnP = (uint32_t *)ui_menu->data;
 	switch (btn) {
 		case SCE_CTRL_SQUARE:
@@ -302,10 +257,10 @@ void inputHandler_pickButton(uint32_t btn){
 			ui_openMenuNext();
 			break;
 		case SCE_CTRL_CIRCLE: ui_openMenuPrev(); break;
-		default: inputHandler_generic(btn);
+		default: onButton_generic(btn);
 	}
 }
-void inputHandler_pickAnalog(uint32_t btn){
+void onButton_pickAnalog(uint32_t btn){
 	enum REMAP_ACTION* actn = (enum REMAP_ACTION*)ui_menu->data;
 	switch (btn) {
 		case SCE_CTRL_CROSS:
@@ -315,74 +270,10 @@ void inputHandler_pickAnalog(uint32_t btn){
 			ui_openMenuNext();
 			break;
 		case SCE_CTRL_CIRCLE: ui_openMenuPrev();
-		default: inputHandler_generic(btn);
+		default: onButton_generic(btn);
 	}
 }
-void inputHandler_remap_trigger_touch(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_CROSS:
-			ui_ruleEdited.trigger.action = ui_entry->id;
-			if (ui_entry->id == REMAP_TOUCH_CUSTOM){
-				ui_openMenuSmart(MENU_PICK_TOUCH_ZONE_ID, ui_menu->id, MENU_REMAP_EMU_TYPE_ID, 
-					(uint32_t)&ui_ruleEdited.trigger);
-				break;
-			}
-			//ToDo Set custom touch zones here
-			ui_openMenu(MENU_REMAP_EMU_TYPE_ID);
-			break;
-		default: inputHandler_generic(btn);
-	}
-}
-void inputHandler_remap_trigger_gyro(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_CROSS:
-			ui_ruleEdited.trigger.action = ui_entry->id;
-			ui_openMenu(MENU_REMAP_EMU_TYPE_ID);
-			break;
-		default: inputHandler_generic(btn);
-	}
-}
-void inputHandler_remap_emu_group(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_CROSS:
-			ui_ruleEdited.emu.type = ui_entry->id;
-			switch(ui_entry->id){
-				case REMAP_TYPE_BUTTON: 
-				case REMAP_TYPE_COMBO: 
-					ui_openMenuSmart(MENU_PICK_ANALOG_ID, 
-						ui_menu->id, MENU_REMAP_ID, (uint32_t)&ui_ruleEdited.emu.param.btn); 
-					break;
-				case REMAP_TYPE_LEFT_ANALOG:
-				case REMAP_TYPE_LEFT_ANALOG_DIGITAL:
-				case REMAP_TYPE_RIGHT_ANALOG:
-				case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: 
-					ui_openMenuSmart(MENU_PICK_BUTTON_ID,
-						ui_menu->id, MENU_REMAP_ID, (uint32_t)&ui_ruleEdited.emu.action); 
-					break;
-				case REMAP_TYPE_FRONT_TOUCH_POINT:
-				case REMAP_TYPE_BACK_TOUCH_POINT: ui_openMenu(MENU_REMAP_EMU_TOUCH_ID); break;
-			};
-			break;
-		default: inputHandler_generic(btn);
-	}
-}
-void inputHandler_remap_emu_touch(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_CROSS:
-			ui_ruleEdited.emu.action = ui_entry->id;
-			if (ui_entry->id == REMAP_TOUCH_CUSTOM){
-				ui_openMenuSmart(MENU_PICK_TOUCH_POINT_ID, ui_menu->id, MENU_REMAP_ID, 
-					(uint32_t)&ui_ruleEdited.emu);
-				break;
-			}
-			//ToDo Add custom touch points here
-			profile_addRemapRule(ui_ruleEdited);
-			ui_openMenu(MENU_REMAP_ID);
-			break;
-		default: inputHandler_generic(btn);
-	}
-}
-void inputHandler_pickTouchPoint(uint32_t btn){
+void onButton_pickTouchPoint(uint32_t btn){
 	RemapAction* ra = (RemapAction*)ui_menu->data;
 	uint8_t isFront = ra->type == REMAP_TYPE_FRONT_TOUCH_POINT;
 	switch (btn) {
@@ -403,10 +294,10 @@ void inputHandler_pickTouchPoint(uint32_t btn){
 			}
 			break;
 		case SCE_CTRL_CIRCLE: ui_openMenuPrev();
-		default: inputHandler_generic(btn);
+		default: onButton_generic(btn);
 	}
 }
-void inputHandler_pickTouchZone(uint32_t btn){
+void onButton_pickTouchZone(uint32_t btn){
 	RemapAction* ra = (RemapAction*)ui_menu->data;
 	uint8_t isFront = ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE;
 	switch (btn) {
@@ -431,19 +322,123 @@ void inputHandler_pickTouchZone(uint32_t btn){
 			}
 			break;
 		case SCE_CTRL_CIRCLE: ui_openMenuPrev();
-		default: inputHandler_generic(btn);
+		default: onButton_generic(btn);
 	}
 }
-void ctrl_inputHandler(SceCtrlData *ctrl) {
+
+void onButton_remap(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS: 
+			if (ui_entry->id != NEW_RULE_IDX)
+				ui_ruleEdited = profile.remaps[ui_entry->id];
+			ui_openMenu(MENU_REMAP_TRIGGER_TYPE_ID); 
+			break;
+		case SCE_CTRL_SQUARE:
+			if (ui_entry->id != NEW_RULE_IDX)
+				profile.remaps[ui_entry->id].disabled = !profile.remaps[ui_entry->id].disabled;
+			break;
+		case SCE_CTRL_START:
+			if (ui_entry->id != NEW_RULE_IDX){
+				profile_removeRemapRule(ui_entry->id);
+				ui_openMenu(ui_menu->id);
+			}
+			break;
+		default: onButton_generic(btn);
+	}
+}
+void onButton_remapTriggerType(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			ui_ruleEdited.trigger.type = ui_entry->id;
+			switch(ui_entry->id){
+				case REMAP_TYPE_BUTTON: 
+				case REMAP_TYPE_COMBO: ui_openMenuSmart(MENU_PICK_ANALOG_ID, 
+					ui_menu->id, MENU_REMAP_EMU_TYPE_ID, (uint32_t)&ui_ruleEdited.trigger.param.btn); break;
+				case REMAP_TYPE_LEFT_ANALOG: 
+				case REMAP_TYPE_RIGHT_ANALOG: ui_openMenuSmart(MENU_PICK_BUTTON_ID,
+					ui_menu->id, MENU_REMAP_EMU_TYPE_ID, (uint32_t)&ui_ruleEdited.trigger.action); break;
+				case REMAP_TYPE_FRONT_TOUCH_ZONE:
+				case REMAP_TYPE_BACK_TOUCH_ZONE: ui_openMenu(MENU_REMAP_TRIGGER_TOUCH_ID); break;
+				case REMAP_TYPE_GYROSCOPE: ui_openMenu(MENU_REMAP_TRIGGER_GYRO_ID); break;
+			};
+			break;
+		default: onButton_generic(btn);
+	}
+}
+void onButton_remapTriggerTouch(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			ui_ruleEdited.trigger.action = ui_entry->id;
+			if (ui_entry->id == REMAP_TOUCH_CUSTOM){
+				ui_openMenuSmart(MENU_PICK_TOUCH_ZONE_ID, ui_menu->id, MENU_REMAP_EMU_TYPE_ID, 
+					(uint32_t)&ui_ruleEdited.trigger);
+				break;
+			}
+			//ToDo Set custom touch zones here
+			ui_openMenu(MENU_REMAP_EMU_TYPE_ID);
+			break;
+		default: onButton_generic(btn);
+	}
+}
+void onButton_remapTriggerGyro(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			ui_ruleEdited.trigger.action = ui_entry->id;
+			ui_openMenu(MENU_REMAP_EMU_TYPE_ID);
+			break;
+		default: onButton_generic(btn);
+	}
+}
+void onButton_remapEmuType(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			ui_ruleEdited.emu.type = ui_entry->id;
+			switch(ui_entry->id){
+				case REMAP_TYPE_BUTTON: 
+				case REMAP_TYPE_COMBO: 
+					ui_openMenuSmart(MENU_PICK_ANALOG_ID, 
+						ui_menu->id, MENU_REMAP_ID, (uint32_t)&ui_ruleEdited.emu.param.btn); 
+					break;
+				case REMAP_TYPE_LEFT_ANALOG:
+				case REMAP_TYPE_LEFT_ANALOG_DIGITAL:
+				case REMAP_TYPE_RIGHT_ANALOG:
+				case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: 
+					ui_openMenuSmart(MENU_PICK_BUTTON_ID,
+						ui_menu->id, MENU_REMAP_ID, (uint32_t)&ui_ruleEdited.emu.action); 
+					break;
+				case REMAP_TYPE_FRONT_TOUCH_POINT:
+				case REMAP_TYPE_BACK_TOUCH_POINT: ui_openMenu(MENU_REMAP_EMU_TOUCH_ID); break;
+			};
+			break;
+		default: onButton_generic(btn);
+	}
+}
+void onButton_remapEmuTouch(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			ui_ruleEdited.emu.action = ui_entry->id;
+			if (ui_entry->id == REMAP_TOUCH_CUSTOM){
+				ui_openMenuSmart(MENU_PICK_TOUCH_POINT_ID, ui_menu->id, MENU_REMAP_ID, 
+					(uint32_t)&ui_ruleEdited.emu);
+				break;
+			}
+			//ToDo Add custom touch points here
+			profile_addRemapRule(ui_ruleEdited);
+			ui_openMenu(MENU_REMAP_ID);
+			break;
+		default: onButton_generic(btn);
+	}
+}
+
+void ctrl_onInput(SceCtrlData *ctrl) {
 	if ((ctrl->buttons & HW_BUTTONS[profile_settings[0]]) 
 			&& (ctrl->buttons & HW_BUTTONS[profile_settings[1]]))
 		return; //Menu trigger butoons should not trigger any menu actions on menu open
 	if (new_frame) {
 		new_frame = 0;
 		
-		if (ui_menu->id == MENU_PICK_TOUCH_POINT_ID || 
-				ui_menu->id == MENU_PICK_TOUCH_ZONE_ID)	
-			touchPointZonePicker(ctrl);
+		if (ui_menu->onInput)
+			ui_menu->onInput(ctrl);
 
 		tick = ctrl->timeStamp;
 		curr_buttons = ctrl->buttons;
@@ -455,29 +450,9 @@ void ctrl_inputHandler(SceCtrlData *ctrl) {
 			
 			if (!isBtnActive(i))
 				continue;
+			if (ui_menu->onButton)
+				ui_menu->onButton(HW_BUTTONS[i]);
 
-			switch (ui_menu->id) {
-				case MENU_MAIN_ID: inputHandler_main(HW_BUTTONS[i]); break;
-				case MENU_ANALOG_ID: inputHandler_analog(HW_BUTTONS[i]); break;
-				case MENU_TOUCH_ID: inputHandler_touch(HW_BUTTONS[i]); break;
-				case MENU_GYRO_ID: inputHandler_gyro(HW_BUTTONS[i]); break;
-				case MENU_CONTROLLER_ID: inputHandler_controller(HW_BUTTONS[i]); break;
-				case MENU_SETTINGS_ID: inputHandler_settings(HW_BUTTONS[i]); break;
-				case MENU_PROFILE_ID: inputHandler_profiles(HW_BUTTONS[i]); break;
-				case MENU_PICK_BUTTON_ID: inputHandler_pickButton(HW_BUTTONS[i]); break;
-				case MENU_PICK_ANALOG_ID: inputHandler_pickAnalog(HW_BUTTONS[i]); break;
-				case MENU_PICK_TOUCH_POINT_ID: inputHandler_pickTouchPoint(HW_BUTTONS[i]); break;
-				case MENU_PICK_TOUCH_ZONE_ID: inputHandler_pickTouchZone(HW_BUTTONS[i]); break;
-				case MENU_REMAP_ID: inputHandler_remap(HW_BUTTONS[i]); break;
-				case MENU_REMAP_TRIGGER_TYPE_ID: inputHandler_remapTriggerType(HW_BUTTONS[i]); break;
-				case MENU_REMAP_TRIGGER_TOUCH_ID:  inputHandler_remap_trigger_touch(HW_BUTTONS[i]); break; 
-				case MENU_REMAP_TRIGGER_GYRO_ID: inputHandler_remap_trigger_gyro(HW_BUTTONS[i]); break;                                                     
-				case MENU_REMAP_EMU_TYPE_ID: inputHandler_remap_emu_group(HW_BUTTONS[i]); break; 
-				case MENU_REMAP_EMU_TOUCH_ID: inputHandler_remap_emu_touch(HW_BUTTONS[i]); break;
-				case MENU_HOKS_ID:
-				case MENU_CREDITS_ID: inputHandler_generic(HW_BUTTONS[i]); break;
-				default: break;
-			}
 		}
 		old_buttons = curr_buttons;
 	}
@@ -485,6 +460,5 @@ void ctrl_inputHandler(SceCtrlData *ctrl) {
 
 void ctrl_init(){
 }
-
 void ctrl_destroy(){
 }

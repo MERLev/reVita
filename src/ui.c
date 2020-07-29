@@ -11,6 +11,7 @@
 #include "renderer.h"
 #include "icons.h"
 #include "ui.h"
+#include "ctrl.h"
 #include "profile.h"
 #include "common.h"
 #include "log.h"
@@ -39,6 +40,7 @@
 #define L_1    				18		
 #define L_2    				36
 
+Menu* menus[MENU_ID__NUM];
 const char* str_btn_small[PHYS_BUTTONS_NUM] = {
 	"X", "O", "T", "S", "-", "+", "L", "R", "^", ">", "<", "v", "l", "r", "{", "}"
 };
@@ -87,6 +89,7 @@ static struct Menu menu_main = (Menu){
 	.id = MENU_MAIN_ID, 
 	.num = MENU_MAIN_NUM, 
 	.name = "MAIN MENU",
+	.onButton = onButton_main,
 	.entries = menu_main_entries};
 
 #define MENU_ANALOG_NUM 10
@@ -107,6 +110,7 @@ static struct Menu menu_analog = (Menu){
 	.num = MENU_ANALOG_NUM, 
 	.name = "ANALOG STICKS", 
 	.footer = "([]):reset  (start):reset all",
+	.onButton = onButton_analog,
 	.entries = menu_analog_entries};
 
 #define MENU_TOUCH_NUM 20
@@ -137,6 +141,7 @@ static struct Menu menu_touch = (Menu){
 	.num = MENU_TOUCH_NUM, 
 	.name = "TOUCH", 
 	.footer = "[TOUCH](RS):change  ([])/(start):reset",
+	.onButton = onButton_touch,
 	.entries = menu_touch_entries};
 
 #define MENU_GYRO_NUM 11
@@ -158,6 +163,7 @@ static struct Menu menu_gyro = (Menu){
 	.num = MENU_GYRO_NUM, 
 	.name = "GYROSCOPE", 
 	.footer = "([]):reset  (start):reset all",
+	.onButton = onButton_gyro,
 	.entries = menu_gyro_entries};
 
 #define MENU_CONTROLLER_NUM 3
@@ -171,6 +177,7 @@ static struct Menu menu_controllers = (Menu){
 	.num = MENU_CONTROLLER_NUM, 
 	.name = "CONTROLLER", 
 	.footer = "([]):reset  (start):reset all",
+	.onButton = onButton_controller,
 	.entries = menu_controllers_entries};
 
 #define MENU_SETTINGS_NUM 4
@@ -185,6 +192,7 @@ static struct Menu menu_settings = (Menu){
 	.num = MENU_SETTINGS_NUM, 
 	.name = "SETTINGS", 
 	.footer = "([]):reset  (start):reset all",
+	.onButton = onButton_settings,
 	.entries = menu_settings_entries};
 
 #define MENU_PROFILE_NUM 8
@@ -203,6 +211,7 @@ static struct Menu menu_profiles = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_PROFILE_NUM, 
 	.name = "PROFILES", 
+	.onButton = onButton_profiles,
 	.entries = menu_profiles_entries};
 
 #define MENU_HOKS_NUM 18
@@ -231,6 +240,7 @@ static struct Menu menu_hooks = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_HOKS_NUM, 
 	.name = "HOOKS", 
+	.onButton = onButton_generic,
 	.entries = menu_hooks_entries};
 
 #define MENU_CREDITS_NUM			16
@@ -257,20 +267,8 @@ static struct Menu menu_credits = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_CREDITS_NUM, 
 	.name = "CREDITS", 
+	.onButton = onButton_generic,
 	.entries = menu_credits_entries};
-
-#define MENU_REMAP_NUM 1
-char str_remaps[REMAP_NUM + MENU_REMAP_NUM][STR_SIZE];
-static struct MenuEntry menu_remap_entries_def[MENU_REMAP_NUM] = {
-	(MenuEntry){.name = "<new remap rule>", .id = NEW_RULE_IDX}};
-static struct MenuEntry menu_remap_entries[REMAP_NUM + MENU_REMAP_NUM];
-static struct Menu menu_remap = (Menu){
-	.id = MENU_REMAP_ID, 
-	.parent = MENU_MAIN_ID,
-	.num = 0, 
-	.name = "REMAP RULES", 
-	.footer = "([]):toggle (start):remove",
-	.entries = menu_remap_entries};
 
 #define MENU_PICK_BUTTON_NUM 16
 static struct MenuEntry menu_pick_button_entries[MENU_PICK_BUTTON_NUM];
@@ -280,6 +278,7 @@ static struct Menu menu_pick_button = (Menu){
 	.num = MENU_PICK_BUTTON_NUM, 
 	.name = "SELECT BUTTONS", 
 	.footer = "([]):select (X):continue", 
+	.onButton = onButton_pickButton,
 	.entries = menu_pick_button_entries};
 
 #define MENU_PICK_ANALOG_NUM 4
@@ -293,6 +292,7 @@ static struct Menu menu_pick_analog = (Menu){
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_PICK_ANALOG_NUM, 
 	.name = "SELECT ANALOG STICK DIRECTION", 
+	.onButton = onButton_pickAnalog,
 	.entries = menu_pick_analog_entries};
 
 #define MENU_PICK_TOUCH_POINT_NUM 2
@@ -304,6 +304,8 @@ static struct Menu menu_pick_touch_point = (Menu){
 	.parent = MENU_REMAP_EMU_TYPE_ID,
 	.num = MENU_PICK_TOUCH_POINT_NUM, 
 	.name = "SELECT TOUCH POINT", 
+	.onInput = onInput_touchPicker,
+	.onButton = onButton_pickTouchPoint,
 	.entries = menu_pick_touch_point_entries};
 
 #define MENU_PICK_TOUCH_ZONE_NUM 4
@@ -317,7 +319,23 @@ static struct Menu menu_pick_touch_zone = (Menu){
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_PICK_TOUCH_ZONE_NUM, 
 	.name = "SELECT TOUCH ZONE", 
+	.onInput = onInput_touchPicker,
+	.onButton = onButton_pickTouchZone,
 	.entries = menu_pick_touch_zone_entries};
+
+#define MENU_REMAP_NUM 1
+char str_remaps[REMAP_NUM + MENU_REMAP_NUM][STR_SIZE];
+static struct MenuEntry menu_remap_entries_def[MENU_REMAP_NUM] = {
+	(MenuEntry){.name = "<new remap rule>", .id = NEW_RULE_IDX}};
+static struct MenuEntry menu_remap_entries[REMAP_NUM + MENU_REMAP_NUM];
+static struct Menu menu_remap = (Menu){
+	.id = MENU_REMAP_ID, 
+	.parent = MENU_MAIN_ID,
+	.num = 0, 
+	.name = "REMAP RULES", 
+	.footer = "([]):toggle (start):remove",
+	.onButton = onButton_remap,
+	.entries = menu_remap_entries};
 
 #define MENU_REMAP_TRIGGER_TYPE_NUM 6
 static struct MenuEntry menu_remap_trigger_type_entries[MENU_REMAP_TRIGGER_TYPE_NUM] = {
@@ -333,6 +351,7 @@ static struct Menu menu_remap_trigger_type = (Menu){
 	.parent = MENU_REMAP_ID,
 	.num = MENU_REMAP_TRIGGER_TYPE_NUM, 
 	.name = "SELECT TRIGGER", 
+	.onButton = onButton_remapTriggerType,
 	.entries = menu_remap_trigger_type_entries};
 
 #define MENU_REMAP_TRIGGER_TOUCH_NUM 5
@@ -348,6 +367,7 @@ static struct Menu menu_remap_trigger_touch = (Menu){
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_REMAP_TRIGGER_TOUCH_NUM, 
 	.name = "SELECT TOUCH POINT", 
+	.onButton = onButton_remapTriggerTouch,
 	.entries = menu_remap_trigger_touch_entries};
 
 #define MENU_REMAP_TRIGGER_GYRO_NUM 6
@@ -364,6 +384,7 @@ static struct Menu menu_remap_trigger_gyro = (Menu){
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_REMAP_TRIGGER_GYRO_NUM, 
 	.name = "SELECT GYRO MOVEMENT", 
+	.onButton = onButton_remapTriggerGyro,
 	.entries = menu_remap_trigger_gyro_entries};
 
 #define MENU_REMAP_EMU_TYPE_NUM 7
@@ -381,6 +402,7 @@ static struct Menu menu_remap_emu_type = (Menu){
 	.parent = MENU_REMAP_ID,
 	.num = MENU_REMAP_EMU_TYPE_NUM, 
 	.name = "SELECT EMU", 
+	.onButton = onButton_remapEmuType,
 	.entries = menu_remap_emu_type_entries};
 
 #define MENU_REMAP_EMU_TOUCH_NUM 5
@@ -395,7 +417,32 @@ static struct Menu menu_remap_emu_touch = (Menu){
 	.parent = MENU_REMAP_EMU_TYPE_ID,
 	.num = MENU_REMAP_EMU_TOUCH_NUM, 
 	.name = "SELECT TOUCH POINT", 
+	.onButton = onButton_remapEmuTouch,
 	.entries = menu_remap_emu_touch_entries};
+
+void registerMenus(){
+	menus[MENU_MAIN_ID] = &menu_main;
+	menus[MENU_ANALOG_ID] = &menu_analog;
+	menus[MENU_TOUCH_ID] = &menu_touch;
+	menus[MENU_GYRO_ID] = &menu_gyro;
+	menus[MENU_CONTROLLER_ID] = &menu_controllers;
+	menus[MENU_HOKS_ID] = &menu_hooks;
+	menus[MENU_SETTINGS_ID] = &menu_settings;
+	menus[MENU_CREDITS_ID] = &menu_credits;
+	menus[MENU_PROFILE_ID] = &menu_profiles;
+
+	menus[MENU_PICK_BUTTON_ID] = &menu_pick_button;
+	menus[MENU_PICK_ANALOG_ID] = &menu_pick_analog;
+	menus[MENU_PICK_TOUCH_POINT_ID] = &menu_pick_touch_point;
+	menus[MENU_PICK_TOUCH_ZONE_ID] = &menu_pick_touch_zone;
+
+	menus[MENU_REMAP_ID] = &menu_remap;
+	menus[MENU_REMAP_TRIGGER_TYPE_ID] = &menu_remap_trigger_type;
+	menus[MENU_REMAP_TRIGGER_TOUCH_ID] = &menu_remap_trigger_touch;
+	menus[MENU_REMAP_TRIGGER_GYRO_ID] = &menu_remap_trigger_gyro;
+	menus[MENU_REMAP_EMU_TYPE_ID] = &menu_remap_emu_type;
+	menus[MENU_REMAP_EMU_TOUCH_ID] = &menu_remap_emu_touch;
+}
 
 SceUID mem_uid;
 
@@ -822,29 +869,7 @@ void ui_setIdx(int idx){
 }
 
 struct Menu* findMenuById(enum MENU_ID menuId){
-	switch (menuId){
-		case MENU_MAIN_ID: return &menu_main;
-		case MENU_ANALOG_ID: return &menu_analog;
-		case MENU_TOUCH_ID: return &menu_touch;
-		case MENU_GYRO_ID: return &menu_gyro;
-		case MENU_CONTROLLER_ID: return &menu_controllers;
-		case MENU_HOKS_ID: return &menu_hooks;                                                               
-		case MENU_PROFILE_ID: return &menu_profiles;   
-		case MENU_SETTINGS_ID: return &menu_settings; 
-		case MENU_CREDITS_ID: return &menu_credits;
-		case MENU_PICK_ANALOG_ID: return &menu_pick_button;
-		case MENU_PICK_BUTTON_ID: return &menu_pick_analog;
-		case MENU_PICK_TOUCH_POINT_ID: return &menu_pick_touch_point;
-		case MENU_PICK_TOUCH_ZONE_ID: return &menu_pick_touch_zone;
-		case MENU_REMAP_ID:  return &menu_remap;
-		case MENU_REMAP_TRIGGER_TYPE_ID: return &menu_remap_trigger_type;
-		case MENU_REMAP_TRIGGER_TOUCH_ID: return &menu_remap_trigger_touch;
-		case MENU_REMAP_TRIGGER_GYRO_ID: return &menu_remap_trigger_gyro;
-		case MENU_REMAP_EMU_TYPE_ID: return &menu_remap_emu_type;
-		case MENU_REMAP_EMU_TOUCH_ID:  return &menu_remap_emu_touch;
-		default: break;
-	}
-	return NULL;
+	return menus[menuId];
 }
 
 void ui_openMenu(enum MENU_ID id){
@@ -906,6 +931,10 @@ void drawDirectlyToFB(){
 	}
 }
 
+void ui_onInput(SceCtrlData *ctrl){
+	ctrl_onInput(ctrl);
+}
+
 void ui_draw(const SceDisplayFrameBuf *pParam){
 	if (ui_opened) {
 		new_frame = 1;
@@ -929,11 +958,13 @@ void ui_close(){
 }
 
 void ui_init(){
+    ctrl_init();
+
 	//Init Button remap menus with proper button names
-	// for (int i = 0; i < REMAP_TRIGGER_BTN_SUB_NUM; i++)
 	for (int i = 0; i < MENU_PICK_BUTTON_NUM; i++)
 		menu_pick_button_entries[i] = (MenuEntry){.name = (char *)str_btns[i], .id = i};
-	
+	registerMenus();
+
 	ui_menu = &menu_main;
 	ui_setIdx(0);
 
@@ -952,6 +983,7 @@ void ui_init(){
     renderer_init(UI_WIDTH, UI_HEIGHT);
 }
 void ui_destroy(){
+	ctrl_destroy();
 	//ksceKernelFreeMemBlock(mem_uid);
 	renderer_destroy();
 }

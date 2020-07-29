@@ -39,7 +39,8 @@ enum PROFILE_ACTIONS{
 #define TEXT_IDX            -2
 #define NEW_RULE_IDX        -3
 
-//typedef struct Menu Menu;
+typedef   void (*onButtonF)(uint32_t btn);
+typedef   void (*onInputF)(SceCtrlData *ctrl);
 typedef struct Menu{
 	enum MENU_ID id;
 	uint8_t num;
@@ -49,6 +50,8 @@ typedef struct Menu{
 	enum MENU_ID parent;
 	char* name;
 	char* footer;
+	onButtonF onButton;
+	onInputF onInput;
 	struct MenuEntry* entries;
 	uint32_t data;
 }Menu;
@@ -72,6 +75,8 @@ void ui_openMenuNext();
 void ui_openMenuParent();
 void ui_nextEntry();
 void ui_prevEntry();
+
+void ui_onInput(SceCtrlData *ctrl);
 extern void ui_draw(const SceDisplayFrameBuf *pParam);
 extern void ui_open();
 extern void ui_close();
