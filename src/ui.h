@@ -1,29 +1,6 @@
 #ifndef _UI_H_
 #define _UI_H_
 
-#define VERSION				"2.1.0"
-
-#define UI_WIDTH            480
-#define UI_HEIGHT           272
-#define HEADER_HEIGHT		(CHA_H + 6)
-#define STR_SIZE			30
-
-#define BOTTOM_OFFSET		5
-
-#define COLOR_DEFAULT     	0x00C2C0BD
-#define COLOR_CURSOR      	0x00FFFFFF
-#define COLOR_HEADER      	0x00FF6600
-#define COLOR_CURSOR_HEADER	0x00FFAA22
-#define COLOR_ACTIVE      	0x0000B0B0
-#define COLOR_CURSOR_ACTIVE	0x0000DDDD
-#define COLOR_DANGER      	0x00000099
-#define COLOR_CURSOR_DANGER	0x000000DD
-#define COLOR_BG_HEADER   	0x00000000
-#define COLOR_BG_BODY     	0x00171717
-#define L_0    				5		//Left margin for menu
-#define L_1    				18		
-#define L_2    				36
-
 ;enum MENU_ID{
 	MENU_MAIN_ID = 0,
 	MENU_ANALOG_ID,
@@ -108,11 +85,11 @@ void ui_nextEntry();
 void ui_prevEntry();
 
 void ui_onInput(SceCtrlData *ctrl);
-extern void ui_draw(const SceDisplayFrameBuf *pParam);
-extern void ui_open();
-extern void ui_close();
-extern void ui_init();
-extern void ui_destroy();
+void ui_draw(const SceDisplayFrameBuf *pParam);
+void ui_open();
+void ui_close();
+void ui_init();
+void ui_destroy();
 
 void ui_setIdx(int i);
 

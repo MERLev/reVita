@@ -1,23 +1,34 @@
 #include <vitasdkkern.h>
-#include <psp2/motion.h> 
-#include <psp2/touch.h> 
-#include <psp2kern/ctrl.h> 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
-#include "vitasdkext.h"
 #include "main.h"
 #include "renderer.h"
 #include "icons.h"
 #include "ui.h"
-#include "ui-control.h"
 #include "ui-draw.h"
 #include "profile.h"
-#include "common.h"
 #include "log.h"
-#include "remap.h"
 
+#define VERSION				"2.1.0"
+
+#define UI_WIDTH            480
+#define UI_HEIGHT           272
+#define HEADER_HEIGHT		(CHA_H + 6)
+
+#define BOTTOM_OFFSET		5
+
+#define COLOR_DEFAULT     	0x00C2C0BD
+#define COLOR_CURSOR      	0x00FFFFFF
+#define COLOR_HEADER      	0x00FF6600
+#define COLOR_CURSOR_HEADER	0x00FFAA22
+#define COLOR_ACTIVE      	0x0000B0B0
+#define COLOR_CURSOR_ACTIVE	0x0000DDDD
+#define COLOR_DANGER      	0x00000099
+#define COLOR_CURSOR_DANGER	0x000000DD
+#define COLOR_BG_HEADER   	0x00000000
+#define COLOR_BG_BODY     	0x00171717
+#define L_0    				5		//Left margin for menu
+#define L_1    				18		
+#define L_2    				36
 
 static uint32_t ticker;
 static uint32_t menuY = 0;
@@ -162,7 +173,7 @@ void drawFooter(){
 		renderer_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, ui_menu->footer);
 }
 
-void drawMenu_generic(){
+void onDraw_generic(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
@@ -171,7 +182,7 @@ void drawMenu_generic(){
 	}
 }
 
-void drawMenu_remap(){
+void onDraw_remap(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
@@ -187,7 +198,7 @@ void drawMenu_remap(){
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
 }
-void drawMenu_pickButton(){
+void onDraw_pickButton(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
@@ -196,7 +207,7 @@ void drawMenu_pickButton(){
 		renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
 	}
 }
-void drawMenu_analog(){
+void onDraw_analog(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {			
@@ -222,7 +233,7 @@ void drawMenu_analog(){
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num-1));
 }
-void drawMenu_touch(){
+void onDraw_touch(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {			
@@ -248,7 +259,7 @@ void drawMenu_touch(){
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
 }
-void drawMenu_pickTouchPoint(){
+void onDraw_pickTouchPoint(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);	
 	RemapAction* ra = (RemapAction*)ui_menu->data;
@@ -265,7 +276,7 @@ void drawMenu_pickTouchPoint(){
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
 }
-void drawMenu_pickTouchZone(){
+void onDraw_pickTouchZone(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);	
 	RemapAction* ra = (RemapAction*)ui_menu->data;
@@ -287,7 +298,7 @@ void drawMenu_pickTouchZone(){
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
 }
-void drawMenu_gyro(){
+void onDraw_gyro(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {		
@@ -314,7 +325,7 @@ void drawMenu_gyro(){
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx)/(ui_menu->num-1));
 }
-void drawMenu_controller(){
+void onDraw_controller(){
     int y = menuY;
 	SceCtrlPortInfo pi;
 	int res = ksceCtrlGetControllerPortInfo(&pi);
@@ -351,7 +362,7 @@ void drawMenu_controller(){
 		renderer_drawStringF(L_2, y += CHA_H, "Port %i: %s", i, getControllerName(pi.port[i]));
 	}
 }
-void drawMenu_hooks(){
+void onDraw_hooks(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, ui_lines - 1);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
@@ -361,7 +372,7 @@ void drawMenu_hooks(){
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, 
 			((float)ui_menu->idx)/(ui_menu->num - (ui_lines - 1) - 1));
 }
-void drawMenu_settings(){
+void onDraw_settings(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {		
@@ -383,7 +394,7 @@ void drawMenu_settings(){
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num-1));
 }
-void drawMenu_profiles(){
+void onDraw_profiles(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
@@ -396,7 +407,7 @@ void drawMenu_profiles(){
 		}
 	}
 }
-void drawMenu_credits(){
+void onDraw_credits(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, ui_lines - 1);
 	for (int i = ii; i < min(ui_menu->num, ii + ui_lines); i++) {	
@@ -435,7 +446,7 @@ void drawBody() {
     if (ui_menu->onDraw)
         ui_menu->onDraw();
     else
-        drawMenu_generic();
+        onDraw_generic();
 }
 
 //Draw directly to FB to overlay over everything else;
@@ -465,6 +476,13 @@ void ui_draw(const SceDisplayFrameBuf *pParam){
 		renderer_writeToFB();
 		drawDirectlyToFB();	
 	}
+}
+
+void ui_draw_init(){
+    renderer_init(UI_WIDTH, UI_HEIGHT);
+}
+void ui_draw_destroy(){
+	renderer_destroy();
 }
 
 

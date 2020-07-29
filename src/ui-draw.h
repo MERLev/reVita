@@ -8,19 +8,21 @@ static const char* str_btns[PHYS_BUTTONS_NUM];
 
 void generateRemapRuleName(char* str, struct RemapRule* ui_ruleEdited);
 
-void drawMenu_generic();
+void onDraw_generic();
 
-void drawMenu_remap();
-void drawMenu_pickButton();
-void drawMenu_analog();
-void drawMenu_touch();
-void drawMenu_pickTouchPoint();
-void drawMenu_pickTouchZone();
-void drawMenu_gyro();
-void drawMenu_controller();
-void drawMenu_hooks();
-void drawMenu_settings();
-void drawMenu_profiles();
-void drawMenu_credits();
+void onDraw_remap();
+void onDraw_pickButton();
+void onDraw_analog();
+void onDraw_touch();
+void onDraw_pickTouchPoint();
+void onDraw_pickTouchZone();
+void onDraw_gyro();
+void onDraw_controller();
+void onDraw_hooks();
+void onDraw_settings();
+void onDraw_profiles();
+void onDraw_credits();
 
+void ui_draw_init();
+void ui_draw_destroy();
 #endif

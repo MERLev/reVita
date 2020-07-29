@@ -2,9 +2,6 @@
 #define _UI_CONTROL_H_
 #include <psp2kern/ctrl.h> 
 
-void ctrl_init();
-void ctrl_destroy();
-void ctrl_onInput(SceCtrlData *ctrl);
 
 void onInput_touchPicker(SceCtrlData *ctrl);
 
@@ -26,4 +23,8 @@ void onButton_remapTriggerTouch(uint32_t btn);
 void onButton_remapTriggerGyro(uint32_t btn);
 void onButton_remapEmuType(uint32_t btn);
 void onButton_remapEmuTouch(uint32_t btn);
+
+void ui_control_init();
+void ui_control_destroy();
+void ctrl_onInput(SceCtrlData *ctrl);
 #endif

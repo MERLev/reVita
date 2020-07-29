@@ -1,21 +1,13 @@
 #include <vitasdkkern.h>
-#include <psp2/motion.h> 
-#include <psp2/touch.h> 
-#include <psp2kern/ctrl.h> 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
-#include "vitasdkext.h"
 #include "main.h"
-#include "renderer.h"
 #include "ui.h"
 #include "ui-control.h"
 #include "ui-draw.h"
 #include "profile.h"
-#include "common.h"
 #include "log.h"
-#include "remap.h"
+
+#define STR_SIZE			30
 
 Menu* menus[MENU_ID__NUM];
 void onBuild_remap(Menu* m);
@@ -57,7 +49,7 @@ static struct Menu menu_analog = (Menu){
 	.name = "ANALOG STICKS", 
 	.footer = "([]):reset  (start):reset all",
 	.onButton = onButton_analog,
-	.onDraw = drawMenu_analog,
+	.onDraw = onDraw_analog,
 	.entries = menu_analog_entries};
 
 #define MENU_TOUCH_NUM 20
@@ -89,7 +81,7 @@ static struct Menu menu_touch = (Menu){
 	.name = "TOUCH", 
 	.footer = "[TOUCH](RS):change  ([])/(start):reset",
 	.onButton = onButton_touch,
-	.onDraw = drawMenu_touch,
+	.onDraw = onDraw_touch,
 	.entries = menu_touch_entries};
 
 #define MENU_GYRO_NUM 11
@@ -112,7 +104,7 @@ static struct Menu menu_gyro = (Menu){
 	.name = "GYROSCOPE", 
 	.footer = "([]):reset  (start):reset all",
 	.onButton = onButton_gyro,
-	.onDraw = drawMenu_gyro,
+	.onDraw = onDraw_gyro,
 	.entries = menu_gyro_entries};
 
 #define MENU_CONTROLLER_NUM 3
@@ -127,7 +119,7 @@ static struct Menu menu_controllers = (Menu){
 	.name = "CONTROLLER", 
 	.footer = "([]):reset  (start):reset all",
 	.onButton = onButton_controller,
-	.onDraw = drawMenu_controller,
+	.onDraw = onDraw_controller,
 	.entries = menu_controllers_entries};
 
 #define MENU_SETTINGS_NUM 4
@@ -143,7 +135,7 @@ static struct Menu menu_settings = (Menu){
 	.name = "SETTINGS", 
 	.footer = "([]):reset  (start):reset all",
 	.onButton = onButton_settings,
-	.onDraw = drawMenu_settings,
+	.onDraw = onDraw_settings,
 	.entries = menu_settings_entries};
 
 #define MENU_PROFILE_NUM 8
@@ -163,7 +155,7 @@ static struct Menu menu_profiles = (Menu){
 	.num = MENU_PROFILE_NUM, 
 	.name = "PROFILES", 
 	.onButton = onButton_profiles,
-	.onDraw = drawMenu_profiles,
+	.onDraw = onDraw_profiles,
 	.entries = menu_profiles_entries};
 
 #define MENU_HOKS_NUM 18
@@ -192,7 +184,7 @@ static struct Menu menu_hooks = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_HOKS_NUM, 
 	.name = "HOOKS", 
-	.onDraw = drawMenu_hooks,
+	.onDraw = onDraw_hooks,
 	.entries = menu_hooks_entries};
 
 #define MENU_CREDITS_NUM			16
@@ -219,7 +211,7 @@ static struct Menu menu_credits = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_CREDITS_NUM, 
 	.name = "CREDITS", 
-	.onDraw = drawMenu_credits,
+	.onDraw = onDraw_credits,
 	.entries = menu_credits_entries};
 
 #define MENU_PICK_BUTTON_NUM 16
@@ -231,7 +223,7 @@ static struct Menu menu_pick_button = (Menu){
 	.name = "SELECT BUTTONS", 
 	.footer = "([]):select (X):continue", 
 	.onButton = onButton_pickButton,
-	.onDraw = drawMenu_pickButton,
+	.onDraw = onDraw_pickButton,
 	.entries = menu_pick_button_entries};
 
 #define MENU_PICK_ANALOG_NUM 4
@@ -259,7 +251,7 @@ static struct Menu menu_pick_touch_point = (Menu){
 	.name = "SELECT TOUCH POINT", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchPoint,
-	.onDraw = drawMenu_pickTouchPoint,
+	.onDraw = onDraw_pickTouchPoint,
 	.entries = menu_pick_touch_point_entries};
 
 #define MENU_PICK_TOUCH_ZONE_NUM 4
@@ -275,7 +267,7 @@ static struct Menu menu_pick_touch_zone = (Menu){
 	.name = "SELECT TOUCH ZONE", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchZone,
-	.onDraw = drawMenu_pickTouchZone,
+	.onDraw = onDraw_pickTouchZone,
 	.entries = menu_pick_touch_zone_entries};
 
 #define MENU_REMAP_NUM 1
@@ -290,7 +282,7 @@ static struct Menu menu_remap = (Menu){
 	.name = "REMAP RULES", 
 	.footer = "([]):toggle (start):remove",
 	.onButton = onButton_remap,
-	.onDraw = drawMenu_remap,
+	.onDraw = onDraw_remap,
 	.onBuild = onBuild_remap,
 	.entries = menu_remap_entries};
 
@@ -417,6 +409,11 @@ MenuEntry* ui_entry;
 struct RemapRule ui_ruleEdited; //Rule currently edited
 
 void onBuild_remap(Menu* m){
+	//Allocate memory for remap menu rule's names
+	for (int i = 0; i < REMAP_NUM + MENU_REMAP_NUM; i++){
+		menu_remap_entries[i].name = &str_remaps[i][0];
+	}
+
 	memset(&ui_ruleEdited, 0, sizeof(ui_ruleEdited));
 	m->num = profile.remapsNum + MENU_REMAP_NUM;
 	for (int i = 0; i < profile.remapsNum; i++){
@@ -437,10 +434,6 @@ void ui_setIdx(int idx){
 		ui_entry = &ui_menu->entries[idx];
 }
 
-struct Menu* findMenuById(enum MENU_ID menuId){
-	return menus[menuId];
-}
-
 void open(enum MENU_ID id){
 	if (menus[id]->onBuild)
 		menus[id]->onBuild(menus[id]);
@@ -448,8 +441,7 @@ void open(enum MENU_ID id){
 	ui_setIdx(ui_menu->idx);
 }
 void ui_openMenu(enum MENU_ID id){
-	struct Menu* new_menu = findMenuById(id);
-	new_menu->prev = ui_menu->id;
+	menus[id]->prev = ui_menu->id;
 	open(id);
 }
 void ui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, uint32_t data){
@@ -495,7 +487,8 @@ void ui_close(){
 }
 
 void ui_init(){
-    ctrl_init();
+    ui_control_init();
+    ui_draw_init();
 
 	//Init Button remap menus with proper button names
 	for (int i = 0; i < MENU_PICK_BUTTON_NUM; i++)
@@ -504,23 +497,8 @@ void ui_init(){
 
 	ui_menu = &menu_main;
 	ui_setIdx(0);
-
-	//Allocate memory for remap menu rule's names
-	/*mem_uid = ksceKernelAllocMemBlock("ui_strings", SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, 
-		REMAP_NUM * STR_SIZE * sizeof(char), NULL);
-	char* mem_pointer;
-    ksceKernelGetMemBlockBase(mem_uid, (void**)&mem_pointer);
-	for (int i = 0; i < REMAP_NUM; i++){
-		menu_remap_entries[i].name = &mem_pointer[STR_SIZE * i];
-	}*/
-	for (int i = 0; i < REMAP_NUM + MENU_REMAP_NUM; i++){
-		menu_remap_entries[i].name = &str_remaps[i][0];
-	}
-
-    renderer_init(UI_WIDTH, UI_HEIGHT);
 }
 void ui_destroy(){
-	ctrl_destroy();
-	//ksceKernelFreeMemBlock(mem_uid);
-	renderer_destroy();
+	ui_control_destroy();
+	ui_draw_destroy();
 }

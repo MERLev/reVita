@@ -1,15 +1,12 @@
 #include <vitasdkkern.h>
 #include <psp2/touch.h> 
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
 #include "vitasdkext.h"
 #include "main.h"
 #include "ui.h"
 #include "profile.h"
 #include "common.h"
-#include "remap.h"
 
 static uint32_t curr_buttons;
 static uint32_t old_buttons;
@@ -460,7 +457,7 @@ void ctrl_onInput(SceCtrlData *ctrl) {
 	}
 }
 
-void ctrl_init(){
+void ui_control_init(){
 }
-void ctrl_destroy(){
+void ui_control_destroy(){
 }
