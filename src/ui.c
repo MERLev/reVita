@@ -295,6 +295,30 @@ static struct Menu menu_pick_analog = (Menu){
 	.name = "SELECT ANALOG STICK DIRECTION", 
 	.entries = menu_pick_analog_entries};
 
+#define MENU_PICK_TOUCH_POINT_NUM 2
+static struct MenuEntry menu_pick_touch_point_entries[MENU_PICK_TOUCH_POINT_NUM] = {
+	(MenuEntry){.name = "Point x", .id = 0},
+	(MenuEntry){.name = "      y", .id = 1}};
+static struct Menu menu_pick_touch_point = (Menu){
+	.id = MENU_PICK_TOUCH_POINT_ID, 
+	.parent = MENU_REMAP_EMU_TYPE_ID,
+	.num = MENU_PICK_TOUCH_POINT_NUM, 
+	.name = "SELECT TOUCH POINT", 
+	.entries = menu_pick_touch_point_entries};
+
+#define MENU_PICK_TOUCH_ZONE_NUM 4
+static struct MenuEntry menu_pick_touch_zone_entries[MENU_PICK_TOUCH_ZONE_NUM] = {
+	(MenuEntry){.name = "Corner point 1 x", .id = 0},
+	(MenuEntry){.name = "               y", .id = 1},
+	(MenuEntry){.name = "Corner point 2 x", .id = 2},
+	(MenuEntry){.name = "               y", .id = 3}};
+static struct Menu menu_pick_touch_zone = (Menu){
+	.id = MENU_PICK_TOUCH_ZONE_ID, 
+	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
+	.num = MENU_PICK_TOUCH_ZONE_NUM, 
+	.name = "SELECT TOUCH ZONE", 
+	.entries = menu_pick_touch_zone_entries};
+
 #define MENU_REMAP_TRIGGER_TYPE_NUM 6
 static struct MenuEntry menu_remap_trigger_type_entries[MENU_REMAP_TRIGGER_TYPE_NUM] = {
 	(MenuEntry){.name = "Buttons", .id = REMAP_TYPE_BUTTON},
@@ -311,12 +335,13 @@ static struct Menu menu_remap_trigger_type = (Menu){
 	.name = "SELECT TRIGGER", 
 	.entries = menu_remap_trigger_type_entries};
 
-#define MENU_REMAP_TRIGGER_TOUCH_NUM 4
+#define MENU_REMAP_TRIGGER_TOUCH_NUM 5
 static struct MenuEntry menu_remap_trigger_touch_entries[MENU_REMAP_TRIGGER_TOUCH_NUM] = {
 	(MenuEntry){.name = "Top Left Zone", .id = REMAP_TOUCH_ZONE_TL},
 	(MenuEntry){.name = "Top Right Zone", .id = REMAP_TOUCH_ZONE_TR},
 	(MenuEntry){.name = "Bottom Left Zone", .id = REMAP_TOUCH_ZONE_BL},
-	(MenuEntry){.name = "Bottom Right Zone", .id = REMAP_TOUCH_ZONE_BR}
+	(MenuEntry){.name = "Bottom Right Zone", .id = REMAP_TOUCH_ZONE_BR},
+	(MenuEntry){.name = "Custom Zone", .id = REMAP_TOUCH_CUSTOM}
 };
 static struct Menu menu_remap_trigger_touch = (Menu){
 	.id = MENU_REMAP_TRIGGER_TOUCH_ID, 
@@ -369,7 +394,7 @@ static struct Menu menu_remap_emu_touch = (Menu){
 	.id = MENU_REMAP_EMU_TOUCH_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
 	.num = MENU_REMAP_EMU_TOUCH_NUM, 
-	.name = "SELECT TOUCH ZONE", 
+	.name = "SELECT TOUCH POINT", 
 	.entries = menu_remap_emu_touch_entries};
 
 SceUID mem_uid;
@@ -528,6 +553,43 @@ void drawMenu_touch(int y){
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
 }
+void drawMenu_pickTouchPoint(int y){
+	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);	
+	RemapAction* ra = (RemapAction*)ui_menu->data;
+	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {	
+		int8_t id = ui_menu->entries[i].id;
+		int coord = (id == 0) ? ra->param.touch.x : ra->param.touch.y;
+		setColor(i == ui_menu->idx, 1);
+		//LOG("%i", coord);
+		renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", ui_menu->entries[i].name, coord);
+		if (ui_menu->idx == i && (id != HEADER_IDX)){//Draw cursor
+			renderer_setColor(COLOR_CURSOR);
+			renderer_drawString(L_2+ 20*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
+		}
+	}
+	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
+}
+void drawMenu_pickTouchZone(int y){
+	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);	
+	RemapAction* ra = (RemapAction*)ui_menu->data;
+	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {	
+		int8_t id = ui_menu->entries[i].id;
+		int coord = 0;
+		switch (id){
+			case 0: coord = ra->param.zone.a.x; break;
+			case 1: coord = ra->param.zone.a.y; break;
+			case 2: coord = ra->param.zone.b.x; break;
+			case 3: coord = ra->param.zone.b.y; break;}
+		setColor(i == ui_menu->idx, 1);
+		renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", ui_menu->entries[i].name, coord);
+
+		if (ui_menu->idx == i && (id != HEADER_IDX)){//Draw cursor
+			renderer_setColor(COLOR_CURSOR);
+			renderer_drawString(L_2+ 20*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
+		}
+	}
+	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
+}
 void drawMenu_gyro(int y){
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {		
@@ -642,19 +704,22 @@ void drawMenu_credits(int y){
 			((float)ui_menu->idx)/(ui_menu->num - (ui_lines - 1) - 1));
 }
 
-void drawTouchPointer(){
-	int8_t idx = ui_entry->id;
-	if (ui_menu->id != MENU_TOUCH_ID || idx == HEADER_IDX ||  idx >= 16)
-		return;
+void drawTouchPointer(uint32_t panel, TouchPoint* tp){
 	int8_t ic_halfsize = ICN_TOUCH_X / 2;
-	int left = profile.touch[idx - (idx % 2)] - 8;
-	left *= (float)fbWidth / ((idx < 8) ? TOUCH_SIZE[0] : TOUCH_SIZE[2]);
+	int left = tp->x - 8;
+	left *= (float)fbWidth / ((panel == SCE_TOUCH_PORT_FRONT) ? TOUCH_SIZE[0] : TOUCH_SIZE[2]);
 	left = min((max(ic_halfsize, left)), fbWidth - ic_halfsize);
-	int top = profile.touch[idx - (idx % 2) + 1] - 10;
-	top *= (float)fbHeight / ((idx < 8) ? TOUCH_SIZE[1] : TOUCH_SIZE[3]); //Scale to framebuffer size
+	int top = tp->y - 10;
+	top *= (float)fbHeight / ((panel == SCE_TOUCH_PORT_FRONT) ? TOUCH_SIZE[1] : TOUCH_SIZE[3]); //Scale to framebuffer size
 	top = min((max(ic_halfsize, top)), fbHeight - ic_halfsize);//limit into screen
 	renderer_setColor((ticker % 8 < 4) ? COLOR_DANGER : COLOR_HEADER);
 	renderer_drawImageDirectlyToFB(left - ic_halfsize, top - ic_halfsize, 64, 64, ICN_TOUCH);
+}
+
+void drawTouchZone(uint32_t panel, TouchZone* tz){
+	//ToDo draw rectangle
+	drawTouchPointer(panel, &(TouchPoint){.x = tz->a.x, .y = tz->a.y});
+	drawTouchPointer(panel, &(TouchPoint){.x = tz->b.x, .y = tz->b.y});
 }
 
 void drawBody() {
@@ -673,6 +738,8 @@ void drawBody() {
 		case MENU_CREDITS_ID: drawMenu_credits(y); break; 
 		case MENU_REMAP_ID: drawMenu_remap(y); break;
 		case MENU_PICK_BUTTON_ID: drawMenu_pickButton(y); break;
+		case MENU_PICK_TOUCH_POINT_ID: drawMenu_pickTouchPoint(y); break;
+		case MENU_PICK_TOUCH_ZONE_ID: drawMenu_pickTouchZone(y); break;
 		case MENU_MAIN_ID: 
 		case MENU_REMAP_TRIGGER_TYPE_ID:
 		case MENU_REMAP_TRIGGER_TOUCH_ID: 
@@ -757,7 +824,6 @@ void ui_setIdx(int idx){
 struct Menu* findMenuById(enum MENU_ID menuId){
 	switch (menuId){
 		case MENU_MAIN_ID: return &menu_main;
-		case MENU_REMAP_ID:  return &menu_remap;
 		case MENU_ANALOG_ID: return &menu_analog;
 		case MENU_TOUCH_ID: return &menu_touch;
 		case MENU_GYRO_ID: return &menu_gyro;
@@ -766,9 +832,12 @@ struct Menu* findMenuById(enum MENU_ID menuId){
 		case MENU_PROFILE_ID: return &menu_profiles;   
 		case MENU_SETTINGS_ID: return &menu_settings; 
 		case MENU_CREDITS_ID: return &menu_credits;
-		case MENU_REMAP_TRIGGER_TYPE_ID: return &menu_remap_trigger_type;
 		case MENU_PICK_ANALOG_ID: return &menu_pick_button;
 		case MENU_PICK_BUTTON_ID: return &menu_pick_analog;
+		case MENU_PICK_TOUCH_POINT_ID: return &menu_pick_touch_point;
+		case MENU_PICK_TOUCH_ZONE_ID: return &menu_pick_touch_zone;
+		case MENU_REMAP_ID:  return &menu_remap;
+		case MENU_REMAP_TRIGGER_TYPE_ID: return &menu_remap_trigger_type;
 		case MENU_REMAP_TRIGGER_TOUCH_ID: return &menu_remap_trigger_touch;
 		case MENU_REMAP_TRIGGER_GYRO_ID: return &menu_remap_trigger_gyro;
 		case MENU_REMAP_EMU_TYPE_ID: return &menu_remap_emu_type;
@@ -823,7 +892,18 @@ void ui_prevEntry(){
 
 //Draw directly to FB to overlay over everything else;
 void drawDirectlyToFB(){
-	drawTouchPointer();
+	RemapAction* ra;
+	switch (ui_menu->id){
+		case MENU_PICK_TOUCH_POINT_ID: 
+		case MENU_PICK_TOUCH_ZONE_ID: 
+			ra = (RemapAction*) ui_menu->data;
+			uint32_t panel = (ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE) ?
+				SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
+			if (ui_menu->id == MENU_PICK_TOUCH_POINT_ID) drawTouchPointer(panel, &ra->param.touch); 
+			else drawTouchZone(panel, &ra->param.zone); 
+			break;
+		default: break;
+	}
 }
 
 void ui_draw(const SceDisplayFrameBuf *pParam){

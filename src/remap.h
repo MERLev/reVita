@@ -41,9 +41,13 @@ enum REMAP_ACTION{
 typedef struct TouchPoint{
 	uint16_t x, y;
 }TouchPoint;
+typedef struct TouchZone{
+	TouchPoint a, b;
+}TouchZone;
 
 typedef union RemapRuleParam{
 	TouchPoint touch;
+    TouchZone zone;
     uint32_t btn;
 }RemapRuleParam;
 
