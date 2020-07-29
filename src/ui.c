@@ -233,7 +233,7 @@ static struct MenuEntry menu_pick_analog_entries[MENU_PICK_ANALOG_NUM] = {
 	(MenuEntry){.name = "Move up", .id = REMAP_ANALOG_UP},
 	(MenuEntry){.name = "Move down", .id = REMAP_ANALOG_DOWN}};
 static struct Menu menu_pick_analog = (Menu){
-	.id = MENU_PICK_BUTTON_ID, 
+	.id = MENU_PICK_ANALOG_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_PICK_ANALOG_NUM, 
 	.name = "SELECT ANALOG STICK DIRECTION", 
@@ -445,10 +445,11 @@ void ui_openMenu(enum MENU_ID id){
 	open(id);
 }
 void ui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, uint32_t data){
+	menus[id]->data = data;
+	menus[id]->next = nextId;
+	menus[id]->prev = prevId;
+	menus[id]->data = data;
 	open(id);
-	ui_menu->next = nextId;
-	ui_menu->prev = prevId;
-	ui_menu->data = data;
 }
 void ui_openMenuPrev(){
 	open(ui_menu->prev);
@@ -490,9 +491,11 @@ void ui_init(){
     ui_control_init();
     ui_draw_init();
 
+	//ToDo fix this not working
 	//Init Button remap menus with proper button names
 	for (int i = 0; i < MENU_PICK_BUTTON_NUM; i++)
-		menu_pick_button_entries[i] = (MenuEntry){.name = (char *)str_btns[i], .id = i};
+		menu_pick_button_entries[i] = (MenuEntry){.name = (char *)&str_btns[i], .id = i};
+
 	registerMenus();
 
 	ui_menu = &menu_main;

@@ -37,7 +37,7 @@ const char* str_btn_small[PHYS_BUTTONS_NUM] = {
 	"X", "O", "T", "S", "-", "+", "L", "R", "^", ">", "<", "v", "l", "r", "{", "}"
 };
 const char* str_remap_type[REMAP_ACTION_TYPE_NUM] = {
-	"BTN", "CMB", "LAN", "LAD", "RAN", "RAD", "FTZ", "BTZ", "FTP", "BTP", "GYR"
+	"BTN", "LAN", "LAD", "RAN", "RAD", "FTZ", "BTZ", "FTP", "BTP", "GYR"
 };
 const char* str_remap_action[REMAP_ACTION_NUM] = {
 	"UP", "DN", "LT", "RT", 
@@ -75,36 +75,35 @@ void generateBtnComboName(char* str, uint32_t btns){
 		strcat(tmp, "~");
 	strcat(str, tmp);
 }
-void generateRemapRuleName(char* str, struct RemapRule* ui_ruleEdited){
+void generateRemapRuleName(char* str, struct RemapRule* rule){
 	strcpy(str, "");
-	switch (ui_ruleEdited->trigger.type){
+    strcat(str, rule->propagate ? "P " : "  ");
+	switch (rule->trigger.type){
 		case REMAP_TYPE_BUTTON :
-		case REMAP_TYPE_COMBO :  
-			strcat(str, str_remap_type[ui_ruleEdited->trigger.type]);
+			strcat(str, str_remap_type[rule->trigger.type]);
 			strcat(str, "{");
-			generateBtnComboName(str, ui_ruleEdited->trigger.param.btn);
+			generateBtnComboName(str, rule->trigger.param.btn);
 			strcat(str, "}");
 			break;
 		default:
-			strcat(str, str_remap_type[ui_ruleEdited->trigger.type]);
+			strcat(str, str_remap_type[rule->trigger.type]);
 			strcat(str, "{");
-			strcat(str, str_remap_action[ui_ruleEdited->trigger.action]);
+			strcat(str, str_remap_action[rule->trigger.action]);
 			strcat(str, "}");
 			break;
 		}
 	strcat(str, " -> ");
-	switch (ui_ruleEdited->emu.type){
+	switch (rule->emu.type){
 		case REMAP_TYPE_BUTTON :
-		case REMAP_TYPE_COMBO :  
-			strcat(str, str_remap_type[ui_ruleEdited->emu.type]);
+			strcat(str, str_remap_type[rule->emu.type]);
 			strcat(str, "{");
-			generateBtnComboName(str, ui_ruleEdited->emu.param.btn);
+			generateBtnComboName(str, rule->emu.param.btn);
 			strcat(str, "}");
 			break;
 		default:
-			strcat(str, str_remap_type[ui_ruleEdited->emu.type]);
+			strcat(str, str_remap_type[rule->emu.type]);
 			strcat(str, "{");
-			strcat(str, str_remap_action[ui_ruleEdited->emu.action]);
+			strcat(str, str_remap_action[rule->emu.action]);
 			strcat(str, "}");
 			break;
 		}
@@ -204,7 +203,7 @@ void onDraw_pickButton(){
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
 		uint32_t btns = *(uint32_t*)ui_menu->data;
 		setColor(i == ui_menu->idx, !btn_has(btns, HW_BUTTONS[ui_menu->entries[i].id]));
-		renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
+		renderer_drawString(L_1, y += CHA_H, str_btns[ui_menu->entries[i].id]);
 	}
 }
 void onDraw_analog(){
@@ -421,10 +420,10 @@ void onDraw_credits(){
 void drawTouchPointer(uint32_t panel, TouchPoint* tp){
 	int8_t ic_halfsize = ICN_TOUCH_X / 2;
 	int left = tp->x - 8;
-	left *= (float)fbWidth / ((panel == SCE_TOUCH_PORT_FRONT) ? TOUCH_SIZE[0] : TOUCH_SIZE[2]);
+	left *= (float)fbWidth / ((panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE.x : T_BACK_SIZE.x);
 	left = min((max(ic_halfsize, left)), fbWidth - ic_halfsize);
 	int top = tp->y - 10;
-	top *= (float)fbHeight / ((panel == SCE_TOUCH_PORT_FRONT) ? TOUCH_SIZE[1] : TOUCH_SIZE[3]); //Scale to framebuffer size
+	top *= (float)fbHeight / ((panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE.y : T_BACK_SIZE.y); //Scale to framebuffer size
 	top = min((max(ic_halfsize, top)), fbHeight - ic_halfsize);//limit into screen
 	renderer_setColor((ticker % 8 < 4) ? COLOR_DANGER : COLOR_HEADER);
 	renderer_drawImageDirectlyToFB(left - ic_halfsize, top - ic_halfsize, 64, 64, ICN_TOUCH);

@@ -6,7 +6,6 @@
 
 enum REMAP_ACTION_TYPE{
     REMAP_TYPE_BUTTON = 0,
-    REMAP_TYPE_COMBO,
     REMAP_TYPE_LEFT_ANALOG,
     REMAP_TYPE_LEFT_ANALOG_DIGITAL,
     REMAP_TYPE_RIGHT_ANALOG,
@@ -63,6 +62,9 @@ typedef struct RemapRule{
 	uint8_t propagate;
 	uint8_t disabled;
 }Rule;
+
+TouchPoint T_FRONT_SIZE;
+TouchPoint T_BACK_SIZE;
 
 extern int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId);
 extern void remap_patchToExt(SceCtrlData *ctrl);

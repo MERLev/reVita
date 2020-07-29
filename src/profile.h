@@ -71,7 +71,6 @@ enum{
 typedef struct Profile{
     struct RemapRule remaps[REMAP_NUM];
     uint8_t remapsNum;
-    uint8_t remap[PROFILE_REMAP_NUM];
     uint8_t analog[PROFILE_ANALOG_NUM];
     uint8_t gyro[PROFILE_GYRO_NUM];
     uint16_t touch[PROFILE_TOUCH_NUM];
@@ -88,7 +87,6 @@ void profile_addRemapRule(struct RemapRule rule);
 void profile_removeRemapRule(uint8_t idx);
 void profile_resetRemapRules();
 
-extern void profile_resetRemap();
 extern void profile_resetAnalog();
 extern void profile_resetTouch();
 extern void profile_resetGyro();

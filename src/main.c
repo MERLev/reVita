@@ -33,10 +33,6 @@ char titleid[32] = "";
 bool is_in_pspemu = false;
 
 uint8_t used_funcs[HOOKS_NUM];
-uint16_t TOUCH_SIZE[4] = {
-	1920, 1088,	//Front
-	1919, 890	//Rear
-};
 uint8_t internal_touch_call = 0;
 uint8_t internal_ext_call = 0;
 
@@ -276,7 +272,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
     ksceKernelGetProcessTitleId(pid, titleidLocal, sizeof(titleidLocal));
     if (!strncmp(titleidLocal, "main", sizeof(titleidLocal)))
         strncpy(titleidLocal, HOME, sizeof(titleidLocal));
-    LOG("  ev = %i : %s\n", ev, titleidLocal);
+    //LOG("  ev = %i : %s\n", ev, titleidLocal);
     switch (ev) {
         case 1: //Start
         case 5: //Resume
@@ -292,7 +288,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             
             if (strncmp(titleid, titleidLocal, sizeof(titleid))) {
                 strncpy(titleid, titleidLocal, sizeof(titleid));
-                LOG("LOAD PROFILE_1: %s\n", titleid);
+                //LOG("LOAD PROFILE_1: %s\n", titleid);
                 ui_close();
                 for (int i = 0; i < HOOKS_NUM; i++)
                     hooks[i] = 0;
@@ -304,7 +300,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             if (!strcmp(titleid, titleidLocal)){ //If current app suspended
                 if (strncmp(titleid, HOME, sizeof(titleid))) {
                     strncpy(titleid, HOME, sizeof(titleid));
-                    LOG("LOAD PROFILE_2: %s\n", titleid);
+                    //LOG("LOAD PROFILE_2: %s\n", titleid);
                     ui_close();
                     for (int i = 0; i < HOOKS_NUM; i++)
                         hooks[i] = 0;

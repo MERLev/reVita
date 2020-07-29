@@ -41,11 +41,6 @@ void profile_resetRemapRules(){
 	profile.remapsNum = 0;
 }
 
-// Reset options per-menu
-void profile_resetRemap(){
-	for (int i = 0; i < PROFILE_REMAP_NUM; i++)
-		profile.remap[i] = PROFILE_REMAP_DEF;
-}
 void profile_resetAnalog(){
 	for (int i = 0; i < PROFILE_ANALOG_NUM; i++)
 		profile.analog[i] = profile_def.analog[i];
@@ -177,9 +172,6 @@ void profile_resetGlobal(){
 }
 
 void setDefProfile(){
-	for (int i = 0; i < PROFILE_REMAP_NUM; i++)
-		profile_def.remap[i] = PROFILE_REMAP_DEF;
-
 	profile_def.analog[PROFILE_ANALOG_LEFT_DEADZONE_X] = 30;
 	profile_def.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y] = 30;
 	profile_def.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X] = 30;
