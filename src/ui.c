@@ -15,15 +15,15 @@ void onBuild_remap(Menu* m);
 
 #define MENU_MAIN_NUM 9
 static struct MenuEntry menu_main_entries[MENU_MAIN_NUM] = {
-	(MenuEntry){.name = "Remap rules", .data = MENU_REMAP_ID},
-	(MenuEntry){.name = "Analog sticks", .data = MENU_ANALOG_ID},
-	(MenuEntry){.name = "Touch", .data = MENU_TOUCH_ID},
-	(MenuEntry){.name = "Gyroscope", .data = MENU_GYRO_ID},
-	(MenuEntry){.name = "External gamepads", .data = MENU_CONTROLLER_ID},
-	(MenuEntry){.name = "[DEBUG] Show hooks", .data = MENU_HOKS_ID},
-	(MenuEntry){.name = "Settings", .data = MENU_SETTINGS_ID},
-	(MenuEntry){.name = "Profiles", .data = MENU_PROFILE_ID},
-	(MenuEntry){.name = "Credits", .data = MENU_CREDITS_ID},};
+	(MenuEntry){.name = "$X Remap rules", .data = MENU_REMAP_ID},
+	(MenuEntry){.name = "$U Analog sticks", .data = MENU_ANALOG_ID},
+	(MenuEntry){.name = "$F Touch", .data = MENU_TOUCH_ID},
+	(MenuEntry){.name = "   Gyroscope", .data = MENU_GYRO_ID},
+	(MenuEntry){.name = "   External gamepads", .data = MENU_CONTROLLER_ID},
+	(MenuEntry){.name = "   [DEBUG] Show hooks", .data = MENU_HOKS_ID},
+	(MenuEntry){.name = "   Settings", .data = MENU_SETTINGS_ID},
+	(MenuEntry){.name = "   Profiles", .data = MENU_PROFILE_ID},
+	(MenuEntry){.name = "   Credits", .data = MENU_CREDITS_ID},};
 static struct Menu menu_main = (Menu){
 	.id = MENU_MAIN_ID, 
 	.num = MENU_MAIN_NUM, 
@@ -48,7 +48,7 @@ static struct Menu menu_analog = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_ANALOG_NUM, 
 	.name = "ANALOG STICKS", 
-	.footer = "$S:reset  $::reset all",
+	.footer = "$Sreset  $:reset all",
 	.onButton = onButton_analog,
 	.onDraw = onDraw_analog,
 	.entries = menu_analog_entries};
@@ -80,7 +80,7 @@ static struct Menu menu_touch = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_TOUCH_NUM, 
 	.name = "TOUCH", 
-	.footer = "$F$B$U$u:change  $S/$::reset",
+	.footer = "$F$B$U$uchange  $Sreset $:reset all",
 	.onButton = onButton_touch,
 	.onDraw = onDraw_touch,
 	.entries = menu_touch_entries};
@@ -103,7 +103,7 @@ static struct Menu menu_gyro = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_GYRO_NUM, 
 	.name = "GYROSCOPE", 
-	.footer = "$S:reset  $::reset all",
+	.footer = "$Sreset  $:reset all",
 	.onButton = onButton_gyro,
 	.onDraw = onDraw_gyro,
 	.entries = menu_gyro_entries};
@@ -118,7 +118,7 @@ static struct Menu menu_controllers = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_CONTROLLER_NUM, 
 	.name = "CONTROLLER", 
-	.footer = "$S:reset  $::reset all",
+	.footer = "$Sreset  $:reset all",
 	.onButton = onButton_controller,
 	.onDraw = onDraw_controller,
 	.entries = menu_controllers_entries};
@@ -134,7 +134,7 @@ static struct Menu menu_settings = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_SETTINGS_NUM, 
 	.name = "SETTINGS", 
-	.footer = "$S:reset  $::reset all",
+	.footer = "$Sreset  $:reset all",
 	.onButton = onButton_settings,
 	.onDraw = onDraw_settings,
 	.entries = menu_settings_entries};
@@ -222,7 +222,7 @@ static struct Menu menu_pick_button = (Menu){
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_PICK_BUTTON_NUM, 
 	.name = "SELECT BUTTONS", 
-	.footer = "$S:select $X:continue", 
+	.footer = "$Sselect $Xcontinue", 
 	.onButton = onButton_pickButton,
 	.onDraw = onDraw_pickButton,
 	.entries = menu_pick_button_entries};
@@ -281,7 +281,7 @@ static struct Menu menu_remap = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = 0, 
 	.name = "REMAP RULES", 
-	.footer = "$S:toggle $T:propagate $::remove",
+	.footer = "$Stoggle $Tpropagate $:remove",
 	.onButton = onButton_remap,
 	.onDraw = onDraw_remap,
 	.onBuild = onBuild_remap,
@@ -339,13 +339,13 @@ static struct Menu menu_remap_trigger_gyro = (Menu){
 
 #define MENU_REMAP_EMU_TYPE_NUM 7
 static struct MenuEntry menu_remap_emu_type_entries[MENU_REMAP_EMU_TYPE_NUM] = {
-	(MenuEntry){.name = "Buttons", .data = REMAP_TYPE_BUTTON},
-	(MenuEntry){.name = "Analog Stick Left", .data = REMAP_TYPE_LEFT_ANALOG},
-	(MenuEntry){.name = "Analog Stick Left [DIGITAL]", .data = REMAP_TYPE_LEFT_ANALOG_DIGITAL},
-	(MenuEntry){.name = "Analog Stick Right", .data = REMAP_TYPE_RIGHT_ANALOG},
-	(MenuEntry){.name = "Analog Stick Right [DIGITAL]", .data = REMAP_TYPE_RIGHT_ANALOG_DIGITAL},
-	(MenuEntry){.name = "Front Touch", .data = REMAP_TYPE_FRONT_TOUCH_POINT},
-	(MenuEntry){.name = "Back Touch", .data = REMAP_TYPE_BACK_TOUCH_POINT}
+	(MenuEntry){.name = "$X Buttons", .data = REMAP_TYPE_BUTTON},
+	(MenuEntry){.name = "$U Analog Stick Left", .data = REMAP_TYPE_LEFT_ANALOG},
+	(MenuEntry){.name = "$U Analog Stick Left [DIGITAL]", .data = REMAP_TYPE_LEFT_ANALOG_DIGITAL},
+	(MenuEntry){.name = "$u Analog Stick Right", .data = REMAP_TYPE_RIGHT_ANALOG},
+	(MenuEntry){.name = "$u Analog Stick Right [DIGITAL]", .data = REMAP_TYPE_RIGHT_ANALOG_DIGITAL},
+	(MenuEntry){.name = "$F Front Touch", .data = REMAP_TYPE_FRONT_TOUCH_POINT},
+	(MenuEntry){.name = "$B Back Touch", .data = REMAP_TYPE_BACK_TOUCH_POINT}
 };
 static struct Menu menu_remap_emu_type = (Menu){
 	.id = MENU_REMAP_EMU_TYPE_ID, 
@@ -370,8 +370,17 @@ static struct Menu menu_remap_emu_touch = (Menu){
 	.onButton = onButton_remapEmuTouch,
 	.entries = menu_remap_emu_touch_entries};
 
+void ui_fixIdx(Menu* m, int idx){
+	for (int i = 0; i < m->num; i++)
+		if(m->entries[(idx + i) % m->num].data != HEADER_IDX){
+			m->idx = (idx + i) % m->num;
+			break;
+		}
+}
+
 void registerMenu(Menu* m){
 	menus[m->id] = m;
+	ui_fixIdx(m, 0);
 }
 void registerMenus(){
 	registerMenu(&menu_main);
@@ -428,9 +437,9 @@ void onBuild_remap(Menu* m){
 			menu_remap_entries_def[i].name);
 	}
 }
-
 void ui_setIdx(int idx){
 	ui_menu->idx = idx;
+	ui_fixIdx(ui_menu, idx);
 	if (ui_menu->entries != NULL)
 		ui_entry = &ui_menu->entries[idx];
 }
@@ -468,10 +477,19 @@ void ui_nextEntry(){
 		ui_setIdx((ui_menu->idx + 1) % ui_menu->num);
 }
 void ui_prevEntry(){
-	if (ui_menu->id == MENU_CREDITS_ID || ui_menu->id == MENU_HOKS_ID)
+	if (ui_menu->id == MENU_CREDITS_ID || ui_menu->id == MENU_HOKS_ID){
 		ui_setIdx(max(0, ui_menu->idx - 1));
-	else
-		ui_setIdx((ui_menu->idx - 1 < 0) ? ui_menu->num - 1 : ui_menu->idx - 1);
+	} else {
+		int idx = (ui_menu->num + ui_menu->idx - 1) % ui_menu->num;
+		ui_menu->idx = idx;
+		for (int i = 0; i < ui_menu->num; i++) //Search for prev non-header
+			if(ui_menu->entries[(ui_menu->num + idx - i) % ui_menu->num].data != HEADER_IDX){
+				ui_menu->idx = (ui_menu->num + idx - i) % ui_menu->num;
+				break;
+			}
+		if (ui_menu->entries != NULL)
+			ui_entry = &ui_menu->entries[idx];
+	}
 }
 
 void ui_onInput(SceCtrlData *ctrl){
