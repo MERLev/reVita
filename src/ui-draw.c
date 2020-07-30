@@ -34,17 +34,20 @@ static uint32_t ticker;
 static uint32_t menuY = 0;
 
 const char* str_btn_small[PHYS_BUTTONS_NUM] = {
-	"$X", "$C", "$T", "$S", "$;", "$:", "$[", "$]", "$^", "$>", "$<", "$v", "${", "$}", "$(", "$)"
+	"$X", "$C", "$T", "$S", "$;", "$:", "$[", "$]", 
+	"$^", "$>", "$<", "$v", "${", "$}", "$(", "$)", 
+	"$+", "$-", "$p", "$P"
 };
 static const char* str_yes_no[] = {
 	"No", "Yes"
 };
 static const char* str_btns[PHYS_BUTTONS_NUM] = {
-	"Cross", "Circle", "Triangle", "Square",
-	"Start", "Select", 
-	"LT/L2", "RT/R2",
-	"Up", "Right", "Left", "Down", 
-	"L1", "R1", "L3", "R3"
+	"$XCross", "$C Circle", "$TTriangle", "$SSquare",
+	"$;Start", "$:Select", 
+	"$[LT/L2", "$]RT/R2",
+	"$^Up", "$>Right", "$<Left", "$vDown", 
+	"${L1", "$}R1", "$(L3", "$)R3",
+	"$+Volume UP", "$-Volume DOWN", "$pPOWER", "$PPS"
 };
 static char* str_deadband[] = {
 	"Game default", "Enable", "Disable"

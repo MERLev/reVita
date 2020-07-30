@@ -215,7 +215,7 @@ static struct Menu menu_credits = (Menu){
 	.onDraw = onDraw_credits,
 	.entries = menu_credits_entries};
 
-#define MENU_PICK_BUTTON_NUM 16
+#define MENU_PICK_BUTTON_NUM 20
 static struct MenuEntry menu_pick_button_entries[MENU_PICK_BUTTON_NUM];
 static struct Menu menu_pick_button = (Menu){
 	.id = MENU_PICK_BUTTON_ID, 
