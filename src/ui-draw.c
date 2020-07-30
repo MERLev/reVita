@@ -34,15 +34,7 @@ static uint32_t ticker;
 static uint32_t menuY = 0;
 
 const char* str_btn_small[PHYS_BUTTONS_NUM] = {
-	"X", "O", "T", "S", "-", "+", "L", "R", "^", ">", "<", "v", "l", "r", "{", "}"
-};
-const char* str_remap_type[REMAP_ACTION_TYPE_NUM] = {
-	"BTN", "LAN", "LAD", "RAN", "RAD", "FTZ", "BTZ", "FTP", "BTP", "GYR"
-};
-const char* str_remap_action[REMAP_ACTION_NUM] = {
-	"UP", "DN", "LT", "RT", 
-	"TL", "TR", "BL", "BR", "CU", 
-	"UP", "DN", "LT", "RT", "RL", "RT"
+	"$X", "$C", "$T", "$S", "$;", "$:", "$[", "$]", "$^", "$>", "$<", "$v", "${", "$}", "$(", "$)"
 };
 static const char* str_yes_no[] = {
 	"No", "Yes"
@@ -65,48 +57,77 @@ char* getControllerName(int id){
 	else if (id == 	SCE_CTRL_TYPE_DS4) 		return "DualShock 4";
 	else 									return "Unknown";
 }
-void generateBtnComboName(char* str, uint32_t btns){
+void generateBtnComboName(char* str, uint32_t btns, int max){
 	int i = -1;
-	char tmp[6] = "";
-	while (++i < PHYS_BUTTONS_NUM && strlen(tmp) < 4)
-		if (btn_has(btns, HW_BUTTONS[i])) 
-			strcat(tmp, str_btn_small[i]);
-	if (strlen(tmp) == 4)
-		strcat(tmp, "~");
-	strcat(str, tmp);
+	int counter = 0;
+	while (++i < PHYS_BUTTONS_NUM){
+		if (btn_has(btns, HW_BUTTONS[i])) {
+			if (counter >=  max){
+				str[strlen(str) - 2] = '.';
+				str[strlen(str) - 1] = '.';
+				break;
+			} else {
+				counter++;
+				strcat(str, str_btn_small[i]);
+			}
+		}
+	}
+}
+void generateRemapActionName(char* str, struct RemapAction* ra){
+	switch (ra->type){
+		case REMAP_TYPE_BUTTON: generateBtnComboName(str, ra->param.btn, 6);
+			break;
+		case REMAP_TYPE_LEFT_ANALOG:
+		case REMAP_TYPE_LEFT_ANALOG_DIGITAL:
+			switch (ra->action){
+				case REMAP_ANALOG_UP: strcat(str, "$U"); break;
+				case REMAP_ANALOG_DOWN: strcat(str, "$D"); break;
+				case REMAP_ANALOG_LEFT: strcat(str, "$L"); break;
+				case REMAP_ANALOG_RIGHT: strcat(str, "$R"); break;
+				default: break;
+			}
+			break;
+		case REMAP_TYPE_RIGHT_ANALOG:
+		case REMAP_TYPE_RIGHT_ANALOG_DIGITAL:
+			switch (ra->action){
+				case REMAP_ANALOG_UP: strcat(str, "$u"); break;
+				case REMAP_ANALOG_DOWN: strcat(str, "$d"); break;
+				case REMAP_ANALOG_LEFT: strcat(str, "$l"); break;
+				case REMAP_ANALOG_RIGHT: strcat(str, "$r"); break;
+				default: break;
+			}
+			break;
+		case REMAP_TYPE_FRONT_TOUCH_ZONE:
+		case REMAP_TYPE_FRONT_TOUCH_POINT:
+			switch (ra->action){
+				case REMAP_TOUCH_ZONE_TL: strcat(str, "$3"); break;
+				case REMAP_TOUCH_ZONE_TR: strcat(str, "$4"); break;
+				case REMAP_TOUCH_ZONE_BL: strcat(str, "$5"); break;
+				case REMAP_TOUCH_ZONE_BR: strcat(str, "$6"); break;
+				case REMAP_TOUCH_CUSTOM: strcat(str, "$F"); break;
+				default: break;
+			}
+			break;
+		case REMAP_TYPE_BACK_TOUCH_ZONE:
+		case REMAP_TYPE_BACK_TOUCH_POINT:
+			switch (ra->action){
+				case REMAP_TOUCH_ZONE_TL: strcat(str, "$9"); break;
+				case REMAP_TOUCH_ZONE_TR: strcat(str, "$0"); break;
+				case REMAP_TOUCH_ZONE_BL: strcat(str, "$_"); break;
+				case REMAP_TOUCH_ZONE_BR: strcat(str, "$="); break;
+				case REMAP_TOUCH_CUSTOM: strcat(str, "$B"); break;
+				default: break;
+			}
+			break;
+		default: break;
+	}
 }
 void generateRemapRuleName(char* str, struct RemapRule* rule){
 	strcpy(str, "");
     strcat(str, rule->propagate ? "P " : "  ");
-	switch (rule->trigger.type){
-		case REMAP_TYPE_BUTTON :
-			strcat(str, str_remap_type[rule->trigger.type]);
-			strcat(str, "{");
-			generateBtnComboName(str, rule->trigger.param.btn);
-			strcat(str, "}");
-			break;
-		default:
-			strcat(str, str_remap_type[rule->trigger.type]);
-			strcat(str, "{");
-			strcat(str, str_remap_action[rule->trigger.action]);
-			strcat(str, "}");
-			break;
-		}
+	generateRemapActionName(str, &rule->trigger);
 	strcat(str, " -> ");
-	switch (rule->emu.type){
-		case REMAP_TYPE_BUTTON :
-			strcat(str, str_remap_type[rule->emu.type]);
-			strcat(str, "{");
-			generateBtnComboName(str, rule->emu.param.btn);
-			strcat(str, "}");
-			break;
-		default:
-			strcat(str, str_remap_type[rule->emu.type]);
-			strcat(str, "{");
-			strcat(str, str_remap_action[rule->emu.action]);
-			strcat(str, "}");
-			break;
-		}
+	generateRemapActionName(str, &rule->emu);
 }
 
 //Calculate starting index for scroll menu
@@ -483,6 +504,5 @@ void ui_draw_init(){
 void ui_draw_destroy(){
 	renderer_destroy();
 }
-
 
 

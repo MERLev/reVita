@@ -7,13 +7,14 @@
 #include "profile.h"
 #include "log.h"
 
-#define STR_SIZE 30
+#define STR_SIZE 40
 
 Menu* menus[MENU_ID__NUM];
 
 void onBuild_remap(Menu* m);
 
-static struct MenuEntry menu_main_entries[] = {
+#define MENU_MAIN_NUM 9
+static struct MenuEntry menu_main_entries[MENU_MAIN_NUM] = {
 	(MenuEntry){.name = "Remap rules", .data = MENU_REMAP_ID},
 	(MenuEntry){.name = "Analog sticks", .data = MENU_ANALOG_ID},
 	(MenuEntry){.name = "Touch", .data = MENU_TOUCH_ID},
@@ -25,6 +26,7 @@ static struct MenuEntry menu_main_entries[] = {
 	(MenuEntry){.name = "Credits", .data = MENU_CREDITS_ID},};
 static struct Menu menu_main = (Menu){
 	.id = MENU_MAIN_ID, 
+	.num = MENU_MAIN_NUM, 
 	.name = "MAIN MENU",
 	.onButton = onButton_main,
 	.entries = menu_main_entries};
@@ -46,7 +48,7 @@ static struct Menu menu_analog = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_ANALOG_NUM, 
 	.name = "ANALOG STICKS", 
-	.footer = "([]):reset  (start):reset all",
+	.footer = "$S:reset  $::reset all",
 	.onButton = onButton_analog,
 	.onDraw = onDraw_analog,
 	.entries = menu_analog_entries};
@@ -78,7 +80,7 @@ static struct Menu menu_touch = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_TOUCH_NUM, 
 	.name = "TOUCH", 
-	.footer = "[TOUCH](RS):change  ([])/(start):reset",
+	.footer = "$F$B$U$u:change  $S/$::reset",
 	.onButton = onButton_touch,
 	.onDraw = onDraw_touch,
 	.entries = menu_touch_entries};
@@ -101,7 +103,7 @@ static struct Menu menu_gyro = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_GYRO_NUM, 
 	.name = "GYROSCOPE", 
-	.footer = "([]):reset  (start):reset all",
+	.footer = "$S:reset  $::reset all",
 	.onButton = onButton_gyro,
 	.onDraw = onDraw_gyro,
 	.entries = menu_gyro_entries};
@@ -116,7 +118,7 @@ static struct Menu menu_controllers = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_CONTROLLER_NUM, 
 	.name = "CONTROLLER", 
-	.footer = "([]):reset  (start):reset all",
+	.footer = "$S:reset  $::reset all",
 	.onButton = onButton_controller,
 	.onDraw = onDraw_controller,
 	.entries = menu_controllers_entries};
@@ -132,7 +134,7 @@ static struct Menu menu_settings = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_SETTINGS_NUM, 
 	.name = "SETTINGS", 
-	.footer = "([]):reset  (start):reset all",
+	.footer = "$S:reset  $::reset all",
 	.onButton = onButton_settings,
 	.onDraw = onDraw_settings,
 	.entries = menu_settings_entries};
@@ -220,7 +222,7 @@ static struct Menu menu_pick_button = (Menu){
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_PICK_BUTTON_NUM, 
 	.name = "SELECT BUTTONS", 
-	.footer = "([]):select (X):continue", 
+	.footer = "$S:select $X:continue", 
 	.onButton = onButton_pickButton,
 	.onDraw = onDraw_pickButton,
 	.entries = menu_pick_button_entries};
@@ -279,7 +281,7 @@ static struct Menu menu_remap = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = 0, 
 	.name = "REMAP RULES", 
-	.footer = "([]):toggle (start):remove",
+	.footer = "$S:toggle $T:propagate $::remove",
 	.onButton = onButton_remap,
 	.onDraw = onDraw_remap,
 	.onBuild = onBuild_remap,
@@ -370,7 +372,6 @@ static struct Menu menu_remap_emu_touch = (Menu){
 
 void registerMenu(Menu* m){
 	menus[m->id] = m;
-	m->num = sizeof(m->entries);
 }
 void registerMenus(){
 	registerMenu(&menu_main);
