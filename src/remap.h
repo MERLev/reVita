@@ -15,6 +15,8 @@ enum REMAP_ACTION_TYPE{
     REMAP_TYPE_FRONT_TOUCH_POINT,
     REMAP_TYPE_BACK_TOUCH_POINT,
     REMAP_TYPE_GYROSCOPE,
+    REMAP_TYPE_REMAPSV,
+    REMAP_TYPE_USEFUL,
     REMAP_ACTION_TYPE_NUM
 };
 
@@ -23,6 +25,8 @@ enum REMAP_ACTION{
     REMAP_ANALOG_DOWN,
     REMAP_ANALOG_LEFT,
     REMAP_ANALOG_RIGHT,
+    REMAP_TOUCH_ZONE_L,
+    REMAP_TOUCH_ZONE_R,
     REMAP_TOUCH_ZONE_TL,
     REMAP_TOUCH_ZONE_TR,
     REMAP_TOUCH_ZONE_BL,
@@ -63,15 +67,18 @@ typedef struct RemapRule{
 	uint8_t disabled;
 }Rule;
 
+#define PHYS_BUTTONS_NUM    20 // Supported physical buttons num
+const uint32_t HW_BUTTONS[PHYS_BUTTONS_NUM];
 TouchPoint T_FRONT_SIZE;
 TouchPoint T_BACK_SIZE;
 
-extern int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId);
-extern void remap_patchToExt(SceCtrlData *ctrl);
-extern int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId);
-extern void remap_resetCtrlBuffers(uint8_t hookId);
-extern void remap_resetTouchBuffers(uint8_t hookId);
-extern void remap_init();
-extern void remap_destroy();
+int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId);
+void remap_patchToExt(SceCtrlData *ctrl);
+int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId);
+void remap_resetCtrlBuffers(uint8_t hookId);
+void remap_resetTouchBuffers(uint8_t hookId);
+void remap_init();
+void remap_destroy();
+void remap_setup();
 
 #endif

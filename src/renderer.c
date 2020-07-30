@@ -74,7 +74,7 @@ void renderer_drawIcon(char character, int x, int y){
 	renderer_drawImage(x + 1, y, ICON_W, ICON_H, &ICON[idx * 54]);
 }
 
-void renderer_drawImage(uint32_t x, uint32_t y, uint32_t w, uint32_t h, char* img){
+void renderer_drawImage(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const unsigned char* img){
 	uint32_t idx = 0;
 	uint8_t bitN = 0;
 	for (int j = 0; j < h; j++){
@@ -94,7 +94,7 @@ void renderer_drawImage(uint32_t x, uint32_t y, uint32_t w, uint32_t h, char* im
 	}
 }
 
-void renderer_drawImageDirectlyToFB(uint32_t x, uint32_t y, uint32_t w, uint32_t h, char* img){
+void renderer_drawImageDirectlyToFB(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const unsigned char* img){
 	uint32_t idx = 0;
 	uint8_t bitN = 0;
 	uint32_t cache[w];

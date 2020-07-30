@@ -1,6 +1,5 @@
 #include <vitasdkkern.h>
 #include <taihen.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <psp2/motion.h> 
@@ -16,11 +15,11 @@
 #include "log.h"
 
 #define HOME "HOME"
+#define INVALID_PID -1
 
 int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintptr_t *addr);
 int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uint32_t funcnid, uintptr_t *func);
 bool ksceAppMgrIsExclusiveProcessRunning();
-//void _sceMotionReset(void);
 
 static tai_hook_ref_t refs[HOOKS_NUM];
 static SceUID         hooks[HOOKS_NUM];
@@ -28,63 +27,17 @@ static SceUID mutex_procevent_uid = -1;
 static SceUID thread_uid = -1;
 static bool   thread_run = true;
 
-SceUID processId = INVALID_PID;
 char titleid[32] = "";
-bool is_in_pspemu = false;
 
 uint8_t used_funcs[HOOKS_NUM];
-uint8_t internal_touch_call = 0;
-uint8_t internal_ext_call = 0;
+bool isInternalTouchCall = false;
+bool isInternalExtCall = false;
 
 static uint64_t startTick;
-uint8_t delayedStartDone = 0;
+static bool delayedStartDone = false;
 
 SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
 int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
-//int (*_sceMotionReset)(void);
-
-void delayedStart(){
-    //ksceKernelGetSystemTimeLow
-	delayedStartDone = 1;
-	// Enabling analogs sampling 
-	ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
-	
-	// Enabling both touch panels sampling
-	ksceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
-	ksceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
-	
-	// Detecting touch panels size
-    // Mby later can be used for proper ds4 support
-	/*SceTouchPanelInfo pi;	
-	int ret = ksceTouchGetPanelInfo(SCE_TOUCH_PORT_FRONT, &pi);
-	if (ret >= 0){
-		TOUCH_SIZE[0] = pi.maxAaX;
-		TOUCH_SIZE[1] = pi.maxAaY;
-	}
-	ret = ksceTouchGetPanelInfo(SCE_TOUCH_PORT_BACK, &pi);
-	if (ret >= 0){
-		TOUCH_SIZE[2] = pi.maxAaX;
-		TOUCH_SIZE[3] = pi.maxAaY;
-	}*/
-    
-	//ToDo
-	//ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
-	// Enabling gyro sampling
-	//_sceMotionReset();
-	//sceMotionStartSampling();
-	//if (profile.gyro[6] == 1) sceMotionSetDeadband(1);
-	//else if (profile.gyro[6] == 2) sceMotionSetDeadband(0);
-	//ToDo decide on sceMotionSetTiltCorrection usage
-	//if (gyro_options[7] == 1) sceMotionSetTiltCorrection(0); 
-}
-
-int onKernelInput(SceCtrlData *ctrl, int nBufs, int hookId){
-    return nBufs;
-}
-
-int onKernelInputNegative(SceCtrlData *ctrl, int nBufs, int hookId){
-    return nBufs;
-}
 
 int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 	//Nothing to do here
@@ -145,9 +98,17 @@ int onInputNegative(SceCtrlData *ctrl, int nBufs, int hookId){
 	return ret;
 }
 
+int onKernelInput(SceCtrlData *ctrl, int nBufs, int hookId){
+    return onInputExt(ctrl, nBufs, hookId);
+}
+
+int onKernelInputNegative(SceCtrlData *ctrl, int nBufs, int hookId){
+    return onInputNegative(ctrl, nBufs, hookId);
+}
+
 int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){	
 	//Disable in menu
-	if (!internal_touch_call && ui_opened) {
+	if (!isInternalTouchCall && ui_opened) {
 		pData[0] = pData[nBufs - 1];
 		pData[0].reportNum = 0;
 		return 1;
@@ -198,7 +159,7 @@ DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(11, sceCtrlReadBufferNegative2)
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
-		if (internal_ext_call) return ret; \
+		if (isInternalExtCall) return ret; \
         SceCtrlData ctrl_kernel[BUFFERS_NUM]; \
         ksceKernelMemcpyUserToKernel(&ctrl_kernel[0], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
 		ret = onInputExt(ctrl_kernel, ret, (index)); \
@@ -215,8 +176,8 @@ DECL_FUNC_HOOK_PATCH_CTRL_EXT(7, sceCtrlReadBufferPositiveExt2)
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
-		ret = onKernelInput(ctrl, ret, (index)); \
 		used_funcs[(index)] = 1; \
+		/*ret = onKernelInput(ctrl, ret, (index));*/ \
         return ret; \
     }
 DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(12, ksceCtrlReadBufferPositive)
@@ -226,8 +187,8 @@ DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(13, ksceCtrlPeekBufferPositive)
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
-		ret = onKernelInput(ctrl, ret, (index)); \
 		used_funcs[(index)] = 1; \
+		/*ret = onKernelInputNegative(ctrl, ret, (index));*/ \
         return ret; \
     }
 DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(14, ksceCtrlReadBufferNegative)
@@ -272,7 +233,6 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
     ksceKernelGetProcessTitleId(pid, titleidLocal, sizeof(titleidLocal));
     if (!strncmp(titleidLocal, "main", sizeof(titleidLocal)))
         strncpy(titleidLocal, HOME, sizeof(titleidLocal));
-    //LOG("  ev = %i : %s\n", ev, titleidLocal);
     switch (ev) {
         case 1: //Start
         case 5: //Resume
@@ -288,11 +248,11 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             
             if (strncmp(titleid, titleidLocal, sizeof(titleid))) {
                 strncpy(titleid, titleidLocal, sizeof(titleid));
-                //LOG("LOAD PROFILE_1: %s\n", titleid);
                 ui_close();
                 for (int i = 0; i < HOOKS_NUM; i++)
                     hooks[i] = 0;
                 profile_load(titleid);
+                delayedStartDone = 0;
             }
             break;
         case 3: //Close
@@ -300,11 +260,11 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             if (!strcmp(titleid, titleidLocal)){ //If current app suspended
                 if (strncmp(titleid, HOME, sizeof(titleid))) {
                     strncpy(titleid, HOME, sizeof(titleid));
-                    //LOG("LOAD PROFILE_2: %s\n", titleid);
                     ui_close();
                     for (int i = 0; i < HOOKS_NUM; i++)
                         hooks[i] = 0;
                     profile_loadHomeCached();
+                    delayedStartDone = 0;
                 }
             }
             break;
@@ -312,8 +272,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             break;
     }
 
-// PROCEVENT_UNLOCK_EXIT:
-     ksceKernelUnlockMutex(mutex_procevent_uid, 1);
+    ksceKernelUnlockMutex(mutex_procevent_uid, 1);
 
 PROCEVENT_EXIT:
     return TAI_CONTINUE(int, refs[19], pid, ev, a3, a4, a5, a6);
@@ -325,7 +284,8 @@ static int main_thread(SceSize args, void *argp) {
         //Activate delayed start
         if (!delayedStartDone 
             && startTick + profile_settings[3] * 1000000 < ksceKernelGetSystemTimeWide()){
-            delayedStart();
+            remap_setup();
+	        delayedStartDone = 1;
         }
         
         log_flush();

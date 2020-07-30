@@ -4,16 +4,12 @@
 #define _PROFILE_H_
 
 #define REMAP_NUM                   25
-#define TARGET_REMAPS               42 // Supported target remaps num
 
-#define PROFILE_REMAP_NUM           38 // Supported buttons num
 #define PROFILE_ANALOG_NUM          8
 #define PROFILE_GYRO_NUM			10
 #define PROFILE_TOUCH_NUM			18
 #define PROFILE_CONTROLLER_NUM		3
 #define PROFILE_SETTINGS_NUM		4
-
-#define PROFILE_REMAP_DEF           16
 
 enum{
 	PROFILE_ANALOG_LEFT_DEADZONE_X = 0,
@@ -77,21 +73,21 @@ typedef struct Profile{
     uint8_t controller[PROFILE_CONTROLLER_NUM];
 }Profile;
 
-extern Profile profile;
-extern Profile profile_def;
-extern Profile profile_global;
-extern uint8_t profile_settings[PROFILE_SETTINGS_NUM];
-extern uint8_t profile_settings_def[PROFILE_SETTINGS_NUM];
+Profile profile;
+Profile profile_def;
+Profile profile_global;
+uint8_t profile_settings[PROFILE_SETTINGS_NUM];
+uint8_t profile_settings_def[PROFILE_SETTINGS_NUM];
 
 void profile_addRemapRule(struct RemapRule rule);
 void profile_removeRemapRule(uint8_t idx);
 void profile_resetRemapRules();
 
-extern void profile_resetAnalog();
-extern void profile_resetTouch();
-extern void profile_resetGyro();
-extern void profile_resetController();
-extern void profile_resetSettings();
+void profile_resetAnalog();
+void profile_resetTouch();
+void profile_resetGyro();
+void profile_resetController();
+void profile_resetSettings();
 
 int profile_saveSettings();
 int profile_loadSettings();
@@ -105,10 +101,10 @@ void profile_loadGlobalCached();
 int profile_loadHome();
 void profile_loadHomeCached();
 
-extern void profile_resetGlobal();
-extern void profile_delete(char* titleid);
+void profile_resetGlobal();
+void profile_delete(char* titleid);
 
-extern void profile_init();
-extern void profile_destroy();
+void profile_init();
+void profile_destroy();
 
 #endif

@@ -42,7 +42,7 @@ static const char* str_yes_no[] = {
 	"No", "Yes"
 };
 static const char* str_btns[PHYS_BUTTONS_NUM] = {
-	"$XCross", "$C Circle", "$TTriangle", "$SSquare",
+	"$XCross", "$CCircle", "$TTriangle", "$SSquare",
 	"$;Start", "$:Select", 
 	"$[LT/L2", "$]RT/R2",
 	"$^Up", "$>Right", "$<Left", "$vDown", 

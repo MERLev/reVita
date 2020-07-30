@@ -73,13 +73,10 @@ int readProfile(struct Profile* p, char* name){
 
 	// Loading config file for the selected app if exists
 	fd = ksceIoOpen(fname, SCE_O_RDONLY, 0777);
-	//LOG("1: \n");
 	if (!fd) return 0;
 	ret = ksceIoRead(fd, p, sizeof(Profile));
-	//LOG("2: %i\n", ret);
 	if (ret < 0) return 0;
 	ksceIoClose(fd);
-	//LOG("3: %i\n", ret);
 	if (ret < 0) return -0;
 	return 1;
 }

@@ -304,8 +304,10 @@ static struct Menu menu_remap_trigger_type = (Menu){
 	.onButton = onButton_remapTriggerType,
 	.entries = menu_remap_trigger_type_entries};
 
-#define MENU_REMAP_TRIGGER_TOUCH_NUM 5
+#define MENU_REMAP_TRIGGER_TOUCH_NUM 7
 static struct MenuEntry menu_remap_trigger_touch_entries[MENU_REMAP_TRIGGER_TOUCH_NUM] = {
+	(MenuEntry){.name = "Left Zone", .data = REMAP_TOUCH_ZONE_L},
+	(MenuEntry){.name = "Right Zone", .data = REMAP_TOUCH_ZONE_R},
 	(MenuEntry){.name = "Top Left Zone", .data = REMAP_TOUCH_ZONE_TL},
 	(MenuEntry){.name = "Top Right Zone", .data = REMAP_TOUCH_ZONE_TR},
 	(MenuEntry){.name = "Bottom Left Zone", .data = REMAP_TOUCH_ZONE_BL},
@@ -355,8 +357,10 @@ static struct Menu menu_remap_emu_type = (Menu){
 	.onButton = onButton_remapEmuType,
 	.entries = menu_remap_emu_type_entries};
 
-#define MENU_REMAP_EMU_TOUCH_NUM 5
+#define MENU_REMAP_EMU_TOUCH_NUM 7
 static struct MenuEntry menu_remap_emu_touch_entries[MENU_REMAP_EMU_TOUCH_NUM] = {
+	(MenuEntry){.name = "Left Touch", .data = REMAP_TOUCH_ZONE_L},
+	(MenuEntry){.name = "Right Touch", .data = REMAP_TOUCH_ZONE_R},
 	(MenuEntry){.name = "Top Left Touch", .data = REMAP_TOUCH_ZONE_TL},
 	(MenuEntry){.name = "Top Right Touch", .data = REMAP_TOUCH_ZONE_TR},
 	(MenuEntry){.name = "Bottom Left Touch", .data = REMAP_TOUCH_ZONE_BL},

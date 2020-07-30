@@ -68,9 +68,9 @@ typedef struct MenuEntry{
 	int8_t data;
 } MenuEntry;
 
-extern uint8_t ui_opened;
-extern uint8_t ui_lines;
-extern uint8_t new_frame;
+uint8_t ui_opened;
+uint8_t ui_lines;
+uint8_t new_frame;
 struct Menu* ui_menu;
 MenuEntry* ui_entry;
 

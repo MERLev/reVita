@@ -15,8 +15,20 @@
 
 TouchPoint T_FRONT_SIZE = (TouchPoint){1920, 1080};
 TouchPoint T_BACK_SIZE  = (TouchPoint){1920, 890};
-TouchPoint T_FRONT_TL, T_FRONT_TR, T_FRONT_BL, T_FRONT_BR,
-	T_BACK_TL, T_BACK_TR, T_BACK_BL, T_BACK_BR;
+static TouchPoint 
+	T_FRONT_L, T_FRONT_R, T_FRONT_TL, T_FRONT_TR, T_FRONT_BL, T_FRONT_BR,
+	T_BACK_L, T_BACK_R, T_BACK_TL, T_BACK_TR, T_BACK_BL, T_BACK_BR;
+static TouchZone 
+	TZ_FRONT_L, TZ_FRONT_R, TZ_FRONT_TL, TZ_FRONT_TR, TZ_FRONT_BL, TZ_FRONT_BR,
+	TZ_BACK_L, TZ_BACK_R, TZ_BACK_TL, TZ_BACK_TR, TZ_BACK_BL, TZ_BACK_BR;
+
+const uint32_t HW_BUTTONS[PHYS_BUTTONS_NUM] = {
+	SCE_CTRL_CROSS, SCE_CTRL_CIRCLE, SCE_CTRL_TRIANGLE, SCE_CTRL_SQUARE,
+	SCE_CTRL_START, SCE_CTRL_SELECT, SCE_CTRL_LTRIGGER, SCE_CTRL_RTRIGGER,
+	SCE_CTRL_UP, SCE_CTRL_RIGHT, SCE_CTRL_LEFT, SCE_CTRL_DOWN, SCE_CTRL_L1,
+	SCE_CTRL_R1, SCE_CTRL_L3, SCE_CTRL_R3, 
+	SCE_CTRL_VOLUP, SCE_CTRL_VOLDOWN, SCE_CTRL_POWER, SCE_CTRL_PSBUTTON
+};
 
 typedef struct EmulatedStick{
 	uint32_t up, down, left, right;
@@ -28,7 +40,7 @@ typedef struct EmulatedTouch{
 }EmulatedTouch;
 
 //For now let's store them on the stack
-static SceCtrlData _remappedBuffers[HOOKS_NUM-5][BUFFERS_NUM];
+static SceCtrlData _remappedBuffers[HOOKS_NUM-4][BUFFERS_NUM];
 static SceTouchData _remappedBuffersFront[4][BUFFERS_NUM];
 static SceTouchData _remappedBuffersBack[4][BUFFERS_NUM];
 
@@ -41,16 +53,25 @@ static int remappedBuffersIdxs[HOOKS_NUM];
 static SceTouchData *remappedBuffersFront[4];
 static int remappedBuffersFrontSizes[4];
 static int remappedBuffersFrontIdxs[4];
+bool newEmulatedFrontTouchBuffer = 0;
 static SceTouchData *remappedBuffersBack[4];
 static int remappedBuffersBackSizes[4];
 static int remappedBuffersBackIdxs[4];
-uint8_t newEmulatedFrontTouchBuffer = 0;
-uint8_t newEmulatedBackTouchBuffer = 0;
+bool newEmulatedBackTouchBuffer = 0;
 
 static EmulatedTouch etFront, etBack, prevEtFront, prevEtBack;
 static uint8_t etFrontIdCounter = 64;
 static uint8_t etBackIdCounter = 64;
 
+bool inZone(const TouchPoint tp, const TouchZone tz){
+	if (tp.x > min(tz.a.x, tz.b.x) && tp.x <= max(tz.a.x, tz.a.y) &&
+		tp.y > min(tz.a.y, tz.b.y) && tp.y <= max(tz.a.y, tz.a.y))
+		return true;
+	return false;
+}
+bool reportInZone(SceTouchReport* str, const TouchZone tz){
+	return inZone((TouchPoint){str->x, str->y}, tz);
+}
 
 void storeTouchPoint(EmulatedTouch *et, TouchPoint tp){
 	for (int i = 0; i < et->num; i++)
@@ -73,37 +94,40 @@ void addEmu(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick) {
 		case REMAP_TYPE_LEFT_ANALOG: 
 		case REMAP_TYPE_LEFT_ANALOG_DIGITAL: 
 			switch (emu->action){
-				case REMAP_ANALOG_UP: stick->up += 127; break;
-				case REMAP_ANALOG_DOWN: stick->down += 127; break;
-				case REMAP_ANALOG_LEFT: stick->left += 127; break;
+				case REMAP_ANALOG_UP:    stick->up    += 127; break;
+				case REMAP_ANALOG_DOWN:  stick->down  += 127; break;
+				case REMAP_ANALOG_LEFT:  stick->left  += 127; break;
 				case REMAP_ANALOG_RIGHT: stick->right += 127; break;
 				default: break;
 			}
 			break;
 		case REMAP_TYPE_FRONT_TOUCH_POINT: 
 			switch (emu->action){
+				case REMAP_TOUCH_ZONE_L:  storeTouchPoint(&etFront, T_FRONT_L);  break;
+				case REMAP_TOUCH_ZONE_R:  storeTouchPoint(&etFront, T_FRONT_R);  break;
 				case REMAP_TOUCH_ZONE_TL: storeTouchPoint(&etFront, T_FRONT_TL); break;
 				case REMAP_TOUCH_ZONE_TR: storeTouchPoint(&etFront, T_FRONT_TR); break;
 				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etFront, T_FRONT_BL); break;
 				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etFront, T_FRONT_BR); break;
-				case REMAP_TOUCH_CUSTOM: storeTouchPoint(&etFront, emu->param.touch); break;
+				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etFront, emu->param.touch); break;
 				default: break;
 			}
 			break;
 		case REMAP_TYPE_BACK_TOUCH_POINT: 
 			switch (emu->action){
+				case REMAP_TOUCH_ZONE_L:  storeTouchPoint(&etBack, T_BACK_L);  break;
+				case REMAP_TOUCH_ZONE_R:  storeTouchPoint(&etBack, T_BACK_R);  break;
 				case REMAP_TOUCH_ZONE_TL: storeTouchPoint(&etBack, T_BACK_TL); break;
 				case REMAP_TOUCH_ZONE_TR: storeTouchPoint(&etBack, T_BACK_TR); break;
 				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etBack, T_BACK_BL); break;
 				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etBack, T_BACK_BR); break;
-				case REMAP_TOUCH_CUSTOM: storeTouchPoint(&etBack, emu->param.touch); break;
+				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etBack, emu->param.touch); break;
 				default: break;
 			}
 			break;
 		default: break;
 	}
 }
-
 void addEmuFromAnalog(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick, uint8_t stickposval){
 	EmulatedStick* stick = emustick;
 	switch (emu->type){
@@ -111,9 +135,9 @@ void addEmuFromAnalog(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emu
 			stick = &emustick[1];
 		case REMAP_TYPE_LEFT_ANALOG: 
 			switch (emu->action){
-				case REMAP_ANALOG_UP: stick->up += stickposval; break;
-				case REMAP_ANALOG_DOWN: stick->down += stickposval; break;
-				case REMAP_ANALOG_LEFT: stick->left += stickposval; break;
+				case REMAP_ANALOG_UP:    stick->up    += stickposval; break;
+				case REMAP_ANALOG_DOWN:  stick->down  += stickposval; break;
+				case REMAP_ANALOG_LEFT:  stick->left  += stickposval; break;
 				case REMAP_ANALOG_RIGHT: stick->right += stickposval; break;
 				default: break;
 			}
@@ -138,16 +162,16 @@ void addEmuFromGyro(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emust
 void applyRemap(SceCtrlData *ctrl) {
 	// Gathering real touch data
 	SceTouchData front, back;
-	internal_touch_call = 1;
+	isInternalTouchCall = 1;
 	ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
 	ksceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
-	internal_touch_call = 0;
+	isInternalTouchCall = 0;
 
 	uint32_t btns = ctrl->buttons;
 	uint32_t propBtns = ctrl->buttons; //Propagated buttons
 	uint32_t emuBtns = 0;
 
-	EmulatedStick eSticks[2] = {(EmulatedStick){0, 0, 0, 0}, (EmulatedStick){0, 0, 0, 0}};
+	EmulatedStick eSticks[2] =    {(EmulatedStick){0, 0, 0, 0}, (EmulatedStick){0, 0, 0, 0}};
 	EmulatedStick propSticks[2] = {(EmulatedStick){0, 0, 0, 0}, (EmulatedStick){0, 0, 0, 0}};
 
 	//Set propagation sticks def values
@@ -159,19 +183,12 @@ void applyRemap(SceCtrlData *ctrl) {
 	else  propSticks[1].right = ctrl->rx - 127;
 	if (ctrl->ry <= 128) propSticks[1].up = 127 - ctrl->ry;
 	else  propSticks[1].down = ctrl->ry - 127;
-	
-	SceTouchData* std;
 
 	//Applying remap rules
 	for (int i = 0; i < profile.remapsNum; i++){
 		struct RemapRule* rr = &profile.remaps[i];
 		if (rr->disabled) continue;
 		struct RemapAction* trigger = &rr->trigger;
-
-		//Touch stuff
-		std = &back;
-		int left = T_BACK_SIZE.x / 2; 
-		int top  = T_BACK_SIZE.x / 2;
 
 		switch (trigger->type){
 			case REMAP_TYPE_BUTTON: 
@@ -240,37 +257,35 @@ void applyRemap(SceCtrlData *ctrl) {
 				}
 				break;
 			case REMAP_TYPE_FRONT_TOUCH_ZONE: 
-				std = &front;
-				left = T_FRONT_SIZE.x / 2; 
-				top  = T_FRONT_SIZE.y / 2;
-			case REMAP_TYPE_BACK_TOUCH_ZONE: 
-				for (i=0;i<std->reportNum;i++) {
+				for (i = 0; i < front.reportNum; i++) {
+					TouchZone tz;
 					switch (trigger->action){
-						case REMAP_TOUCH_ZONE_TL:
-							if (std->report[i].x <= left && std->report[i].y <= top)
-								addEmu(&rr->emu, &emuBtns, eSticks);
-							break;
-						case REMAP_TOUCH_ZONE_TR:
-							if (std->report[i].x > left && std->report[i].y <= top)
-								addEmu(&rr->emu, &emuBtns, eSticks);
-							break;
-						case REMAP_TOUCH_ZONE_BL:
-							if (std->report[i].x <= left && std->report[i].y > top)
-								addEmu(&rr->emu, &emuBtns, eSticks);
-							break;
-						case REMAP_TOUCH_ZONE_BR:
-							if (std->report[i].x > left && std->report[i].y > top)
-								addEmu(&rr->emu, &emuBtns, eSticks);
-							break;
-						case REMAP_TOUCH_CUSTOM:
-							if (std->report[i].x >= trigger->param.zone.a.x && 
-								std->report[i].x < trigger->param.zone.b.x && 
-								std->report[i].y >= trigger->param.zone.a.y && 
-								std->report[i].y < trigger->param.zone.b.y) 
-									addEmu(&rr->emu, &emuBtns, eSticks);
-							break;
+						case REMAP_TOUCH_ZONE_L:  tz = TZ_FRONT_L;  break;
+						case REMAP_TOUCH_ZONE_R:  tz = TZ_FRONT_R;  break;
+						case REMAP_TOUCH_ZONE_TL: tz = TZ_FRONT_TL; break;
+						case REMAP_TOUCH_ZONE_TR: tz = TZ_FRONT_TR; break;
+						case REMAP_TOUCH_ZONE_BL: tz = TZ_FRONT_BL; break;
+						case REMAP_TOUCH_ZONE_BR: tz = TZ_FRONT_BR; break;
+						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.zone; break;
 						default: break;
 					}
+					if (reportInZone(&front.report[i], tz)) addEmu(&rr->emu, &emuBtns, eSticks); 
+				}
+				break;
+			case REMAP_TYPE_BACK_TOUCH_ZONE: 
+				for (i = 0; i < back.reportNum; i++) {
+					TouchZone tz;
+					switch (trigger->action){
+						case REMAP_TOUCH_ZONE_L:  tz = TZ_BACK_L;  break;
+						case REMAP_TOUCH_ZONE_R:  tz = TZ_BACK_R;  break;
+						case REMAP_TOUCH_ZONE_TL: tz = TZ_BACK_TL; break;
+						case REMAP_TOUCH_ZONE_TR: tz = TZ_BACK_TR; break;
+						case REMAP_TOUCH_ZONE_BL: tz = TZ_BACK_BL; break;
+						case REMAP_TOUCH_ZONE_BR: tz = TZ_BACK_BR; break;
+						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.zone; break;
+						default: break;
+					}
+					if (reportInZone(&back.report[i], tz)) addEmu(&rr->emu, &emuBtns, eSticks); 
 				}
 				break;
 			case REMAP_TYPE_GYROSCOPE: 
@@ -363,8 +378,8 @@ void applyRemap(SceCtrlData *ctrl) {
 		ctrl->ry = clamp(127 + eSticks[1].down - eSticks[1].up, 0, 255);
 
 	//Telling that new emulated touch buffer is ready to be takn
-	newEmulatedFrontTouchBuffer = 1;
-	newEmulatedBackTouchBuffer = 1;
+	newEmulatedFrontTouchBuffer = true;
+	newEmulatedBackTouchBuffer = false;
 }
 
 int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId) {	
@@ -408,10 +423,10 @@ void remap_patchToExt(SceCtrlData *ctrl){
 	if (!profile.controller[0])
 		return;
 	SceCtrlData pstv_fakepad;
-	internal_ext_call = 1;
+	isInternalExtCall = 1;
 	//int ret = sceCtrlPeekBufferPositiveExt2(profile.controller[1], &pstv_fakepad, 1);
 	int ret = ksceCtrlPeekBufferPositive(profile.controller[1], &pstv_fakepad, 1);
-	internal_ext_call = 0;
+	isInternalExtCall = 0;
 	if (ret > 0){
 		ctrl->buttons = pstv_fakepad.buttons;
 		if (profile.controller[2])
@@ -450,19 +465,37 @@ void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et,
 	}
 }
 
+void removeReport(SceTouchData *pData, int idx){
+	for (int i = idx + 1; i < pData->reportNum; i++)
+		pData->report[i - 1] = pData->report[i];
+	pData->reportNum--;
+}
 void updateTouchInfo(SceUInt32 port, SceTouchData *pData){	
 	if (port == SCE_TOUCH_PORT_FRONT) {
-		// if ((profile.touch[16] == 1 && //Disable if remapped
-		// 		(profile.remap[PHYS_BUTTONS_NUM] != PHYS_BUTTONS_NUM ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM+1] != PHYS_BUTTONS_NUM ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM+2] != PHYS_BUTTONS_NUM ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM+3] != PHYS_BUTTONS_NUM)) ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM]   == PHYS_BUTTONS_NUM+1 ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM+1] == PHYS_BUTTONS_NUM+1 ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM+2] == PHYS_BUTTONS_NUM+1 ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM+3] == PHYS_BUTTONS_NUM+1)
-		// 	pData->reportNum = 0; //Disable pad
-			
+		//Remove non-propagated remapped touches
+		for (int i = 0; i < profile.remapsNum; i++)
+			if (!profile.remaps[i].propagate && !profile.remaps[i].disabled &&
+				profile.remaps[i].trigger.type == REMAP_TYPE_FRONT_TOUCH_ZONE){
+				int j = 0;
+				while (j < pData->reportNum){
+					TouchZone tz;
+					switch (profile.remaps[i].trigger.action){
+						case REMAP_TOUCH_ZONE_L:  tz = TZ_FRONT_L;  break;
+						case REMAP_TOUCH_ZONE_R:  tz = TZ_FRONT_R;  break;
+						case REMAP_TOUCH_ZONE_TL: tz = TZ_FRONT_TL; break;
+						case REMAP_TOUCH_ZONE_TR: tz = TZ_FRONT_TR; break;
+						case REMAP_TOUCH_ZONE_BL: tz = TZ_FRONT_BL; break;
+						case REMAP_TOUCH_ZONE_BR: tz = TZ_FRONT_BR; break;
+						case REMAP_TOUCH_CUSTOM:  tz = profile.remaps[i].trigger.param.zone; break;
+						default: break;
+					}
+					if (reportInZone(&pData->report[j], tz))
+						removeReport(pData, j);
+					else 
+						j++;
+				}
+			}
+
 		if (!newEmulatedFrontTouchBuffer){//New touchbuffer not ready - using previous one
 			addVirtualTouches(pData, &prevEtFront, 
 				MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
@@ -473,18 +506,31 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 			MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
 		prevEtFront = etFront;
 		etFront.num = 0;
-		newEmulatedFrontTouchBuffer = 0;
+		newEmulatedFrontTouchBuffer = false;
 	} else {
-		// if ((profile.touch[17] == 1 &&//Disable if remapped
-		// 		(profile.remap[PHYS_BUTTONS_NUM+4] != PHYS_BUTTONS_NUM ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM+5] != PHYS_BUTTONS_NUM ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM+6] != PHYS_BUTTONS_NUM ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM+7] != PHYS_BUTTONS_NUM)) ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM+4] == PHYS_BUTTONS_NUM+1 ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM+5] == PHYS_BUTTONS_NUM+1 ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM+6] == PHYS_BUTTONS_NUM+1 ||
-		// 		 profile.remap[PHYS_BUTTONS_NUM+7] == PHYS_BUTTONS_NUM+1)
-		// 	pData->reportNum = 0; //Disable pad
+		//Remove non-propagated remapped touches
+		for (int i = 0; i < profile.remapsNum; i++)
+			if (!profile.remaps[i].propagate && !profile.remaps[i].disabled &&
+				profile.remaps[i].trigger.type == REMAP_TYPE_BACK_TOUCH_ZONE){
+				int j = 0;
+				while (j < pData->reportNum){
+					TouchZone tz;
+					switch (profile.remaps[i].trigger.action){
+						case REMAP_TOUCH_ZONE_L:  tz = TZ_BACK_L;  break;
+						case REMAP_TOUCH_ZONE_R:  tz = TZ_BACK_R;  break;
+						case REMAP_TOUCH_ZONE_TL: tz = TZ_BACK_TL; break;
+						case REMAP_TOUCH_ZONE_TR: tz = TZ_BACK_TR; break;
+						case REMAP_TOUCH_ZONE_BL: tz = TZ_BACK_BL; break;
+						case REMAP_TOUCH_ZONE_BR: tz = TZ_BACK_BR; break;
+						case REMAP_TOUCH_CUSTOM:  tz = profile.remaps[i].trigger.param.zone; break;
+						default: break;
+					}
+					if (reportInZone(&pData->report[j], tz))
+						removeReport(pData, j);
+					else 
+						j++;
+				}
+			}
 			
 		if (!newEmulatedBackTouchBuffer){//New touchbuffer not ready - using previous one
 			addVirtualTouches(pData, &prevEtBack, 
@@ -554,23 +600,97 @@ void remap_resetTouchBuffers(uint8_t hookId){
 	remappedBuffersBackSizes[hookId] = 0;
 }
 
-void remap_init(){
-	for (int i = 0; i < HOOKS_NUM-5; i++) //Allocating mem for stored buffers
-		remappedBuffers[i] = &_remappedBuffers[i][0];
-
-	for (int i = 0; i < 4; i++){
-		remappedBuffersFront[i] = (SceTouchData*)&_remappedBuffersFront[i][0];
-		remappedBuffersBack[i] = (SceTouchData*)&_remappedBuffersBack[i][0];
-	}
-
+void initTouchParams(){
+	T_FRONT_L = (TouchPoint){T_FRONT_SIZE.x / 6, T_FRONT_SIZE.y / 2};
+	T_FRONT_R = (TouchPoint){T_FRONT_SIZE.x * 5 / 6, T_FRONT_SIZE.y / 2};
 	T_FRONT_TL = (TouchPoint){T_FRONT_SIZE.x / 6, T_FRONT_SIZE.y / 4};
 	T_FRONT_TR = (TouchPoint){T_FRONT_SIZE.x * 5 / 6, T_FRONT_SIZE.y / 4};
 	T_FRONT_BL = (TouchPoint){T_FRONT_SIZE.x / 6, T_FRONT_SIZE.y * 3 / 4};
 	T_FRONT_BR = (TouchPoint){T_FRONT_SIZE.x * 5 / 6, T_FRONT_SIZE.y * 3 / 4};
+	T_BACK_L = (TouchPoint){T_BACK_SIZE.x / 6, T_BACK_SIZE.y / 2};
+	T_BACK_R = (TouchPoint){T_BACK_SIZE.x * 5 / 6, T_BACK_SIZE.y / 2};
 	T_BACK_TL = (TouchPoint){T_BACK_SIZE.x / 6, T_BACK_SIZE.y / 4};
 	T_BACK_TR = (TouchPoint){T_BACK_SIZE.x * 5 / 6, T_BACK_SIZE.y / 4};
 	T_BACK_BL = (TouchPoint){T_BACK_SIZE.x / 6, T_BACK_SIZE.y * 3 / 4};
 	T_BACK_BR = (TouchPoint){T_BACK_SIZE.x * 5 / 6, T_BACK_SIZE.y * 3 / 4};
+
+	TZ_FRONT_L = (TouchZone){
+		(TouchPoint){0, 0}, 
+		(TouchPoint){T_FRONT_SIZE.x / 2, T_FRONT_SIZE.y}};
+	TZ_FRONT_R = (TouchZone){
+		(TouchPoint){T_FRONT_SIZE.x / 2, 0}, 
+		(TouchPoint){T_FRONT_SIZE.x, T_FRONT_SIZE.y}};
+	TZ_FRONT_TL = (TouchZone){
+		(TouchPoint){0, 0}, 
+		(TouchPoint){T_FRONT_SIZE.x / 2, T_FRONT_SIZE.y / 2}};
+	TZ_FRONT_TR = (TouchZone){
+		(TouchPoint){T_FRONT_SIZE.x / 2, 0}, 
+		(TouchPoint){T_FRONT_SIZE.x, T_FRONT_SIZE.y / 2}};
+	TZ_FRONT_BL = (TouchZone){
+		(TouchPoint){0, T_FRONT_SIZE.y / 2}, 
+		(TouchPoint){T_FRONT_SIZE.x / 2, T_FRONT_SIZE.y}};
+	TZ_FRONT_BR = (TouchZone){
+		(TouchPoint){T_FRONT_SIZE.x / 2, T_FRONT_SIZE.y / 2}, 
+		(TouchPoint){T_FRONT_SIZE.x, T_FRONT_SIZE.y}};
+
+	TZ_BACK_L = (TouchZone){
+		(TouchPoint){0, 0}, 
+		(TouchPoint){T_BACK_SIZE.x / 2, T_BACK_SIZE.y}};
+	TZ_BACK_R = (TouchZone){
+		(TouchPoint){T_BACK_SIZE.x / 2, 0}, 
+		(TouchPoint){T_BACK_SIZE.x, T_BACK_SIZE.y}};
+	TZ_BACK_TL = (TouchZone){
+		(TouchPoint){0, 0}, 
+		(TouchPoint){T_BACK_SIZE.x / 2, T_BACK_SIZE.y / 2}};
+	TZ_BACK_TR = (TouchZone){
+		(TouchPoint){T_BACK_SIZE.x / 2, 0}, 
+		(TouchPoint){T_BACK_SIZE.x, T_BACK_SIZE.y / 2}};
+	TZ_BACK_BL = (TouchZone){
+		(TouchPoint){0, T_BACK_SIZE.y / 2}, 
+		(TouchPoint){T_BACK_SIZE.x / 2, T_BACK_SIZE.y}};
+	TZ_BACK_BR = (TouchZone){
+		(TouchPoint){T_BACK_SIZE.x / 2, T_BACK_SIZE.y / 2}, 
+		(TouchPoint){T_BACK_SIZE.x, T_BACK_SIZE.y}};
+}
+void remap_setup(){
+    //ksceKernelGetSystemTimeLow
+
+	// Enabling analogs sampling 
+	ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+	
+	// Enabling both touch panels sampling
+	ksceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
+	ksceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
+	
+	// Detecting touch panels size
+	SceTouchPanelInfo pi;	
+	if (ksceTouchGetPanelInfo(SCE_TOUCH_PORT_FRONT, &pi) >= 0){
+		T_FRONT_SIZE.x = pi.maxAaX;
+		T_FRONT_SIZE.y = pi.maxAaY;
+	}
+	if (ksceTouchGetPanelInfo(SCE_TOUCH_PORT_BACK, &pi) >= 0){
+		T_BACK_SIZE.x = pi.maxAaX;
+		T_BACK_SIZE.y = pi.maxAaY;
+	}
+    
+	//ToDo
+	// Enabling gyro sampling
+	//_sceMotionReset();
+	//sceMotionStartSampling();
+	//if (profile.gyro[6] == 1) sceMotionSetDeadband(1);
+	//else if (profile.gyro[6] == 2) sceMotionSetDeadband(0);
+	//ToDo decide on sceMotionSetTiltCorrection usage
+	//if (gyro_options[7] == 1) sceMotionSetTiltCorrection(0); 
+}
+
+void remap_init(){
+	for (int i = 0; i < HOOKS_NUM-5; i++) //Allocating mem for stored buffers
+		remappedBuffers[i] = &_remappedBuffers[i][0];
+	for (int i = 0; i < 4; i++){
+		remappedBuffersFront[i] = (SceTouchData*)&_remappedBuffersFront[i][0];
+		remappedBuffersBack[i] = (SceTouchData*)&_remappedBuffersBack[i][0];
+	}
+	initTouchParams();
 }
 
 void remap_destroy(){

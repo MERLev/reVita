@@ -32,9 +32,9 @@ void analogTouchPicker(TouchPoint* tp, SceCtrlData *ctrl, int isFront, int isLef
 //Set custom touch point xy using touch
 void touchPicker(TouchPoint* tp, int port){
 	SceTouchData std;
-	internal_touch_call = 1;
+	isInternalTouchCall = 1;
 	int ret = ksceTouchPeek(port, &std, 1);
-	internal_touch_call = 0;
+	isInternalTouchCall = 0;
 	if (ret && std.reportNum){
 		tp->x = std.report[0].x;
 		tp->y =std.report[0].y;
@@ -75,7 +75,7 @@ void onButton_main(uint32_t btn){
 			profile_saveSettings();
 			if (profile_settings[0])
 				profile_save(titleid);
-			delayedStart();
+			remap_setup();
 			break;
 		default: onButton_generic(btn);
 	}
