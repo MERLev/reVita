@@ -56,6 +56,8 @@ typedef struct Menu{
 	uint8_t idx;
 	char* name;
 	char* footer;
+	bool noIndent;
+
 	uint8_t num;
 	struct MenuEntry* entries;
 

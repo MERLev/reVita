@@ -473,7 +473,8 @@ void drawTouchZone(uint32_t panel, TouchZone* tz){
 
 void drawBody() {
 	renderer_drawRectangle(0, HEADER_HEIGHT, UI_WIDTH, UI_HEIGHT -  2 * HEADER_HEIGHT, COLOR_BG_BODY);//BG
-	drawIndent();
+	if (!ui_menu->noIndent)
+		drawIndent();
 	//Draw menu
 	menuY = HEADER_HEIGHT - CHA_H / 2;
 	ui_lines = ((float)(UI_HEIGHT - 2 * HEADER_HEIGHT)) / CHA_H - 1;

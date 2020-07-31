@@ -186,6 +186,7 @@ static struct Menu menu_hooks = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_HOKS_NUM, 
 	.name = "HOOKS", 
+	.noIndent = true,
 	.onDraw = onDraw_hooks,
 	.entries = menu_hooks_entries};
 
