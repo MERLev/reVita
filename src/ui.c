@@ -18,7 +18,7 @@ static struct MenuEntry menu_main_entries[MENU_MAIN_NUM] = {
 	(MenuEntry){.name = "$X Remap rules", .data = MENU_REMAP_ID},
 	(MenuEntry){.name = "$U Analog sticks", .data = MENU_ANALOG_ID},
 	(MenuEntry){.name = "$F Touch", .data = MENU_TOUCH_ID},
-	(MenuEntry){.name = "   Gyroscope", .data = MENU_GYRO_ID},
+	(MenuEntry){.name = "$Q Gyroscope", .data = MENU_GYRO_ID},
 	(MenuEntry){.name = "   External gamepads", .data = MENU_CONTROLLER_ID},
 	(MenuEntry){.name = "   Show hooks", .data = MENU_HOKS_ID},
 	(MenuEntry){.name = "   Settings", .data = MENU_SETTINGS_ID},
@@ -309,7 +309,7 @@ static struct MenuEntry menu_remap_trigger_type_entries[MENU_REMAP_TRIGGER_TYPE_
 	(MenuEntry){.name = "$U Analog Stick Right", .data = REMAP_TYPE_RIGHT_ANALOG},
 	(MenuEntry){.name = "$F Touch - Front Panel", .data = REMAP_TYPE_FRONT_TOUCH_ZONE},
 	(MenuEntry){.name = "$B Touch - Back Panel", .data = REMAP_TYPE_BACK_TOUCH_ZONE},
-	(MenuEntry){.name = "   Gyroscope", .data = REMAP_TYPE_GYROSCOPE}
+	(MenuEntry){.name = "$Q Gyroscope", .data = REMAP_TYPE_GYROSCOPE}
 };
 static struct Menu menu_remap_trigger_type = (Menu){
 	.id = MENU_REMAP_TRIGGER_TYPE_ID, 
@@ -357,12 +357,12 @@ static struct Menu menu_remap_trigger_back_touch = (Menu){
 
 #define MENU_REMAP_TRIGGER_GYRO_NUM 6
 static struct MenuEntry menu_remap_trigger_gyro_entries[MENU_REMAP_TRIGGER_GYRO_NUM] = {
-	(MenuEntry){.name = "Move left", .data = REMAP_GYRO_LEFT},
-	(MenuEntry){.name = "Move right", .data = REMAP_GYRO_RIGHT},
-	(MenuEntry){.name = "Move up", .data = REMAP_GYRO_UP},
-	(MenuEntry){.name = "Move down", .data = REMAP_GYRO_DOWN},
-	(MenuEntry){.name = "Roll left", .data = REMAP_GYRO_ROLL_LEFT},
-	(MenuEntry){.name = "Roll right", .data = REMAP_GYRO_ROLL_RIGHT}
+	(MenuEntry){.name = "$q Move left", .data = REMAP_GYRO_LEFT},
+	(MenuEntry){.name = "$e Move right", .data = REMAP_GYRO_RIGHT},
+	(MenuEntry){.name = "$w Move up", .data = REMAP_GYRO_UP},
+	(MenuEntry){.name = "$s Move down", .data = REMAP_GYRO_DOWN},
+	(MenuEntry){.name = "$Q Roll left", .data = REMAP_GYRO_ROLL_LEFT},
+	(MenuEntry){.name = "$E Roll right", .data = REMAP_GYRO_ROLL_RIGHT}
 };
 static struct Menu menu_remap_trigger_gyro = (Menu){
 	.id = MENU_REMAP_TRIGGER_GYRO_ID, 

@@ -69,6 +69,12 @@ void renderer_drawIcon(char character, int x, int y){
 		case '0': idx = ICON_BT_TR; break;
 		case '_': idx = ICON_BT_BL; break;
 		case '=': idx = ICON_BT_BR; break;
+		case 'q': idx = ICON_GY_LEFT; break;
+		case 'e': idx = ICON_GY_RIGHT; break;
+		case 'w': idx = ICON_GY_UP; break;
+		case 's': idx = ICON_GY_DOWN; break;
+		case 'Q': idx = ICON_GY_ROLLLEFT; break;
+		case 'E': idx = ICON_GY_ROLLRIGHT; break;
 		default: break;
 	}
 	renderer_drawImage(x + 1, y, ICON_W, ICON_H, &ICON[idx * 54]);

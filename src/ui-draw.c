@@ -44,7 +44,7 @@ static const char* str_yes_no[] = {
 static const char* str_btns[PHYS_BUTTONS_NUM] = {
 	"$X Cross", "$C Circle", "$T Triangle", "$S Square",
 	"$; Start", "$: Select", 
-	"$ [LT/L2", "$] RT/R2",
+	"$[ LT/L2", "$] RT/R2",
 	"$^ Up", "$> Right", "$< Left", "$v Down", 
 	"${ L1", "$} R1", "$, L3", "$. R3",
 	"$+ Volume UP", "$- Volume DOWN", "$p POWER", "$P PS"
@@ -198,6 +198,13 @@ void drawFooter(){
 	renderer_setColor(COLOR_HEADER);   
 	if (ui_menu->footer)                                                            
 		renderer_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, ui_menu->footer);
+}
+void drawIndent(){
+	int y = (ui_menu->idx - calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET)) * CHA_H
+		+ HEADER_HEIGHT + CHA_H / 2;
+	//renderer_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, COLOR_HEADER);//Separator
+	renderer_drawRectangle(L_1 - 5, y - 1, UI_WIDTH - 2 * L_1 + 10, CHA_H + 2, COLOR_BG_HEADER);//BG
+	renderer_setColor(COLOR_HEADER);   
 }
 
 void onDraw_generic(){
@@ -466,6 +473,7 @@ void drawTouchZone(uint32_t panel, TouchZone* tz){
 
 void drawBody() {
 	renderer_drawRectangle(0, HEADER_HEIGHT, UI_WIDTH, UI_HEIGHT -  2 * HEADER_HEIGHT, COLOR_BG_BODY);//BG
+	drawIndent();
 	//Draw menu
 	menuY = HEADER_HEIGHT - CHA_H / 2;
 	ui_lines = ((float)(UI_HEIGHT - 2 * HEADER_HEIGHT)) / CHA_H - 1;
