@@ -84,12 +84,10 @@ void onButton_analog(uint32_t btn){
 	int8_t id = ui_entry->data;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
-			if (id == HEADER_IDX) break;
 			if (id < 4) profile.analog[id] = (profile.analog[id] + 1) % 128;
 			else profile.analog[id] = !profile.analog[id];
 			break;
 		case SCE_CTRL_LEFT:
-			if (id == HEADER_IDX) break;
 			if (profile.analog[id]) 	
 				profile.analog[id]--;
 			else
@@ -106,8 +104,7 @@ void onButton_touch(uint32_t btn){
 	int8_t idx = ui_entry->data;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
-			if (idx == HEADER_IDX) break;
-			else if (idx < 8)//Front Points xy
+			if (idx < 8)//Front Points xy
 				profile.touch[idx] = (profile.touch[idx] + 1) 
 					% ((idx % 2) ? T_FRONT_SIZE.y : T_FRONT_SIZE.x);
 			else if (idx < 16)//Back Points xy
@@ -117,8 +114,7 @@ void onButton_touch(uint32_t btn){
 				profile.touch[idx] = !profile.touch[idx];
 			break;
 		case SCE_CTRL_LEFT:
-			if (idx == HEADER_IDX) break;
-			else if (profile.touch[idx]) 	
+			if (profile.touch[idx]) 	
 				profile.touch[idx]--;
 			else {
 				if (idx < 8)//front points xy
@@ -266,7 +262,7 @@ void onButton_pickAnalog(uint32_t btn){
 				profile_addRemapRule(ui_ruleEdited);
 			ui_openMenuNext();
 			break;
-		case SCE_CTRL_CIRCLE: ui_openMenuPrev();
+		case SCE_CTRL_CIRCLE: ui_openMenuPrev(); break;
 		default: onButton_generic(btn);
 	}
 }
@@ -356,11 +352,12 @@ void onButton_remapTriggerType(uint32_t btn){
 			switch(ui_entry->data){
 				case REMAP_TYPE_BUTTON: ui_openMenuSmart(MENU_PICK_BUTTON_ID, 
 					ui_menu->id, MENU_REMAP_EMU_TYPE_ID, (uint32_t)&ui_ruleEdited.trigger.param.btn); break;
-				case REMAP_TYPE_LEFT_ANALOG: 
-				case REMAP_TYPE_RIGHT_ANALOG: ui_openMenuSmart(MENU_PICK_ANALOG_ID,
+				case REMAP_TYPE_LEFT_ANALOG: ui_openMenuSmart(MENU_PICK_ANALOG_LEFT_ID,
+					ui_menu->id, MENU_REMAP_EMU_TYPE_ID, (uint32_t)&ui_ruleEdited.trigger.action); break; 
+				case REMAP_TYPE_RIGHT_ANALOG: ui_openMenuSmart(MENU_PICK_ANALOG_RIGHT_ID,
 					ui_menu->id, MENU_REMAP_EMU_TYPE_ID, (uint32_t)&ui_ruleEdited.trigger.action); break;
-				case REMAP_TYPE_FRONT_TOUCH_ZONE:
-				case REMAP_TYPE_BACK_TOUCH_ZONE: ui_openMenu(MENU_REMAP_TRIGGER_TOUCH_ID); break;
+				case REMAP_TYPE_FRONT_TOUCH_ZONE: ui_openMenu(MENU_REMAP_TRIGGER_TOUCH_FRONT_ID); break;
+				case REMAP_TYPE_BACK_TOUCH_ZONE: ui_openMenu(MENU_REMAP_TRIGGER_TOUCH_BACK_ID); break;
 				case REMAP_TYPE_GYROSCOPE: ui_openMenu(MENU_REMAP_TRIGGER_GYRO_ID); break;
 			};
 			break;
@@ -402,13 +399,16 @@ void onButton_remapEmuType(uint32_t btn){
 					break;
 				case REMAP_TYPE_LEFT_ANALOG:
 				case REMAP_TYPE_LEFT_ANALOG_DIGITAL:
-				case REMAP_TYPE_RIGHT_ANALOG:
-				case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: 
-					ui_openMenuSmart(MENU_PICK_ANALOG_ID,
+					ui_openMenuSmart(MENU_PICK_ANALOG_LEFT_ID,
 						ui_menu->id, MENU_REMAP_ID, (uint32_t)&ui_ruleEdited.emu.action); 
 					break;
-				case REMAP_TYPE_FRONT_TOUCH_POINT:
-				case REMAP_TYPE_BACK_TOUCH_POINT: ui_openMenu(MENU_REMAP_EMU_TOUCH_ID); break;
+				case REMAP_TYPE_RIGHT_ANALOG:
+				case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: 
+					ui_openMenuSmart(MENU_PICK_ANALOG_RIGHT_ID,
+						ui_menu->id, MENU_REMAP_ID, (uint32_t)&ui_ruleEdited.emu.action); 
+					break;
+				case REMAP_TYPE_FRONT_TOUCH_POINT: ui_openMenu(MENU_REMAP_EMU_TOUCH_FRONT_ID); break;
+				case REMAP_TYPE_BACK_TOUCH_POINT: ui_openMenu(MENU_REMAP_EMU_TOUCH_BACK_ID); break;
 			};
 			break;
 		default: onButton_generic(btn);

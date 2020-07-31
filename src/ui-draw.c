@@ -42,12 +42,12 @@ static const char* str_yes_no[] = {
 	"No", "Yes"
 };
 static const char* str_btns[PHYS_BUTTONS_NUM] = {
-	"$XCross", "$CCircle", "$TTriangle", "$SSquare",
-	"$;Start", "$:Select", 
-	"$[LT/L2", "$]RT/R2",
-	"$^Up", "$>Right", "$<Left", "$vDown", 
-	"${L1", "$}R1", "$(L3", "$)R3",
-	"$+Volume UP", "$-Volume DOWN", "$pPOWER", "$PPS"
+	"$X Cross", "$C Circle", "$T Triangle", "$S Square",
+	"$; Start", "$: Select", 
+	"$ [LT/L2", "$] RT/R2",
+	"$^ Up", "$> Right", "$< Left", "$v Down", 
+	"${ L1", "$} R1", "$, L3", "$. R3",
+	"$+ Volume UP", "$- Volume DOWN", "$p POWER", "$P PS"
 };
 static char* str_deadband[] = {
 	"Game default", "Enable", "Disable"
@@ -83,9 +83,9 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 		case REMAP_TYPE_LEFT_ANALOG:
 		case REMAP_TYPE_LEFT_ANALOG_DIGITAL:
 			switch (ra->action){
-				case REMAP_ANALOG_UP: strcat(str, "$U"); break;
-				case REMAP_ANALOG_DOWN: strcat(str, "$D"); break;
-				case REMAP_ANALOG_LEFT: strcat(str, "$L"); break;
+				case REMAP_ANALOG_UP:    strcat(str, "$U"); break;
+				case REMAP_ANALOG_DOWN:  strcat(str, "$D"); break;
+				case REMAP_ANALOG_LEFT:  strcat(str, "$L"); break;
 				case REMAP_ANALOG_RIGHT: strcat(str, "$R"); break;
 				default: break;
 			}
@@ -93,9 +93,9 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 		case REMAP_TYPE_RIGHT_ANALOG:
 		case REMAP_TYPE_RIGHT_ANALOG_DIGITAL:
 			switch (ra->action){
-				case REMAP_ANALOG_UP: strcat(str, "$u"); break;
-				case REMAP_ANALOG_DOWN: strcat(str, "$d"); break;
-				case REMAP_ANALOG_LEFT: strcat(str, "$l"); break;
+				case REMAP_ANALOG_UP:    strcat(str, "$u"); break;
+				case REMAP_ANALOG_DOWN:  strcat(str, "$d"); break;
+				case REMAP_ANALOG_LEFT:  strcat(str, "$l"); break;
 				case REMAP_ANALOG_RIGHT: strcat(str, "$r"); break;
 				default: break;
 			}
@@ -103,22 +103,26 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 		case REMAP_TYPE_FRONT_TOUCH_ZONE:
 		case REMAP_TYPE_FRONT_TOUCH_POINT:
 			switch (ra->action){
+				case REMAP_TOUCH_ZONE_L:  strcat(str, "$1"); break;
+				case REMAP_TOUCH_ZONE_R:  strcat(str, "$2"); break;
 				case REMAP_TOUCH_ZONE_TL: strcat(str, "$3"); break;
 				case REMAP_TOUCH_ZONE_TR: strcat(str, "$4"); break;
 				case REMAP_TOUCH_ZONE_BL: strcat(str, "$5"); break;
 				case REMAP_TOUCH_ZONE_BR: strcat(str, "$6"); break;
-				case REMAP_TOUCH_CUSTOM: strcat(str, "$F"); break;
+				case REMAP_TOUCH_CUSTOM:  strcat(str, "$F"); break;
 				default: break;
 			}
 			break;
 		case REMAP_TYPE_BACK_TOUCH_ZONE:
 		case REMAP_TYPE_BACK_TOUCH_POINT:
 			switch (ra->action){
+				case REMAP_TOUCH_ZONE_L:  strcat(str, "$7"); break;
+				case REMAP_TOUCH_ZONE_R:  strcat(str, "$8"); break;
 				case REMAP_TOUCH_ZONE_TL: strcat(str, "$9"); break;
 				case REMAP_TOUCH_ZONE_TR: strcat(str, "$0"); break;
 				case REMAP_TOUCH_ZONE_BL: strcat(str, "$_"); break;
 				case REMAP_TOUCH_ZONE_BR: strcat(str, "$="); break;
-				case REMAP_TOUCH_CUSTOM: strcat(str, "$B"); break;
+				case REMAP_TOUCH_CUSTOM:  strcat(str, "$B"); break;
 				default: break;
 			}
 			break;
@@ -182,7 +186,7 @@ void drawHeader(){
 	renderer_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, COLOR_HEADER);//Separator
 	renderer_setColor(COLOR_HEADER);
 	if (ui_menu->id == MENU_MAIN_ID){
-		renderer_drawStringF(L_0, 3, "remaPSV2 v.%s", VERSION);
+		renderer_drawStringF(L_0, 3, "$P remaPSV2 v.%s", VERSION);
 		renderer_drawString(UI_WIDTH - CHA_W * strlen(titleid) - 10, 2, titleid);
 	} else	
 		renderer_drawString(L_0, 3, ui_menu->name);
@@ -234,22 +238,22 @@ void onDraw_analog(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {			
-		int8_t id = ui_menu->entries[i].data;
+		int32_t id = ui_menu->entries[i].data;
 
-		if (id == HEADER_IDX){
+		if (ui_menu->entries[i].type == HEADER_TYPE){
 			setColorHeader(ui_menu->idx == i);
 			renderer_drawString(L_1, y+=CHA_H, ui_menu->entries[i].name);
 		} else if (id < 4){
 			setColor(i == ui_menu->idx, profile.analog[id] == profile_def.analog[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %hhu", 
 					ui_menu->entries[i].name, profile.analog[id]);
-		} else if (id != HEADER_IDX) {
+		} else {
 			setColor(i == ui_menu->idx, profile.analog[id] == profile_def.analog[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", 
 					ui_menu->entries[i].name, str_yes_no[profile.analog[id]]);
 		}
 
-		if (ui_menu->idx == i && (id != HEADER_IDX)){//Draw cursor
+		if (ui_menu->idx == i){//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_2 + 17*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
@@ -260,22 +264,22 @@ void onDraw_touch(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {			
-		int8_t id = ui_menu->entries[i].data;
+		int32_t id = ui_menu->entries[i].data;
 
-		if (id == HEADER_IDX){
+		if (ui_menu->entries[i].type == HEADER_TYPE){
 			setColorHeader(ui_menu->idx == i);
 			renderer_drawString(L_1, y+=CHA_H, ui_menu->entries[i].name);
 		} else if (id == 16 || id == 17){
 			setColor(i == ui_menu->idx, profile.touch[id] == profile_def.touch[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", 
 					ui_menu->entries[i].name, str_yes_no[profile.touch[id]]);
-		} else if (id != HEADER_IDX) {
+		} else{
 			setColor(i == ui_menu->idx, profile.touch[id] == profile_def.touch[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", 
 					ui_menu->entries[i].name, profile.touch[id]);
 		}
 
-		if (ui_menu->idx == i && (id != HEADER_IDX)){//Draw cursor
+		if (ui_menu->idx == i){//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_2+ 20*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
@@ -287,12 +291,12 @@ void onDraw_pickTouchPoint(){
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);	
 	RemapAction* ra = (RemapAction*)ui_menu->data;
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {	
-		int8_t id = ui_menu->entries[i].data;
+		int32_t id = ui_menu->entries[i].data;
 		int coord = (id == 0) ? ra->param.touch.x : ra->param.touch.y;
 		setColor(i == ui_menu->idx, 1);
 		//LOG("%i", coord);
 		renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", ui_menu->entries[i].name, coord);
-		if (ui_menu->idx == i && (id != HEADER_IDX)){//Draw cursor
+		if (ui_menu->idx == i){//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_2+ 20*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
@@ -304,7 +308,7 @@ void onDraw_pickTouchZone(){
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);	
 	RemapAction* ra = (RemapAction*)ui_menu->data;
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {	
-		int8_t id = ui_menu->entries[i].data;
+		int32_t id = ui_menu->entries[i].data;
 		int coord = 0;
 		switch (id){
 			case 0: coord = ra->param.zone.a.x; break;
@@ -314,7 +318,7 @@ void onDraw_pickTouchZone(){
 		setColor(i == ui_menu->idx, 1);
 		renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", ui_menu->entries[i].name, coord);
 
-		if (ui_menu->idx == i && (id != HEADER_IDX)){//Draw cursor
+		if (ui_menu->idx == i){//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_2+ 20*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
@@ -325,9 +329,9 @@ void onDraw_gyro(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {		
-		int8_t id = ui_menu->entries[i].data;
+		int32_t id = ui_menu->entries[i].data;
 		
-		if (id == HEADER_IDX){
+		if (ui_menu->entries[i].type == HEADER_TYPE){
 			setColorHeader(ui_menu->idx == i);
 			renderer_drawString(L_1, y+=CHA_H, ui_menu->entries[i].name);
 		} else if (id < 6){//Draw sens and deadzone option
@@ -341,7 +345,7 @@ void onDraw_gyro(){
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", ui_menu->entries[i].name, str_yes_no[profile.gyro[id]]);
 		}
 
-		if (ui_menu->idx == i && (id != HEADER_IDX)) {//Draw cursor
+		if (ui_menu->idx == i) {//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_2 + 11 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
@@ -360,7 +364,7 @@ void onDraw_controller(){
 	
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {		
-		int8_t id = ui_menu->entries[i].data;
+		int32_t id = ui_menu->entries[i].data;
 
 		setColor(i == ui_menu->idx, profile.controller[id] == profile_def.controller[id]);
 		if (id == 0 || id == 2)//Use external controller / buttons swap
@@ -370,7 +374,7 @@ void onDraw_controller(){
 					getControllerName(pi.port[profile.controller[1]]));
 		}
 
-		if (ui_menu->idx == i && (id != HEADER_IDX)) {//Draw cursor
+		if (ui_menu->idx == i) {//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_1 + 20 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
@@ -399,7 +403,7 @@ void onDraw_settings(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {		
-		int8_t id = ui_menu->entries[i].data;
+		int32_t id = ui_menu->entries[i].data;
 		
 		setColor(i == ui_menu->idx, profile_settings[id] == profile_settings_def[id]);
 		if (id < 2){//Draw opening buttons
@@ -410,7 +414,7 @@ void onDraw_settings(){
 			renderer_drawStringF(L_1, y += CHA_H, "%s: %hhu", ui_menu->entries[i].name, profile_settings[id]);
 		}
 
-		if (ui_menu->idx == i && (id != HEADER_IDX)) {//Draw cursor
+		if (ui_menu->idx == i) {//Draw cursor
 			renderer_setColor(COLOR_CURSOR);
 			renderer_drawString(L_1 + 23 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
@@ -421,7 +425,7 @@ void onDraw_profiles(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
-		if (ui_menu->entries[i].data == HEADER_IDX){
+		if (ui_menu->entries[i].type == HEADER_TYPE){
 			setColorHeader(ui_menu->idx == i);
 			renderer_drawString(L_1, y+=CHA_H, ui_menu->entries[i].name);
 		} else {

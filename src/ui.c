@@ -20,25 +20,26 @@ static struct MenuEntry menu_main_entries[MENU_MAIN_NUM] = {
 	(MenuEntry){.name = "$F Touch", .data = MENU_TOUCH_ID},
 	(MenuEntry){.name = "   Gyroscope", .data = MENU_GYRO_ID},
 	(MenuEntry){.name = "   External gamepads", .data = MENU_CONTROLLER_ID},
-	(MenuEntry){.name = "   [DEBUG] Show hooks", .data = MENU_HOKS_ID},
+	(MenuEntry){.name = "   Show hooks", .data = MENU_HOKS_ID},
 	(MenuEntry){.name = "   Settings", .data = MENU_SETTINGS_ID},
 	(MenuEntry){.name = "   Profiles", .data = MENU_PROFILE_ID},
 	(MenuEntry){.name = "   Credits", .data = MENU_CREDITS_ID},};
 static struct Menu menu_main = (Menu){
 	.id = MENU_MAIN_ID, 
 	.num = MENU_MAIN_NUM, 
-	.name = "MAIN MENU",
+	.name = "$P MAIN MENU",
+	.footer = "$X$S$T$C$;$:$^$v$<$>$[${$,$]$}$.$p$P$+$-",
 	.onButton = onButton_main,
 	.entries = menu_main_entries};
 
 #define MENU_ANALOG_NUM 10
 static struct MenuEntry menu_analog_entries[MENU_ANALOG_NUM] = {
-	(MenuEntry){.name = "Deadzone", .data = HEADER_IDX},
-	(MenuEntry){.name = "Left Analog  [X]", .data = 0},
-	(MenuEntry){.name = "             [Y]", .data = 1},
-	(MenuEntry){.name = "Right Analog [X]", .data = 2},
-	(MenuEntry){.name = "             [Y]", .data = 3},
-	(MenuEntry){.name = "Force digital", .data = HEADER_IDX},
+	(MenuEntry){.name = "Deadzone", .type = HEADER_TYPE},
+	(MenuEntry){.name = "Left Analog  [X]", .data = PROFILE_ANALOG_LEFT_DEADZONE_X},
+	(MenuEntry){.name = "             [Y]", .data = PROFILE_ANALOG_LEFT_DEADZONE_Y},
+	(MenuEntry){.name = "Right Analog [X]", .data = PROFILE_ANALOG_RIGHT_DEADZONE_X},
+	(MenuEntry){.name = "             [Y]", .data = PROFILE_ANALOG_RIGHT_DEADZONE_Y},
+	(MenuEntry){.name = "Force digital", .type = HEADER_TYPE},
 	(MenuEntry){.name = "Left Analog  [X]", .data = 4},
 	(MenuEntry){.name = "             [Y]", .data = 5},
 	(MenuEntry){.name = "Right Analog [X]", .data = 6},
@@ -55,7 +56,7 @@ static struct Menu menu_analog = (Menu){
 
 #define MENU_TOUCH_NUM 20
 static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
-	(MenuEntry){.name = "Front", .data = HEADER_IDX},
+	(MenuEntry){.name = "Front", .type = HEADER_TYPE},
 	(MenuEntry){.name = "Point A           x", .data = 0},
 	(MenuEntry){.name = "                  y", .data = 1},
 	(MenuEntry){.name = "Point B           x", .data = 2},
@@ -65,7 +66,7 @@ static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
 	(MenuEntry){.name = "Point D           x", .data = 6},
 	(MenuEntry){.name = "                  y", .data = 7},
 	(MenuEntry){.name = "Disable if remapped", .data = 16},
-	(MenuEntry){.name = "Back", .data = HEADER_IDX},
+	(MenuEntry){.name = "Back", .type = HEADER_TYPE},
 	(MenuEntry){.name = "Point A           x", .data = 8},
 	(MenuEntry){.name = "                  y", .data = 9},
 	(MenuEntry){.name = "Point B           x", .data = 10},
@@ -87,15 +88,15 @@ static struct Menu menu_touch = (Menu){
 
 #define MENU_GYRO_NUM 11
 static struct MenuEntry menu_gyro_entries[MENU_GYRO_NUM] = {
-	(MenuEntry){.name = "Sensivity", .data = HEADER_IDX},
+	(MenuEntry){.name = "Sensivity", .type = HEADER_TYPE},
 	(MenuEntry){.name = "    X Axis", .data = 0},
 	(MenuEntry){.name = "    Y Axis", .data = 1},
 	(MenuEntry){.name = "    Z Axis", .data = 2},
-	(MenuEntry){.name = "Deadzone", .data = HEADER_IDX},
+	(MenuEntry){.name = "Deadzone", .type = HEADER_TYPE},
 	(MenuEntry){.name = "    X Axis", .data = 3},
 	(MenuEntry){.name = "    Y Axis", .data = 4},
 	(MenuEntry){.name = "    Z Axis", .data = 5},
-	(MenuEntry){.name = "More", .data = HEADER_IDX},
+	(MenuEntry){.name = "More", .type = HEADER_TYPE},
 	(MenuEntry){.name = "Deadband  ", .data = 6},
 	(MenuEntry){.name = "Wheel mode", .data = 7},};
 static struct Menu menu_gyro = (Menu){
@@ -141,11 +142,11 @@ static struct Menu menu_settings = (Menu){
 
 #define MENU_PROFILE_NUM 8
 static struct MenuEntry menu_profiles_entries[MENU_PROFILE_NUM] = {
-	(MenuEntry){.name = "Global", .data = HEADER_IDX},
+	(MenuEntry){.name = "Global", .type = HEADER_TYPE},
 	(MenuEntry){.name = "Save", .data = PROFILE_GLOBAL_SAVE},
 	(MenuEntry){.name = "Load", .data = PROFILE_GLOABL_LOAD},
 	(MenuEntry){.name = "Delete", .data = PROFILE_GLOBAL_DELETE},
-	(MenuEntry){.name = "Game", .data = HEADER_IDX},
+	(MenuEntry){.name = "Game", .type = HEADER_TYPE},
 	(MenuEntry){.name = "Save", .data = PROFILE_LOCAL_SAVE},
 	(MenuEntry){.name = "Load", .data = PROFILE_LOCAL_LOAD},
 	(MenuEntry){.name = "Delete", .data = PROFILE_LOCAL_DELETE}
@@ -227,19 +228,33 @@ static struct Menu menu_pick_button = (Menu){
 	.onDraw = onDraw_pickButton,
 	.entries = menu_pick_button_entries};
 
-#define MENU_PICK_ANALOG_NUM 4
-static struct MenuEntry menu_pick_analog_entries[MENU_PICK_ANALOG_NUM] = {
-	(MenuEntry){.name = "Move left", .data = REMAP_ANALOG_LEFT},
-	(MenuEntry){.name = "Move right", .data = REMAP_ANALOG_RIGHT},
-	(MenuEntry){.name = "Move up", .data = REMAP_ANALOG_UP},
-	(MenuEntry){.name = "Move down", .data = REMAP_ANALOG_DOWN}};
-static struct Menu menu_pick_analog = (Menu){
-	.id = MENU_PICK_ANALOG_ID, 
+#define MENU_PICK_ANALOG_LEFT_NUM 4
+static struct MenuEntry menu_pick_analog_left_entries[MENU_PICK_ANALOG_LEFT_NUM] = {
+	(MenuEntry){.name = "$L Move left", .data = REMAP_ANALOG_LEFT},
+	(MenuEntry){.name = "$R Move right", .data = REMAP_ANALOG_RIGHT},
+	(MenuEntry){.name = "$U Move up", .data = REMAP_ANALOG_UP},
+	(MenuEntry){.name = "$D Move down", .data = REMAP_ANALOG_DOWN}};
+static struct Menu menu_pick_analog_left = (Menu){
+	.id = MENU_PICK_ANALOG_LEFT_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
-	.num = MENU_PICK_ANALOG_NUM, 
+	.num = MENU_PICK_ANALOG_LEFT_NUM, 
 	.name = "SELECT ANALOG STICK DIRECTION", 
 	.onButton = onButton_pickAnalog,
-	.entries = menu_pick_analog_entries};
+	.entries = menu_pick_analog_left_entries};
+
+#define MENU_PICK_ANALOG_RIGHT_NUM 4
+static struct MenuEntry menu_pick_analog_right_entries[MENU_PICK_ANALOG_RIGHT_NUM] = {
+	(MenuEntry){.name = "$l Move left", .data = REMAP_ANALOG_LEFT},
+	(MenuEntry){.name = "$r Move right", .data = REMAP_ANALOG_RIGHT},
+	(MenuEntry){.name = "$u Move up", .data = REMAP_ANALOG_UP},
+	(MenuEntry){.name = "$d Move down", .data = REMAP_ANALOG_DOWN}};
+static struct Menu menu_pick_analog_right = (Menu){
+	.id = MENU_PICK_ANALOG_RIGHT_ID, 
+	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
+	.num = MENU_PICK_ANALOG_RIGHT_NUM, 
+	.name = "SELECT ANALOG STICK DIRECTION", 
+	.onButton = onButton_pickAnalog,
+	.entries = menu_pick_analog_right_entries};
 
 #define MENU_PICK_TOUCH_POINT_NUM 2
 static struct MenuEntry menu_pick_touch_point_entries[MENU_PICK_TOUCH_POINT_NUM] = {
@@ -289,12 +304,12 @@ static struct Menu menu_remap = (Menu){
 
 #define MENU_REMAP_TRIGGER_TYPE_NUM 6
 static struct MenuEntry menu_remap_trigger_type_entries[MENU_REMAP_TRIGGER_TYPE_NUM] = {
-	(MenuEntry){.name = "Buttons", .data = REMAP_TYPE_BUTTON},
-	(MenuEntry){.name = "Analog Stick Left", .data = REMAP_TYPE_LEFT_ANALOG},
-	(MenuEntry){.name = "Analog Stick Right", .data = REMAP_TYPE_RIGHT_ANALOG},
-	(MenuEntry){.name = "Touch - Front Panel", .data = REMAP_TYPE_FRONT_TOUCH_ZONE},
-	(MenuEntry){.name = "Touch - Back Panel", .data = REMAP_TYPE_BACK_TOUCH_ZONE},
-	(MenuEntry){.name = "Gyroscope", .data = REMAP_TYPE_GYROSCOPE}
+	(MenuEntry){.name = "$X Buttons", .data = REMAP_TYPE_BUTTON},
+	(MenuEntry){.name = "$u Analog Stick Left", .data = REMAP_TYPE_LEFT_ANALOG},
+	(MenuEntry){.name = "$U Analog Stick Right", .data = REMAP_TYPE_RIGHT_ANALOG},
+	(MenuEntry){.name = "$F Touch - Front Panel", .data = REMAP_TYPE_FRONT_TOUCH_ZONE},
+	(MenuEntry){.name = "$B Touch - Back Panel", .data = REMAP_TYPE_BACK_TOUCH_ZONE},
+	(MenuEntry){.name = "   Gyroscope", .data = REMAP_TYPE_GYROSCOPE}
 };
 static struct Menu menu_remap_trigger_type = (Menu){
 	.id = MENU_REMAP_TRIGGER_TYPE_ID, 
@@ -304,23 +319,41 @@ static struct Menu menu_remap_trigger_type = (Menu){
 	.onButton = onButton_remapTriggerType,
 	.entries = menu_remap_trigger_type_entries};
 
-#define MENU_REMAP_TRIGGER_TOUCH_NUM 7
-static struct MenuEntry menu_remap_trigger_touch_entries[MENU_REMAP_TRIGGER_TOUCH_NUM] = {
-	(MenuEntry){.name = "Left Zone", .data = REMAP_TOUCH_ZONE_L},
-	(MenuEntry){.name = "Right Zone", .data = REMAP_TOUCH_ZONE_R},
-	(MenuEntry){.name = "Top Left Zone", .data = REMAP_TOUCH_ZONE_TL},
-	(MenuEntry){.name = "Top Right Zone", .data = REMAP_TOUCH_ZONE_TR},
-	(MenuEntry){.name = "Bottom Left Zone", .data = REMAP_TOUCH_ZONE_BL},
-	(MenuEntry){.name = "Bottom Right Zone", .data = REMAP_TOUCH_ZONE_BR},
-	(MenuEntry){.name = "Custom Zone", .data = REMAP_TOUCH_CUSTOM}
+#define MENU_REMAP_TRIGGER_TOUCH_FRONT_NUM 7
+static struct MenuEntry menu_remap_trigger_front_touch_entries[MENU_REMAP_TRIGGER_TOUCH_FRONT_NUM] = {
+	(MenuEntry){.name = "$1 Left Zone", .data = REMAP_TOUCH_ZONE_L},
+	(MenuEntry){.name = "$2 Right Zone", .data = REMAP_TOUCH_ZONE_R},
+	(MenuEntry){.name = "$3 Top Left Zone", .data = REMAP_TOUCH_ZONE_TL},
+	(MenuEntry){.name = "$4 Top Right Zone", .data = REMAP_TOUCH_ZONE_TR},
+	(MenuEntry){.name = "$5 Bottom Left Zone", .data = REMAP_TOUCH_ZONE_BL},
+	(MenuEntry){.name = "$6 Bottom Right Zone", .data = REMAP_TOUCH_ZONE_BR},
+	(MenuEntry){.name = "$7 Custom Zone", .data = REMAP_TOUCH_CUSTOM}
 };
-static struct Menu menu_remap_trigger_touch = (Menu){
-	.id = MENU_REMAP_TRIGGER_TOUCH_ID, 
+static struct Menu menu_remap_trigger_front_touch = (Menu){
+	.id = MENU_REMAP_TRIGGER_TOUCH_FRONT_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
-	.num = MENU_REMAP_TRIGGER_TOUCH_NUM, 
+	.num = MENU_REMAP_TRIGGER_TOUCH_FRONT_NUM, 
 	.name = "SELECT TOUCH POINT", 
 	.onButton = onButton_remapTriggerTouch,
-	.entries = menu_remap_trigger_touch_entries};
+	.entries = menu_remap_trigger_front_touch_entries};
+
+#define MENU_REMAP_TRIGGER_TOUCH_BACK_NUM 7
+static struct MenuEntry menu_remap_trigger_back_touch_entries[MENU_REMAP_TRIGGER_TOUCH_BACK_NUM] = {
+	(MenuEntry){.name = "$1 Left Zone", .data = REMAP_TOUCH_ZONE_L},
+	(MenuEntry){.name = "$2 Right Zone", .data = REMAP_TOUCH_ZONE_R},
+	(MenuEntry){.name = "$3 Top Left Zone", .data = REMAP_TOUCH_ZONE_TL},
+	(MenuEntry){.name = "$4 Top Right Zone", .data = REMAP_TOUCH_ZONE_TR},
+	(MenuEntry){.name = "$5 Bottom Left Zone", .data = REMAP_TOUCH_ZONE_BL},
+	(MenuEntry){.name = "$6 Bottom Right Zone", .data = REMAP_TOUCH_ZONE_BR},
+	(MenuEntry){.name = "$7 Custom Zone", .data = REMAP_TOUCH_CUSTOM}
+};
+static struct Menu menu_remap_trigger_back_touch = (Menu){
+	.id = MENU_REMAP_TRIGGER_TOUCH_BACK_ID, 
+	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
+	.num = MENU_REMAP_TRIGGER_TOUCH_BACK_NUM, 
+	.name = "SELECT TOUCH POINT", 
+	.onButton = onButton_remapTriggerTouch,
+	.entries = menu_remap_trigger_back_touch_entries};
 
 #define MENU_REMAP_TRIGGER_GYRO_NUM 6
 static struct MenuEntry menu_remap_trigger_gyro_entries[MENU_REMAP_TRIGGER_GYRO_NUM] = {
@@ -339,7 +372,7 @@ static struct Menu menu_remap_trigger_gyro = (Menu){
 	.onButton = onButton_remapTriggerGyro,
 	.entries = menu_remap_trigger_gyro_entries};
 
-#define MENU_REMAP_EMU_TYPE_NUM 7
+#define MENU_REMAP_EMU_TYPE_NUM 9
 static struct MenuEntry menu_remap_emu_type_entries[MENU_REMAP_EMU_TYPE_NUM] = {
 	(MenuEntry){.name = "$X Buttons", .data = REMAP_TYPE_BUTTON},
 	(MenuEntry){.name = "$U Analog Stick Left", .data = REMAP_TYPE_LEFT_ANALOG},
@@ -347,7 +380,9 @@ static struct MenuEntry menu_remap_emu_type_entries[MENU_REMAP_EMU_TYPE_NUM] = {
 	(MenuEntry){.name = "$u Analog Stick Right", .data = REMAP_TYPE_RIGHT_ANALOG},
 	(MenuEntry){.name = "$u Analog Stick Right [DIGITAL]", .data = REMAP_TYPE_RIGHT_ANALOG_DIGITAL},
 	(MenuEntry){.name = "$F Front Touch", .data = REMAP_TYPE_FRONT_TOUCH_POINT},
-	(MenuEntry){.name = "$B Back Touch", .data = REMAP_TYPE_BACK_TOUCH_POINT}
+	(MenuEntry){.name = "$B Back Touch", .data = REMAP_TYPE_BACK_TOUCH_POINT},
+	(MenuEntry){.name = "   RemaPSV2", .data = REMAP_TYPE_REMAPSV},
+	(MenuEntry){.name = "   Actions", .data = REMAP_TYPE_USYSACTIONS}
 };
 static struct Menu menu_remap_emu_type = (Menu){
 	.id = MENU_REMAP_EMU_TYPE_ID, 
@@ -357,26 +392,43 @@ static struct Menu menu_remap_emu_type = (Menu){
 	.onButton = onButton_remapEmuType,
 	.entries = menu_remap_emu_type_entries};
 
-#define MENU_REMAP_EMU_TOUCH_NUM 7
-static struct MenuEntry menu_remap_emu_touch_entries[MENU_REMAP_EMU_TOUCH_NUM] = {
-	(MenuEntry){.name = "Left Touch", .data = REMAP_TOUCH_ZONE_L},
-	(MenuEntry){.name = "Right Touch", .data = REMAP_TOUCH_ZONE_R},
-	(MenuEntry){.name = "Top Left Touch", .data = REMAP_TOUCH_ZONE_TL},
-	(MenuEntry){.name = "Top Right Touch", .data = REMAP_TOUCH_ZONE_TR},
-	(MenuEntry){.name = "Bottom Left Touch", .data = REMAP_TOUCH_ZONE_BL},
-	(MenuEntry){.name = "Bottom Right Touch", .data = REMAP_TOUCH_ZONE_BR},
-	(MenuEntry){.name = "Custom Touch", .data = REMAP_TOUCH_CUSTOM}};
-static struct Menu menu_remap_emu_touch = (Menu){
-	.id = MENU_REMAP_EMU_TOUCH_ID, 
+#define MENU_REMAP_EMU_TOUCH_FRONT_NUM 7
+static struct MenuEntry menu_remap_emu_touch_front_entries[MENU_REMAP_EMU_TOUCH_FRONT_NUM] = {
+	(MenuEntry){.name = "$1 Left Touch", .data = REMAP_TOUCH_ZONE_L},
+	(MenuEntry){.name = "$2 Right Touch", .data = REMAP_TOUCH_ZONE_R},
+	(MenuEntry){.name = "$3 Top Left Touch", .data = REMAP_TOUCH_ZONE_TL},
+	(MenuEntry){.name = "$4 Top Right Touch", .data = REMAP_TOUCH_ZONE_TR},
+	(MenuEntry){.name = "$5 Bottom Left Touch", .data = REMAP_TOUCH_ZONE_BL},
+	(MenuEntry){.name = "$6 Bottom Right Touch", .data = REMAP_TOUCH_ZONE_BR},
+	(MenuEntry){.name = "$F Custom Touch", .data = REMAP_TOUCH_CUSTOM}};
+static struct Menu menu_remap_emu_touch_front = (Menu){
+	.id = MENU_REMAP_EMU_TOUCH_FRONT_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
-	.num = MENU_REMAP_EMU_TOUCH_NUM, 
+	.num = MENU_REMAP_EMU_TOUCH_FRONT_NUM, 
 	.name = "SELECT TOUCH POINT", 
 	.onButton = onButton_remapEmuTouch,
-	.entries = menu_remap_emu_touch_entries};
+	.entries = menu_remap_emu_touch_front_entries};
+
+#define MENU_REMAP_EMU_TOUCH_BACK_NUM 7
+static struct MenuEntry menu_remap_emu_touch_back_entries[MENU_REMAP_EMU_TOUCH_FRONT_NUM] = {
+	(MenuEntry){.name = "$7 Left Touch", .data = REMAP_TOUCH_ZONE_L},
+	(MenuEntry){.name = "$8 Right Touch", .data = REMAP_TOUCH_ZONE_R},
+	(MenuEntry){.name = "$9 Top Left Touch", .data = REMAP_TOUCH_ZONE_TL},
+	(MenuEntry){.name = "$0 Top Right Touch", .data = REMAP_TOUCH_ZONE_TR},
+	(MenuEntry){.name = "$_ Bottom Left Touch", .data = REMAP_TOUCH_ZONE_BL},
+	(MenuEntry){.name = "$= Bottom Right Touch", .data = REMAP_TOUCH_ZONE_BR},
+	(MenuEntry){.name = "$B Custom Touch", .data = REMAP_TOUCH_CUSTOM}};
+static struct Menu menu_remap_emu_touch_back = (Menu){
+	.id = MENU_REMAP_EMU_TOUCH_BACK_ID, 
+	.parent = MENU_REMAP_EMU_TYPE_ID,
+	.num = MENU_REMAP_EMU_TOUCH_BACK_NUM, 
+	.name = "SELECT TOUCH POINT", 
+	.onButton = onButton_remapEmuTouch,
+	.entries = menu_remap_emu_touch_back_entries};
 
 void ui_fixIdx(Menu* m, int idx){
 	for (int i = 0; i < m->num; i++)
-		if(m->entries[(idx + i) % m->num].data != HEADER_IDX){
+		if(m->entries[(idx + i) % m->num].type != HEADER_TYPE){
 			m->idx = (idx + i) % m->num;
 			break;
 		}
@@ -399,16 +451,19 @@ void registerMenus(){
 	registerMenu(&menu_profiles);
 
 	registerMenu(&menu_pick_button);
-	registerMenu(&menu_pick_analog);
+	registerMenu(&menu_pick_analog_left);
+	registerMenu(&menu_pick_analog_right);
 	registerMenu(&menu_pick_touch_point);
 	registerMenu(&menu_pick_touch_zone);
 
 	registerMenu(&menu_remap);
 	registerMenu(&menu_remap_trigger_type);
-	registerMenu(&menu_remap_trigger_touch);
+	registerMenu(&menu_remap_trigger_front_touch);
+	registerMenu(&menu_remap_trigger_back_touch);
 	registerMenu(&menu_remap_trigger_gyro);
 	registerMenu(&menu_remap_emu_type);
-	registerMenu(&menu_remap_emu_touch);
+	registerMenu(&menu_remap_emu_touch_front);
+	registerMenu(&menu_remap_emu_touch_back);
 }
 
 SceUID mem_uid;
@@ -487,7 +542,7 @@ void ui_prevEntry(){
 		int idx = (ui_menu->num + ui_menu->idx - 1) % ui_menu->num;
 		ui_menu->idx = idx;
 		for (int i = 0; i < ui_menu->num; i++) //Search for prev non-header
-			if(ui_menu->entries[(ui_menu->num + idx - i) % ui_menu->num].data != HEADER_IDX){
+			if(ui_menu->entries[(ui_menu->num + idx - i) % ui_menu->num].type != HEADER_TYPE){
 				ui_menu->idx = (ui_menu->num + idx - i) % ui_menu->num;
 				break;
 			}

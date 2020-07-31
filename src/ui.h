@@ -13,16 +13,19 @@
 	MENU_PROFILE_ID,
 
 	MENU_PICK_BUTTON_ID,
-	MENU_PICK_ANALOG_ID,
+	MENU_PICK_ANALOG_LEFT_ID,
+	MENU_PICK_ANALOG_RIGHT_ID,
 	MENU_PICK_TOUCH_POINT_ID,
 	MENU_PICK_TOUCH_ZONE_ID,
 
 	MENU_REMAP_ID,
 	MENU_REMAP_TRIGGER_TYPE_ID,
-	MENU_REMAP_TRIGGER_TOUCH_ID,
+	MENU_REMAP_TRIGGER_TOUCH_FRONT_ID,
+	MENU_REMAP_TRIGGER_TOUCH_BACK_ID,
 	MENU_REMAP_TRIGGER_GYRO_ID,
 	MENU_REMAP_EMU_TYPE_ID,
-	MENU_REMAP_EMU_TOUCH_ID,
+	MENU_REMAP_EMU_TOUCH_FRONT_ID,
+	MENU_REMAP_EMU_TOUCH_BACK_ID,
 	MENU_ID__NUM
 }MENU_ID;
 
@@ -35,7 +38,7 @@ enum PROFILE_ACTIONS{
 	PROFILE_LOCAL_DELETE
 }PROFILE_ACTIONS;
 
-#define HEADER_IDX          -1
+#define HEADER_TYPE         -1
 #define TEXT_IDX            -2
 #define NEW_RULE_IDX        -3
 
@@ -61,11 +64,12 @@ typedef struct Menu{
 	onDrawF onDraw;
 	onBuildF onBuild;
 
-	uint32_t data;
+	int32_t data;
 }Menu;
 typedef struct MenuEntry{
 	char* name;
-	int8_t data;
+	int32_t type;
+	int32_t data;
 } MenuEntry;
 
 uint8_t ui_opened;
