@@ -1,8 +1,6 @@
 #include <vitasdkkern.h>
 #include <taihen.h>
-#include <stdio.h>
 #include <stdbool.h>
-#include <psp2kern/io/stat.h> 
 #include "main.h"
 #include "common.h"
 #include "profile.h"
@@ -372,25 +370,16 @@ bool generateINIProfile(Profile* p, char* buff){
 bool parseINISettings(char* buff){
 	for (int i = 0; i < PROFILE_SETTINGS_NUM; i++)
 		profile_settings[i] = profile_settings_def[i];
-	
-	LOG("  SETTINGS : %li %li %li %li\n", 
-		profile_settings[0], 
-		profile_settings[1], 
-		profile_settings[2], 
-		profile_settings[3]);
+
 	INI_READER _ini = ini_read(buff);
 	INI_READER* ini = &_ini;
 
 	while(ini_nextEntry(ini)){
-		LOG(" SETT parsing: %s:%i\n", ini->val, parseInt(ini->val));
 		if (getSectionId(ini->section) != SECTION_SETTINGS)
 			continue;
-		LOG(" SETT section ok\n");
 		int id = getSettingsId(ini->name);
-		LOG(" SETT id: %i\n", id);
 		if (id < 0)
 			continue;
-		LOG(" SETT setting set entry %i\n", id);
 		profile_settings[id] = parseInt(ini->val);
 	}
 	return true;
@@ -400,11 +389,9 @@ bool parseINIProfile(Profile* p, char* buff){
 
 	INI_READER _ini = ini_read(buff);
 	INI_READER* ini = &_ini;
-	// LOG("ini_read error: %i, %i, %s\n", ini.error, strlen(buff), buff);
 	while(ini_nextEntry(ini)){
 		int id = 0;
 		int ruleId = 0;
-		LOG("[%s, %s] : %s=%s\n", ini->section, ini->sectionAttr, ini->name, ini->val);
 		switch(getSectionId(ini->section)){
 			case SECTION_PROFILE:
 				//Nothing to read here
@@ -429,13 +416,11 @@ bool parseINIProfile(Profile* p, char* buff){
 				break;
 			case SECTION_RULE:
 				ruleId = parseInt(ini->sectionAttr);
-				LOG("  RULE parsing started. ruleId = %i\n", ruleId);
 				if (ruleId >= REMAP_NUM)
 					continue;
 				if (ruleId + 1 > p->remapsNum)
 					p->remapsNum = ruleId + 1;
 				struct RemapRule* rr = &p->remaps[ruleId];
-				LOG("  RULE selecting entry for %s : %i\n", ini->name, getRemapKeyId(ini->name));
 				switch(getRemapKeyId(ini->name)){
 					case REMAP_KEY_PROPAGATE: rr->propagate = parseBool(ini->val); break;
 					case REMAP_KEY_DISABLED:  rr->disabled = parseBool(ini->val); break;
@@ -450,10 +435,8 @@ bool parseINIProfile(Profile* p, char* buff){
 							rr->trigger.action = id;
 						break;
 					case REMAP_KEY_TRIGGER_BUTTONS: 
-						LOG("  RULE case REMAP_KEY_TRIGGER_BUTTONS: \n");
 						while(ini_nextListVal(ini)){
 							int btnId = getButtonId(ini->listVal);
-							LOG("  RULE ini_nextListVal(ini): %s : %i |\n", ini->listVal, btnId);
 							if (btnId >= 0)
 								btn_add(&rr->trigger.param.btn, HW_BUTTONS[btnId]);
 						}
@@ -475,10 +458,8 @@ bool parseINIProfile(Profile* p, char* buff){
 							rr->emu.action = id;
 						break;
 					case REMAP_KEY_EMU_BUTTONS:
-						LOG("  RULE case REMAP_KEY_EMU_BUTTONS: \n");
 						while(ini_nextListVal(ini)){
 							int btnId = getButtonId(ini->listVal);
-							LOG("  RULE ini_nextListVal(ini): %s : %i |\n", ini->listVal, btnId);
 							if (btnId >= 0)
 								btn_add(&rr->emu.param.btn, HW_BUTTONS[btnId]);
 						}
@@ -487,12 +468,11 @@ bool parseINIProfile(Profile* p, char* buff){
 						rr->trigger.param.touch.x = parseInt(ini_nextListVal(ini));
 						rr->trigger.param.touch.y = parseInt(ini_nextListVal(ini));
 						break;
-					default: LOG("  RULE unknown key: %s : %i\n", ini->name, getRemapKeyId(ini->name)); break;
+					default: break;
 				}
 				break;
-			default : LOG("Cannot read\n"); break;
+			default: break;
 		}
-		LOG("  RULE:: DONE\n");
 	}
 	return true;
 }
@@ -556,18 +536,14 @@ bool profile_loadSettings(){
 		return false;
     if (ksceKernelGetMemBlockBase(buff_uid, (void**)&buff) != 0)
 		goto ERROR;
-	LOG(" SETT: mem alloc done\n");log_flush();
 	//Read file to buffer
 	if (!readFile(buff, BUFFER_SIZE, PATH, NAME_SETTINGS, EXT_INI))
 		goto ERROR;
-	LOG(" SETT: read file\n");log_flush();
 
 	// Parse INI
 	ret = parseINISettings(buff);
-	LOG(" SETT: parsed file\n");log_flush();
 	
 ERROR: //Free mem and quit
-	LOG(" SETT: Freeing memory and we done\n");log_flush();
 	ksceKernelFreeMemBlock(buff_uid);
 	return ret;
 }
@@ -695,15 +671,7 @@ void profile_init(){
 		profile_saveHome();
 	}
 	profile = profile_home;
-	if (!profile_loadSettings()){
-		LOG(" ERROR loading settings");
-	}
-	LOG("  SETTINGS : %li %li %li %li\n", 
-		profile_settings[0], 
-		profile_settings[1], 
-		profile_settings[2], 
-		profile_settings[3]);
-	log_flush();
+	profile_loadSettings();
 }
 void profile_destroy(){
 }

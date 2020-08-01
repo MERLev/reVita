@@ -1,6 +1,5 @@
 #include <vitasdkkern.h>
 #include <stdarg.h>
-#include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include "ini.h"
@@ -82,7 +81,6 @@ char* ini_nextEntry(INI_READER* ini){
             return ini->name;
         } //Error parsing
     }
-    LOG("O_o !\n");
     return ini_nextEntry(ini);
 }
 char* ini_nextListVal(INI_READER* ini){
@@ -124,7 +122,6 @@ int parseInt(char* c){
         return 0;
     int result;
     sscanf(c, "%d", &result);
-    LOG(" INI: parseInt [%s] -> %i\n", c, result);
     return result;
 }
 bool parseBool(char* c){
