@@ -126,6 +126,16 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 				default: break;
 			}
 			break;
+		case REMAP_TYPE_GYROSCOPE:
+			switch (ra->action){
+				case REMAP_GYRO_LEFT:  		strcat(str, "$q"); break;
+				case REMAP_GYRO_RIGHT: 		strcat(str, "$e"); break;
+				case REMAP_GYRO_UP:    		strcat(str, "$w"); break;
+				case REMAP_GYRO_DOWN:  		strcat(str, "$s"); break;
+				case REMAP_GYRO_ROLL_LEFT:  strcat(str, "$Q"); break;
+				case REMAP_GYRO_ROLL_RIGHT: strcat(str, "$E"); break;
+				default: break;
+			}
 		default: break;
 	}
 }
@@ -133,7 +143,7 @@ void generateRemapRuleName(char* str, struct RemapRule* rule){
 	strcpy(str, "");
     strcat(str, rule->propagate ? "P " : "  ");
 	generateRemapActionName(str, &rule->trigger);
-	strcat(str, " -> ");
+	strcat(str, "->");
 	generateRemapActionName(str, &rule->emu);
 }
 

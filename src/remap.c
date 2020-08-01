@@ -64,8 +64,8 @@ static uint8_t etFrontIdCounter = 64;
 static uint8_t etBackIdCounter = 64;
 
 bool inZone(const TouchPoint tp, const TouchZone tz){
-	if (tp.x > min(tz.a.x, tz.b.x) && tp.x <= max(tz.a.x, tz.a.y) &&
-		tp.y > min(tz.a.y, tz.b.y) && tp.y <= max(tz.a.y, tz.a.y))
+	if (tp.x > min(tz.a.x, tz.b.x) && tp.x <= max(tz.a.x, tz.b.x) &&
+		tp.y > min(tz.a.y, tz.b.y) && tp.y <= max(tz.a.y, tz.b.y))
 		return true;
 	return false;
 }
@@ -163,8 +163,8 @@ void applyRemap(SceCtrlData *ctrl) {
 	// Gathering real touch data
 	SceTouchData front, back;
 	isInternalTouchCall = 1;
-	ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
-	ksceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
+	int frontRet = ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
+	int backRet = ksceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
 	isInternalTouchCall = 0;
 
 	uint32_t btns = ctrl->buttons;
@@ -257,7 +257,8 @@ void applyRemap(SceCtrlData *ctrl) {
 				}
 				break;
 			case REMAP_TYPE_FRONT_TOUCH_ZONE: 
-				for (i = 0; i < front.reportNum; i++) {
+				if (frontRet < 1) break;
+				for (int j = 0; j < front.reportNum; j++) {
 					TouchZone tz;
 					switch (trigger->action){
 						case REMAP_TOUCH_ZONE_L:  tz = TZ_FRONT_L;  break;
@@ -269,11 +270,12 @@ void applyRemap(SceCtrlData *ctrl) {
 						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.zone; break;
 						default: break;
 					}
-					if (reportInZone(&front.report[i], tz)) addEmu(&rr->emu, &emuBtns, eSticks); 
+					if (reportInZone(&front.report[j], tz)) addEmu(&rr->emu, &emuBtns, eSticks); 
 				}
 				break;
 			case REMAP_TYPE_BACK_TOUCH_ZONE: 
-				for (i = 0; i < back.reportNum; i++) {
+				if (backRet < 1) break;
+				for (int j = 0; j < back.reportNum; j++) {
 					TouchZone tz;
 					switch (trigger->action){
 						case REMAP_TOUCH_ZONE_L:  tz = TZ_BACK_L;  break;
@@ -285,7 +287,7 @@ void applyRemap(SceCtrlData *ctrl) {
 						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.zone; break;
 						default: break;
 					}
-					if (reportInZone(&back.report[i], tz)) addEmu(&rr->emu, &emuBtns, eSticks); 
+					if (reportInZone(&back.report[j], tz)) addEmu(&rr->emu, &emuBtns, eSticks); 
 				}
 				break;
 			case REMAP_TYPE_GYROSCOPE: 
@@ -472,7 +474,7 @@ void removeReport(SceTouchData *pData, int idx){
 }
 void updateTouchInfo(SceUInt32 port, SceTouchData *pData){	
 	if (port == SCE_TOUCH_PORT_FRONT) {
-		//Remove non-propagated remapped touches
+		// Remove non-propagated remapped touches
 		for (int i = 0; i < profile.remapsNum; i++)
 			if (!profile.remaps[i].propagate && !profile.remaps[i].disabled &&
 				profile.remaps[i].trigger.type == REMAP_TYPE_FRONT_TOUCH_ZONE){
@@ -508,7 +510,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 		etFront.num = 0;
 		newEmulatedFrontTouchBuffer = false;
 	} else {
-		//Remove non-propagated remapped touches
+		// Remove non-propagated remapped touches
 		for (int i = 0; i < profile.remapsNum; i++)
 			if (!profile.remaps[i].propagate && !profile.remaps[i].disabled &&
 				profile.remaps[i].trigger.type == REMAP_TYPE_BACK_TOUCH_ZONE){
