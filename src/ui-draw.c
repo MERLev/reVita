@@ -33,7 +33,7 @@
 static uint32_t ticker;
 static uint32_t menuY = 0;
 
-const char* str_btn_small[PHYS_BUTTONS_NUM] = {
+const char* str_btn_small[HW_BUTTONS_NUM] = {
 	"$X", "$C", "$T", "$S", "$;", "$:", "$[", "$]", 
 	"$^", "$>", "$<", "$v", "${", "$}", "$(", "$)", 
 	"$+", "$-", "$p", "$P"
@@ -41,7 +41,7 @@ const char* str_btn_small[PHYS_BUTTONS_NUM] = {
 static const char* str_yes_no[] = {
 	"No", "Yes"
 };
-static const char* str_btns[PHYS_BUTTONS_NUM] = {
+static const char* str_btns[HW_BUTTONS_NUM] = {
 	"$X Cross", "$C Circle", "$T Triangle", "$S Square",
 	"$; Start", "$: Select", 
 	"$[ LT/L2", "$] RT/R2",
@@ -63,7 +63,7 @@ char* getControllerName(int id){
 void generateBtnComboName(char* str, uint32_t btns, int max){
 	int i = -1;
 	int counter = 0;
-	while (++i < PHYS_BUTTONS_NUM){
+	while (++i < HW_BUTTONS_NUM){
 		if (btn_has(btns, HW_BUTTONS[i])) {
 			if (counter >=  max){
 				str[strlen(str) - 2] = '.';

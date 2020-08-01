@@ -11,7 +11,7 @@
 #define PROFILE_CONTROLLER_NUM		3
 #define PROFILE_SETTINGS_NUM		4
 
-enum{
+enum PROFILE_ANALOG_ID{
 	PROFILE_ANALOG_LEFT_DEADZONE_X = 0,
 	PROFILE_ANALOG_LEFT_DEADZONE_Y,
 	PROFILE_ANALOG_RIGHT_DEADZONE_X,
@@ -19,9 +19,10 @@ enum{
 	PROFILE_ANALOG_LEFT_DIGITAL_X,
 	PROFILE_ANALOG_LEFT_DIGITAL_Y,
 	PROFILE_ANALOG_RIGHT_DIGITAL_X,
-	PROFILE_ANALOG_RIGHT_DIGITAL_Y
-};
-enum{
+	PROFILE_ANALOG_RIGHT_DIGITAL_Y,
+    PROFILE_ANALOG__NUM
+}PROFILE_ANALOG_ID;
+enum PROFILE_TOUCH_ID{
 	PROFILE_TOUCH_FRONT_POINT1_X = 0,
 	PROFILE_TOUCH_FRONT_POINT1_Y,
 	PROFILE_TOUCH_FRONT_POINT2_X,
@@ -39,9 +40,10 @@ enum{
 	PROFILE_TOUCH_BACK_POINT4_X,
 	PROFILE_TOUCH_BACK_POINT4_Y,
     PROFILE_TOUCH_FRONT_DISABLE,
-    PROFILE_TOUCH_BACK_DISABLE
-};
-enum{
+    PROFILE_TOUCH_BACK_DISABLE,
+    PROFILE_TOUCH__NUM
+}PROFILE_TOUCH_ID;
+enum PROFILE_GYRO_ID{
 	PROFILE_GYRO_SENSIVITY_X = 0,
 	PROFILE_GYRO_SENSIVITY_Y,
 	PROFILE_GYRO_SENSIVITY_Z,
@@ -51,19 +53,23 @@ enum{
 	PROFILE_GYRO_DEADBAND,
 	PROFILE_GYRO_WHEEL,
 	PROFILE_GYRO_RESET_BTN1,
-	PROFILE_GYRO_RESET_BTN2
-};
-enum{
+	PROFILE_GYRO_RESET_BTN2,
+    PROFILE_GYRO__NUM
+}PROFILE_GYRO_ID;
+enum PROFILE_CONTROLLER_ID{
 	PROFILE_CONTROLLER_ENABLED = 0,
 	PROFILE_CONTROLLER_PORT,
-	PROFILE_CONTROLLER_SWAP_BUTTONS
-};
-enum{
+	PROFILE_CONTROLLER_SWAP_BUTTONS,
+    PROFILE_CONTROLLER__NUM
+}PROFILE_CONTROLLER_ID;
+enum PROFILE_SETTINGS_ID{
 	PROFILE_SETTINGS_KEY1 = 0,
 	PROFILE_SETTINGS_KEY2,
 	PROFILE_SETTINGS_AUTOSAVE,
-	PROFILE_SETTINGS_DELAY
-};
+	PROFILE_SETTINGS_DELAY,
+    PROFILE_SETTINGS__NUM
+}PROFILE_SETTINGS_ID;
+
 typedef struct Profile{
     struct RemapRule remaps[REMAP_NUM];
     uint8_t remapsNum;
@@ -76,8 +82,8 @@ typedef struct Profile{
 Profile profile;
 Profile profile_def;
 Profile profile_global;
-uint8_t profile_settings[PROFILE_SETTINGS_NUM];
-uint8_t profile_settings_def[PROFILE_SETTINGS_NUM];
+int32_t profile_settings[PROFILE_SETTINGS_NUM];
+int32_t profile_settings_def[PROFILE_SETTINGS_NUM];
 
 void profile_addRemapRule(struct RemapRule rule);
 void profile_removeRemapRule(uint8_t idx);
@@ -89,8 +95,8 @@ void profile_resetGyro();
 void profile_resetController();
 void profile_resetSettings();
 
-int profile_saveSettings();
-int profile_loadSettings();
+bool profile_saveSettings();
+bool profile_loadSettings();
 
 int profile_save(char* titleId);
 int profile_saveAsGlobal();

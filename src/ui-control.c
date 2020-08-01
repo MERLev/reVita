@@ -11,7 +11,7 @@
 static uint32_t curr_buttons;
 static uint32_t old_buttons;
 static uint64_t tick;
-static uint64_t pressedTicks[PHYS_BUTTONS_NUM];
+static uint64_t pressedTicks[HW_BUTTONS_NUM];
 
 #define LONG_PRESS_TIME   350000	//0.35sec
 
@@ -144,7 +144,7 @@ void onButton_gyro(uint32_t btn){
 				profile.gyro[id] = (profile.gyro[id] + 1) % 2;
 			/*else if (cfg_i < 10) // Reset wheel buttons
 				profile.gyro[cfg_i] 
-					= min(PHYS_BUTTONS_NUM - 1, profile.gyro[cfg_i] + 1);*/
+					= min(HW_BUTTONS_NUM - 1, profile.gyro[cfg_i] + 1);*/
 			break;
 		case SCE_CTRL_LEFT:
 			if (profile.gyro[id]) 	
@@ -195,7 +195,7 @@ void onButton_settings(uint32_t btn){
 		case SCE_CTRL_RIGHT:
 			if (id < 2)
 				profile_settings[id] 
-					= min(PHYS_BUTTONS_NUM - 1, profile_settings[id] + 1);
+					= min(HW_BUTTONS_NUM - 1, profile_settings[id] + 1);
 			else if (id == 2)
 				profile_settings[id] = !profile_settings[id];
 			else if (id == 3)
@@ -444,7 +444,7 @@ void ctrl_onInput(SceCtrlData *ctrl) {
 
 		tick = ctrl->timeStamp;
 		curr_buttons = ctrl->buttons;
-		for (int i = 0; i < PHYS_BUTTONS_NUM; i++){
+		for (int i = 0; i < HW_BUTTONS_NUM; i++){
 			if ((curr_buttons & HW_BUTTONS[i]) && !(old_buttons & HW_BUTTONS[i]))
 				pressedTicks[i] = tick;
 			else if (!(curr_buttons & HW_BUTTONS[i]) && (old_buttons & HW_BUTTONS[i]))

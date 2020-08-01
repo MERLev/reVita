@@ -24,6 +24,7 @@ link_directories(
 add_executable(${PROJECT_NAME}
   src/main.c
   src/profile.c
+  src/ini.c
   src/common.c
   src/remap.c
   src/ui.c

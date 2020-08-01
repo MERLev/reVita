@@ -22,7 +22,7 @@ static TouchZone
 	TZ_FRONT_L, TZ_FRONT_R, TZ_FRONT_TL, TZ_FRONT_TR, TZ_FRONT_BL, TZ_FRONT_BR,
 	TZ_BACK_L, TZ_BACK_R, TZ_BACK_TL, TZ_BACK_TR, TZ_BACK_BL, TZ_BACK_BR;
 
-const uint32_t HW_BUTTONS[PHYS_BUTTONS_NUM] = {
+const uint32_t HW_BUTTONS[HW_BUTTONS_NUM] = {
 	SCE_CTRL_CROSS, SCE_CTRL_CIRCLE, SCE_CTRL_TRIANGLE, SCE_CTRL_SQUARE,
 	SCE_CTRL_START, SCE_CTRL_SELECT, SCE_CTRL_LTRIGGER, SCE_CTRL_RTRIGGER,
 	SCE_CTRL_UP, SCE_CTRL_RIGHT, SCE_CTRL_LEFT, SCE_CTRL_DOWN, SCE_CTRL_L1,
@@ -147,14 +147,14 @@ void addEmuFromAnalog(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emu
 	
 }
 void addEmuFromGyro(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick,  float gyroval){
-// 	if (PHYS_BUTTONS_NUM + 1 < profile.remap[btn_idx] && profile.remap[btn_idx] < PHYS_BUTTONS_NUM + 10) {
+// 	if (HW_BUTTONS_NUM + 1 < profile.remap[btn_idx] && profile.remap[btn_idx] < HW_BUTTONS_NUM + 10) {
 // 		// Gyro -> Analog remap
-// 		stickpos[profile.remap[btn_idx] - (PHYS_BUTTONS_NUM + 2)] = stickpos[profile.remap[btn_idx] - (PHYS_BUTTONS_NUM + 2)] + clamp(gyroval, -127, 127);
+// 		stickpos[profile.remap[btn_idx] - (HW_BUTTONS_NUM + 2)] = stickpos[profile.remap[btn_idx] - (HW_BUTTONS_NUM + 2)] + clamp(gyroval, -127, 127);
 // 	} else {
 // 		// Gyro -> Btn remap
-// 		if ((((btn_idx == PHYS_BUTTONS_NUM + 16 || btn_idx == PHYS_BUTTONS_NUM + 17)) && gyroval > profile.gyro[3] * 10) ||
-// 			(((btn_idx == PHYS_BUTTONS_NUM + 18 || btn_idx == PHYS_BUTTONS_NUM + 19)) && gyroval > profile.gyro[4] * 10) ||
-// 			(((btn_idx == PHYS_BUTTONS_NUM + 20 || btn_idx == PHYS_BUTTONS_NUM + 21)) && gyroval > profile.gyro[5] * 10))
+// 		if ((((btn_idx == HW_BUTTONS_NUM + 16 || btn_idx == HW_BUTTONS_NUM + 17)) && gyroval > profile.gyro[3] * 10) ||
+// 			(((btn_idx == HW_BUTTONS_NUM + 18 || btn_idx == HW_BUTTONS_NUM + 19)) && gyroval > profile.gyro[4] * 10) ||
+// 			(((btn_idx == HW_BUTTONS_NUM + 20 || btn_idx == HW_BUTTONS_NUM + 21)) && gyroval > profile.gyro[5] * 10))
 // 			applyRemapRule(btn_idx, map, stickpos);
 // 	}
 }
@@ -293,43 +293,43 @@ void applyRemap(SceCtrlData *ctrl) {
 				// Applying remap for gyro
 				// if (profile.gyro[7] == 0) {
 				// 	if (motionstate.angularVelocity.y > 0)
-				// 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 16, &new_map, stickpos,
+				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 16, &new_map, stickpos,
 				// 			motionstate.angularVelocity.y * profile.gyro[0]);
 				// 	if (motionstate.angularVelocity.y < 0)
-				// 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 17, &new_map, stickpos,
+				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 17, &new_map, stickpos,
 				// 			-motionstate.angularVelocity.y * profile.gyro[0]);
 				// 	if (motionstate.angularVelocity.x > 0)
-				// 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 18, &new_map, stickpos,
+				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 18, &new_map, stickpos,
 				// 			motionstate.angularVelocity.x * profile.gyro[1]);
 				// 	if (motionstate.angularVelocity.x < 0)
-				// 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 19, &new_map, stickpos,
+				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 19, &new_map, stickpos,
 				// 			-motionstate.angularVelocity.x * profile.gyro[1]);
 				// 	if (motionstate.angularVelocity.z > 0)
-				// 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 20, &new_map, stickpos,
+				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 20, &new_map, stickpos,
 				// 			motionstate.angularVelocity.z * profile.gyro[2]);
 				// 	if (motionstate.angularVelocity.z < 0)
-				// 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 21, &new_map, stickpos,
+				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 21, &new_map, stickpos,
 				// 			-motionstate.angularVelocity.z * profile.gyro[2]);
 				// }
 				// else {
 				// 	// Applying remap for gyro wheel mode
 				// 	if (motionstate.deviceQuat.y < 0)
-				// 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 16, &new_map, stickpos,
+				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 16, &new_map, stickpos,
 				// 			motionstate.deviceQuat.y * profile.gyro[0] * 4);
 				// 	if (motionstate.deviceQuat.y > 0)
-				// 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 17, &new_map, stickpos,
+				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 17, &new_map, stickpos,
 				// 			-motionstate.deviceQuat.y * profile.gyro[0] * 4);
 				// 	if (motionstate.deviceQuat.x < 0)
-				// 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 18, &new_map, stickpos,
+				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 18, &new_map, stickpos,
 				// 			motionstate.deviceQuat.x * profile.gyro[1] * 4);
 				// 	if (motionstate.deviceQuat.x > 0)
-				// 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 19, &new_map, stickpos,
+				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 19, &new_map, stickpos,
 				// 			-motionstate.deviceQuat.x * profile.gyro[1] * 4);
 				// 	if (motionstate.deviceQuat.z < 0)
-				// 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 20, &new_map, stickpos,
+				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 20, &new_map, stickpos,
 				// 			motionstate.deviceQuat.z * profile.gyro[2] * 4);
 				// 	if (motionstate.deviceQuat.z > 0)
-				// 		applyRemapRuleForGyro(PHYS_BUTTONS_NUM + 21, &new_map, stickpos,
+				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 21, &new_map, stickpos,
 				// 		-motionstate.deviceQuat.z * profile.gyro[2] * 4);
 				// }
 				break;
@@ -407,7 +407,7 @@ int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId) {
 
 void swapTriggersBumpers(SceCtrlData *ctrl){
 	uint32_t b = 0;
-	for (int j = 0; j < PHYS_BUTTONS_NUM; j++)
+	for (int j = 0; j < HW_BUTTONS_NUM; j++)
 		if (ctrl->buttons & HW_BUTTONS[j]){
 			if (HW_BUTTONS[j] == SCE_CTRL_LTRIGGER) b+= SCE_CTRL_L1;
 			else if (HW_BUTTONS[j] == SCE_CTRL_L1) b+= SCE_CTRL_LTRIGGER;

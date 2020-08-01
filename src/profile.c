@@ -4,7 +4,9 @@
 #include <stdbool.h>
 #include <psp2kern/io/stat.h> 
 #include "main.h"
+#include "common.h"
 #include "profile.h"
+#include "ini.h"
 #include "log.h"
 
 #define PATH "ux0:/data/remaPSV2"
@@ -12,15 +14,212 @@
 #define NAME_HOME "HOME"
 #define NAME_SETTINGS "SETTINGS"
 #define EXT "bin"
+#define EXT_INI "INI"
+#define BUFFER_SIZE (1000 * sizeof(char)+ 0xfff) & ~0xfff
+#define BUFFER_SIZE_SETTINGS (200 * sizeof(char)+ 0xfff) & ~0xfff
+
+enum SECTION{
+	SECTION_PROFILE = 0,
+	SECTION_ANALOG,
+	SECTION_TOUCH,
+	SECTION_GYRO,
+	SECTION_CONTROLLER,
+	SECTION_RULE,
+	SECTION_SETTINGS,
+	SECTION__NUM
+};
+static const char* SECTION_STR[SECTION__NUM] = {
+	"PROFILE",
+	"ANALOG",
+	"TOUCH",
+	"GYRO",
+	"CONTROLLER",
+	"RULE",
+	"SETTINGS"
+};
+enum SECTION getSectionId(char* n){
+	for (int i = 0; i < SECTION__NUM; i++)
+		if (!strcmp(SECTION_STR[i], n)) 
+			return i;
+	return -1;
+};
+
+const char* ANALOG_STR[PROFILE_ANALOG__NUM] = {
+	"LEFT_DEADZONE_X",
+	"LEFT_DEADZONE_Y",
+	"RIGHT_DEADZONE_X",
+	"RIGHT_DEADZONE_Y",
+	"LEFT_DIGITAL_X",
+	"LEFT_DIGITAL_Y",
+	"RIGHT_DIGITAL_X",
+	"RIGHT_DIGITAL_Y",
+};
+enum PROFILE_ANALOG_ID getAnalogId(char* n){
+	for (int i = 0; i < PROFILE_ANALOG__NUM; i++)
+		if (!strcmp(ANALOG_STR[i], n)) 
+			return i;
+	return -1;
+}
+
+const char* GYRO_STR[PROFILE_GYRO__NUM] = {
+	"SENSIVITY_X",
+	"SENSIVITY_Y",
+	"SENSIVITY_Z",
+	"DEADZONE_X",
+	"DEADZONE_Y",
+	"DEADZONE_Z",
+	"DEADBAND",
+	"WHEEL",
+	"RESET_BTN1",
+	"RESET_BTN2"
+};
+enum PROFILE_GYRO_ID getGyroId(char* n){
+	for (int i = 0; i < PROFILE_GYRO__NUM; i++)
+		if (!strcmp(GYRO_STR[i], n)) 
+			return i;
+	return -1;
+}
+
+const char* CONTROLLER_STR[PROFILE_CONTROLLER__NUM] = {
+	"ENABLED",
+	"PORT",
+	"SWAP_BUTTONS"
+};
+enum PROFILE_CONTROLLER_ID getControllerId(char* n){
+	for (int i = 0; i < PROFILE_CONTROLLER__NUM; i++)
+		if (!strcmp(CONTROLLER_STR[i], n)) 
+			return i;
+	return -1;
+}
+
+const char* REMAP_ACTION_TYPE_STR[REMAP_ACTION_TYPE_NUM] = {
+    "BUTTON",
+    "LEFT_ANALOG",
+    "LEFT_ANALOG_DIGITAL",
+    "RIGHT_ANALOG",
+    "RIGHT_ANALOG_DIGITAL",
+    "FRONT_TOUCH_ZONE",
+    "BACK_TOUCH_ZONE",
+    "FRONT_TOUCH_POINT",
+    "BACK_TOUCH_POINT",
+    "GYROSCOPE",
+    "REMAPSV",
+    "USYSACTIONS"
+};
+enum REMAP_ACTION_TYPE getActionTypeId(char* n){
+	for (int i = 0; i < REMAP_ACTION_TYPE_NUM; i++)
+		if (!strcmp(REMAP_ACTION_TYPE_STR[i], n)) 
+			return i;
+	return -1;
+}
+
+const char* REMAP_ACTION_STR[REMAP_ACTION_NUM] = {
+    "ANALOG_UP",
+    "ANALOG_DOWN",
+    "ANALOG_LEFT",
+    "ANALOG_RIGHT",
+    "TOUCH_ZONE_L",
+    "TOUCH_ZONE_R",
+    "TOUCH_ZONE_TL",
+    "TOUCH_ZONE_TR",
+    "TOUCH_ZONE_BL",
+    "TOUCH_ZONE_BR",
+    "TOUCH_CUSTOM",
+    "GYRO_UP",
+    "GYRO_DOWN",
+    "GYRO_LEFT",
+    "GYRO_RIGHT",
+    "GYRO_ROLL_LEFT",
+    "GYRO_ROLL_RIGHT"
+};
+enum REMAP_ACTION getActionId(char* n){
+	for (int i = 0; i < REMAP_ACTION_NUM; i++)
+		if (!strcmp(REMAP_ACTION_STR[i], n)) 
+			return i;
+	return -1;
+}
+
+enum REMAP_KEY{
+	REMAP_KEY_PROPAGATE = 0,
+	REMAP_KEY_DISABLED,
+	REMAP_KEY_TRIGGER_ACTION_TYPE,
+	REMAP_KEY_TRIGGER_ACTION,
+	REMAP_KEY_TRIGGER_BUTTONS,
+	REMAP_KEY_TRIGGER_TOUCH_ZONE,
+	REMAP_KEY_EMU_ACTION_TYPE,
+	REMAP_KEY_EMU_ACTION,
+	REMAP_KEY_EMU_BUTTONS,
+	REMAP_KEY_EMU_TOUCH_POINT,
+	REMAP_KEY__NUM
+};
+const char* REMAP_KEY_STR[REMAP_KEY__NUM] = {
+	"PROPAGATE",
+	"DISABLED",
+	"TRIGGER_ACTION_TYPE",
+	"TRIGGER_ACTION",
+	"TRIGGER_BUTTONS",
+	"TRIGGER_TOCUH_ZONE",
+	"EMU_ACTION_TYPE",
+	"EMU_ACTION",
+	"EMU_BUTTONS",
+	"EMU_TOUCH_POINT"
+};
+enum REMAP_KEY getRemapKeyId(char* n){
+	for (int i = 0; i < REMAP_KEY__NUM; i++)
+		if (!strcmp(REMAP_KEY_STR[i], n)) 
+			return i;
+	return -1;
+}
+
+const char*  HW_BUTTONS_STR[HW_BUTTONS_NUM] = {
+	"CROSS", 
+	"CIRCLE", 
+	"TRIANGLE", 
+	"SQUARE",
+	"START", 
+	"SELECT", 
+	"LTRIGGER", 
+	"RTRIGGER",
+	"UP", 
+	"RIGHT", 
+	"LEFT", 
+	"DOWN", 
+	"L1",
+	"R1", 
+	"L3", 
+	"R3", 
+	"VOLUP", 
+	"VOLDOWN", 
+	"POWER", 
+	"PS"
+};
+int getButtonId(char* n){
+	for (int i = 0; i < HW_BUTTONS_NUM; i++)
+		if (!strcmp(HW_BUTTONS_STR[i], n)) 
+			return i;
+	return -1;
+}
+
+const char* SETTINGS_STR[PROFILE_SETTINGS__NUM] = {
+	"PROFILE_SETTINGS_KEY1",
+	"PROFILE_SETTINGS_KEY2",
+	"PROFILE_SETTINGS_AUTOSAVE",
+	"PROFILE_SETTINGS_DELAY"
+};
+enum PROFILE_SETTINGS_ID getSettingsId(char* n){
+	for (int i = 0; i < PROFILE_SETTINGS__NUM; i++)
+		if (!strcmp(SETTINGS_STR[i], n)) 
+			return i;
+	return -1;
+}
 
 Profile profile;
 Profile profile_def;
 Profile profile_global;
 Profile profile_home;
-uint8_t profile_settings[PROFILE_SETTINGS_NUM];
-uint8_t profile_settings_def[PROFILE_SETTINGS_NUM];
 
-static char fname[128];
+int32_t profile_settings[PROFILE_SETTINGS_NUM];
+int32_t profile_settings_def[PROFILE_SETTINGS_NUM];
 
 void profile_addRemapRule(struct RemapRule ui_ruleEdited){
 	if (profile.remapsNum < (REMAP_NUM - 1)){
@@ -62,69 +261,338 @@ void profile_resetSettings(){
 		profile_settings[i] = profile_settings_def[i];
 }
 
-int readProfile(struct Profile* p, char* name){
+bool readFile(char* buff, int size, char* path, char* name, char* ext){
+	char fname[128];
+	sprintf(fname, "%s/%s.%s", path, name, ext);
 	SceUID fd;
-	int ret;
-
-	sprintf(fname, "%s/%s.%s", PATH, name, EXT);
-
-	// Just in case the folder doesn't exist
-	ret = ksceIoMkdir(PATH, 0777); 
-
-	// Loading config file for the selected app if exists
 	fd = ksceIoOpen(fname, SCE_O_RDONLY, 0777);
-	if (!fd) return 0;
-	ret = ksceIoRead(fd, p, sizeof(Profile));
-	if (ret < 0) return 0;
-	ksceIoClose(fd);
-	if (ret < 0) return -0;
-	return 1;
-}
-int writeProfile(struct Profile* p, char* name){
-	SceUID fd;
-	int ret;
-	// Just in case the folder doesn't exist
-	ksceIoMkdir(PATH, 0777); 
+	if (fd < 0)
+		return false;
+	ksceIoRead(fd, buff, size);
+	if (ksceIoClose(fd) < 0)
+		return false;
 	
-	// Opening remap config file and saving it
-	sprintf(fname, "%s/%s.%s", PATH, name, EXT);
-	fd = ksceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	if (!fd) return -0;
-	ret = ksceIoWrite(fd, p, sizeof(Profile));
-	if (ret < 0) return 0;
-	ret = ksceIoClose(fd);
-	if (ret < 0) return 0;
-	return 1;
+	return true;
 }
-int profile_saveSettings(){
-	int ret;
-	// Just in case the folder doesn't exist
+bool writeFile(char* buff, int size, char* path, char* name, char* ext){
+	//Create dir if not exists
 	ksceIoMkdir(PATH, 0777); 
-	
-	// Opening settings config file and saving the config
-	sprintf(fname, "%s/%s.%s", PATH, NAME_SETTINGS, EXT);
+
+    char fname[128];
+	sprintf(fname, "%s/%s.%s", PATH, name, EXT_INI);
 	SceUID fd = ksceIoOpen(fname, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
-	ret = ksceIoWrite(fd, profile_settings, PROFILE_SETTINGS_NUM);
-	if (ret < 0) return 0;
-	ret = ksceIoClose(fd);
-	if (ret < 0) return 0;
-	return 1;
+	if (fd < 0)
+		return false;
+	ksceIoWrite(fd, buff, size);
+	if (ksceIoClose(fd) < 0)
+		return false;
+
+	return true;
 }
-int profile_loadSettings(){
-	profile_resetSettings();
-	int ret;
-	// Just in case the folder doesn't exist
-	ksceIoMkdir(PATH, 0777); 
+
+bool generateINISettings(char* buff){
+	INI _ini = ini_create(buff, 99);
+	INI* ini = &_ini;
+
+	ini_addSection(ini, SECTION_STR[SECTION_SETTINGS]);
+	for (int i = 0; i < PROFILE_SETTINGS__NUM; i++)
+		ini_addInt(ini, SETTINGS_STR[i], profile_settings[i]);
+	return true;
+}
+bool generateINIProfile(Profile* p, char* buff){
+	INI _ini = ini_create(buff, 99);
+	INI* ini = &_ini;
+
+	//Profile 
+	ini_addSection(ini, SECTION_STR[SECTION_PROFILE]);
+	ini_addStr(ini, "NAME", titleid);
+	ini_addNL(ini);
+
+	//Analog
+	ini_addSection(ini, SECTION_STR[SECTION_ANALOG]);
+	for (int i = 0; i < PROFILE_ANALOG__NUM; i++)
+		ini_addInt(ini, ANALOG_STR[i], p->analog[i]);
+	ini_addNL(ini);
+
+	//Gyro
+	ini_addSection(ini, SECTION_STR[SECTION_GYRO]);
+	for (int i = 0; i < PROFILE_GYRO__NUM; i++)
+		ini_addInt(ini, GYRO_STR[i], p->gyro[i]);
+	ini_addNL(ini);
+
+	//Controller
+	ini_addSection(ini, SECTION_STR[SECTION_CONTROLLER]);
+	for (int i = 0; i < PROFILE_CONTROLLER__NUM; i++)
+		ini_addInt(ini, CONTROLLER_STR[i], p->controller[i]);
+	ini_addNL(ini);
+
+	//Remaps
+	for (int i = 0; i < p->remapsNum; i++){
+		struct RemapRule* r =  &p->remaps[i];
+		ini_append(ini, "\n[%s:%i]", SECTION_STR[SECTION_RULE],i);
+		ini_addBool(ini, REMAP_KEY_STR[REMAP_KEY_PROPAGATE], r->propagate);
+		ini_addBool(ini, REMAP_KEY_STR[REMAP_KEY_DISABLED], r->disabled);
+		
+		//Trigger
+		ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_TRIGGER_ACTION_TYPE], REMAP_ACTION_TYPE_STR[r->trigger.type]);
+		if (r->trigger.type == REMAP_TYPE_BUTTON){
+			ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_TRIGGER_BUTTONS]);
+			for (int i = 0; i < HW_BUTTONS_NUM; i++)
+				if (btn_has(r->trigger.param.btn, HW_BUTTONS[i]))
+					ini_addListStr(ini, HW_BUTTONS_STR[i]);
+		} else {
+			ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_TRIGGER_ACTION], REMAP_ACTION_STR[r->trigger.action]);
+			if (r->trigger.action == REMAP_TOUCH_CUSTOM){
+				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_TRIGGER_TOUCH_ZONE]);
+				ini_addListInt(ini, r->trigger.param.zone.a.x);
+				ini_addListInt(ini, r->trigger.param.zone.a.y);
+				ini_addListInt(ini, r->trigger.param.zone.b.x);
+				ini_addListInt(ini, r->trigger.param.zone.b.y);
+			}
+		} 
+
+		//Emu
+		ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_EMU_ACTION_TYPE], REMAP_ACTION_TYPE_STR[r->emu.type]);
+		if (r->emu.type == REMAP_TYPE_BUTTON) {
+			ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_BUTTONS]);
+			for (int i = 0; i < HW_BUTTONS_NUM; i++)
+				if (btn_has(r->emu.param.btn, HW_BUTTONS[i]))
+					ini_addListStr(ini, HW_BUTTONS_STR[i]);
+		} else {
+			ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_EMU_ACTION], REMAP_ACTION_STR[r->emu.action]);
+			if (r->emu.action == REMAP_TOUCH_CUSTOM){
+				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_POINT]);
+				ini_addListInt(ini, r->emu.param.touch.x);
+				ini_addListInt(ini, r->emu.param.touch.y);
+			}
+		}
+	}
+	return true;
+}
+bool parseINISettings(char* buff){
+	for (int i = 0; i < PROFILE_SETTINGS_NUM; i++)
+		profile_settings[i] = profile_settings_def[i];
 	
-	// Loading config file for the selected app if exists
-	sprintf(fname, "%s/%s.%s", PATH, NAME_SETTINGS, EXT);
-	SceUID fd = ksceIoOpen(fname, SCE_O_RDONLY, 0777);
-	if (!fd) return 0;
-	ret = ksceIoRead(fd, profile_settings, PROFILE_SETTINGS_NUM);
-	if (ret < 0) return 0;
-	ret = ksceIoClose(fd);
-	if (ret < 0) return 0;
-	return 1;
+	LOG("  SETTINGS : %li %li %li %li\n", 
+		profile_settings[0], 
+		profile_settings[1], 
+		profile_settings[2], 
+		profile_settings[3]);
+	INI_READER _ini = ini_read(buff);
+	INI_READER* ini = &_ini;
+
+	while(ini_nextEntry(ini)){
+		LOG(" SETT parsing: %s:%i\n", ini->val, parseInt(ini->val));
+		if (getSectionId(ini->section) != SECTION_SETTINGS)
+			continue;
+		LOG(" SETT section ok\n");
+		int id = getSettingsId(ini->name);
+		LOG(" SETT id: %i\n", id);
+		if (id < 0)
+			continue;
+		LOG(" SETT setting set entry %i\n", id);
+		profile_settings[id] = parseInt(ini->val);
+	}
+	return true;
+}
+bool parseINIProfile(Profile* p, char* buff){
+	p[0] = profile_def;
+
+	INI_READER _ini = ini_read(buff);
+	INI_READER* ini = &_ini;
+	// LOG("ini_read error: %i, %i, %s\n", ini.error, strlen(buff), buff);
+	while(ini_nextEntry(ini)){
+		int id = 0;
+		int ruleId = 0;
+		LOG("[%s, %s] : %s=%s\n", ini->section, ini->sectionAttr, ini->name, ini->val);
+		switch(getSectionId(ini->section)){
+			case SECTION_PROFILE:
+				//Nothing to read here
+				break;
+			case SECTION_ANALOG:
+				id = getAnalogId(ini->name);
+				if (id >= 0)
+					p->analog[id] = parseInt(ini->val);
+				break;
+			case SECTION_TOUCH:
+				//Nothing to read here
+				break;
+			case SECTION_GYRO:
+				id = getGyroId(ini->name);
+				if (id >= 0)
+					p->gyro[id] = parseInt(ini->val);
+				break;
+			case SECTION_CONTROLLER:
+				id = getControllerId(ini->name);
+				if (id >= 0)
+					p->gyro[id] = parseInt(ini->val);
+				break;
+			case SECTION_RULE:
+				ruleId = parseInt(ini->sectionAttr);
+				LOG("  RULE parsing started. ruleId = %i\n", ruleId);
+				if (ruleId >= REMAP_NUM)
+					continue;
+				if (ruleId + 1 > p->remapsNum)
+					p->remapsNum = ruleId + 1;
+				struct RemapRule* rr = &p->remaps[ruleId];
+				LOG("  RULE selecting entry for %s : %i\n", ini->name, getRemapKeyId(ini->name));
+				switch(getRemapKeyId(ini->name)){
+					case REMAP_KEY_PROPAGATE: rr->propagate = parseBool(ini->val); break;
+					case REMAP_KEY_DISABLED:  rr->disabled = parseBool(ini->val); break;
+					case REMAP_KEY_TRIGGER_ACTION_TYPE: 
+						id = getActionTypeId(ini->val);
+						if (id >= 0)
+							rr->trigger.type = id;
+						break;
+					case REMAP_KEY_TRIGGER_ACTION: 
+						id = getActionId(ini->val);
+						if (id >= 0)
+							rr->trigger.action = id;
+						break;
+					case REMAP_KEY_TRIGGER_BUTTONS: 
+						LOG("  RULE case REMAP_KEY_TRIGGER_BUTTONS: \n");
+						while(ini_nextListVal(ini)){
+							int btnId = getButtonId(ini->listVal);
+							LOG("  RULE ini_nextListVal(ini): %s : %i |\n", ini->listVal, btnId);
+							if (btnId >= 0)
+								btn_add(&rr->trigger.param.btn, HW_BUTTONS[btnId]);
+						}
+						break;
+					case REMAP_KEY_TRIGGER_TOUCH_ZONE: 
+						rr->trigger.param.zone.a.x = parseInt(ini_nextListVal(ini));
+						rr->trigger.param.zone.a.y = parseInt(ini_nextListVal(ini));
+						rr->trigger.param.zone.b.x = parseInt(ini_nextListVal(ini));
+						rr->trigger.param.zone.b.y = parseInt(ini_nextListVal(ini));
+						break;
+					case REMAP_KEY_EMU_ACTION_TYPE: 
+						id = getActionTypeId(ini->val);
+						if (id >= 0)
+							rr->emu.type = id;
+						break;
+					case REMAP_KEY_EMU_ACTION: 
+						id = getActionId(ini->val);
+						if (id >= 0)
+							rr->emu.action = id;
+						break;
+					case REMAP_KEY_EMU_BUTTONS:
+						LOG("  RULE case REMAP_KEY_EMU_BUTTONS: \n");
+						while(ini_nextListVal(ini)){
+							int btnId = getButtonId(ini->listVal);
+							LOG("  RULE ini_nextListVal(ini): %s : %i |\n", ini->listVal, btnId);
+							if (btnId >= 0)
+								btn_add(&rr->emu.param.btn, HW_BUTTONS[btnId]);
+						}
+						break;
+					case REMAP_KEY_EMU_TOUCH_POINT:
+						rr->trigger.param.touch.x = parseInt(ini_nextListVal(ini));
+						rr->trigger.param.touch.y = parseInt(ini_nextListVal(ini));
+						break;
+					default: LOG("  RULE unknown key: %s : %i\n", ini->name, getRemapKeyId(ini->name)); break;
+				}
+				break;
+			default : LOG("Cannot read\n"); break;
+		}
+		LOG("  RULE:: DONE\n");
+	}
+	return true;
+}
+
+bool readProfile(Profile* p, char* name){
+	char* buff;
+	bool ret = false;
+
+    //Mem allocation for buffer
+	SceUID buff_uid  = ksceKernelAllocMemBlock("RemaPSV2_INI_R", 
+		SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, BUFFER_SIZE, NULL);
+	if (buff_uid < 0) 
+		return false;
+    if (ksceKernelGetMemBlockBase(buff_uid, (void**)&buff) != 0)
+		goto ERROR;
+
+	//Read file to buffer
+	if (!readFile(buff, BUFFER_SIZE, PATH, name, EXT_INI))
+		goto ERROR;
+
+	// Parse INI
+	ret = parseINIProfile(p, buff);
+	
+ERROR: //Free mem and quit
+	ksceKernelFreeMemBlock(buff_uid);
+	return ret;
+}
+bool writeProfile(Profile* p, char* name){
+	bool ret = false;
+	char* buff;
+	
+    //Mem allocation
+	SceUID buff_uid  = ksceKernelAllocMemBlock("RemaPSV2_INI_W", 
+		SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, BUFFER_SIZE, NULL);
+	if (buff_uid < 0) 
+		return false;
+    if (ksceKernelGetMemBlockBase(buff_uid, (void**)&buff) != 0)
+		goto ERROR;
+
+	//Generate INI into buffer
+	if (!generateINIProfile(p, buff))
+		goto ERROR;
+
+	//Write to file
+	ret = writeFile(buff, strlen(buff), PATH, name, EXT_INI);
+
+ERROR: //Free allocated memory
+	ksceKernelFreeMemBlock(buff_uid);
+	return ret;
+}
+
+bool profile_loadSettings(){
+	char* buff;
+	bool ret = false;
+	profile_resetSettings();
+
+    //Mem allocation for buffer
+	SceUID buff_uid  = ksceKernelAllocMemBlock("RemaPSV2_INI_R", 
+		SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, BUFFER_SIZE_SETTINGS, NULL);
+	if (buff_uid < 0) 
+		return false;
+    if (ksceKernelGetMemBlockBase(buff_uid, (void**)&buff) != 0)
+		goto ERROR;
+	LOG(" SETT: mem alloc done\n");log_flush();
+	//Read file to buffer
+	if (!readFile(buff, BUFFER_SIZE, PATH, NAME_SETTINGS, EXT_INI))
+		goto ERROR;
+	LOG(" SETT: read file\n");log_flush();
+
+	// Parse INI
+	ret = parseINISettings(buff);
+	LOG(" SETT: parsed file\n");log_flush();
+	
+ERROR: //Free mem and quit
+	LOG(" SETT: Freeing memory and we done\n");log_flush();
+	ksceKernelFreeMemBlock(buff_uid);
+	return ret;
+}
+bool profile_saveSettings(){
+	bool ret = false;
+	char* buff;
+	
+    //Mem allocation
+	SceUID buff_uid  = ksceKernelAllocMemBlock("RemaPSV2_INI_W", 
+		SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, BUFFER_SIZE, NULL);
+	if (buff_uid < 0) 
+		return false;
+    if (ksceKernelGetMemBlockBase(buff_uid, (void**)&buff) != 0)
+		goto ERROR;
+
+	//Generate INI into buffer
+	if (!generateINISettings(buff))
+		goto ERROR;
+	
+	//Write to file
+	ret = writeFile(buff, strlen(buff), PATH, NAME_SETTINGS, EXT_INI);
+
+ERROR: //Free allocated memory
+	ksceKernelFreeMemBlock(buff_uid);
+	return ret;
 }
 
 int profile_save(char* titleId) {
@@ -140,9 +608,8 @@ int profile_saveHome() {
 }
 
 int profile_load(char* titleId) {
-	if (readProfile(&profile, titleId)){
+	if (readProfile(&profile, titleId))
 		return 1;
-	}
 	profile = profile_global;
 	return -1;
 }
@@ -228,8 +695,15 @@ void profile_init(){
 		profile_saveHome();
 	}
 	profile = profile_home;
-	profile_loadSettings();
+	if (!profile_loadSettings()){
+		LOG(" ERROR loading settings");
+	}
+	LOG("  SETTINGS : %li %li %li %li\n", 
+		profile_settings[0], 
+		profile_settings[1], 
+		profile_settings[2], 
+		profile_settings[3]);
+	log_flush();
 }
 void profile_destroy(){
-	
 }
