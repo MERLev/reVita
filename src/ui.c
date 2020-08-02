@@ -214,6 +214,7 @@ static struct Menu menu_credits = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_CREDITS_NUM, 
 	.name = "CREDITS", 
+	.noIndent = true,
 	.onDraw = onDraw_credits,
 	.entries = menu_credits_entries};
 

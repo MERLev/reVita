@@ -162,10 +162,10 @@ void addEmuFromGyro(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emust
 void applyRemap(SceCtrlData *ctrl) {
 	// Gathering real touch data
 	SceTouchData front, back;
-	isInternalTouchCall = 1;
+	isInternalTouchCall = true;
 	int frontRet = ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
 	int backRet = ksceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
-	isInternalTouchCall = 0;
+	isInternalTouchCall = false;
 
 	uint32_t btns = ctrl->buttons;
 	uint32_t propBtns = ctrl->buttons; //Propagated buttons
