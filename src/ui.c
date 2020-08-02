@@ -29,7 +29,7 @@ static struct Menu menu_main = (Menu){
 	.id = MENU_MAIN_ID, 
 	.num = MENU_MAIN_NUM, 
 	.name = "$P MAIN MENU",
-	.footer = "$X$S$T$C$;$:$^$v$<$>$[${$,$]$}$.$p$P$+$-",
+	.footer = "                       updated by Mer1e",
 	.onButton = onButton_main,
 	.entries = menu_main_entries};
 
@@ -231,7 +231,7 @@ static struct Menu menu_credits = (Menu){
 	.onDraw = onDraw_credits,
 	.entries = menu_credits_entries};
 
-#define MENU_PICK_BUTTON_NUM 20
+#define MENU_PICK_BUTTON_NUM 21
 static struct MenuEntry menu_pick_button_entries[MENU_PICK_BUTTON_NUM];
 static struct Menu menu_pick_button = (Menu){
 	.id = MENU_PICK_BUTTON_ID, 

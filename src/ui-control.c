@@ -9,8 +9,8 @@
 #include "common.h"
 #include "log.h"
 
-#define LONG_PRESS_TIME   	400*1000	//0.400sec
-#define REPEAT_TIME   		 80*1000	//0.080sec
+#define DELAY_LONGPRESS   	400*1000	//0.400 sec
+#define DELAY_REPEAT   		 70*1000	//0.070 sec
 
 typedef struct BtnInfo{
 	uint32_t btn;
@@ -453,7 +453,7 @@ void ctrl_onInput(SceCtrlData *ctrl) {
 		if (btn_has(ctrl->buttons, HW_BUTTONS[i])){
 			if (btns[i].isPressed){
 				if (btns[i].isLongPressed){
-					if (tick > btns[i].tickLastRepeat + REPEAT_TIME){
+					if (tick > btns[i].tickLastRepeat + DELAY_REPEAT){
 						btns[i].tickLastRepeat = tick;
 						//OnLongPress event
 						if (ui_menu->onButton)
@@ -462,7 +462,7 @@ void ctrl_onInput(SceCtrlData *ctrl) {
 							onButton_generic(HW_BUTTONS[i]);
 					}
 				} else {
-					if (tick > btns[i].tickOnPress + LONG_PRESS_TIME){
+					if (tick > btns[i].tickOnPress + DELAY_LONGPRESS){
 						btns[i].isLongPressed = true;
 						btns[i].tickLastRepeat = btns[i].tickOnPress;
 						//OnLongPressStart event

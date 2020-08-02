@@ -189,7 +189,8 @@ const char*  HW_BUTTONS_STR[HW_BUTTONS_NUM] = {
 	"VOLUP", 
 	"VOLDOWN", 
 	"POWER", 
-	"PS"
+	"PS",
+	"TOUCHPAD"
 };
 int getButtonId(char* n){
 	for (int i = 0; i < HW_BUTTONS_NUM; i++)

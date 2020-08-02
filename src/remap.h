@@ -67,7 +67,7 @@ typedef struct RemapRule{
 	uint8_t disabled;
 }Rule;
 
-#define HW_BUTTONS_NUM    20 // Supported physical buttons num
+#define HW_BUTTONS_NUM    21 // Supported physical buttons num
 const uint32_t HW_BUTTONS[HW_BUTTONS_NUM];
 TouchPoint T_FRONT_SIZE;
 TouchPoint T_BACK_SIZE;

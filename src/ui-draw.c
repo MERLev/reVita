@@ -34,20 +34,21 @@ static uint32_t ticker;
 static uint32_t menuY = 0;
 
 const char* str_btn_small[HW_BUTTONS_NUM] = {
-	"$X", "$C", "$T", "$S", "$;", "$:", "$[", "$]", 
+	"$X", "$C", "$T", "$S", "$:", "$;", "$[", "$]", 
 	"$^", "$>", "$<", "$v", "${", "$}", "$(", "$)", 
-	"$+", "$-", "$p", "$P"
+	"$+", "$-", "$p", "$P", "$t"
 };
 static const char* str_yes_no[] = {
 	"No", "Yes"
 };
 static const char* str_btns[HW_BUTTONS_NUM] = {
 	"$X Cross", "$C Circle", "$T Triangle", "$S Square",
-	"$; Start", "$: Select", 
+	"$: Start", "$; Select", 
 	"$[ LT/L2", "$] RT/R2",
 	"$^ Up", "$> Right", "$< Left", "$v Down", 
 	"${ L1", "$} R1", "$, L3", "$. R3",
-	"$+ Volume UP", "$- Volume DOWN", "$p POWER", "$P PS"
+	"$+ Volume UP", "$- Volume DOWN", "$p POWER", "$P PS",
+	"$t DS4 Touchpad"
 };
 static char* str_deadband[] = {
 	"Game default", "Enable", "Disable"

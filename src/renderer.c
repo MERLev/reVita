@@ -75,6 +75,9 @@ void renderer_drawIcon(char character, int x, int y){
 		case 's': idx = ICON_GY_DOWN; break;
 		case 'Q': idx = ICON_GY_ROLLLEFT; break;
 		case 'E': idx = ICON_GY_ROLLRIGHT; break;
+		case 'o': idx = ICON_PSV_LEFT; break;
+		case 'O': idx = ICON_PSV_RIGHT; break;
+		case 't': idx = ICON_BTN_DS4TOUCH; break;
 		default: break;
 	}
 	renderer_drawImage(x + 1, y, ICON_W, ICON_H, &ICON[idx * 54]);
