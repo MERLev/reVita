@@ -19,6 +19,7 @@ void onDraw_pickTouchZone();
 void onDraw_gyro();
 void onDraw_controller();
 void onDraw_hooks();
+void onDraw_debugButtons();
 void onDraw_settings();
 void onDraw_profiles();
 void onDraw_credits();

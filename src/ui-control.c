@@ -55,6 +55,13 @@ void onInput_touchPicker(SceCtrlData *ctrl){
 		analogTouchPicker(tpB, ctrl, port == SCE_TOUCH_PORT_FRONT, 1);
 	}
 }
+void onInput_debugButtons(SceCtrlData *ctrl){
+	ui_menu->data = (int32_t)ctrl;
+}
+
+void onButton_null(uint32_t btn){
+	//Do nothing
+}
 
 void onButton_generic(uint32_t btn){
 	switch (btn) {

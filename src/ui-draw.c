@@ -416,6 +416,79 @@ void onDraw_hooks(){
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, 
 			((float)ui_menu->idx)/(ui_menu->num - (ui_lines - 1) - 1));
 }
+void onDraw_debugButtons(){
+	uint32_t arr[16] = {
+		0x00010000,
+		0x00020000,
+		0x00040000,
+		0x00080000,
+		0x00100000,
+		0x00200000,
+		0x00400000,
+		0x00800000,
+		0x01000000,
+		0x02000000,
+		0x04000000,
+		0x08000000,
+		0x10000000,
+		0x20000000,
+		0x40000000,
+		0x80000000
+	};
+	SceCtrlData ctrl;
+	isInternalExtCall = 1;
+	int ret = ksceCtrlPeekBufferPositive(profile.controller[1], &ctrl, 1);
+	isInternalExtCall = 0;
+    int y = menuY;
+    int x = L_1;
+	// SceCtrlData* ctrl = (SceCtrlData*)ui_menu->data;
+	unsigned int buttons = ctrl.buttons;
+	if (ret < 1){
+		renderer_setColor(COLOR_DANGER);
+		renderer_drawString(L_1, y += CHA_H, "ERROR READING INPUT");
+		return;
+	}
+	y += CHA_H;
+	for(int i = 0; i < 16; i++){
+		if (i == 8){
+			y += CHA_H;
+			x = L_1;
+		}
+		setColor(0, !btn_has(buttons, HW_BUTTONS[i]));
+		renderer_drawString(x += CHA_W*4, y, str_btn_small[i]);
+	}
+    x = L_1;
+	y+= CHA_H;
+	for(int i = 0; i < 16; i++){
+		if (i == 8){
+			y += CHA_H;
+			x = L_1;
+		}
+		setColor(0, !btn_has(buttons, arr[i]));
+		switch (arr[i]){
+			case SCE_CTRL_PSBUTTON: renderer_drawString(x += CHA_W*4, y, "$P");break;
+			case SCE_CTRL_POWER: renderer_drawStringF(x += CHA_W*4, y, "$p");break;
+			case SCE_CTRL_VOLUP: renderer_drawStringF(x += CHA_W*4, y, "$+");break;
+			case SCE_CTRL_VOLDOWN: renderer_drawStringF(x += CHA_W*4, y, "$-");break;
+			default: renderer_drawStringF(x += CHA_W*4, y, "%i", i); break;
+		}
+	}
+	// y+= CHA_H;
+	renderer_setColor(COLOR_DEFAULT);
+	renderer_drawStringF(L_1, y += CHA_H, "LT: %i,  RT: %i", 
+		ctrl.lt, ctrl.rt);
+	renderer_drawStringF(L_1, y += CHA_H, "reserved0 : [%i, %i, %i, %i]", 
+		ctrl.reserved0[0], ctrl.reserved0[1], ctrl.reserved0[2], ctrl.reserved0[3]);
+	renderer_drawStringF(L_1, y += CHA_H, "reserved1 : [%i, %i, %i, %i, %i,", 
+		ctrl.reserved1[0], ctrl.reserved1[1], ctrl.reserved1[2], ctrl.reserved1[3], ctrl.reserved1[4]);
+	renderer_drawStringF(L_1, y += CHA_H, "             %i, %i, %i, %i, %i]", 
+		ctrl.reserved1[5], ctrl.reserved1[6], ctrl.reserved1[7], ctrl.reserved1[8], ctrl.reserved1[9]);
+	renderer_drawStringF(L_1, y += CHA_H, "Analogs : [%i, %i] [%i, %i]", 
+		ctrl.lx, ctrl.ly, ctrl.rx, ctrl.ry);
+	renderer_drawStringF(L_1, y += CHA_H, "Timestamp: %lli", 
+		ctrl.timeStamp);
+
+}
 void onDraw_settings(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num , ui_lines, BOTTOM_OFFSET);

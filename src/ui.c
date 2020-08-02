@@ -13,14 +13,15 @@ Menu* menus[MENU_ID__NUM];
 
 void onBuild_remap(Menu* m);
 
-#define MENU_MAIN_NUM 9
+#define MENU_MAIN_NUM 10
 static struct MenuEntry menu_main_entries[MENU_MAIN_NUM] = {
 	(MenuEntry){.name = "$X Remap rules", .data = MENU_REMAP_ID},
 	(MenuEntry){.name = "$U Analog sticks", .data = MENU_ANALOG_ID},
 	(MenuEntry){.name = "$F Touch", .data = MENU_TOUCH_ID},
 	(MenuEntry){.name = "$Q Gyroscope", .data = MENU_GYRO_ID},
 	(MenuEntry){.name = "   External gamepads", .data = MENU_CONTROLLER_ID},
-	(MenuEntry){.name = "   Show hooks", .data = MENU_HOKS_ID},
+	(MenuEntry){.name = "[D]Show hooks", .data = MENU_HOKS_ID},
+	(MenuEntry){.name = "[D]Show buttons", .data = MENU_DEBUG_BUTTONS_ID},
 	(MenuEntry){.name = "   Settings", .data = MENU_SETTINGS_ID},
 	(MenuEntry){.name = "   Profiles", .data = MENU_PROFILE_ID},
 	(MenuEntry){.name = "   Credits", .data = MENU_CREDITS_ID},};
@@ -189,6 +190,18 @@ static struct Menu menu_hooks = (Menu){
 	.noIndent = true,
 	.onDraw = onDraw_hooks,
 	.entries = menu_hooks_entries};
+
+#define MENU_DEBUG_BUTTONS_NUM			4
+static struct MenuEntry menu_debug_buttons_entries[MENU_DEBUG_BUTTONS_NUM];
+static struct Menu menu_debug_buttons = (Menu){
+	.id = MENU_DEBUG_BUTTONS_ID, 
+	.parent = MENU_MAIN_ID,
+	.num = MENU_DEBUG_BUTTONS_NUM, 
+	.name = "BUTTONS INFO", 
+	.noIndent = true,
+	.onDraw = onDraw_debugButtons,
+	.onInput = onInput_debugButtons,
+	.entries = menu_debug_buttons_entries};
 
 #define MENU_CREDITS_NUM			16
 static struct MenuEntry menu_credits_entries[MENU_CREDITS_NUM] = {
@@ -449,6 +462,7 @@ void registerMenus(){
 	registerMenu(&menu_settings);
 	registerMenu(&menu_credits);
 	registerMenu(&menu_hooks);
+	registerMenu(&menu_debug_buttons);
 	registerMenu(&menu_analog);
 	registerMenu(&menu_profiles);
 

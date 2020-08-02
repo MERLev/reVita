@@ -4,7 +4,9 @@
 
 
 void onInput_touchPicker(SceCtrlData *ctrl);
+void onInput_debugButtons(SceCtrlData *ctrl);
 
+void onButton_null(uint32_t btn);
 void onButton_generic(uint32_t btn);
 void onButton_main(uint32_t btn);
 void onButton_analog(uint32_t btn);
