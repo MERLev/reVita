@@ -371,14 +371,10 @@ void applyRemap(SceCtrlData *ctrl) {
 	}
 
 	//Storing remap for analog axises
-	if (eSticks[0].left || eSticks[0].right)
-		ctrl->lx = clamp(127  + eSticks[0].right- eSticks[0].left, 0, 255);
-	if (eSticks[0].up || eSticks[0].down)
-		ctrl->ly = clamp(127 + eSticks[0].down - eSticks[0].up, 0, 255);
-	if (eSticks[1].left || eSticks[1].right)
-		ctrl->rx = clamp(127 + eSticks[1].right - eSticks[1].left, 0, 255);
-	if (eSticks[1].up || eSticks[1].down)
-		ctrl->ry = clamp(127 + eSticks[1].down - eSticks[1].up, 0, 255);
+	ctrl->lx = clamp(127  + eSticks[0].right- eSticks[0].left, 0, 255);
+	ctrl->ly = clamp(127 + eSticks[0].down - eSticks[0].up, 0, 255);
+	ctrl->rx = clamp(127 + eSticks[1].right - eSticks[1].left, 0, 255);
+	ctrl->ry = clamp(127 + eSticks[1].down - eSticks[1].up, 0, 255);
 
 	//Telling that new emulated touch buffer is ready to be takn
 	newEmulatedFrontTouchBuffer = true;
