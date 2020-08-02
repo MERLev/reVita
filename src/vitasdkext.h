@@ -1,5 +1,6 @@
 #ifndef _VITASDKEXT_H_
 #define _VITASDKEXT_H_
+#include <psp2/touch.h>
 typedef enum SceCtrlButtonsExt {
     SCE_CTRL_TOUCHPAD    = 0x04000000             //!< Dualshock 4 Touchpad button
 } SceCtrlButtonsExt;

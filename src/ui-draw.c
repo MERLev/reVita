@@ -1,4 +1,5 @@
 #include <vitasdkkern.h>
+#include "vitasdkext.h"
 #include <inttypes.h>
 #include "main.h"
 #include "renderer.h"
@@ -265,15 +266,6 @@ void onDraw_analog(){
 			setColor(i == ui_menu->idx, profile.analog[id] == profile_def.analog[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %hhu", 
 					ui_menu->entries[i].name, profile.analog[id]);
-		} else {
-			setColor(i == ui_menu->idx, profile.analog[id] == profile_def.analog[id]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", 
-					ui_menu->entries[i].name, str_yes_no[profile.analog[id]]);
-		}
-
-		if (ui_menu->idx == i){//Draw cursor
-			renderer_setColor(COLOR_CURSOR);
-			renderer_drawString(L_2 + 17*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num-1));
@@ -287,19 +279,10 @@ void onDraw_touch(){
 		if (ui_menu->entries[i].type == HEADER_TYPE){
 			setColorHeader(ui_menu->idx == i);
 			renderer_drawString(L_1, y+=CHA_H, ui_menu->entries[i].name);
-		} else if (id == 16 || id == 17){
+		} else if (id == 0){
 			setColor(i == ui_menu->idx, profile.touch[id] == profile_def.touch[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", 
 					ui_menu->entries[i].name, str_yes_no[profile.touch[id]]);
-		} else{
-			setColor(i == ui_menu->idx, profile.touch[id] == profile_def.touch[id]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", 
-					ui_menu->entries[i].name, profile.touch[id]);
-		}
-
-		if (ui_menu->idx == i){//Draw cursor
-			renderer_setColor(COLOR_CURSOR);
-			renderer_drawString(L_2+ 20*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
@@ -312,12 +295,7 @@ void onDraw_pickTouchPoint(){
 		int32_t id = ui_menu->entries[i].data;
 		int coord = (id == 0) ? ra->param.touch.x : ra->param.touch.y;
 		setColor(i == ui_menu->idx, 1);
-		//LOG("%i", coord);
 		renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", ui_menu->entries[i].name, coord);
-		if (ui_menu->idx == i){//Draw cursor
-			renderer_setColor(COLOR_CURSOR);
-			renderer_drawString(L_2+ 20*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
-		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
 }
@@ -335,11 +313,6 @@ void onDraw_pickTouchZone(){
 			case 3: coord = ra->param.zone.b.y; break;}
 		setColor(i == ui_menu->idx, 1);
 		renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", ui_menu->entries[i].name, coord);
-
-		if (ui_menu->idx == i){//Draw cursor
-			renderer_setColor(COLOR_CURSOR);
-			renderer_drawString(L_2+ 20*CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
-		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
 }
@@ -361,11 +334,6 @@ void onDraw_gyro(){
 		} else if (id == 7) {//Draw wheel option
 			setColor(i == ui_menu->idx, profile.gyro[id] == profile_def.gyro[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", ui_menu->entries[i].name, str_yes_no[profile.gyro[id]]);
-		}
-
-		if (ui_menu->idx == i) {//Draw cursor
-			renderer_setColor(COLOR_CURSOR);
-			renderer_drawString(L_2 + 11 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx)/(ui_menu->num-1));
@@ -390,11 +358,6 @@ void onDraw_controller(){
 		else if (id == 1){//Port selection
 			renderer_drawStringF(L_1, y += CHA_H, "%s: {%i} %s", ui_menu->entries[i].name, profile.controller[id],
 					getControllerName(pi.port[profile.controller[1]]));
-		}
-
-		if (ui_menu->idx == i) {//Draw cursor
-			renderer_setColor(COLOR_CURSOR);
-			renderer_drawString(L_1 + 20 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
 
@@ -449,6 +412,8 @@ void onDraw_debugButtons(){
 		renderer_drawString(L_1, y += CHA_H, "ERROR READING INPUT");
 		return;
 	}
+	renderer_setColor(COLOR_DEFAULT);
+	renderer_drawStringF(L_1, y += CHA_H, "Port: {%i}", profile.controller[1]);
 	y += CHA_H;
 	for(int i = 0; i < 16; i++){
 		if (i == 8){
@@ -471,14 +436,13 @@ void onDraw_debugButtons(){
 			case SCE_CTRL_POWER: renderer_drawStringF(x += CHA_W*4, y, "$p");break;
 			case SCE_CTRL_VOLUP: renderer_drawStringF(x += CHA_W*4, y, "$+");break;
 			case SCE_CTRL_VOLDOWN: renderer_drawStringF(x += CHA_W*4, y, "$-");break;
+			case SCE_CTRL_TOUCHPAD: renderer_drawStringF(x += CHA_W*4, y, "$t");break;
 			default: renderer_drawStringF(x += CHA_W*4, y, "%i", i); break;
 		}
 	}
-	// y+= CHA_H;
 	renderer_setColor(COLOR_DEFAULT);
-	renderer_drawStringF(L_1, y += CHA_H, "LT: %i,  RT: %i", 
-		ctrl.lt, ctrl.rt);
-	renderer_drawStringF(L_1, y += CHA_H, "reserved0 : [%i, %i, %i, %i]", 
+	renderer_drawStringF(L_1, y += CHA_H, "LT: %i, RT: %i, reserved0 : [%i, %i, %i, %i]", 
+		ctrl.lt, ctrl.rt,
 		ctrl.reserved0[0], ctrl.reserved0[1], ctrl.reserved0[2], ctrl.reserved0[3]);
 	renderer_drawStringF(L_1, y += CHA_H, "reserved1 : [%i, %i, %i, %i, %i,", 
 		ctrl.reserved1[0], ctrl.reserved1[1], ctrl.reserved1[2], ctrl.reserved1[3], ctrl.reserved1[4]);
@@ -503,11 +467,6 @@ void onDraw_settings(){
 			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", ui_menu->entries[i].name, str_yes_no[profile_settings[id]]);
 		} else if (id == 3) {//Startup delay
 			renderer_drawStringF(L_1, y += CHA_H, "%s: %hhu", ui_menu->entries[i].name, profile_settings[id]);
-		}
-
-		if (ui_menu->idx == i) {//Draw cursor
-			renderer_setColor(COLOR_CURSOR);
-			renderer_drawString(L_1 + 23 * CHA_W, y, (ticker % 16 < 8) ? "<" : ">");
 		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num-1));
@@ -553,7 +512,6 @@ void drawTouchZone(uint32_t panel, TouchZone* tz){
 	drawTouchPointer(panel, &(TouchPoint){.x = tz->a.x, .y = tz->a.y});
 	drawTouchPointer(panel, &(TouchPoint){.x = tz->b.x, .y = tz->b.y});
 }
-
 
 void drawBody() {
 	renderer_drawRectangle(0, HEADER_HEIGHT, UI_WIDTH, UI_HEIGHT -  2 * HEADER_HEIGHT, COLOR_BG_BODY);//BG

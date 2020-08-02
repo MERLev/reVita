@@ -51,33 +51,16 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 		//ToDo
         //sceMotionReset();		
 	}
-    
-	// //Checking for menu triggering
-	// if (!ui_opened 
-	// 		&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_settings[0]]) 
-	// 		&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_settings[1]])) {
-	// 	remap_resetCtrlBuffers(hookId);
-	// 	ui_open();
-	// }
-
-	// //In-menu inputs handling
-	// if (ui_opened){
-	// 	ui_onInput(&ctrl[nBufs - 1]);
-		
-	// 	//Nullify all inputs
-	// 	for (int i = 0; i < nBufs; i++)
-	// 		ctrl[i].buttons = 0;
-		
-	// 	return nBufs;
-	// }
 
 	//In-menu inputs handling
 	if (ui_opened){
 		// ui_onInput(&ctrl[nBufs - 1]);
 		
 		//Nullify all inputs
-		for (int i = 0; i < nBufs; i++)
+		for (int i = 0; i < nBufs; i++){
 			ctrl[i].buttons = 0;
+            ctrl[i].lx = ctrl[i].ly = ctrl[i].rx = ctrl[i].ry = 127;
+        }
 		
 		return nBufs;
 	}
@@ -300,7 +283,7 @@ static int main_thread(SceSize args, void *argp) {
         }
 
         SceCtrlData ctrl;
-        if(ksceCtrlPeekBufferPositive(profile.controller[1], &ctrl, 1) < 1){
+        if(ksceCtrlPeekBufferPositive(0, &ctrl, 1) < 1){
             ksceKernelDelayThread(30 * 1000);
             continue;
         }

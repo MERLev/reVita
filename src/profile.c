@@ -46,15 +46,21 @@ const char* ANALOG_STR[PROFILE_ANALOG__NUM] = {
 	"LEFT_DEADZONE_X",
 	"LEFT_DEADZONE_Y",
 	"RIGHT_DEADZONE_X",
-	"RIGHT_DEADZONE_Y",
-	"LEFT_DIGITAL_X",
-	"LEFT_DIGITAL_Y",
-	"RIGHT_DIGITAL_X",
-	"RIGHT_DIGITAL_Y",
+	"RIGHT_DEADZONE_Y"
 };
 enum PROFILE_ANALOG_ID getAnalogId(char* n){
 	for (int i = 0; i < PROFILE_ANALOG__NUM; i++)
 		if (!strcmp(ANALOG_STR[i], n)) 
+			return i;
+	return -1;
+}
+
+const char* TOUCH_STR[PROFILE_TOUCH__NUM] = {
+	"SWAP"
+};
+enum PROFILE_TOUCH_ID getTouchId(char* n){
+	for (int i = 0; i < PROFILE_TOUCH__NUM; i++)
+		if (!strcmp(TOUCH_STR[i], n)) 
 			return i;
 	return -1;
 }
@@ -313,6 +319,12 @@ bool generateINIProfile(Profile* p, char* buff){
 		ini_addInt(ini, ANALOG_STR[i], p->analog[i]);
 	ini_addNL(ini);
 
+	//Touch
+	ini_addSection(ini, SECTION_STR[SECTION_TOUCH]);
+	for (int i = 0; i < PROFILE_TOUCH__NUM; i++)
+		ini_addInt(ini, TOUCH_STR[i], p->analog[i]);
+	ini_addNL(ini);
+
 	//Gyro
 	ini_addSection(ini, SECTION_STR[SECTION_GYRO]);
 	for (int i = 0; i < PROFILE_GYRO__NUM; i++)
@@ -403,7 +415,9 @@ bool parseINIProfile(Profile* p, char* buff){
 					p->analog[id] = parseInt(ini->val);
 				break;
 			case SECTION_TOUCH:
-				//Nothing to read here
+				id = getTouchId(ini->name);
+				if (id >= 0)
+					p->touch[id] = parseInt(ini->val);
 				break;
 			case SECTION_GYRO:
 				id = getGyroId(ini->name);
@@ -617,29 +631,8 @@ void setDefProfile(){
 	profile_def.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y] = 30;
 	profile_def.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X] = 30;
 	profile_def.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y] = 30;
-	profile_def.analog[PROFILE_ANALOG_LEFT_DIGITAL_X] = 0;
-	profile_def.analog[PROFILE_ANALOG_LEFT_DIGITAL_Y] = 0;
-	profile_def.analog[PROFILE_ANALOG_RIGHT_DIGITAL_X] = 0;
-	profile_def.analog[PROFILE_ANALOG_RIGHT_DIGITAL_Y] = 0;
 
-	profile_def.touch[PROFILE_TOUCH_FRONT_POINT1_X] = 600;
-	profile_def.touch[PROFILE_TOUCH_FRONT_POINT1_Y] = 272;
-	profile_def.touch[PROFILE_TOUCH_FRONT_POINT2_X] = 1280;
-	profile_def.touch[PROFILE_TOUCH_FRONT_POINT2_Y] = 272;
-	profile_def.touch[PROFILE_TOUCH_FRONT_POINT3_X] = 600;
-	profile_def.touch[PROFILE_TOUCH_FRONT_POINT3_Y] = 816;
-	profile_def.touch[PROFILE_TOUCH_FRONT_POINT4_X] = 1280;
-	profile_def.touch[PROFILE_TOUCH_FRONT_POINT4_Y] = 816;
-	profile_def.touch[PROFILE_TOUCH_BACK_POINT1_X] = 600;
-	profile_def.touch[PROFILE_TOUCH_BACK_POINT1_Y] = 272;
-	profile_def.touch[PROFILE_TOUCH_BACK_POINT2_X] = 1280;
-	profile_def.touch[PROFILE_TOUCH_BACK_POINT2_Y] = 272;
-	profile_def.touch[PROFILE_TOUCH_BACK_POINT3_X] = 600;
-	profile_def.touch[PROFILE_TOUCH_BACK_POINT3_Y] = 608;
-	profile_def.touch[PROFILE_TOUCH_BACK_POINT4_X] = 1280;
-	profile_def.touch[PROFILE_TOUCH_BACK_POINT4_Y] = 608;
-	profile_def.touch[PROFILE_TOUCH_FRONT_DISABLE] = 1;
-	profile_def.touch[PROFILE_TOUCH_BACK_DISABLE] = 1;
+	profile_def.touch[PROFILE_TOUCH_SWAP] = 0;
 
 	profile_def.gyro[PROFILE_GYRO_SENSIVITY_X] = 127;
 	profile_def.gyro[PROFILE_GYRO_SENSIVITY_Y] = 127;

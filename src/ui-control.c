@@ -93,8 +93,7 @@ void onButton_analog(uint32_t btn){
 	int8_t id = ui_entry->data;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
-			if (id < 4) profile.analog[id] = (profile.analog[id] + 1) % 128;
-			else profile.analog[id] = !profile.analog[id];
+			profile.analog[id] = (profile.analog[id] + 1) % 128;
 			break;
 		case SCE_CTRL_LEFT:
 			if (profile.analog[id]) 	
@@ -112,31 +111,9 @@ void onButton_analog(uint32_t btn){
 void onButton_touch(uint32_t btn){
 	int8_t idx = ui_entry->data;
 	switch (btn) {
-		case SCE_CTRL_RIGHT:
-			if (idx < 8)//Front Points xy
-				profile.touch[idx] = (profile.touch[idx] + 1) 
-					% ((idx % 2) ? T_FRONT_SIZE.y : T_FRONT_SIZE.x);
-			else if (idx < 16)//Back Points xy
-				profile.touch[idx] = (profile.touch[idx] + 1)
-					% ((idx % 2) ? T_BACK_SIZE.y : T_BACK_SIZE.x);
-			else 			//yes/no otion
-				profile.touch[idx] = !profile.touch[idx];
-			break;
-		case SCE_CTRL_LEFT:
-			if (profile.touch[idx]) 	
-				profile.touch[idx]--;
-			else {
-				if (idx < 8)//front points xy
-					profile.touch[idx] = ((idx % 2) ? T_FRONT_SIZE.y - 1 : T_FRONT_SIZE.x - 1);
-				if (idx < 16)//back points xy
-					profile.touch[idx] = ((idx % 2) ? T_BACK_SIZE.y - 1 : T_BACK_SIZE.x - 1);
-				else //yes/no options
-					profile.touch[idx] = !profile.touch[idx];
-			}
-			break;
-		case SCE_CTRL_SQUARE:
-			profile.touch[idx] = profile_def.touch[idx];
-			break;
+		case SCE_CTRL_RIGHT: profile.touch[idx] = !profile.touch[idx]; break;
+		case SCE_CTRL_LEFT: profile.touch[idx] = !profile.touch[idx]; break;
+		case SCE_CTRL_SQUARE: profile.touch[idx] = profile_def.touch[idx]; break;
 		case SCE_CTRL_START: profile_resetTouch(); break;
 		default: onButton_generic(btn);
 	}

@@ -19,12 +19,12 @@ static struct MenuEntry menu_main_entries[MENU_MAIN_NUM] = {
 	(MenuEntry){.name = "$U Analog sticks", .data = MENU_ANALOG_ID},
 	(MenuEntry){.name = "$F Touch", .data = MENU_TOUCH_ID},
 	(MenuEntry){.name = "$Q Gyroscope", .data = MENU_GYRO_ID},
-	(MenuEntry){.name = "   External gamepads", .data = MENU_CONTROLLER_ID},
-	(MenuEntry){.name = "[D]Show hooks", .data = MENU_HOKS_ID},
-	(MenuEntry){.name = "[D]Show buttons", .data = MENU_DEBUG_BUTTONS_ID},
-	(MenuEntry){.name = "   Settings", .data = MENU_SETTINGS_ID},
-	(MenuEntry){.name = "   Profiles", .data = MENU_PROFILE_ID},
-	(MenuEntry){.name = "   Credits", .data = MENU_CREDITS_ID},};
+	(MenuEntry){.name = "$t External gamepads", .data = MENU_CONTROLLER_ID},
+	(MenuEntry){.name = "$b Show hooks", .data = MENU_HOKS_ID},
+	(MenuEntry){.name = "$b Show buttons", .data = MENU_DEBUG_BUTTONS_ID},
+	(MenuEntry){.name = "$| Settings", .data = MENU_SETTINGS_ID},
+	(MenuEntry){.name = "$/ Profiles", .data = MENU_PROFILE_ID},
+	(MenuEntry){.name = "$? Credits", .data = MENU_CREDITS_ID},};
 static struct Menu menu_main = (Menu){
 	.id = MENU_MAIN_ID, 
 	.num = MENU_MAIN_NUM, 
@@ -33,56 +33,32 @@ static struct Menu menu_main = (Menu){
 	.onButton = onButton_main,
 	.entries = menu_main_entries};
 
-#define MENU_ANALOG_NUM 10
+#define MENU_ANALOG_NUM 5
 static struct MenuEntry menu_analog_entries[MENU_ANALOG_NUM] = {
 	(MenuEntry){.name = "Deadzone", .type = HEADER_TYPE},
 	(MenuEntry){.name = "Left Analog  [X]", .data = PROFILE_ANALOG_LEFT_DEADZONE_X},
 	(MenuEntry){.name = "             [Y]", .data = PROFILE_ANALOG_LEFT_DEADZONE_Y},
 	(MenuEntry){.name = "Right Analog [X]", .data = PROFILE_ANALOG_RIGHT_DEADZONE_X},
-	(MenuEntry){.name = "             [Y]", .data = PROFILE_ANALOG_RIGHT_DEADZONE_Y},
-	(MenuEntry){.name = "Force digital", .type = HEADER_TYPE},
-	(MenuEntry){.name = "Left Analog  [X]", .data = 4},
-	(MenuEntry){.name = "             [Y]", .data = 5},
-	(MenuEntry){.name = "Right Analog [X]", .data = 6},
-	(MenuEntry){.name = "             [Y]", .data = 7}};
+	(MenuEntry){.name = "             [Y]", .data = PROFILE_ANALOG_RIGHT_DEADZONE_Y}};
 static struct Menu menu_analog = (Menu){
 	.id = MENU_ANALOG_ID, 
 	.parent = MENU_MAIN_ID,
 	.num = MENU_ANALOG_NUM, 
-	.name = "ANALOG STICKS", 
+	.name = "$u ANALOG STICKS", 
 	.footer = "$Sreset  $:reset all",
 	.onButton = onButton_analog,
 	.onDraw = onDraw_analog,
 	.entries = menu_analog_entries};
 
-#define MENU_TOUCH_NUM 20
+#define MENU_TOUCH_NUM 1
 static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
-	(MenuEntry){.name = "Front", .type = HEADER_TYPE},
-	(MenuEntry){.name = "Point A           x", .data = 0},
-	(MenuEntry){.name = "                  y", .data = 1},
-	(MenuEntry){.name = "Point B           x", .data = 2},
-	(MenuEntry){.name = "                  y", .data = 3},
-	(MenuEntry){.name = "Point C           x", .data = 4},
-	(MenuEntry){.name = "                  y", .data = 5},
-	(MenuEntry){.name = "Point D           x", .data = 6},
-	(MenuEntry){.name = "                  y", .data = 7},
-	(MenuEntry){.name = "Disable if remapped", .data = 16},
-	(MenuEntry){.name = "Back", .type = HEADER_TYPE},
-	(MenuEntry){.name = "Point A           x", .data = 8},
-	(MenuEntry){.name = "                  y", .data = 9},
-	(MenuEntry){.name = "Point B           x", .data = 10},
-	(MenuEntry){.name = "                  y", .data = 11},
-	(MenuEntry){.name = "Point C           x", .data = 12},
-	(MenuEntry){.name = "                  y", .data = 13},
-	(MenuEntry){.name = "Point D           x", .data = 14},
-	(MenuEntry){.name = "                  y", .data = 15},
-	(MenuEntry){.name = "Disable if remapped", .data = 17}};
+	(MenuEntry){.name = "Swap touchpads", .data = PROFILE_TOUCH_SWAP}};
 static struct Menu menu_touch = (Menu){
 	.id = MENU_TOUCH_ID, 
 	.parent = MENU_MAIN_ID,
 	.num = MENU_TOUCH_NUM, 
-	.name = "TOUCH", 
-	.footer = "$F$B$U$uchange  $Sreset $:reset all",
+	.name = "$F TOUCH", 
+	.footer = "$Sreset $:reset all",
 	.onButton = onButton_touch,
 	.onDraw = onDraw_touch,
 	.entries = menu_touch_entries};
@@ -90,21 +66,21 @@ static struct Menu menu_touch = (Menu){
 #define MENU_GYRO_NUM 11
 static struct MenuEntry menu_gyro_entries[MENU_GYRO_NUM] = {
 	(MenuEntry){.name = "Sensivity", .type = HEADER_TYPE},
-	(MenuEntry){.name = "    X Axis", .data = 0},
-	(MenuEntry){.name = "    Y Axis", .data = 1},
-	(MenuEntry){.name = "    Z Axis", .data = 2},
+	(MenuEntry){.name = "    X Axis", .data = PROFILE_GYRO_SENSIVITY_X},
+	(MenuEntry){.name = "    Y Axis", .data = PROFILE_GYRO_SENSIVITY_Y},
+	(MenuEntry){.name = "    Z Axis", .data = PROFILE_GYRO_SENSIVITY_Z},
 	(MenuEntry){.name = "Deadzone", .type = HEADER_TYPE},
-	(MenuEntry){.name = "    X Axis", .data = 3},
-	(MenuEntry){.name = "    Y Axis", .data = 4},
-	(MenuEntry){.name = "    Z Axis", .data = 5},
+	(MenuEntry){.name = "    X Axis", .data = PROFILE_GYRO_DEADZONE_X},
+	(MenuEntry){.name = "    Y Axis", .data = PROFILE_GYRO_DEADZONE_Y},
+	(MenuEntry){.name = "    Z Axis", .data = PROFILE_GYRO_DEADZONE_Z},
 	(MenuEntry){.name = "More", .type = HEADER_TYPE},
-	(MenuEntry){.name = "Deadband  ", .data = 6},
-	(MenuEntry){.name = "Wheel mode", .data = 7},};
+	(MenuEntry){.name = "Deadband  ", .data = PROFILE_GYRO_DEADBAND},
+	(MenuEntry){.name = "Wheel mode", .data = PROFILE_GYRO_WHEEL}};
 static struct Menu menu_gyro = (Menu){
 	.id = MENU_GYRO_ID, 
 	.parent = MENU_MAIN_ID,
 	.num = MENU_GYRO_NUM, 
-	.name = "GYROSCOPE", 
+	.name = "$Q GYROSCOPE", 
 	.footer = "$Sreset  $:reset all",
 	.onButton = onButton_gyro,
 	.onDraw = onDraw_gyro,
@@ -112,14 +88,14 @@ static struct Menu menu_gyro = (Menu){
 
 #define MENU_CONTROLLER_NUM 3
 static struct MenuEntry menu_controllers_entries[MENU_CONTROLLER_NUM] = {
-	(MenuEntry){.name = "Use external       ", .data = 0},
-	(MenuEntry){.name = "Selected controller", .data = 1},
-	(MenuEntry){.name = "Swap L1<>LT R1<>RT ", .data = 2}};
+	(MenuEntry){.name = "Use external  ", .data = PROFILE_CONTROLLER_ENABLED},
+	(MenuEntry){.name = "Selected port ", .data = PROFILE_CONTROLLER_PORT},
+	(MenuEntry){.name = "Swap $[$] ${$}", .data = PROFILE_CONTROLLER_SWAP_BUTTONS}};
 static struct Menu menu_controllers = (Menu){
 	.id = MENU_CONTROLLER_ID, 
 	.parent = MENU_MAIN_ID,
 	.num = MENU_CONTROLLER_NUM, 
-	.name = "CONTROLLER", 
+	.name = "$t CONTROLLER", 
 	.footer = "$Sreset  $:reset all",
 	.onButton = onButton_controller,
 	.onDraw = onDraw_controller,
@@ -127,15 +103,15 @@ static struct Menu menu_controllers = (Menu){
 
 #define MENU_SETTINGS_NUM 4
 static struct MenuEntry menu_settings_entries[MENU_SETTINGS_NUM] = {
-	(MenuEntry){.name = "Menu trigger first key", .data = 0},
-	(MenuEntry){.name = "            second key", .data = 1},
-	(MenuEntry){.name = "Save profile on close ", .data = 2},
-	(MenuEntry){.name = "Startup delay         ", .data = 3}};
+	(MenuEntry){.name = "Menu trigger first key", .data = PROFILE_SETTINGS_KEY1},
+	(MenuEntry){.name = "            second key", .data = PROFILE_SETTINGS_KEY2},
+	(MenuEntry){.name = "Save profile on close ", .data = PROFILE_SETTINGS_AUTOSAVE},
+	(MenuEntry){.name = "Startup delay         ", .data = PROFILE_SETTINGS_DELAY}};
 static struct Menu menu_settings = (Menu){
 	.id = MENU_SETTINGS_ID, 
 	.parent = MENU_MAIN_ID,
 	.num = MENU_SETTINGS_NUM, 
-	.name = "SETTINGS", 
+	.name = "$| SETTINGS", 
 	.footer = "$Sreset  $:reset all",
 	.onButton = onButton_settings,
 	.onDraw = onDraw_settings,
@@ -156,7 +132,7 @@ static struct Menu menu_profiles = (Menu){
 	.id = MENU_PROFILE_ID, 
 	.parent = MENU_MAIN_ID,
 	.num = MENU_PROFILE_NUM, 
-	.name = "PROFILES", 
+	.name = "$/ PROFILES", 
 	.onButton = onButton_profiles,
 	.onDraw = onDraw_profiles,
 	.entries = menu_profiles_entries};
@@ -186,7 +162,7 @@ static struct Menu menu_hooks = (Menu){
 	.id = MENU_HOKS_ID, 
 	.parent = MENU_MAIN_ID,
 	.num = MENU_HOKS_NUM, 
-	.name = "HOOKS", 
+	.name = "$b HOOKS", 
 	.noIndent = true,
 	.onDraw = onDraw_hooks,
 	.entries = menu_hooks_entries};
@@ -197,7 +173,7 @@ static struct Menu menu_debug_buttons = (Menu){
 	.id = MENU_DEBUG_BUTTONS_ID, 
 	.parent = MENU_MAIN_ID,
 	.num = MENU_DEBUG_BUTTONS_NUM, 
-	.name = "BUTTONS INFO", 
+	.name = "$b BUTTONS INFO", 
 	.noIndent = true,
 	.onDraw = onDraw_debugButtons,
 	.onInput = onInput_debugButtons,
@@ -226,7 +202,7 @@ static struct Menu menu_credits = (Menu){
 	.id = MENU_CREDITS_ID, 
 	.parent = MENU_MAIN_ID,
 	.num = MENU_CREDITS_NUM, 
-	.name = "CREDITS", 
+	.name = "$? CREDITS", 
 	.noIndent = true,
 	.onDraw = onDraw_credits,
 	.entries = menu_credits_entries};

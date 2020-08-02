@@ -78,6 +78,10 @@ void renderer_drawIcon(char character, int x, int y){
 		case 'o': idx = ICON_PSV_LEFT; break;
 		case 'O': idx = ICON_PSV_RIGHT; break;
 		case 't': idx = ICON_BTN_DS4TOUCH; break;
+		case 'b': idx = ICON_MENU_BUG; break;
+		case '|': idx = ICON_MENU_SETTINGS; break;
+		case '/': idx = ICON_MENU_STORAGE; break;
+		case '?': idx = ICON_MENU_CREDITS; break;
 		default: break;
 	}
 	renderer_drawImage(x + 1, y, ICON_W, ICON_H, &ICON[idx * 54]);
