@@ -51,18 +51,29 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 		//ToDo
         //sceMotionReset();		
 	}
+    
+	// //Checking for menu triggering
+	// if (!ui_opened 
+	// 		&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_settings[0]]) 
+	// 		&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_settings[1]])) {
+	// 	remap_resetCtrlBuffers(hookId);
+	// 	ui_open();
+	// }
 
-	//Checking for menu triggering
-	if (!ui_opened 
-			&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_settings[0]]) 
-			&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile_settings[1]])) {
-		remap_resetCtrlBuffers(hookId);
-		ui_open();
-	}
+	// //In-menu inputs handling
+	// if (ui_opened){
+	// 	ui_onInput(&ctrl[nBufs - 1]);
+		
+	// 	//Nullify all inputs
+	// 	for (int i = 0; i < nBufs; i++)
+	// 		ctrl[i].buttons = 0;
+		
+	// 	return nBufs;
+	// }
 
 	//In-menu inputs handling
 	if (ui_opened){
-		ui_onInput(&ctrl[nBufs - 1]);
+		// ui_onInput(&ctrl[nBufs - 1]);
 		
 		//Nullify all inputs
 		for (int i = 0; i < nBufs; i++)
@@ -281,17 +292,35 @@ PROCEVENT_EXIT:
 
 static int main_thread(SceSize args, void *argp) {
     while (thread_run) {
-        
         //Activate delayed start
         if (!delayedStartDone 
             && startTick + profile_settings[3] * 1000000 < ksceKernelGetSystemTimeWide()){
             remap_setup();
 	        delayedStartDone = 1;
         }
+
+        SceCtrlData ctrl;
+        if(ksceCtrlPeekBufferPositive(profile.controller[1], &ctrl, 1) < 1){
+            ksceKernelDelayThread(30 * 1000);
+            continue;
+        }
+
+        //Checking for menu triggering
+        if (!ui_opened 
+                && (ctrl.buttons & HW_BUTTONS[profile_settings[0]]) 
+                && (ctrl.buttons & HW_BUTTONS[profile_settings[1]])) {
+            // remap_resetCtrlBuffers(hookId);
+            ui_open();
+        }
+
+        //In-menu inputs handling
+        if (ui_opened){
+            ui_onInput(&ctrl);
+        }
         
-        log_flush();
-        ksceKernelDelayThread(5 * 1000 * 1000);
-        //ksceKernelDelayThread(10 * 1000);
+        //log_flush();
+        //ksceKernelDelayThread(5 * 1000 * 1000);
+        ksceKernelDelayThread(30 * 1000);
     }
     return 0;
 }

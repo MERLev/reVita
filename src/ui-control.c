@@ -7,18 +7,20 @@
 #include "ui.h"
 #include "profile.h"
 #include "common.h"
+#include "log.h"
 
-static uint32_t curr_buttons;
-static uint32_t old_buttons;
-static uint64_t tick;
-static uint64_t pressedTicks[HW_BUTTONS_NUM];
+#define LONG_PRESS_TIME   	400*1000	//0.400sec
+#define REPEAT_TIME   		 80*1000	//0.080sec
 
-#define LONG_PRESS_TIME   350000	//0.35sec
-
-uint8_t isBtnActive(uint8_t btnNum){
-	return ((curr_buttons & HW_BUTTONS[btnNum]) && !(old_buttons & HW_BUTTONS[btnNum])) 
-		|| (pressedTicks[btnNum] != 0 && tick - pressedTicks[btnNum] > LONG_PRESS_TIME);
-}
+typedef struct BtnInfo{
+	uint32_t btn;
+	uint8_t btnId;
+	bool isPressed;
+	bool isLongPressed;
+	int64_t tickOnPress;
+	int64_t tickLastRepeat;
+}BtnInfo;
+BtnInfo btns[HW_BUTTONS_NUM];
 
 //Set custom touch point xy using RS
 void analogTouchPicker(TouchPoint* tp, SceCtrlData *ctrl, int isFront, int isLeftAnalog){
@@ -442,30 +444,46 @@ void ctrl_onInput(SceCtrlData *ctrl) {
 	if ((ctrl->buttons & HW_BUTTONS[profile_settings[0]]) 
 			&& (ctrl->buttons & HW_BUTTONS[profile_settings[1]]))
 		return; //Menu trigger butoons should not trigger any menu actions on menu open
-		
-	if (new_frame) {
-		new_frame = 0;
-		
-		if (ui_menu->onInput)
-			ui_menu->onInput(ctrl);
 
-		tick = ctrl->timeStamp;
-		curr_buttons = ctrl->buttons;
-		for (int i = 0; i < HW_BUTTONS_NUM; i++){
-			if ((curr_buttons & HW_BUTTONS[i]) && !(old_buttons & HW_BUTTONS[i]))
-				pressedTicks[i] = tick;
-			else if (!(curr_buttons & HW_BUTTONS[i]) && (old_buttons & HW_BUTTONS[i]))
-				pressedTicks[i] = 0;
-			
-			if (!isBtnActive(i))
-				continue;
-			if (ui_menu->onButton)
-				ui_menu->onButton(HW_BUTTONS[i]);
-			else 
-				onButton_generic(HW_BUTTONS[i]);
+	if (ui_menu->onInput)
+		ui_menu->onInput(ctrl);
 
+	int64_t tick = ksceKernelGetSystemTimeWide();
+	for (int i = 0; i < HW_BUTTONS_NUM; i++){
+		if (btn_has(ctrl->buttons, HW_BUTTONS[i])){
+			if (btns[i].isPressed){
+				if (btns[i].isLongPressed){
+					if (tick > btns[i].tickLastRepeat + REPEAT_TIME){
+						btns[i].tickLastRepeat = tick;
+						//OnLongPress event
+						if (ui_menu->onButton)
+							ui_menu->onButton(HW_BUTTONS[i]);
+						else 
+							onButton_generic(HW_BUTTONS[i]);
+					}
+				} else {
+					if (tick > btns[i].tickOnPress + LONG_PRESS_TIME){
+						btns[i].isLongPressed = true;
+						btns[i].tickLastRepeat = btns[i].tickOnPress;
+						//OnLongPressStart event
+					}
+				}
+			} else {
+				btns[i].isPressed = true;
+				btns[i].tickOnPress = tick;
+				//OnPress event
+				if (ui_menu->onButton)
+					ui_menu->onButton(HW_BUTTONS[i]);
+				else 
+					onButton_generic(HW_BUTTONS[i]);
+			}
+		} else {
+			// if (btns[i].isPressed){
+				//OnRelease event
+			// }
+			btns[i].isPressed = false;
+			btns[i].isLongPressed = false;
 		}
-		old_buttons = curr_buttons;
 	}
 }
 

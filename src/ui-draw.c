@@ -1,5 +1,5 @@
 #include <vitasdkkern.h>
-
+#include <inttypes.h>
 #include "main.h"
 #include "renderer.h"
 #include "icons.h"
@@ -485,7 +485,7 @@ void onDraw_debugButtons(){
 		ctrl.reserved1[5], ctrl.reserved1[6], ctrl.reserved1[7], ctrl.reserved1[8], ctrl.reserved1[9]);
 	renderer_drawStringF(L_1, y += CHA_H, "Analogs : [%i, %i] [%i, %i]", 
 		ctrl.lx, ctrl.ly, ctrl.rx, ctrl.ry);
-	renderer_drawStringF(L_1, y += CHA_H, "Timestamp: %lli", 
+	renderer_drawStringF(L_1, y += CHA_H, "Timestamp: %"PRIu64, 
 		ctrl.timeStamp);
 
 }

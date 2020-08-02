@@ -579,6 +579,7 @@ void ui_open(const SceDisplayFrameBuf *pParam){
 }
 void ui_close(){
 	ui_opened = 0;
+	log_flush();
 }
 
 void ui_init(){
