@@ -45,7 +45,7 @@ static struct Menu menu_analog = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_ANALOG_NUM, 
 	.name = "$u ANALOG STICKS", 
-	.footer = "$Sreset  $:reset all",
+	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_analog,
 	.onDraw = onDraw_analog,
 	.entries = menu_analog_entries};
@@ -58,7 +58,7 @@ static struct Menu menu_touch = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_TOUCH_NUM, 
 	.name = "$F TOUCH", 
-	.footer = "$Sreset $:reset all",
+	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_touch,
 	.onDraw = onDraw_touch,
 	.entries = menu_touch_entries};
@@ -81,7 +81,7 @@ static struct Menu menu_gyro = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_GYRO_NUM, 
 	.name = "$Q GYROSCOPE", 
-	.footer = "$Sreset  $:reset all",
+	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_gyro,
 	.onDraw = onDraw_gyro,
 	.entries = menu_gyro_entries};
@@ -96,7 +96,7 @@ static struct Menu menu_controllers = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_CONTROLLER_NUM, 
 	.name = "$t CONTROLLER", 
-	.footer = "$Sreset  $:reset all",
+	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_controller,
 	.onDraw = onDraw_controller,
 	.entries = menu_controllers_entries};
@@ -112,7 +112,7 @@ static struct Menu menu_settings = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_SETTINGS_NUM, 
 	.name = "$| SETTINGS", 
-	.footer = "$Sreset  $:reset all",
+	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_settings,
 	.onDraw = onDraw_settings,
 	.entries = menu_settings_entries};
@@ -214,7 +214,7 @@ static struct Menu menu_pick_button = (Menu){
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_PICK_BUTTON_NUM, 
 	.name = "SELECT BUTTONS", 
-	.footer = "$Sselect $Xcontinue", 
+	.footer = "$SSELECT $XCONTINUE", 
 	.onButton = onButton_pickButton,
 	.onDraw = onDraw_pickButton,
 	.entries = menu_pick_button_entries};
@@ -229,7 +229,7 @@ static struct Menu menu_pick_analog_left = (Menu){
 	.id = MENU_PICK_ANALOG_LEFT_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_PICK_ANALOG_LEFT_NUM, 
-	.name = "SELECT ANALOG STICK DIRECTION", 
+	.name = "$L SELECT ANALOG STICK DIRECTION", 
 	.onButton = onButton_pickAnalog,
 	.entries = menu_pick_analog_left_entries};
 
@@ -243,7 +243,7 @@ static struct Menu menu_pick_analog_right = (Menu){
 	.id = MENU_PICK_ANALOG_RIGHT_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_PICK_ANALOG_RIGHT_NUM, 
-	.name = "SELECT ANALOG STICK DIRECTION", 
+	.name = "$l SELECT ANALOG STICK DIRECTION", 
 	.onButton = onButton_pickAnalog,
 	.entries = menu_pick_analog_right_entries};
 
@@ -287,7 +287,7 @@ static struct Menu menu_remap = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = 0, 
 	.name = "REMAP RULES", 
-	.footer = "$Stoggle $Tpropagate $:remove",
+	.footer = "$SDISABLE $TPROPAGATE $:REMOVE",
 	.onButton = onButton_remap,
 	.onDraw = onDraw_remap,
 	.onBuild = onBuild_remap,
@@ -324,7 +324,7 @@ static struct Menu menu_remap_trigger_front_touch = (Menu){
 	.id = MENU_REMAP_TRIGGER_TOUCH_FRONT_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_REMAP_TRIGGER_TOUCH_FRONT_NUM, 
-	.name = "SELECT TOUCH POINT", 
+	.name = "$F SELECT TOUCH POINT", 
 	.onButton = onButton_remapTriggerTouch,
 	.entries = menu_remap_trigger_front_touch_entries};
 
@@ -342,7 +342,7 @@ static struct Menu menu_remap_trigger_back_touch = (Menu){
 	.id = MENU_REMAP_TRIGGER_TOUCH_BACK_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_REMAP_TRIGGER_TOUCH_BACK_NUM, 
-	.name = "SELECT TOUCH POINT", 
+	.name = "$B SELECT TOUCH POINT", 
 	.onButton = onButton_remapTriggerTouch,
 	.entries = menu_remap_trigger_back_touch_entries};
 
@@ -359,7 +359,7 @@ static struct Menu menu_remap_trigger_gyro = (Menu){
 	.id = MENU_REMAP_TRIGGER_GYRO_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_REMAP_TRIGGER_GYRO_NUM, 
-	.name = "SELECT GYRO MOVEMENT", 
+	.name = "$E SELECT GYRO MOVEMENT", 
 	.onButton = onButton_remapTriggerGyro,
 	.entries = menu_remap_trigger_gyro_entries};
 
@@ -396,7 +396,7 @@ static struct Menu menu_remap_emu_touch_front = (Menu){
 	.id = MENU_REMAP_EMU_TOUCH_FRONT_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
 	.num = MENU_REMAP_EMU_TOUCH_FRONT_NUM, 
-	.name = "SELECT TOUCH POINT", 
+	.name = "$F SELECT TOUCH POINT", 
 	.onButton = onButton_remapEmuTouch,
 	.entries = menu_remap_emu_touch_front_entries};
 
@@ -413,7 +413,7 @@ static struct Menu menu_remap_emu_touch_back = (Menu){
 	.id = MENU_REMAP_EMU_TOUCH_BACK_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
 	.num = MENU_REMAP_EMU_TOUCH_BACK_NUM, 
-	.name = "SELECT TOUCH POINT", 
+	.name = "$B SELECT TOUCH POINT", 
 	.onButton = onButton_remapEmuTouch,
 	.entries = menu_remap_emu_touch_back_entries};
 
@@ -470,22 +470,14 @@ MenuEntry* ui_entry;
 struct RemapRule ui_ruleEdited; //Rule currently edited
 
 void onBuild_remap(Menu* m){
-	//Allocate memory for remap menu rule's names
-	for (int i = 0; i < REMAP_NUM + MENU_REMAP_NUM; i++){
-		menu_remap_entries[i].name = &str_remaps[i][0];
-	}
-
 	memset(&ui_ruleEdited, 0, sizeof(ui_ruleEdited));
 	m->num = profile.remapsNum + MENU_REMAP_NUM;
-	for (int i = 0; i < profile.remapsNum; i++){
+	for (int i = 0; i < profile.remapsNum; i++)
 		m->entries[i].data = i;
-		generateRemapRuleName(menu_remap_entries[i].name, &profile.remaps[i]);
-	}
 	for (int i = 0; i < MENU_REMAP_NUM; i++){
 		int idx = i + profile.remapsNum;
 		menu_remap_entries[idx].data = menu_remap_entries_def[i].data;
-		strcpy(menu_remap_entries[idx].name,
-			menu_remap_entries_def[i].name);
+		menu_remap_entries[idx].name = menu_remap_entries_def[i].name;
 	}
 }
 void ui_setIdx(int idx){

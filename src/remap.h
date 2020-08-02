@@ -63,8 +63,8 @@ typedef struct RemapAction{
 typedef struct RemapRule{
 	RemapAction trigger;
 	RemapAction emu;
-	uint8_t propagate;
-	uint8_t disabled;
+	bool propagate;
+	bool disabled;
 }Rule;
 
 #define HW_BUTTONS_NUM    21 // Supported physical buttons num

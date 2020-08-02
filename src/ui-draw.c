@@ -164,15 +164,22 @@ void setColorHeader(uint8_t isCursor){
 }
 void setColor(uint8_t isCursor, uint8_t isDefault){
 	if (isCursor){
-		if (isDefault)
-			renderer_setColor(COLOR_CURSOR);
-		else 
-			renderer_setColor(COLOR_CURSOR_ACTIVE);
+		if (isDefault) renderer_setColor(COLOR_CURSOR);
+		else renderer_setColor(COLOR_CURSOR_ACTIVE);
 	} else {
-		if (isDefault)
-			renderer_setColor(COLOR_DEFAULT);
-		else 
-			renderer_setColor(COLOR_ACTIVE);
+		if (isDefault) renderer_setColor(COLOR_DEFAULT);
+		else renderer_setColor(COLOR_ACTIVE);
+	}
+}
+void setColorExt(uint8_t isCursor, uint8_t isDefault, uint8_t isDisabled){
+	if (isCursor){
+		if     (isDisabled) renderer_setColor(COLOR_CURSOR_DANGER);
+		else if (isDefault) renderer_setColor(COLOR_CURSOR);
+		else                renderer_setColor(COLOR_CURSOR_ACTIVE);
+	} else {
+		if     (isDisabled) renderer_setColor(COLOR_DANGER);
+		else if (isDefault) renderer_setColor(COLOR_DEFAULT);
+		else                renderer_setColor(COLOR_ACTIVE);
 	}
 }
 void drawScroll(int8_t up, int8_t down){
@@ -236,9 +243,21 @@ void onDraw_remap(){
 			setColor(i == ui_menu->idx, 1);
 			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
 		} else {
-			setColor(i == ui_menu->idx, profile.remaps[ui_menu->entries[i].data].disabled);
-			renderer_stripped(profile.remaps[ui_menu->entries[i].data].disabled);
-			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
+			struct RemapRule* rr = &profile.remaps[ui_menu->entries[i].data];
+			renderer_stripped(rr->disabled);
+			setColorExt(i == ui_menu->idx, true, !rr->propagate || rr->disabled);
+			char str[20] = "";
+			generateRemapActionName(str, &rr->trigger);
+			int len = strlen(str) * CHA_W;
+			renderer_drawString(L_1, y += CHA_H, str);
+			if (!rr->disabled){
+				renderer_setColor(COLOR_DEFAULT);
+				renderer_drawString(L_1 + len + CHA_W, y, ">");
+			}
+			str[0] = '\0';
+			generateRemapActionName(str, &rr->emu);
+			setColorExt(i == ui_menu->idx, true, rr->disabled);
+			renderer_drawString(L_1 + len + 3*CHA_W, y, str);
 			renderer_stripped(0);
 		}
 	}
