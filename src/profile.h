@@ -3,6 +3,8 @@
 #ifndef _PROFILE_H_
 #define _PROFILE_H_
 
+#define HOME "HOME"
+
 #define REMAP_NUM                   25
 
 #define PROFILE_ANALOG_NUM          8
@@ -50,8 +52,9 @@ enum PROFILE_SETTINGS_ID{
 }PROFILE_SETTINGS_ID;
 
 typedef struct Profile{
-    struct RemapRule remaps[REMAP_NUM];
+	char titleid[32];
     uint8_t remapsNum;
+    struct RemapRule remaps[REMAP_NUM];
     uint8_t analog[PROFILE_ANALOG_NUM];
     uint8_t gyro[PROFILE_GYRO_NUM];
     uint16_t touch[PROFILE_TOUCH_NUM];
@@ -77,17 +80,8 @@ void profile_resetSettings();
 bool profile_saveSettings();
 bool profile_loadSettings();
 
-int profile_save(char* titleId);
-int profile_saveAsGlobal();
-int profile_saveHome();
-int profile_load(char* titleId);
-int profile_loadGlobal();
-void profile_loadGlobalCached();
-int profile_loadHome();
-void profile_loadHomeCached();
-
-void profile_resetGlobal();
-void profile_delete(char* titleid);
+bool profile_save(char* titleId);
+bool profile_load(char* titleId);
 
 void profile_init();
 void profile_destroy();

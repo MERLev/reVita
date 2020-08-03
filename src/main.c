@@ -14,7 +14,6 @@
 #include "common.h"
 #include "log.h"
 
-#define HOME "HOME"
 #define INVALID_PID -1
 
 int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintptr_t *addr);
@@ -258,7 +257,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
                     ui_close();
                     for (int i = 0; i < HOOKS_NUM; i++)
                         hooks[i] = 0;
-                    profile_loadHomeCached();
+                    profile_load(HOME);
                     delayedStartDone = 0;
                 }
             }

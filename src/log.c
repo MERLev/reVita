@@ -8,6 +8,13 @@ static unsigned int log_buf_ptr = 0;
 static char log_buf[16 * 1024];
 //#endif
 
+void log_assert(const char *name, int flag){
+	if (flag){
+		log_write(name, strlen(name));
+		log_flush();
+	}
+}
+
 void log_reset(){
 //#ifndef RELEASE
 	SceUID fd = ksceIoOpen(LOG_FILE,

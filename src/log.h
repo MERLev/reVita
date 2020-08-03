@@ -4,15 +4,17 @@
 #include <stdio.h>
 #include <string.h>
 
-#define LOG_PATH "ux0:/data/remaPSV/"
+#define LOG_PATH "ux0:/log/"
 #define LOG_FILE LOG_PATH "log.txt"
 
 void log_reset();
 void log_write(const char *buffer, size_t length);
+void log_assert(const char *name, int flag);
 void log_flush();
 
+#define ASSERT log_assert
 //#ifndef DEBUG
-#  define LOG(...) \
+# define LOG(...) \
 	do { \
 		char buffer[256]; \
 		snprintf(buffer, sizeof(buffer), ##__VA_ARGS__); \

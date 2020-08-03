@@ -226,6 +226,17 @@ Profile profile_home;
 int32_t profile_settings[PROFILE_SETTINGS_NUM];
 int32_t profile_settings_def[PROFILE_SETTINGS_NUM];
 
+void clone(Profile* pd, Profile* ps){
+	pd->remapsNum = ps->remapsNum;
+	pd->titleid[0] = '\0';
+	strcpy(pd->titleid, ps->titleid);
+	memcpy(pd->analog, ps->analog, sizeof(ps->analog[0]) * PROFILE_ANALOG__NUM);
+	memcpy(pd->touch, ps->touch, sizeof(ps->touch[0]) * PROFILE_TOUCH__NUM);
+	memcpy(pd->gyro, ps->gyro, sizeof(ps->gyro[0]) * PROFILE_GYRO__NUM);
+	memcpy(pd->controller, ps->controller, sizeof(ps->controller[0]) * PROFILE_CONTROLLER__NUM);
+	memcpy(pd->remaps, ps->remaps, sizeof(struct RemapRule) * ps->remapsNum);
+}
+
 void profile_addRemapRule(struct RemapRule ui_ruleEdited){
 	if (profile.remapsNum < (REMAP_NUM - 1)){
 		profile.remaps[profile.remapsNum] = ui_ruleEdited;
@@ -310,7 +321,7 @@ bool generateINIProfile(Profile* p, char* buff){
 
 	//Profile 
 	ini_addSection(ini, SECTION_STR[SECTION_PROFILE]);
-	ini_addStr(ini, "NAME", titleid);
+	ini_addStr(ini, "NAME", p->titleid);
 	ini_addNL(ini);
 
 	//Analog
@@ -322,7 +333,7 @@ bool generateINIProfile(Profile* p, char* buff){
 	//Touch
 	ini_addSection(ini, SECTION_STR[SECTION_TOUCH]);
 	for (int i = 0; i < PROFILE_TOUCH__NUM; i++)
-		ini_addInt(ini, TOUCH_STR[i], p->analog[i]);
+		ini_addInt(ini, TOUCH_STR[i], p->touch[i]);
 	ini_addNL(ini);
 
 	//Gyro
@@ -398,8 +409,7 @@ bool parseINISettings(char* buff){
 	return true;
 }
 bool parseINIProfile(Profile* p, char* buff){
-	p[0] = profile_def;
-
+	clone(p, &profile_def);
 	INI_READER _ini = ini_read(buff);
 	INI_READER* ini = &_ini;
 	while(ini_nextEntry(ini)){
@@ -427,7 +437,7 @@ bool parseINIProfile(Profile* p, char* buff){
 			case SECTION_CONTROLLER:
 				id = getControllerId(ini->name);
 				if (id >= 0)
-					p->gyro[id] = parseInt(ini->val);
+					p->controller[id] = parseInt(ini->val);
 				break;
 			case SECTION_RULE:
 				ruleId = parseInt(ini->sectionAttr);
@@ -491,7 +501,6 @@ bool parseINIProfile(Profile* p, char* buff){
 	}
 	return true;
 }
-
 bool readProfile(Profile* p, char* name){
 	char* buff;
 	bool ret = false;
@@ -510,6 +519,9 @@ bool readProfile(Profile* p, char* name){
 
 	// Parse INI
 	ret = parseINIProfile(p, buff);
+
+	p->titleid[0] = '\0';
+	strcpy(p->titleid, name);
 	
 ERROR: //Free mem and quit
 	ksceKernelFreeMemBlock(buff_uid);
@@ -586,47 +598,30 @@ ERROR: //Free allocated memory
 	return ret;
 }
 
-int profile_save(char* titleId) {
+bool profile_save(char* titleId) {
 	return writeProfile(&profile, titleId);
 }
-int profile_saveAsGlobal() {
-	profile_global = profile;
-	return writeProfile(&profile_global, NAME_GLOBAL);
-}
-int profile_saveHome() {
-	profile_home = profile;
-	return writeProfile(&profile_home, NAME_HOME);
-}
 
-int profile_load(char* titleId) {
-	if (readProfile(&profile, titleId))
-		return 1;
-	profile = profile_global;
-	return -1;
-}
-int profile_loadGlobal() {
-	return readProfile(&profile_global, NAME_GLOBAL);
-}
-void profile_loadGlobalCached(){
-	profile = profile_global;
-}
-int profile_loadHome() {
-	return readProfile(&profile_home, NAME_HOME);
-}
-void profile_loadHomeCached() {
-	profile = profile_home;
-}
+bool profile_load(char* titleId) {
+	if (strcmp(profile.titleid, HOME) == 0){  //If used home profile previously
+		clone(&profile_home, &profile);      //copy it back to its cache
+	}
+	
+	if (strcmp(titleid, HOME) == 0){ //If home profile requested
+		clone(&profile, &profile_home);		 //Restore it from cache
+		return true;
+	}
 
-void profile_delete(char* titleId){
-	profile = profile_global;
-	profile_save(titleId);
-}
-void profile_resetGlobal(){
-	profile_global = profile_def;
-	profile_saveAsGlobal();
+	if (readProfile(&profile, titleId))      
+		return true;
+
+	clone(&profile, &profile_global);        // If no profile for title - use global
+	return false;
 }
 
 void setDefProfile(){
+	strcpy(profile_def.titleid, HOME);
+
 	profile_def.analog[PROFILE_ANALOG_LEFT_DEADZONE_X] = 30;
 	profile_def.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y] = 30;
 	profile_def.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X] = 30;
@@ -655,16 +650,25 @@ void setDefProfile(){
 	profile_settings_def[PROFILE_SETTINGS_DELAY] = 10;
 }
 void profile_init(){
+	//Set default profile
 	setDefProfile();
-	profile = profile_def;
-	if (!profile_loadGlobal()){
-		profile_saveAsGlobal();
+
+	//Init global profile
+	if (!readProfile(&profile_global, NAME_GLOBAL)){
+		clone(&profile_global, &profile_def);
+		writeProfile(&profile_global, NAME_GLOBAL);
 	}
-	profile = profile_global;
-	if (!profile_loadHome()){
-		profile_saveHome();
+
+	//Init home profile
+	if (!readProfile(&profile_home, NAME_HOME)){
+		clone(&profile_home, &profile_global);
+		writeProfile(&profile_home, NAME_HOME);
 	}
-	profile = profile_home;
+
+	//Set home as active profile
+	clone(&profile, &profile_home);
+
+	//Load settings
 	profile_loadSettings();
 }
 void profile_destroy(){

@@ -260,7 +260,7 @@ void applyRemap(SceCtrlData *ctrl) {
 			case REMAP_TYPE_FRONT_TOUCH_ZONE: 
 				if (frontRet < 1) break;
 				for (int j = 0; j < front.reportNum; j++) {
-					TouchZone tz;
+					TouchZone tz = TZ_FRONT_L;
 					switch (trigger->action){
 						case REMAP_TOUCH_ZONE_L:  tz = TZ_FRONT_L;  break;
 						case REMAP_TOUCH_ZONE_R:  tz = TZ_FRONT_R;  break;
@@ -277,7 +277,7 @@ void applyRemap(SceCtrlData *ctrl) {
 			case REMAP_TYPE_BACK_TOUCH_ZONE: 
 				if (backRet < 1) break;
 				for (int j = 0; j < back.reportNum; j++) {
-					TouchZone tz;
+					TouchZone tz = TZ_FRONT_L;
 					switch (trigger->action){
 						case REMAP_TOUCH_ZONE_L:  tz = TZ_BACK_L;  break;
 						case REMAP_TOUCH_ZONE_R:  tz = TZ_BACK_R;  break;
@@ -477,7 +477,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				profile.remaps[i].trigger.type == REMAP_TYPE_FRONT_TOUCH_ZONE){
 				int j = 0;
 				while (j < pData->reportNum){
-					TouchZone tz;
+					TouchZone tz = TZ_FRONT_L;
 					switch (profile.remaps[i].trigger.action){
 						case REMAP_TOUCH_ZONE_L:  tz = TZ_FRONT_L;  break;
 						case REMAP_TOUCH_ZONE_R:  tz = TZ_FRONT_R;  break;
@@ -513,7 +513,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				profile.remaps[i].trigger.type == REMAP_TYPE_BACK_TOUCH_ZONE){
 				int j = 0;
 				while (j < pData->reportNum){
-					TouchZone tz;
+					TouchZone tz = TZ_BACK_L;
 					switch (profile.remaps[i].trigger.action){
 						case REMAP_TOUCH_ZONE_L:  tz = TZ_BACK_L;  break;
 						case REMAP_TOUCH_ZONE_R:  tz = TZ_BACK_R;  break;

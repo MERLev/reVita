@@ -494,6 +494,7 @@ void ui_setIdx(int idx){
 }
 
 void open(enum MENU_ID id){
+	ASSERT("     ASSERT: ui open(id) id\n", id >= MENU_ID__NUM || id < 0);
 	if (menus[id]->onBuild)
 		menus[id]->onBuild(menus[id]);
 	ui_menu = menus[id];
