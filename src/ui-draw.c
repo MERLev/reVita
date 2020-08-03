@@ -495,8 +495,13 @@ void onDraw_profiles(){
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
 		if (ui_menu->entries[i].type == HEADER_TYPE){
-			setColorHeader(ui_menu->idx == i);
-			renderer_drawString(L_1, y+=CHA_H, ui_menu->entries[i].name);
+				setColorHeader(ui_menu->idx == i);
+			if (i == 0){
+				renderer_drawStringF(L_1, y+=CHA_H, "%s [%s]", 
+					ui_menu->entries[i].name, profile.titleid);
+			} else {
+				renderer_drawString(L_1, y+=CHA_H, ui_menu->entries[i].name);
+			}
 		} else {
 			setColor(i == ui_menu->idx, 1);
 			renderer_drawString(L_2, y += CHA_H, ui_menu->entries[i].name);

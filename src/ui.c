@@ -117,17 +117,17 @@ static struct Menu menu_settings = (Menu){
 	.onDraw = onDraw_settings,
 	.entries = menu_settings_entries};
 
-#define MENU_PROFILE_NUM 8
+#define MENU_PROFILE_NUM 9
 static struct MenuEntry menu_profiles_entries[MENU_PROFILE_NUM] = {
-	(MenuEntry){.name = "Global", .type = HEADER_TYPE},
-	(MenuEntry){.name = "Save", .data = PROFILE_GLOBAL_SAVE},
-	(MenuEntry){.name = "Load", .data = PROFILE_GLOABL_LOAD},
-	(MenuEntry){.name = "Delete", .data = PROFILE_GLOBAL_DELETE},
-	(MenuEntry){.name = "Game", .type = HEADER_TYPE},
+	(MenuEntry){.name = "Local", .type = HEADER_TYPE},
 	(MenuEntry){.name = "Save", .data = PROFILE_LOCAL_SAVE},
 	(MenuEntry){.name = "Load", .data = PROFILE_LOCAL_LOAD},
-	(MenuEntry){.name = "Delete", .data = PROFILE_LOCAL_DELETE}
-};
+	(MenuEntry){.name = "Reset", .data = PROFILE_LOCAL_DELETE},
+	(MenuEntry){.name = "Delete", .data = PROFILE_LOCAL_RESET},
+	(MenuEntry){.name = "Global", .type = HEADER_TYPE},
+	(MenuEntry){.name = "Save as global", .data = PROFILE_GLOBAL_SAVE},
+	(MenuEntry){.name = "Load from global", .data = PROFILE_GLOABL_LOAD},
+	(MenuEntry){.name = "Reset global", .data = PROFILE_GLOBAL_RESET}};
 static struct Menu menu_profiles = (Menu){
 	.id = MENU_PROFILE_ID, 
 	.parent = MENU_MAIN_ID,

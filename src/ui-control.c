@@ -210,12 +210,13 @@ void onButton_profiles(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
 			switch (ui_entry->data){
-				// case PROFILE_GLOBAL_SAVE: profile_saveAsGlobal(); break;
-				// case PROFILE_GLOABL_LOAD: profile_loadGlobal(); break;
-				// case PROFILE_GLOBAL_DELETE: profile_resetGlobal(); break;
-				// case PROFILE_LOCAL_SAVE: profile_save(titleid); break;
-				// case PROFILE_LOCAL_LOAD: profile_load(titleid); break;
-				// case PROFILE_LOCAL_DELETE: profile_delete(titleid); break;
+				case PROFILE_LOCAL_SAVE:   profile_localSave(); break;
+				case PROFILE_LOCAL_LOAD:   profile_localLoad(); break;
+				case PROFILE_LOCAL_RESET:  profile_localReset(); break;
+				case PROFILE_LOCAL_DELETE: profile_localDelete(); break;
+				case PROFILE_GLOBAL_SAVE:  profile_saveAsGlobal(); break;
+				case PROFILE_GLOABL_LOAD:  profile_loadFromGlobal(); break;
+				case PROFILE_GLOBAL_RESET: profile_resetGlobal(); break;
 				default: break;
 			}
 			break;

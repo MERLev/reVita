@@ -83,6 +83,15 @@ bool profile_loadSettings();
 bool profile_save(char* titleId);
 bool profile_load(char* titleId);
 
+void profile_localSave();
+void profile_localLoad();
+void profile_localReset();
+void profile_localDelete();
+
+void profile_saveAsGlobal();
+void profile_loadFromGlobal();
+void profile_resetGlobal();
+
 void profile_init();
 void profile_destroy();
 

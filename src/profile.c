@@ -305,6 +305,13 @@ bool writeFile(char* buff, int size, char* path, char* name, char* ext){
 
 	return true;
 }
+bool deleteFile(char* path, char* name, char* ext){
+	char fname[128];
+	sprintf(fname, "%s/%s.%s", PATH, name, EXT_INI);
+	if (ksceIoRemove(fname) >= 0)
+		return true;
+	return false;
+}
 
 bool generateINISettings(char* buff){
 	INI _ini = ini_create(buff, 99);
@@ -601,7 +608,6 @@ ERROR: //Free allocated memory
 bool profile_save(char* titleId) {
 	return writeProfile(&profile, titleId);
 }
-
 bool profile_load(char* titleId) {
 	if (strcmp(profile.titleid, HOME) == 0){  //If used home profile previously
 		clone(&profile_home, &profile);      //copy it back to its cache
@@ -617,6 +623,35 @@ bool profile_load(char* titleId) {
 
 	clone(&profile, &profile_global);        // If no profile for title - use global
 	return false;
+}
+
+void profile_localSave(){
+	writeProfile(&profile, profile.titleid);
+}
+void profile_localLoad(){
+	readProfile(&profile, profile.titleid);
+}
+void profile_localReset(){
+	profile_resetAnalog();
+	profile_resetController();
+	profile_resetGyro();
+	profile_resetTouch();
+	profile_resetRemapRules();
+}
+void profile_localDelete(){
+	deleteFile(PATH, profile.titleid, EXT_INI);
+}
+
+void profile_saveAsGlobal(){
+	clone(&profile_global, &profile);
+	writeProfile(&profile_global, NAME_GLOBAL);
+}
+void profile_loadFromGlobal(){
+	clone(&profile, &profile_global);
+}
+void profile_resetGlobal(){
+	clone(&profile_global, &profile_def);
+	writeProfile(&profile_global, NAME_GLOBAL);
 }
 
 void setDefProfile(){
