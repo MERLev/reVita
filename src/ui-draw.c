@@ -266,8 +266,8 @@ void onDraw_remap(){
 void onDraw_pickButton(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET);
+	uint32_t btns = *(uint32_t*)ui_menu->data;
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
-		uint32_t btns = *(uint32_t*)ui_menu->data;
 		setColor(i == ui_menu->idx, !btn_has(btns, HW_BUTTONS[ui_menu->entries[i].data]));
 		renderer_drawString(L_1, y += CHA_H, str_btns[ui_menu->entries[i].data]);
 	}
@@ -456,7 +456,7 @@ void onDraw_debugButtons(){
 			case SCE_CTRL_VOLUP: renderer_drawStringF(x += CHA_W*4, y, "$+");break;
 			case SCE_CTRL_VOLDOWN: renderer_drawStringF(x += CHA_W*4, y, "$-");break;
 			case SCE_CTRL_TOUCHPAD: renderer_drawStringF(x += CHA_W*4, y, "$t");break;
-			default: renderer_drawStringF(x += CHA_W*4, y, "%i", i); break;
+			default: renderer_drawStringF(x += CHA_W*4, y, "%i", i + 16); break;
 		}
 	}
 	renderer_setColor(COLOR_DEFAULT);

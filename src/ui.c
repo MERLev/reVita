@@ -278,7 +278,7 @@ static struct Menu menu_pick_touch_zone = (Menu){
 	.entries = menu_pick_touch_zone_entries};
 
 #define MENU_REMAP_NUM 1
-char str_remaps[REMAP_NUM + MENU_REMAP_NUM][STR_SIZE];
+// char str_remaps[REMAP_NUM + MENU_REMAP_NUM][STR_SIZE];
 static struct MenuEntry menu_remap_entries_def[MENU_REMAP_NUM] = {
 	(MenuEntry){.name = "<new remap rule>", .data = NEW_RULE_IDX}};
 static struct MenuEntry menu_remap_entries[REMAP_NUM + MENU_REMAP_NUM];
@@ -472,8 +472,10 @@ struct RemapRule ui_ruleEdited; //Rule currently edited
 void onBuild_remap(Menu* m){
 	memset(&ui_ruleEdited, 0, sizeof(ui_ruleEdited));
 	m->num = profile.remapsNum + MENU_REMAP_NUM;
-	for (int i = 0; i < profile.remapsNum; i++)
+	for (int i = 0; i < profile.remapsNum; i++){
 		m->entries[i].data = i;
+		m->entries[i].name = "";
+	}
 	for (int i = 0; i < MENU_REMAP_NUM; i++){
 		int idx = i + profile.remapsNum;
 		menu_remap_entries[idx].data = menu_remap_entries_def[i].data;
@@ -481,9 +483,13 @@ void onBuild_remap(Menu* m){
 	}
 }
 void ui_setIdx(int idx){
+	if (idx < 0 || idx >= ui_menu->num){
+		ui_setIdx(0);
+		return;
+	}
 	ui_menu->idx = idx;
 	ui_fixIdx(ui_menu, idx);
-	if (ui_menu->entries != NULL)
+	if (ui_menu->entries != NULL && ui_menu->num)
 		ui_entry = &ui_menu->entries[idx];
 }
 
