@@ -4,10 +4,10 @@
 
 #define HOOKS_NUM 20
 
-char titleid[32];
+extern char titleid[32];
 
-uint8_t used_funcs[HOOKS_NUM];
-bool isInternalTouchCall;
-bool isInternalExtCall;
+extern uint8_t used_funcs[HOOKS_NUM];
+extern bool isInternalTouchCall;
+extern bool isInternalExtCall;
 
 #endif

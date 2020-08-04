@@ -4,7 +4,7 @@
 #define CHA_W  12		//Character size in pexels
 #define CHA_H  20
 
-uint32_t fbWidth, fbHeight, fbPitch;
+extern uint32_t fbWidth, fbHeight, fbPitch;
 
 void renderer_init();
 void renderer_destroy();

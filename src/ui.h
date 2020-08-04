@@ -28,7 +28,7 @@
 	MENU_REMAP_EMU_TOUCH_FRONT_ID,
 	MENU_REMAP_EMU_TOUCH_BACK_ID,
 	MENU_ID__NUM
-}MENU_ID;
+};
 
 enum PROFILE_ACTIONS{
 	PROFILE_GLOBAL_SAVE = 0,
@@ -38,7 +38,7 @@ enum PROFILE_ACTIONS{
 	PROFILE_LOCAL_LOAD,
 	PROFILE_LOCAL_RESET,
 	PROFILE_LOCAL_DELETE
-}PROFILE_ACTIONS;
+};
 
 #define HEADER_TYPE         -1
 #define TEXT_IDX            -2
@@ -76,13 +76,13 @@ typedef struct MenuEntry{
 	int32_t data;
 } MenuEntry;
 
-uint8_t ui_opened;
-uint8_t ui_lines;
-uint8_t new_frame;
-struct Menu* ui_menu;
-MenuEntry* ui_entry;
+extern uint8_t ui_opened;
+extern uint8_t ui_lines;
+extern uint8_t new_frame;
+extern struct Menu* ui_menu;
+extern MenuEntry* ui_entry;
 
-struct RemapRule ui_ruleEdited; //Rule currently edited
+extern struct RemapRule ui_ruleEdited; //Rule currently edited
 
 void ui_openMenu(enum MENU_ID id);
 void ui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, uint32_t data);

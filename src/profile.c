@@ -527,8 +527,10 @@ bool readProfile(Profile* p, char* name){
 	// Parse INI
 	ret = parseINIProfile(p, buff);
 
-	p->titleid[0] = '\0';
-	strcpy(p->titleid, name);
+	if (p->titleid != name){
+		p->titleid[0] = '\0';
+		strcpy(p->titleid, name);
+	}
 	
 ERROR: //Free mem and quit
 	ksceKernelFreeMemBlock(buff_uid);

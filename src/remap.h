@@ -68,9 +68,9 @@ typedef struct RemapRule{
 }Rule;
 
 #define HW_BUTTONS_NUM    21 // Supported physical buttons num
-const uint32_t HW_BUTTONS[HW_BUTTONS_NUM];
-TouchPoint T_FRONT_SIZE;
-TouchPoint T_BACK_SIZE;
+extern const uint32_t HW_BUTTONS[HW_BUTTONS_NUM];
+extern TouchPoint T_FRONT_SIZE;
+extern TouchPoint T_BACK_SIZE;
 
 int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId);
 void remap_patchToExt(SceCtrlData *ctrl);
