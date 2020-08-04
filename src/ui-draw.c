@@ -142,7 +142,7 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 	}
 }
 void generateRemapRuleName(char* str, struct RemapRule* rule){
-	strcpy(str, "");
+	strclone(str, "");
     strcat(str, rule->propagate ? "P " : "  ");
 	generateRemapActionName(str, &rule->trigger);
 	strcat(str, "->");

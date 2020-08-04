@@ -226,7 +226,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
         goto PROCEVENT_EXIT;
     ksceKernelGetProcessTitleId(pid, titleidLocal, sizeof(titleidLocal));
     if (!strncmp(titleidLocal, "main", sizeof(titleidLocal)))
-        strncpy(titleidLocal, HOME, sizeof(titleidLocal));
+        strnclone(titleidLocal, HOME, sizeof(titleidLocal));
     switch (ev) {
         case 1: //Start
         case 5: //Resume
@@ -241,7 +241,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             }
             
             if (strncmp(titleid, titleidLocal, sizeof(titleid))) {
-                strncpy(titleid, titleidLocal, sizeof(titleid));
+                strnclone(titleid, titleidLocal, sizeof(titleid));
                 ui_close();
                 for (int i = 0; i < HOOKS_NUM; i++)
                     hooks[i] = 0;
@@ -253,7 +253,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
         case 4: //Suspend
             if (!strcmp(titleid, titleidLocal)){ //If current app suspended
                 if (strncmp(titleid, HOME, sizeof(titleid))) {
-                    strncpy(titleid, HOME, sizeof(titleid));
+                    strnclone(titleid, HOME, sizeof(titleid));
                     ui_close();
                     for (int i = 0; i < HOOKS_NUM; i++)
                         hooks[i] = 0;

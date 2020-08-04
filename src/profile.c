@@ -229,7 +229,7 @@ int32_t profile_settings_def[PROFILE_SETTINGS_NUM];
 void clone(Profile* pd, Profile* ps){
 	pd->remapsNum = ps->remapsNum;
 	pd->titleid[0] = '\0';
-	strcpy(pd->titleid, ps->titleid);
+	strclone(pd->titleid, ps->titleid);
 	memcpy(pd->analog, ps->analog, sizeof(ps->analog[0]) * PROFILE_ANALOG__NUM);
 	memcpy(pd->touch, ps->touch, sizeof(ps->touch[0]) * PROFILE_TOUCH__NUM);
 	memcpy(pd->gyro, ps->gyro, sizeof(ps->gyro[0]) * PROFILE_GYRO__NUM);
@@ -528,8 +528,7 @@ bool readProfile(Profile* p, char* name){
 	ret = parseINIProfile(p, buff);
 
 	if (p->titleid != name){
-		p->titleid[0] = '\0';
-		strcpy(p->titleid, name);
+		strclone(p->titleid, name);
 	}
 	
 ERROR: //Free mem and quit
@@ -657,7 +656,7 @@ void profile_resetGlobal(){
 }
 
 void setDefProfile(){
-	strcpy(profile_def.titleid, HOME);
+	strclone(profile_def.titleid, HOME);
 
 	profile_def.analog[PROFILE_ANALOG_LEFT_DEADZONE_X] = 30;
 	profile_def.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y] = 30;
