@@ -6,7 +6,7 @@
 #include "remapsv.h"
 #include "log.h"
 
-#define DELAY 5000
+#define DELAY 1000
 static SceUID mutex_sce_touch_peek_uid = -1;
 
 bool userPluginLoaded = false;

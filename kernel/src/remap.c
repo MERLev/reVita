@@ -325,19 +325,19 @@ void applyRemap(SceCtrlData *ctrl) {
 				switch (trigger->action){
 					case REMAP_GYRO_UP:  
 						if (sms.angularVelocity.x > 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.y * profile.gyro[1]);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.x * profile.gyro[1]);
 						break;
 					case REMAP_GYRO_DOWN:
 						if (sms.angularVelocity.x < 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.y * profile.gyro[1]);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.x * profile.gyro[1]);
 						break;
 					case REMAP_GYRO_LEFT:
 						if (sms.angularVelocity.y > 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.x * profile.gyro[0]);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.y * profile.gyro[0]);
 						break;
 					case REMAP_GYRO_RIGHT:
 						if (sms.angularVelocity.y < 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.x * profile.gyro[0]);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.y * profile.gyro[0]);
 						break;
 					case REMAP_GYRO_ROLL_LEFT:
 						if (sms.deviceQuat.z > 0) 
