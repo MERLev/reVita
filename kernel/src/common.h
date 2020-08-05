@@ -18,4 +18,5 @@ void btn_del(uint32_t* btns, uint32_t btn);
 void btn_toggle(uint32_t* btns, uint32_t btn);
 
 char* strclone(char* dst, char* src);
+char* strnclone(char* dst, char* , int num);
 #endif

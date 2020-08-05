@@ -13,6 +13,8 @@
 #include "profile.h"
 #include "common.h"
 #include "log.h"
+#include "userspace.h"
+#include "remapsv.h"
 
 #define INVALID_PID -1
 
@@ -38,7 +40,7 @@ static bool delayedStartDone = false;
 SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
 int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
 
-int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
+int onInput(SceCtrlData *ctrl, int nBufs, int hookId){
 	//Nothing to do here
 	if (nBufs < 1)
 		return nBufs;	
@@ -69,13 +71,6 @@ int onInputExt(SceCtrlData *ctrl, int nBufs, int hookId){
 	return ret;
 }
 
-int onInput(SceCtrlData *ctrl, int nBufs, int hookId){	
-	//Patch for external controllers support
-	if (!ui_opened)
-		remap_patchToExt(&ctrl[nBufs - 1]);
-	return onInputExt(ctrl, nBufs, hookId);
-}
-
 int onInputNegative(SceCtrlData *ctrl, int nBufs, int hookId){	
 	//Invert for negative logic
 	for (int i = 0; i < nBufs; i++)
@@ -92,7 +87,7 @@ int onInputNegative(SceCtrlData *ctrl, int nBufs, int hookId){
 }
 
 int onKernelInput(SceCtrlData *ctrl, int nBufs, int hookId){
-    return onInputExt(ctrl, nBufs, hookId);
+    return onInput(ctrl, nBufs, hookId);
 }
 
 int onKernelInputNegative(SceCtrlData *ctrl, int nBufs, int hookId){
@@ -120,6 +115,7 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
+        if (profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret; \
         SceCtrlData ctrl_kernel[BUFFERS_NUM]; \
         ksceKernelMemcpyUserToKernel(&ctrl_kernel[0], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
 		ret = onInput(ctrl_kernel, ret, (index)); \
@@ -128,14 +124,13 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
         return ret; \
     }
 DECL_FUNC_HOOK_PATCH_CTRL(0, sceCtrlPeekBufferPositive)
-DECL_FUNC_HOOK_PATCH_CTRL(1, sceCtrlPeekBufferPositive2)
-DECL_FUNC_HOOK_PATCH_CTRL(2, sceCtrlReadBufferPositive)
-DECL_FUNC_HOOK_PATCH_CTRL(3, sceCtrlReadBufferPositive2)
+DECL_FUNC_HOOK_PATCH_CTRL(1, sceCtrlReadBufferPositive)
 
 #define DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
+        if (profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret; \
         SceCtrlData ctrl_kernel[BUFFERS_NUM]; \
         ksceKernelMemcpyUserToKernel(&ctrl_kernel[0], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
 		ret = onInputNegative(ctrl_kernel, ret, (index)); \
@@ -143,10 +138,8 @@ DECL_FUNC_HOOK_PATCH_CTRL(3, sceCtrlReadBufferPositive2)
 		used_funcs[(index)] = 1; \
         return ret; \
     }
-DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(8, sceCtrlPeekBufferNegative)
-DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(9, sceCtrlPeekBufferNegative2)
-DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(10, sceCtrlReadBufferNegative)
-DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(11, sceCtrlReadBufferNegative2)
+DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(2, sceCtrlPeekBufferNegative)
+DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(3, sceCtrlReadBufferNegative)
 
 #define DECL_FUNC_HOOK_PATCH_CTRL_EXT(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
@@ -155,15 +148,32 @@ DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(11, sceCtrlReadBufferNegative2)
 		if (isInternalExtCall) return ret; \
         SceCtrlData ctrl_kernel[BUFFERS_NUM]; \
         ksceKernelMemcpyUserToKernel(&ctrl_kernel[0], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
-		ret = onInputExt(ctrl_kernel, ret, (index)); \
+		ret = onInput(ctrl_kernel, ret, (index)); \
         ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], &ctrl_kernel, ret * sizeof(SceCtrlData)); \
 		used_funcs[(index)] = 1; \
         return ret; \
     }
-DECL_FUNC_HOOK_PATCH_CTRL_EXT(4, sceCtrlPeekBufferPositiveExt)
-DECL_FUNC_HOOK_PATCH_CTRL_EXT(5, sceCtrlPeekBufferPositiveExt2)
-DECL_FUNC_HOOK_PATCH_CTRL_EXT(6, sceCtrlReadBufferPositiveExt)
-DECL_FUNC_HOOK_PATCH_CTRL_EXT(7, sceCtrlReadBufferPositiveExt2)
+DECL_FUNC_HOOK_PATCH_CTRL_EXT(4, sceCtrlPeekBufferPositive2)
+DECL_FUNC_HOOK_PATCH_CTRL_EXT(5, sceCtrlReadBufferPositive2)
+DECL_FUNC_HOOK_PATCH_CTRL_EXT(6, sceCtrlPeekBufferPositiveExt)
+DECL_FUNC_HOOK_PATCH_CTRL_EXT(7, sceCtrlPeekBufferPositiveExt2)
+DECL_FUNC_HOOK_PATCH_CTRL_EXT(8, sceCtrlReadBufferPositiveExt)
+DECL_FUNC_HOOK_PATCH_CTRL_EXT(9, sceCtrlReadBufferPositiveExt2)
+
+#define DECL_FUNC_HOOK_PATCH_CTRL_EXT_NEGATIVE(index, name) \
+    static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
+		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
+        if (ret < 1 || ret > BUFFERS_NUM) return ret; \
+		if (isInternalExtCall) return ret; \
+        SceCtrlData ctrl_kernel[BUFFERS_NUM]; \
+        ksceKernelMemcpyUserToKernel(&ctrl_kernel[0], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
+		ret = onInputNegative(ctrl_kernel, ret, (index)); \
+        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], &ctrl_kernel, ret * sizeof(SceCtrlData)); \
+		used_funcs[(index)] = 1; \
+        return ret; \
+    }
+DECL_FUNC_HOOK_PATCH_CTRL_EXT_NEGATIVE(10, sceCtrlPeekBufferNegative2)
+DECL_FUNC_HOOK_PATCH_CTRL_EXT_NEGATIVE(11, sceCtrlReadBufferNegative2)
 
 #define DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
@@ -202,19 +212,7 @@ int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplay
 
     if (pParam)  
         ui_draw(pParam);
-    /*if (!head || !pParam)
-        goto DISPLAY_HOOK_RET;
 
-    if (is_in_pspemu)
-        goto DISPLAY_HOOK_RET;*/
-
-    //ui_draw(pParam);
-
-    // if (index && ksceAppMgrIsExclusiveProcessRunning())
-        // goto DISPLAY_HOOK_RET; // Do not draw over SceShell overlay
-
-
-//DISPLAY_HOOK_RET:
     return TAI_CONTINUE(int, refs[18], head, index, pParam, sync);
 }
 
@@ -300,8 +298,6 @@ static int main_thread(SceSize args, void *argp) {
             ui_onInput(&ctrl);
         }
         
-        //log_flush();
-        //ksceKernelDelayThread(5 * 1000 * 1000);
         ksceKernelDelayThread(30 * 1000);
     }
     return 0;
@@ -320,6 +316,7 @@ int module_start(SceSize argc, const void *args) {
     profile_init();
     ui_init();
     remap_init();
+    userspace_init();
     startTick = ksceKernelGetSystemTimeWide();
 
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
@@ -328,18 +325,19 @@ int module_start(SceSize argc, const void *args) {
     for (int i = 0; i < HOOKS_NUM; i++)
         hooks[i] = 0;
     hook( 0,"SceCtrl", 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
-    hook( 1,"SceCtrl", 0xD197E3C7, 0x15F81E8C, sceCtrlPeekBufferPositive2_patched);
-    hook( 2,"SceCtrl", 0xD197E3C7, 0x67E7AB83, sceCtrlReadBufferPositive_patched);
-    hook( 3,"SceCtrl", 0xD197E3C7, 0xC4226A3E, sceCtrlReadBufferPositive2_patched);
+    hook( 1,"SceCtrl", 0xD197E3C7, 0x67E7AB83, sceCtrlReadBufferPositive_patched);
 
-	hook( 4,"SceCtrl", 0xD197E3C7, 0xA59454D3, sceCtrlPeekBufferPositiveExt_patched);
-    hook( 5,"SceCtrl", 0xD197E3C7, 0x860BF292, sceCtrlPeekBufferPositiveExt2_patched);
-    hook( 6,"SceCtrl", 0xD197E3C7, 0xE2D99296, sceCtrlReadBufferPositiveExt_patched);
-    hook( 7,"SceCtrl", 0xD197E3C7, 0xA7178860, sceCtrlReadBufferPositiveExt2_patched);
+    hook( 2,"SceCtrl", 0xD197E3C7, 0x104ED1A7, sceCtrlPeekBufferNegative_patched);
+    hook( 3,"SceCtrl", 0xD197E3C7, 0x15F96FB0, sceCtrlReadBufferNegative_patched);
 
-    hook( 8,"SceCtrl", 0xD197E3C7, 0x104ED1A7, sceCtrlPeekBufferNegative_patched);
-    hook( 9,"SceCtrl", 0xD197E3C7, 0x81A89660, sceCtrlPeekBufferNegative2_patched);
-    hook(10,"SceCtrl", 0xD197E3C7, 0x15F96FB0, sceCtrlReadBufferNegative_patched);
+    hook( 4,"SceCtrl", 0xD197E3C7, 0xC4226A3E, sceCtrlReadBufferPositive2_patched);
+    hook( 5,"SceCtrl", 0xD197E3C7, 0x15F81E8C, sceCtrlPeekBufferPositive2_patched);
+	hook( 6,"SceCtrl", 0xD197E3C7, 0xA59454D3, sceCtrlPeekBufferPositiveExt_patched);
+    hook( 7,"SceCtrl", 0xD197E3C7, 0x860BF292, sceCtrlPeekBufferPositiveExt2_patched);
+    hook( 8,"SceCtrl", 0xD197E3C7, 0xE2D99296, sceCtrlReadBufferPositiveExt_patched);
+    hook( 9,"SceCtrl", 0xD197E3C7, 0xA7178860, sceCtrlReadBufferPositiveExt2_patched);
+
+    hook(10,"SceCtrl", 0xD197E3C7, 0x81A89660, sceCtrlPeekBufferNegative2_patched);
     hook(11,"SceCtrl", 0xD197E3C7, 0x27A0C5FB, sceCtrlReadBufferNegative2_patched);
     
     hook(12,"SceCtrl", 0x7823A5D1, 0x9B96A1AA, ksceCtrlReadBufferPositive_patched);
@@ -392,6 +390,7 @@ int module_stop(SceSize argc, const void *args) {
     profile_destroy();
     ui_destroy();
     remap_destroy();
+    userspace_destroy();
     log_flush();
     return SCE_KERNEL_STOP_SUCCESS;
 }

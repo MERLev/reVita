@@ -5,6 +5,7 @@
 
 #include "vitasdkext.h"
 #include "main.h"
+#include "userspace.h"
 #include "remap.h"
 #include "profile.h"
 #include "common.h"
@@ -83,6 +84,19 @@ void storeTouchPoint(EmulatedTouch *et, TouchPoint tp){
 	et->num++;
 }
 
+void swapTriggersBumpers(SceCtrlData *ctrl){
+	uint32_t b = 0;
+	for (int j = 0; j < HW_BUTTONS_NUM; j++)
+		if (ctrl->buttons & HW_BUTTONS[j]){
+			if (HW_BUTTONS[j] == SCE_CTRL_LTRIGGER) b+= SCE_CTRL_L1;
+			else if (HW_BUTTONS[j] == SCE_CTRL_L1) b+= SCE_CTRL_LTRIGGER;
+			else if (HW_BUTTONS[j] == SCE_CTRL_RTRIGGER) b+= SCE_CTRL_R1;
+			else if (HW_BUTTONS[j] == SCE_CTRL_R1) b+= SCE_CTRL_RTRIGGER;
+			else b += HW_BUTTONS[j];
+	}
+	ctrl->buttons = b;
+}
+
 void addEmu(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick) {
 	EmulatedStick* stick = emustick;
 	switch (emu->type){
@@ -148,19 +162,27 @@ void addEmuFromAnalog(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emu
 	
 }
 void addEmuFromGyro(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick,  float gyroval){
-// 	if (HW_BUTTONS_NUM + 1 < profile.remap[btn_idx] && profile.remap[btn_idx] < HW_BUTTONS_NUM + 10) {
-// 		// Gyro -> Analog remap
-// 		stickpos[profile.remap[btn_idx] - (HW_BUTTONS_NUM + 2)] = stickpos[profile.remap[btn_idx] - (HW_BUTTONS_NUM + 2)] + clamp(gyroval, -127, 127);
-// 	} else {
-// 		// Gyro -> Btn remap
-// 		if ((((btn_idx == HW_BUTTONS_NUM + 16 || btn_idx == HW_BUTTONS_NUM + 17)) && gyroval > profile.gyro[3] * 10) ||
-// 			(((btn_idx == HW_BUTTONS_NUM + 18 || btn_idx == HW_BUTTONS_NUM + 19)) && gyroval > profile.gyro[4] * 10) ||
-// 			(((btn_idx == HW_BUTTONS_NUM + 20 || btn_idx == HW_BUTTONS_NUM + 21)) && gyroval > profile.gyro[5] * 10))
-// 			applyRemapRule(btn_idx, map, stickpos);
-// 	}
+	EmulatedStick* stick = emustick;
+	switch (emu->type){
+		case REMAP_TYPE_RIGHT_ANALOG: 
+			stick = &emustick[1];
+		case REMAP_TYPE_LEFT_ANALOG: 
+			switch (emu->action){
+				case REMAP_ANALOG_UP:    stick->up    += clamp(gyroval, -127, 127); break;
+				case REMAP_ANALOG_DOWN:  stick->down  += clamp(gyroval, -127, 127); break;
+				case REMAP_ANALOG_LEFT:  stick->left  += clamp(gyroval, -127, 127); break;
+				case REMAP_ANALOG_RIGHT: stick->right += clamp(gyroval, -127, 127); break;
+				default: break;
+			}
+			break;
+		default: addEmu(emu, btn, emustick); break;
+	}
 }
 
 void applyRemap(SceCtrlData *ctrl) {
+	if (profile.controller[PROFILE_CONTROLLER_SWAP_BUTTONS])
+		swapTriggersBumpers(ctrl);
+
 	// Gathering real touch data
 	SceTouchData front, back;
 	isInternalTouchCall = true;
@@ -174,6 +196,13 @@ void applyRemap(SceCtrlData *ctrl) {
 
 	EmulatedStick eSticks[2] =    {(EmulatedStick){0, 0, 0, 0}, (EmulatedStick){0, 0, 0, 0}};
 	EmulatedStick propSticks[2] = {(EmulatedStick){0, 0, 0, 0}, (EmulatedStick){0, 0, 0, 0}};
+
+	SceMotionState sms;
+	int ret = _sceMotionGetState(&sms);
+	double d1 = 0;
+	double d2 = 3.0;
+	LOG("motion get state_: %lf\n", d2);
+	LOG("motion get state : %i [%+1.3f %+1.3f %+1.3f] %+1.3f %+1.3f\n", ret, sms.angularVelocity.x, sms.angularVelocity.y, sms.angularVelocity.z, d1, d2);
 
 	//Set propagation sticks def values
 	if (ctrl->lx < 128) propSticks[0].left = 127 - ctrl->lx;
@@ -292,57 +321,38 @@ void applyRemap(SceCtrlData *ctrl) {
 				}
 				break;
 			case REMAP_TYPE_GYROSCOPE: 
-				//ToDo add gyro support
-				// Applying remap for gyro
-				// if (profile.gyro[7] == 0) {
-				// 	if (motionstate.angularVelocity.y > 0)
-				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 16, &new_map, stickpos,
-				// 			motionstate.angularVelocity.y * profile.gyro[0]);
-				// 	if (motionstate.angularVelocity.y < 0)
-				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 17, &new_map, stickpos,
-				// 			-motionstate.angularVelocity.y * profile.gyro[0]);
-				// 	if (motionstate.angularVelocity.x > 0)
-				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 18, &new_map, stickpos,
-				// 			motionstate.angularVelocity.x * profile.gyro[1]);
-				// 	if (motionstate.angularVelocity.x < 0)
-				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 19, &new_map, stickpos,
-				// 			-motionstate.angularVelocity.x * profile.gyro[1]);
-				// 	if (motionstate.angularVelocity.z > 0)
-				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 20, &new_map, stickpos,
-				// 			motionstate.angularVelocity.z * profile.gyro[2]);
-				// 	if (motionstate.angularVelocity.z < 0)
-				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 21, &new_map, stickpos,
-				// 			-motionstate.angularVelocity.z * profile.gyro[2]);
-				// }
-				// else {
-				// 	// Applying remap for gyro wheel mode
-				// 	if (motionstate.deviceQuat.y < 0)
-				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 16, &new_map, stickpos,
-				// 			motionstate.deviceQuat.y * profile.gyro[0] * 4);
-				// 	if (motionstate.deviceQuat.y > 0)
-				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 17, &new_map, stickpos,
-				// 			-motionstate.deviceQuat.y * profile.gyro[0] * 4);
-				// 	if (motionstate.deviceQuat.x < 0)
-				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 18, &new_map, stickpos,
-				// 			motionstate.deviceQuat.x * profile.gyro[1] * 4);
-				// 	if (motionstate.deviceQuat.x > 0)
-				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 19, &new_map, stickpos,
-				// 			-motionstate.deviceQuat.x * profile.gyro[1] * 4);
-				// 	if (motionstate.deviceQuat.z < 0)
-				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 20, &new_map, stickpos,
-				// 			motionstate.deviceQuat.z * profile.gyro[2] * 4);
-				// 	if (motionstate.deviceQuat.z > 0)
-				// 		applyRemapRuleForGyro(HW_BUTTONS_NUM + 21, &new_map, stickpos,
-				// 		-motionstate.deviceQuat.z * profile.gyro[2] * 4);
-				// }
+				if (ret != 0) break;
+				switch (trigger->action){
+					case REMAP_GYRO_UP:  
+						if (sms.angularVelocity.x > 0) 
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.y * profile.gyro[1]);
+						break;
+					case REMAP_GYRO_DOWN:
+						if (sms.angularVelocity.x < 0) 
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.y * profile.gyro[1]);
+						break;
+					case REMAP_GYRO_LEFT:
+						if (sms.angularVelocity.y > 0) 
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.x * profile.gyro[0]);
+						break;
+					case REMAP_GYRO_RIGHT:
+						if (sms.angularVelocity.y < 0) 
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.x * profile.gyro[0]);
+						break;
+					case REMAP_GYRO_ROLL_LEFT:
+						if (sms.deviceQuat.z > 0) 
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.deviceQuat.z * profile.gyro[2] * 4);
+						break;
+					case REMAP_GYRO_ROLL_RIGHT:
+						if (sms.deviceQuat.z < 0) 
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.deviceQuat.z * profile.gyro[2] * 4);
+						break;
+					default: break;
+				}
 				break;
 			default: break;
 		}
 	}
-	// LOG("REMAP2: %i : (%i, %i)(%i, %i) -> [%lu, %lu, %lu, %lu][%lu, %lu, %lu, %lu]\n", 
-	// 	((ctrl->buttons & SCE_CTRL_TRIANGLE) > 0), ctrl->lx, ctrl->ly, ctrl->rx, ctrl->ry,
-	// 	eSticks[0].left, eSticks[0].right, eSticks[0].up, eSticks[0].down,
-	// 	eSticks[1].left, eSticks[1].right, eSticks[1].up, eSticks[1].down);
 
 	// Remove minimal drift if digital remap for stick directions is used
 	// if (stickpos[0] || stickpos[1] || stickpos[2] || stickpos[3]){
@@ -402,35 +412,6 @@ int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId) {
 		ctrl[i] = remappedBuffers[hookId]
 			[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
 	return nBufs;
-}
-
-void swapTriggersBumpers(SceCtrlData *ctrl){
-	uint32_t b = 0;
-	for (int j = 0; j < HW_BUTTONS_NUM; j++)
-		if (ctrl->buttons & HW_BUTTONS[j]){
-			if (HW_BUTTONS[j] == SCE_CTRL_LTRIGGER) b+= SCE_CTRL_L1;
-			else if (HW_BUTTONS[j] == SCE_CTRL_L1) b+= SCE_CTRL_LTRIGGER;
-			else if (HW_BUTTONS[j] == SCE_CTRL_RTRIGGER) b+= SCE_CTRL_R1;
-			else if (HW_BUTTONS[j] == SCE_CTRL_R1) b+= SCE_CTRL_RTRIGGER;
-			else b += HW_BUTTONS[j];
-	}
-	ctrl->buttons = b;
-}
-
-//Used to enable R1/R3/L1/L3
-void remap_patchToExt(SceCtrlData *ctrl){
-	if (!profile.controller[0])
-		return;
-	SceCtrlData pstv_fakepad;
-	isInternalExtCall = 1;
-	//int ret = sceCtrlPeekBufferPositiveExt2(profile.controller[1], &pstv_fakepad, 1);
-	int ret = ksceCtrlPeekBufferPositive(profile.controller[1], &pstv_fakepad, 1);
-	isInternalExtCall = 0;
-	if (ret > 0){
-		ctrl->buttons = pstv_fakepad.buttons;
-		if (profile.controller[2])
-			swapTriggersBumpers(ctrl);
-	}
 }
 
 //Keep same touch id for continuus touches
@@ -671,15 +652,6 @@ void remap_setup(){
 		T_BACK_SIZE.x = pi.maxAaX;
 		T_BACK_SIZE.y = pi.maxAaY;
 	}
-    
-	//ToDo
-	// Enabling gyro sampling
-	//_sceMotionReset();
-	//sceMotionStartSampling();
-	//if (profile.gyro[6] == 1) sceMotionSetDeadband(1);
-	//else if (profile.gyro[6] == 2) sceMotionSetDeadband(0);
-	//ToDo decide on sceMotionSetTiltCorrection usage
-	//if (gyro_options[7] == 1) sceMotionSetTiltCorrection(0); 
 }
 
 void remap_init(){
