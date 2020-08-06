@@ -87,13 +87,14 @@ void storeTouchPoint(EmulatedTouch *et, TouchPoint tp){
 void swapTriggersBumpers(SceCtrlData *ctrl){
 	uint32_t b = 0;
 	for (int j = 0; j < HW_BUTTONS_NUM; j++)
-		if (ctrl->buttons & HW_BUTTONS[j]){
-			if (HW_BUTTONS[j] == SCE_CTRL_LTRIGGER) b+= SCE_CTRL_L1;
-			else if (HW_BUTTONS[j] == SCE_CTRL_L1) b+= SCE_CTRL_LTRIGGER;
-			else if (HW_BUTTONS[j] == SCE_CTRL_RTRIGGER) b+= SCE_CTRL_R1;
-			else if (HW_BUTTONS[j] == SCE_CTRL_R1) b+= SCE_CTRL_RTRIGGER;
-			else b += HW_BUTTONS[j];
-	}
+		if (btn_has(ctrl->buttons, HW_BUTTONS[j]))
+			switch(HW_BUTTONS[j]){
+				case SCE_CTRL_LTRIGGER: btn_add(&b, SCE_CTRL_L1);       break;
+				case SCE_CTRL_L1:       btn_add(&b, SCE_CTRL_LTRIGGER); break;
+				case SCE_CTRL_RTRIGGER: btn_add(&b, SCE_CTRL_R1);       break;
+				case SCE_CTRL_R1:       btn_add(&b, SCE_CTRL_RTRIGGER); break;
+				default:                btn_add(&b, HW_BUTTONS[j]);     break;
+			}
 	ctrl->buttons = b;
 }
 
@@ -198,11 +199,10 @@ void applyRemap(SceCtrlData *ctrl) {
 	EmulatedStick propSticks[2] = {(EmulatedStick){0, 0, 0, 0}, (EmulatedStick){0, 0, 0, 0}};
 
 	SceMotionState sms;
-	int ret = _sceMotionGetState(&sms);
-	double d1 = 0;
-	double d2 = 3.0;
-	LOG("motion get state_: %lf\n", d2);
-	LOG("motion get state : %i [%+1.3f %+1.3f %+1.3f] %+1.3f %+1.3f\n", ret, sms.angularVelocity.x, sms.angularVelocity.y, sms.angularVelocity.z, d1, d2);
+	// int ret = _sceMotionGetState(&sms);
+	int ret = -1;
+	// LOG("motion get state_: %lf\n", d2);
+	// LOG("motion get state : %i [%+1.3f %+1.3f %+1.3f] %+1.3f %+1.3f\n", ret, sms.angularVelocity.x, sms.angularVelocity.y, sms.angularVelocity.z, d1, d2);
 
 	//Set propagation sticks def values
 	if (ctrl->lx < 128) propSticks[0].left = 127 - ctrl->lx;

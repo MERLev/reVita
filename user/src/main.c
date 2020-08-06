@@ -20,53 +20,54 @@ static SceUID hooks[HOOKS_NUM];
 static tai_hook_ref_t refs[HOOKS_NUM];
 
 //Configuration
-int configVersion = 0;
+int configVersion = -1;
 bool deadband;
 bool patchExtEnabled;
 int patchExtPort;
 
 //Used to add support for R1/R3/L1/L3
-void patchToExt(SceCtrlData *ctrl){
-	if (!patchExtEnabled)
-		return;
+int patchToExt(SceCtrlData *ctrl, int nBufs, bool positive){
 	SceCtrlData pstv_fakepad;
 	int ret = sceCtrlPeekBufferPositiveExt2(patchExtPort, &pstv_fakepad, 1);
-	if (ret > 0)
-		ctrl->buttons = pstv_fakepad.buttons;
-}
-
-//Used to add support for R1/R3/L1/L3
-void patchToExtNegative(SceCtrlData *ctrl){
-	if (!patchExtEnabled)
-		return;
-	SceCtrlData pstv_fakepad;
-	int ret = sceCtrlPeekBufferPositiveExt2(patchExtPort, &pstv_fakepad, 1);
-	if (ret > 0)
-		ctrl->buttons = 0xFFFFFFFF - pstv_fakepad.buttons;
+	if (ret > 0){
+		if (positive) 
+			ctrl[nBufs - 1].buttons = pstv_fakepad.buttons;
+		else 
+			ctrl[nBufs - 1].buttons = 0xFFFFFFFF - pstv_fakepad.buttons;
+	}
+	return nBufs;
 }
 
 int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, nBufs);
+	LOG("sceCtrlPeekBufferPositive %i \n", ret);
+	if (!patchExtEnabled) return ret;
 	if (ret > 0)
-		patchToExt(&ctrl[ret - 1]);
+		ret = patchToExt(ctrl, ret, true);
 	return ret;
 }
 int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, nBufs);
+	LOG("sceCtrlReadBufferPositive_patched %i \n", ret);
+	if (!patchExtEnabled) return ret;
 	if (ret > 0)
-		patchToExt(&ctrl[ret - 1]);
+		ret = patchToExt(ctrl, ret, true);
 	return ret;
 }
 int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, nBufs);
+	LOG("sceCtrlPeekBufferNegative_patched %i \n", ret);
+	if (!patchExtEnabled) return ret;
 	if (ret > 0)
-		patchToExtNegative(&ctrl[ret - 1]);
+		ret = patchToExt(ctrl, ret, false);
 	return ret;
 }
 int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, nBufs);
+	LOG("sceCtrlReadBufferNegative_patched %i \n", ret);
+	if (!patchExtEnabled) return ret;
 	if (ret > 0)
-		patchToExtNegative(&ctrl[ret - 1]);
+		ret = patchToExt(ctrl, ret, false);
 	return ret;
 }
 
@@ -95,6 +96,9 @@ static int config_thread(SceSize args, void *argp) {
 			deadband = remaPSV2k_getConfigDeadband();
 			patchExtEnabled = remaPSV2k_getConfigPatchExtEnabled();
 			patchExtPort = remaPSV2k_getConfigPatchExtPort();
+			LOG("Config updated : %i %i %i : %i\n", 
+				deadband, patchExtEnabled, patchExtPort, configVersion);
+			log_flush();
 			sceMotionSetDeadband(deadband);
 		}
 		sceKernelDelayThread(DELAY_CONFIG_CHECK);
@@ -120,10 +124,10 @@ int module_start(SceSize argc, const void *args) {
 	hookFunction(0x15F96FB0, sceCtrlReadBufferNegative_patched);
 
 	//Start threads
-	thread_motion_uid = sceKernelCreateThread("remaPSV2_u_motion_thread", motion_thread, 64, 0x3000, 0, 0x10000, 0);
-    sceKernelStartThread(thread_motion_uid, 0, NULL);
 	thread_config_uid = sceKernelCreateThread("remaPSV2_u_config_thread", config_thread, 64, 0x3000, 0, 0x10000, 0);
     sceKernelStartThread(thread_config_uid, 0, NULL);
+	thread_motion_uid = sceKernelCreateThread("remaPSV2_u_motion_thread", motion_thread, 64, 0x3000, 0, 0x10000, 0);
+    // sceKernelStartThread(thread_motion_uid, 0, NULL);
 
 	return SCE_KERNEL_START_SUCCESS;
 }

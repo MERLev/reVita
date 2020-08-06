@@ -29,6 +29,8 @@ int patchExtPort;
     if (profile.gyro[PROFILE_GYRO_DEADBAND] != deadband 
             || profile.controller[PROFILE_CONTROLLER_ENABLED] != patchExtEnabled
             || profile.controller[PROFILE_CONTROLLER_PORT] != patchExtPort){
+        LOG("Config updated\n");
+        log_flush();
         deadband = profile.gyro[PROFILE_GYRO_DEADBAND];
         patchExtEnabled = profile.controller[PROFILE_CONTROLLER_ENABLED];
         patchExtPort = profile.controller[PROFILE_CONTROLLER_PORT];
