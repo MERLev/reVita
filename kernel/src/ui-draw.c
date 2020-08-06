@@ -424,7 +424,9 @@ void onDraw_debugButtons(){
 	isInternalExtCall = 0;
     int y = menuY;
     int x = L_1;
-	// SceCtrlData* ctrl = (SceCtrlData*)ui_menu->data;
+	SceCtrlData* ctrlP = (SceCtrlData*)ui_menu->data;
+	if (ctrlP != NULL)
+		ctrl = *ctrlP;
 	unsigned int buttons = ctrl.buttons;
 	if (ret < 1){
 		renderer_setColor(COLOR_DANGER);

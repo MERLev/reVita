@@ -58,7 +58,7 @@ void onInput_touchPicker(SceCtrlData *ctrl){
 	}
 }
 void onInput_debugButtons(SceCtrlData *ctrl){
-	ui_menu->data = (int32_t)ctrl;
+	ui_menu->data = (int32_t)&ctrl[0];
 }
 
 void onButton_null(uint32_t btn){

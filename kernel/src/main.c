@@ -30,7 +30,7 @@ static bool   thread_run = true;
 
 char titleid[32] = "";
 
-uint8_t used_funcs[HOOKS_NUM];
+bool used_funcs[HOOKS_NUM];
 bool isInternalTouchCall = false;
 bool isInternalExtCall = false;
 
@@ -156,8 +156,8 @@ DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(3, sceCtrlReadBufferNegative)
 DECL_FUNC_HOOK_PATCH_CTRL_EXT(4, sceCtrlPeekBufferPositive2)
 DECL_FUNC_HOOK_PATCH_CTRL_EXT(5, sceCtrlReadBufferPositive2)
 DECL_FUNC_HOOK_PATCH_CTRL_EXT(6, sceCtrlPeekBufferPositiveExt)
-DECL_FUNC_HOOK_PATCH_CTRL_EXT(7, sceCtrlPeekBufferPositiveExt2)
-DECL_FUNC_HOOK_PATCH_CTRL_EXT(8, sceCtrlReadBufferPositiveExt)
+DECL_FUNC_HOOK_PATCH_CTRL_EXT(7, sceCtrlReadBufferPositiveExt)
+DECL_FUNC_HOOK_PATCH_CTRL_EXT(8, sceCtrlPeekBufferPositiveExt2)
 DECL_FUNC_HOOK_PATCH_CTRL_EXT(9, sceCtrlReadBufferPositiveExt2)
 
 #define DECL_FUNC_HOOK_PATCH_CTRL_EXT_NEGATIVE(index, name) \
@@ -183,8 +183,8 @@ DECL_FUNC_HOOK_PATCH_CTRL_EXT_NEGATIVE(11, sceCtrlReadBufferNegative2)
 		/*ret = onKernelInput(ctrl, ret, (index));*/ \
         return ret; \
     }
-DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(12, ksceCtrlReadBufferPositive)
-DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(13, ksceCtrlPeekBufferPositive)
+DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(12, ksceCtrlPeekBufferPositive)
+DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(13, ksceCtrlReadBufferPositive)
 
 #define DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
@@ -194,8 +194,8 @@ DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(13, ksceCtrlPeekBufferPositive)
 		/*ret = onKernelInputNegative(ctrl, ret, (index));*/ \
         return ret; \
     }
-DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(14, ksceCtrlReadBufferNegative)
-DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(15, ksceCtrlPeekBufferNegative)
+DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(14, ksceCtrlPeekBufferNegative)
+DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(15, ksceCtrlReadBufferNegative)
 
 #define DECL_FUNC_HOOK_PATCH_TOUCH(index, name) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
@@ -204,8 +204,8 @@ DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(15, ksceCtrlPeekBufferNegative)
         used_funcs[(index)] = 1; \
         return remap_touch(port, pData, ret, (index - 16)); \
     }
-DECL_FUNC_HOOK_PATCH_TOUCH(16, ksceTouchRead)
-DECL_FUNC_HOOK_PATCH_TOUCH(17, ksceTouchPeek)
+DECL_FUNC_HOOK_PATCH_TOUCH(16, ksceTouchPeek)
+DECL_FUNC_HOOK_PATCH_TOUCH(17, ksceTouchRead)
 
 int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplayFrameBuf *pParam, int sync) {
     used_funcs[18] = 1;
@@ -242,9 +242,9 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
                 strnclone(titleid, titleidLocal, sizeof(titleid));
                 ui_close();
                 for (int i = 0; i < HOOKS_NUM; i++)
-                    hooks[i] = 0;
+                    used_funcs[i] = false;
                 profile_load(titleid);
-                delayedStartDone = 0;
+                delayedStartDone = true;
             }
             break;
         case 3: //Close
@@ -254,9 +254,9 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
                     strnclone(titleid, HOME, sizeof(titleid));
                     ui_close();
                     for (int i = 0; i < HOOKS_NUM; i++)
-                        hooks[i] = 0;
+                        used_funcs[i] = false;
                     profile_load(HOME);
-                    delayedStartDone = 0;
+                    delayedStartDone = true;
                 }
             }
             break;
@@ -330,25 +330,25 @@ int module_start(SceSize argc, const void *args) {
     hook( 2,"SceCtrl", 0xD197E3C7, 0x104ED1A7, sceCtrlPeekBufferNegative_patched);
     hook( 3,"SceCtrl", 0xD197E3C7, 0x15F96FB0, sceCtrlReadBufferNegative_patched);
 
-    hook( 4,"SceCtrl", 0xD197E3C7, 0xC4226A3E, sceCtrlReadBufferPositive2_patched);
-    hook( 5,"SceCtrl", 0xD197E3C7, 0x15F81E8C, sceCtrlPeekBufferPositive2_patched);
+    hook( 4,"SceCtrl", 0xD197E3C7, 0x15F81E8C, sceCtrlPeekBufferPositive2_patched);
+    hook( 5,"SceCtrl", 0xD197E3C7, 0xC4226A3E, sceCtrlReadBufferPositive2_patched);
 	hook( 6,"SceCtrl", 0xD197E3C7, 0xA59454D3, sceCtrlPeekBufferPositiveExt_patched);
-    hook( 7,"SceCtrl", 0xD197E3C7, 0x860BF292, sceCtrlPeekBufferPositiveExt2_patched);
-    hook( 8,"SceCtrl", 0xD197E3C7, 0xE2D99296, sceCtrlReadBufferPositiveExt_patched);
+    hook( 7,"SceCtrl", 0xD197E3C7, 0xE2D99296, sceCtrlReadBufferPositiveExt_patched);
+    hook( 8,"SceCtrl", 0xD197E3C7, 0x860BF292, sceCtrlPeekBufferPositiveExt2_patched);
     hook( 9,"SceCtrl", 0xD197E3C7, 0xA7178860, sceCtrlReadBufferPositiveExt2_patched);
 
     hook(10,"SceCtrl", 0xD197E3C7, 0x81A89660, sceCtrlPeekBufferNegative2_patched);
     hook(11,"SceCtrl", 0xD197E3C7, 0x27A0C5FB, sceCtrlReadBufferNegative2_patched);
     
-    hook(12,"SceCtrl", 0x7823A5D1, 0x9B96A1AA, ksceCtrlReadBufferPositive_patched);
-    hook(13,"SceCtrl", 0x7823A5D1, 0xEA1D3A34, ksceCtrlPeekBufferPositive_patched);
+    hook(12,"SceCtrl", 0x7823A5D1, 0xEA1D3A34, ksceCtrlPeekBufferPositive_patched);
+    hook(13,"SceCtrl", 0x7823A5D1, 0x9B96A1AA, ksceCtrlReadBufferPositive_patched);
 
-    hook(14,"SceCtrl", 0x7823A5D1, 0x8D4E0DD1, ksceCtrlReadBufferNegative_patched);
-    hook(15,"SceCtrl", 0x7823A5D1, 0x19895843, ksceCtrlPeekBufferNegative_patched);
+    hook(14,"SceCtrl", 0x7823A5D1, 0x19895843, ksceCtrlPeekBufferNegative_patched);
+    hook(15,"SceCtrl", 0x7823A5D1, 0x8D4E0DD1, ksceCtrlReadBufferNegative_patched);
 
     
-    hook(16,"SceTouch", TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead_patched);
-    hook(17,"SceTouch", TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek_patched);
+    hook(16,"SceTouch", TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek_patched);
+    hook(17,"SceTouch", TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead_patched);
 
 	hook(18,"SceDisplay", 0x9FED47AC, 0x16466675, ksceDisplaySetFrameBufInternal_patched);
 				

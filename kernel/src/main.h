@@ -6,7 +6,7 @@
 
 extern char titleid[32];
 
-extern uint8_t used_funcs[HOOKS_NUM];
+extern bool used_funcs[HOOKS_NUM];
 extern bool isInternalTouchCall;
 extern bool isInternalExtCall;
 
