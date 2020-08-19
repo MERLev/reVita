@@ -83,6 +83,8 @@ void renderer_drawIcon(char character, int x, int y){
 		case '|': idx = ICON_MENU_SETTINGS; break;
 		case '/': idx = ICON_MENU_STORAGE; break;
 		case '?': idx = ICON_MENU_CREDITS; break;
+		case 'm': idx = ICON_TURBO_OFF; break;
+		case 'M': idx = ICON_TURBO_ON; break;
 		default: break;
 	}
 	renderer_drawImage(x + 1, y, ICON_W, ICON_H, &ICON[idx * 54]);

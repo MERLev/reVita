@@ -13,6 +13,7 @@
 
 #define MULTITOUCH_FRONT_NUM		6
 #define MULTITOUCH_BACK_NUM			4
+#define TURBO_DELAY			        50*1000
 
 TouchPoint T_FRONT_SIZE = (TouchPoint){1920, 1080};
 TouchPoint T_BACK_SIZE  = (TouchPoint){1920, 890};
@@ -207,7 +208,9 @@ void addEmuFromGyro(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emust
 void applyRemap(SceCtrlData *ctrl) {
 	if (profile.controller[PROFILE_CONTROLLER_SWAP_BUTTONS])
 		swapTriggersBumpers(ctrl);
-
+	
+	bool turboTick = (ksceKernelGetSystemTimeWide() % TURBO_DELAY) < (TURBO_DELAY / 2);
+	
 	// Gathering real touch data
 	SceTouchData front, back;
 	isInternalTouchCall = true;
@@ -247,6 +250,7 @@ void applyRemap(SceCtrlData *ctrl) {
 				if (btn_has(btns, trigger->param.btn)){
 					if (!rr->propagate)
 						btn_del(&propBtns, trigger->param.btn);
+					if (rr->turbo && turboTick) continue;
 					addEmu(&rr->emu, &emuBtns, &eSticks[0]);
 				}
 				break;
@@ -255,26 +259,30 @@ void applyRemap(SceCtrlData *ctrl) {
 					case REMAP_ANALOG_LEFT: 
 						if (ctrl->lx >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
 							break;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->lx);
 						if (!rr->propagate) propSticks[0].left = 0;
+						if (rr->turbo && turboTick) continue;
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->lx);
 						break;
 					case REMAP_ANALOG_RIGHT: 
 						if (ctrl->lx < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
 							break;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->lx - 127);
 						if (!rr->propagate) propSticks[0].right = 0;
+						if (rr->turbo && turboTick) continue;
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->lx - 127);
 						break;
 					case REMAP_ANALOG_UP: 
 						if (ctrl->ly >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
 							break;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->ly);
 						if (!rr->propagate) propSticks[0].up = 0;
+						if (rr->turbo && turboTick) continue;
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->ly);
 						break;
 					case REMAP_ANALOG_DOWN: 
 						if (ctrl->ly < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
 							break;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->ly - 127);
 						if (!rr->propagate) propSticks[0].down = 0;
+						if (rr->turbo && turboTick) continue;
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->ly - 127);
 						break;
 					default: break;
 				}
@@ -284,26 +292,30 @@ void applyRemap(SceCtrlData *ctrl) {
 					case REMAP_ANALOG_LEFT: 
 						if (ctrl->rx >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])
 							break;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->rx);
 						if (!rr->propagate) propSticks[1].left = 0;
+						if (rr->turbo && turboTick) continue;
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->rx);
 						break;
 					case REMAP_ANALOG_RIGHT: 
 						if (ctrl->rx < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])
 							break;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->rx - 127);
 						if (!rr->propagate) propSticks[1].right = 0;
+						if (rr->turbo && turboTick) continue;
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->rx - 127);
 						break;
 					case REMAP_ANALOG_UP: 
 						if (ctrl->ry >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
 							break;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->ry);
 						if (!rr->propagate) propSticks[1].up = 0;
+						if (rr->turbo && turboTick) continue;
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->ry);
 						break;
 					case REMAP_ANALOG_DOWN: 
 						if (ctrl->ry < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
 							break;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->ry - 127);
 						if (!rr->propagate) propSticks[1].down = 0;
+						if (rr->turbo && turboTick) continue;
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->ry - 127);
 						break;
 					default: break;
 				}
@@ -344,6 +356,7 @@ void applyRemap(SceCtrlData *ctrl) {
 				break;
 			case REMAP_TYPE_GYROSCOPE: 
 				if (ret != 0) break;
+				if (rr->turbo && turboTick) continue;
 				switch (trigger->action){
 					case REMAP_GYRO_UP:  
 						if (sms.angularVelocity.x > 0) 
@@ -530,7 +543,6 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 			MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
 		prevEtFront = etFront;
 		cleanEmuReports(&etFront);
-		// etFront.num = 0;
 		newEmulatedFrontTouchBuffer = false;
 	} else {
 		// Remove non-propagated remapped touches
@@ -567,7 +579,6 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 			MULTITOUCH_BACK_NUM, SCE_TOUCH_PORT_BACK);
 		prevEtBack = etBack;
 		cleanEmuReports(&etBack);
-		// etBack.num = 0;
 		newEmulatedBackTouchBuffer = 0;
 	}
 }

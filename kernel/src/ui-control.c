@@ -324,6 +324,12 @@ void onButton_remap(uint32_t btn){
 				ui_menu->onBuild(ui_menu);
 			}
 			break;
+		case SCE_CTRL_SELECT:
+			if (ui_entry->data != NEW_RULE_IDX){
+				profile.remaps[ui_entry->data].turbo = !profile.remaps[ui_entry->data].turbo;
+				ui_menu->onBuild(ui_menu);
+			}
+			break;
 		case SCE_CTRL_START:
 			if (ui_entry->data != NEW_RULE_IDX){
 				profile_removeRemapRule(ui_entry->data);

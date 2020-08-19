@@ -66,6 +66,7 @@ typedef struct RemapRule{
 	RemapAction trigger;
 	RemapAction emu;
 	bool propagate;
+    bool turbo;
 	bool disabled;
 }Rule;
 

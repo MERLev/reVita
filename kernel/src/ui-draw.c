@@ -246,7 +246,7 @@ void onDraw_remap(){
 			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
 		} else {
 			struct RemapRule* rr = &profile.remaps[ui_menu->entries[i].data];
-			renderer_stripped(rr->disabled);
+			//renderer_stripped(rr->disabled);
 			setColorExt(i == ui_menu->idx, true, !rr->propagate || rr->disabled);
 			char str[20] = "";
 			generateRemapActionName(str, &rr->trigger);
@@ -255,12 +255,17 @@ void onDraw_remap(){
 			if (!rr->disabled){
 				renderer_setColor(COLOR_DEFAULT);
 				renderer_drawString(L_1 + len + CHA_W, y, ">");
+			} else {
+				renderer_setColor(COLOR_DANGER);
+				renderer_drawString(L_1 + len + CHA_W, y, "X");
 			}
 			str[0] = '\0';
 			generateRemapActionName(str, &rr->emu);
 			setColorExt(i == ui_menu->idx, true, rr->disabled);
 			renderer_drawString(L_1 + len + 3*CHA_W, y, str);
-			renderer_stripped(0);
+			if (rr->turbo)
+				renderer_drawString(UI_WIDTH - 4*CHA_W, y, "$M");
+			//renderer_stripped(0);
 		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
