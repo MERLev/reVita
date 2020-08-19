@@ -65,11 +65,11 @@ static int remappedBuffersIdxs[HOOKS_NUM];
 static SceTouchData *remappedBuffersFront[4];
 static int remappedBuffersFrontSizes[4];
 static int remappedBuffersFrontIdxs[4];
-bool newEmulatedFrontTouchBuffer = 0;
+bool newEmulatedFrontTouchBuffer = false;
 static SceTouchData *remappedBuffersBack[4];
 static int remappedBuffersBackSizes[4];
 static int remappedBuffersBackIdxs[4];
-bool newEmulatedBackTouchBuffer = 0;
+bool newEmulatedBackTouchBuffer = false;
 
 static EmulatedTouch etFront, etBack, prevEtFront, prevEtBack;
 static uint8_t etFrontIdCounter = 64;
@@ -427,9 +427,9 @@ void applyRemap(SceCtrlData *ctrl) {
 	ctrl->rx = clamp(127 + eSticks[1].right - eSticks[1].left, 0, 255);
 	ctrl->ry = clamp(127 + eSticks[1].down - eSticks[1].up, 0, 255);
 
-	//Telling that new emulated touch buffer is ready to be takn
+	//Telling that new emulated touch buffer is ready to be taken
 	newEmulatedFrontTouchBuffer = true;
-	newEmulatedBackTouchBuffer = false;
+	newEmulatedBackTouchBuffer = true;
 }
 
 int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId) {	
@@ -487,8 +487,7 @@ void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et,
 		}
 		pData->report[pData->reportNum].id = et->reports[touchIdx].id;
 		pData->reportNum ++;
-		touchIdx ++;
-		
+		touchIdx ++;	
 	}
 }
 
