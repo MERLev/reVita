@@ -21,7 +21,6 @@ uint32_t uiWidth, uiHeight;
 #define UI_CORNER_RADIUS 9
 static const unsigned char UI_CORNER_OFF[UI_CORNER_RADIUS] = {9, 7, 5, 4, 3, 2, 2, 1, 1};
 
-//Drawn character in 2x scaling
 void renderer_drawIcon(char character, int x, int y){
 	uint32_t idx = 0;
 	switch (character){
@@ -62,6 +61,7 @@ void renderer_drawIcon(char character, int x, int y){
 		case '4': idx = ICON_FT_TR; break;
 		case '5': idx = ICON_FT_BL; break;
 		case '6': idx = ICON_FT_BR; break;
+		case 'i': idx = ICON_FT_SWIPE; break;
 		case 'B': idx = ICON_BT; break;
 		case '7': idx = ICON_BT_L; break;
 		case '8': idx = ICON_BT_R; break;
@@ -69,6 +69,7 @@ void renderer_drawIcon(char character, int x, int y){
 		case '0': idx = ICON_BT_TR; break;
 		case '_': idx = ICON_BT_BL; break;
 		case '=': idx = ICON_BT_BR; break;
+		case 'j': idx = ICON_BT_SWIPE; break;
 		case 'q': idx = ICON_GY_LEFT; break;
 		case 'e': idx = ICON_GY_RIGHT; break;
 		case 'w': idx = ICON_GY_UP; break;

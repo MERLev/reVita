@@ -19,7 +19,7 @@ TouchPoint T_BACK_SIZE  = (TouchPoint){1920, 890};
 static TouchPoint 
 	T_FRONT_L, T_FRONT_R, T_FRONT_TL, T_FRONT_TR, T_FRONT_BL, T_FRONT_BR,
 	T_BACK_L, T_BACK_R, T_BACK_TL, T_BACK_TR, T_BACK_BL, T_BACK_BR;
-static TouchZone 
+static TouchPoints2 
 	TZ_FRONT_L, TZ_FRONT_R, TZ_FRONT_TL, TZ_FRONT_TR, TZ_FRONT_BL, TZ_FRONT_BR,
 	TZ_BACK_L, TZ_BACK_R, TZ_BACK_TL, TZ_BACK_TR, TZ_BACK_BL, TZ_BACK_BR;
 
@@ -36,8 +36,15 @@ typedef struct EmulatedStick{
 	uint32_t up, down, left, right;
 }EmulatedStick;
 
+typedef struct EmulatedTouchEvent{
+	TouchPoint point, swipeEndPoint;
+	int id;
+	bool isSwipe;
+	bool isSwipeStarted;
+}EmulatedTouchEvent;
+
 typedef struct EmulatedTouch{
-	SceTouchReport reports[MULTITOUCH_FRONT_NUM];
+	EmulatedTouchEvent reports[MULTITOUCH_FRONT_NUM];
 	uint8_t num;
 }EmulatedTouch;
 
@@ -65,22 +72,37 @@ static EmulatedTouch etFront, etBack, prevEtFront, prevEtBack;
 static uint8_t etFrontIdCounter = 64;
 static uint8_t etBackIdCounter = 64;
 
-bool inZone(const TouchPoint tp, const TouchZone tz){
+bool inZone(const TouchPoint tp, const TouchPoints2 tz){
 	if (tp.x > min(tz.a.x, tz.b.x) && tp.x <= max(tz.a.x, tz.b.x) &&
 		tp.y > min(tz.a.y, tz.b.y) && tp.y <= max(tz.a.y, tz.b.y))
 		return true;
 	return false;
 }
-bool reportInZone(SceTouchReport* str, const TouchZone tz){
+bool reportInZone(SceTouchReport* str, const TouchPoints2 tz){
 	return inZone((TouchPoint){str->x, str->y}, tz);
 }
 
 void storeTouchPoint(EmulatedTouch *et, TouchPoint tp){
 	for (int i = 0; i < et->num; i++)
-		if (et->reports[i].x == tp.x && et->reports[i].y == tp.y)
+		if (et->reports[i].point.x == tp.x && et->reports[i].point.y == tp.y)
 			return;
-	et->reports[et->num].x = tp.x;
-	et->reports[et->num].y = tp.y;
+	et->reports[et->num].point.x = tp.x;
+	et->reports[et->num].point.y = tp.y;
+	et->num++;
+}
+
+void storeTouchSwipe(EmulatedTouch *et, TouchPoints2 tps){
+	for (int i = 0; i < et->num; i++)
+		if (et->reports[i].isSwipe == true &&
+			et->reports[i].point.x == tps.a.x && et->reports[i].point.y == tps.a.y && 
+			et->reports[i].swipeEndPoint.x == tps.b.x && et->reports[i].swipeEndPoint.y == tps.b.y)
+			return;
+	et->reports[et->num].point.x = tps.a.x;
+	et->reports[et->num].point.y = tps.a.y;
+	et->reports[et->num].swipeEndPoint.x = tps.b.x;
+	et->reports[et->num].swipeEndPoint.y = tps.b.y;
+	et->reports[et->num].isSwipe = true;
+	et->reports[et->num].isSwipeStarted = false;
 	et->num++;
 }
 
@@ -125,7 +147,8 @@ void addEmu(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick) {
 				case REMAP_TOUCH_ZONE_TR: storeTouchPoint(&etFront, T_FRONT_TR); break;
 				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etFront, T_FRONT_BL); break;
 				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etFront, T_FRONT_BR); break;
-				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etFront, emu->param.touch); break;
+				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etFront, emu->param.tPoint); break;
+				case REMAP_TOUCH_SWIPE:   storeTouchSwipe(&etFront, emu->param.tPoints); break;
 				default: break;
 			}
 			break;
@@ -137,7 +160,8 @@ void addEmu(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick) {
 				case REMAP_TOUCH_ZONE_TR: storeTouchPoint(&etBack, T_BACK_TR); break;
 				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etBack, T_BACK_BL); break;
 				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etBack, T_BACK_BR); break;
-				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etBack, emu->param.touch); break;
+				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etBack, emu->param.tPoint); break;
+				case REMAP_TOUCH_SWIPE:   storeTouchSwipe(&etBack, emu->param.tPoints); break;
 				default: break;
 			}
 			break;
@@ -201,8 +225,6 @@ void applyRemap(SceCtrlData *ctrl) {
 	SceMotionState sms;
 	// int ret = _sceMotionGetState(&sms);
 	int ret = -1;
-	// LOG("motion get state_: %lf\n", d2);
-	// LOG("motion get state : %i [%+1.3f %+1.3f %+1.3f] %+1.3f %+1.3f\n", ret, sms.angularVelocity.x, sms.angularVelocity.y, sms.angularVelocity.z, d1, d2);
 
 	//Set propagation sticks def values
 	if (ctrl->lx < 128) propSticks[0].left = 127 - ctrl->lx;
@@ -289,7 +311,7 @@ void applyRemap(SceCtrlData *ctrl) {
 			case REMAP_TYPE_FRONT_TOUCH_ZONE: 
 				if (frontRet < 1) break;
 				for (int j = 0; j < front.reportNum; j++) {
-					TouchZone tz = TZ_FRONT_L;
+					TouchPoints2 tz = TZ_FRONT_L;
 					switch (trigger->action){
 						case REMAP_TOUCH_ZONE_L:  tz = TZ_FRONT_L;  break;
 						case REMAP_TOUCH_ZONE_R:  tz = TZ_FRONT_R;  break;
@@ -297,7 +319,7 @@ void applyRemap(SceCtrlData *ctrl) {
 						case REMAP_TOUCH_ZONE_TR: tz = TZ_FRONT_TR; break;
 						case REMAP_TOUCH_ZONE_BL: tz = TZ_FRONT_BL; break;
 						case REMAP_TOUCH_ZONE_BR: tz = TZ_FRONT_BR; break;
-						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.zone; break;
+						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.tPoints; break;
 						default: break;
 					}
 					if (reportInZone(&front.report[j], tz)) addEmu(&rr->emu, &emuBtns, eSticks); 
@@ -306,7 +328,7 @@ void applyRemap(SceCtrlData *ctrl) {
 			case REMAP_TYPE_BACK_TOUCH_ZONE: 
 				if (backRet < 1) break;
 				for (int j = 0; j < back.reportNum; j++) {
-					TouchZone tz = TZ_FRONT_L;
+					TouchPoints2 tz = TZ_FRONT_L;
 					switch (trigger->action){
 						case REMAP_TOUCH_ZONE_L:  tz = TZ_BACK_L;  break;
 						case REMAP_TOUCH_ZONE_R:  tz = TZ_BACK_R;  break;
@@ -314,7 +336,7 @@ void applyRemap(SceCtrlData *ctrl) {
 						case REMAP_TOUCH_ZONE_TR: tz = TZ_BACK_TR; break;
 						case REMAP_TOUCH_ZONE_BL: tz = TZ_BACK_BL; break;
 						case REMAP_TOUCH_ZONE_BR: tz = TZ_BACK_BR; break;
-						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.zone; break;
+						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.tPoints; break;
 						default: break;
 					}
 					if (reportInZone(&back.report[j], tz)) addEmu(&rr->emu, &emuBtns, eSticks); 
@@ -325,27 +347,27 @@ void applyRemap(SceCtrlData *ctrl) {
 				switch (trigger->action){
 					case REMAP_GYRO_UP:  
 						if (sms.angularVelocity.x > 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.x * profile.gyro[1]);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y]);
 						break;
 					case REMAP_GYRO_DOWN:
 						if (sms.angularVelocity.x < 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.x * profile.gyro[1]);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y]);
 						break;
 					case REMAP_GYRO_LEFT:
 						if (sms.angularVelocity.y > 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.y * profile.gyro[0]);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X]);
 						break;
 					case REMAP_GYRO_RIGHT:
 						if (sms.angularVelocity.y < 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.y * profile.gyro[0]);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X]);
 						break;
 					case REMAP_GYRO_ROLL_LEFT:
 						if (sms.deviceQuat.z > 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.deviceQuat.z * profile.gyro[2] * 4);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4);
 						break;
 					case REMAP_GYRO_ROLL_RIGHT:
 						if (sms.deviceQuat.z < 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.deviceQuat.z * profile.gyro[2] * 4);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4);
 						break;
 					default: break;
 				}
@@ -418,13 +440,13 @@ int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId) {
 uint8_t generateTouchId(int x, int y, int panel){ 
 	if (panel == SCE_TOUCH_PORT_FRONT){
 		for (int i = 0; i < prevEtFront.num; i++)
-			if (prevEtFront.reports[i].x == x && prevEtFront.reports[i].y == y)
+			if (prevEtFront.reports[i].point.x == x && prevEtFront.reports[i].point.y == y)
 				return prevEtFront.reports[i].id;
 		etFrontIdCounter = (etFrontIdCounter + 1) % 127;
 		return etFrontIdCounter;
 	} else {
 		for (int i = 0; i < prevEtBack.num; i++)
-			if (prevEtBack.reports[i].x == x && prevEtBack.reports[i].y == y)
+			if (prevEtBack.reports[i].point.x == x && prevEtBack.reports[i].point.y == y)
 				return prevEtBack.reports[i].id;
 		etBackIdCounter = (etBackIdCounter + 1) % 127;
 		return etBackIdCounter;
@@ -435,10 +457,16 @@ void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et,
 		uint8_t touchPointsMaxNum, int panel){
 	int touchIdx = 0;
 	while (touchIdx < et->num && pData->reportNum < touchPointsMaxNum){
-		pData->report[pData->reportNum].x = et->reports[touchIdx].x;
-		pData->report[pData->reportNum].y = et->reports[touchIdx].y;
-		et->reports[touchIdx].id = generateTouchId(
-			et->reports[touchIdx].x, et->reports[touchIdx].y, panel);
+		if (!et->reports[touchIdx].isSwipe || 
+				(et->reports[touchIdx].isSwipe && !et->reports[touchIdx].isSwipeStarted)){
+			pData->report[pData->reportNum].x = et->reports[touchIdx].point.x;
+			pData->report[pData->reportNum].y = et->reports[touchIdx].point.y;
+			et->reports[touchIdx].id = generateTouchId(
+				et->reports[touchIdx].point.x, et->reports[touchIdx].point.y, panel);
+		} else {
+			pData->report[pData->reportNum].x = et->reports[touchIdx].swipeEndPoint.x;
+			pData->report[pData->reportNum].y = et->reports[touchIdx].swipeEndPoint.y;
+		}
 		pData->report[pData->reportNum].id = et->reports[touchIdx].id;
 		pData->reportNum ++;
 		touchIdx ++;
@@ -450,6 +478,22 @@ void removeReport(SceTouchData *pData, int idx){
 		pData->report[i - 1] = pData->report[i];
 	pData->reportNum--;
 }
+void removeEmuReport(EmulatedTouch *et, int idx){
+	for (int i = idx + 1; i < et->num; i++)
+		et->reports[i - 1] = et->reports[i];
+	et->num--;
+}
+void cleanEmuReports(EmulatedTouch *et){
+	int i = 0;
+	while (i < et->num){
+		if (et->reports[i].isSwipe && !et->reports[i].isSwipeStarted){
+			et->reports[i].isSwipeStarted = true;
+			i++;
+		} else {
+			removeEmuReport(et, i);
+		}
+	}
+}
 void updateTouchInfo(SceUInt32 port, SceTouchData *pData){	
 	if (port == SCE_TOUCH_PORT_FRONT) {
 		// Remove non-propagated remapped touches
@@ -458,7 +502,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				profile.remaps[i].trigger.type == REMAP_TYPE_FRONT_TOUCH_ZONE){
 				int j = 0;
 				while (j < pData->reportNum){
-					TouchZone tz = TZ_FRONT_L;
+					TouchPoints2 tz = TZ_FRONT_L;
 					switch (profile.remaps[i].trigger.action){
 						case REMAP_TOUCH_ZONE_L:  tz = TZ_FRONT_L;  break;
 						case REMAP_TOUCH_ZONE_R:  tz = TZ_FRONT_R;  break;
@@ -466,7 +510,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 						case REMAP_TOUCH_ZONE_TR: tz = TZ_FRONT_TR; break;
 						case REMAP_TOUCH_ZONE_BL: tz = TZ_FRONT_BL; break;
 						case REMAP_TOUCH_ZONE_BR: tz = TZ_FRONT_BR; break;
-						case REMAP_TOUCH_CUSTOM:  tz = profile.remaps[i].trigger.param.zone; break;
+						case REMAP_TOUCH_CUSTOM:  tz = profile.remaps[i].trigger.param.tPoints; break;
 						default: break;
 					}
 					if (reportInZone(&pData->report[j], tz))
@@ -485,7 +529,8 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 		addVirtualTouches(pData, &etFront, 
 			MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
 		prevEtFront = etFront;
-		etFront.num = 0;
+		cleanEmuReports(&etFront);
+		// etFront.num = 0;
 		newEmulatedFrontTouchBuffer = false;
 	} else {
 		// Remove non-propagated remapped touches
@@ -494,7 +539,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 				profile.remaps[i].trigger.type == REMAP_TYPE_BACK_TOUCH_ZONE){
 				int j = 0;
 				while (j < pData->reportNum){
-					TouchZone tz = TZ_BACK_L;
+					TouchPoints2 tz = TZ_BACK_L;
 					switch (profile.remaps[i].trigger.action){
 						case REMAP_TOUCH_ZONE_L:  tz = TZ_BACK_L;  break;
 						case REMAP_TOUCH_ZONE_R:  tz = TZ_BACK_R;  break;
@@ -502,7 +547,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 						case REMAP_TOUCH_ZONE_TR: tz = TZ_BACK_TR; break;
 						case REMAP_TOUCH_ZONE_BL: tz = TZ_BACK_BL; break;
 						case REMAP_TOUCH_ZONE_BR: tz = TZ_BACK_BR; break;
-						case REMAP_TOUCH_CUSTOM:  tz = profile.remaps[i].trigger.param.zone; break;
+						case REMAP_TOUCH_CUSTOM:  tz = profile.remaps[i].trigger.param.tPoints; break;
 						default: break;
 					}
 					if (reportInZone(&pData->report[j], tz))
@@ -521,7 +566,8 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 		addVirtualTouches(pData, &etBack, 
 			MULTITOUCH_BACK_NUM, SCE_TOUCH_PORT_BACK);
 		prevEtBack = etBack;
-		etBack.num = 0;
+		cleanEmuReports(&etBack);
+		// etBack.num = 0;
 		newEmulatedBackTouchBuffer = 0;
 	}
 }
@@ -594,41 +640,41 @@ void initTouchParams(){
 	T_BACK_BL = (TouchPoint){T_BACK_SIZE.x / 6, T_BACK_SIZE.y * 3 / 4};
 	T_BACK_BR = (TouchPoint){T_BACK_SIZE.x * 5 / 6, T_BACK_SIZE.y * 3 / 4};
 
-	TZ_FRONT_L = (TouchZone){
+	TZ_FRONT_L = (TouchPoints2){
 		(TouchPoint){0, 0}, 
 		(TouchPoint){T_FRONT_SIZE.x / 2, T_FRONT_SIZE.y}};
-	TZ_FRONT_R = (TouchZone){
+	TZ_FRONT_R = (TouchPoints2){
 		(TouchPoint){T_FRONT_SIZE.x / 2, 0}, 
 		(TouchPoint){T_FRONT_SIZE.x, T_FRONT_SIZE.y}};
-	TZ_FRONT_TL = (TouchZone){
+	TZ_FRONT_TL = (TouchPoints2){
 		(TouchPoint){0, 0}, 
 		(TouchPoint){T_FRONT_SIZE.x / 2, T_FRONT_SIZE.y / 2}};
-	TZ_FRONT_TR = (TouchZone){
+	TZ_FRONT_TR = (TouchPoints2){
 		(TouchPoint){T_FRONT_SIZE.x / 2, 0}, 
 		(TouchPoint){T_FRONT_SIZE.x, T_FRONT_SIZE.y / 2}};
-	TZ_FRONT_BL = (TouchZone){
+	TZ_FRONT_BL = (TouchPoints2){
 		(TouchPoint){0, T_FRONT_SIZE.y / 2}, 
 		(TouchPoint){T_FRONT_SIZE.x / 2, T_FRONT_SIZE.y}};
-	TZ_FRONT_BR = (TouchZone){
+	TZ_FRONT_BR = (TouchPoints2){
 		(TouchPoint){T_FRONT_SIZE.x / 2, T_FRONT_SIZE.y / 2}, 
 		(TouchPoint){T_FRONT_SIZE.x, T_FRONT_SIZE.y}};
 
-	TZ_BACK_L = (TouchZone){
+	TZ_BACK_L = (TouchPoints2){
 		(TouchPoint){0, 0}, 
 		(TouchPoint){T_BACK_SIZE.x / 2, T_BACK_SIZE.y}};
-	TZ_BACK_R = (TouchZone){
+	TZ_BACK_R = (TouchPoints2){
 		(TouchPoint){T_BACK_SIZE.x / 2, 0}, 
 		(TouchPoint){T_BACK_SIZE.x, T_BACK_SIZE.y}};
-	TZ_BACK_TL = (TouchZone){
+	TZ_BACK_TL = (TouchPoints2){
 		(TouchPoint){0, 0}, 
 		(TouchPoint){T_BACK_SIZE.x / 2, T_BACK_SIZE.y / 2}};
-	TZ_BACK_TR = (TouchZone){
+	TZ_BACK_TR = (TouchPoints2){
 		(TouchPoint){T_BACK_SIZE.x / 2, 0}, 
 		(TouchPoint){T_BACK_SIZE.x, T_BACK_SIZE.y / 2}};
-	TZ_BACK_BL = (TouchZone){
+	TZ_BACK_BL = (TouchPoints2){
 		(TouchPoint){0, T_BACK_SIZE.y / 2}, 
 		(TouchPoint){T_BACK_SIZE.x / 2, T_BACK_SIZE.y}};
-	TZ_BACK_BR = (TouchZone){
+	TZ_BACK_BR = (TouchPoints2){
 		(TouchPoint){T_BACK_SIZE.x / 2, T_BACK_SIZE.y / 2}, 
 		(TouchPoint){T_BACK_SIZE.x, T_BACK_SIZE.y}};
 }

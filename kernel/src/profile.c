@@ -129,6 +129,7 @@ const char* REMAP_ACTION_STR[REMAP_ACTION_NUM] = {
     "TOUCH_ZONE_BL",
     "TOUCH_ZONE_BR",
     "TOUCH_CUSTOM",
+    "TOUCH_SWIPE",
     "GYRO_UP",
     "GYRO_DOWN",
     "GYRO_LEFT",
@@ -154,6 +155,7 @@ enum REMAP_KEY{
 	REMAP_KEY_EMU_ACTION,
 	REMAP_KEY_EMU_BUTTONS,
 	REMAP_KEY_EMU_TOUCH_POINT,
+	REMAP_KEY_EMU_TOUCH_SWIPE,
 	REMAP_KEY__NUM
 };
 const char* REMAP_KEY_STR[REMAP_KEY__NUM] = {
@@ -166,7 +168,8 @@ const char* REMAP_KEY_STR[REMAP_KEY__NUM] = {
 	"EMU_ACTION_TYPE",
 	"EMU_ACTION",
 	"EMU_BUTTONS",
-	"EMU_TOUCH_POINT"
+	"EMU_TOUCH_POINT",
+	"EMU_TOUCH_SWIPE"
 };
 enum REMAP_KEY getRemapKeyId(char* n){
 	for (int i = 0; i < REMAP_KEY__NUM; i++)
@@ -373,10 +376,10 @@ bool generateINIProfile(Profile* p, char* buff){
 			ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_TRIGGER_ACTION], REMAP_ACTION_STR[r->trigger.action]);
 			if (r->trigger.action == REMAP_TOUCH_CUSTOM){
 				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_TRIGGER_TOUCH_ZONE]);
-				ini_addListInt(ini, r->trigger.param.zone.a.x);
-				ini_addListInt(ini, r->trigger.param.zone.a.y);
-				ini_addListInt(ini, r->trigger.param.zone.b.x);
-				ini_addListInt(ini, r->trigger.param.zone.b.y);
+				ini_addListInt(ini, r->trigger.param.tPoints.a.x);
+				ini_addListInt(ini, r->trigger.param.tPoints.a.y);
+				ini_addListInt(ini, r->trigger.param.tPoints.b.x);
+				ini_addListInt(ini, r->trigger.param.tPoints.b.y);
 			}
 		} 
 
@@ -391,8 +394,14 @@ bool generateINIProfile(Profile* p, char* buff){
 			ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_EMU_ACTION], REMAP_ACTION_STR[r->emu.action]);
 			if (r->emu.action == REMAP_TOUCH_CUSTOM){
 				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_POINT]);
-				ini_addListInt(ini, r->emu.param.touch.x);
-				ini_addListInt(ini, r->emu.param.touch.y);
+				ini_addListInt(ini, r->emu.param.tPoint.x);
+				ini_addListInt(ini, r->emu.param.tPoint.y);
+			} else if (r->emu.action == REMAP_TOUCH_SWIPE){
+				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_SWIPE]);
+				ini_addListInt(ini, r->trigger.param.tPoints.a.x);
+				ini_addListInt(ini, r->trigger.param.tPoints.a.y);
+				ini_addListInt(ini, r->trigger.param.tPoints.b.x);
+				ini_addListInt(ini, r->trigger.param.tPoints.b.y);
 			}
 		}
 	}
@@ -474,10 +483,10 @@ bool parseINIProfile(Profile* p, char* buff){
 						}
 						break;
 					case REMAP_KEY_TRIGGER_TOUCH_ZONE: 
-						rr->trigger.param.zone.a.x = parseInt(ini_nextListVal(ini));
-						rr->trigger.param.zone.a.y = parseInt(ini_nextListVal(ini));
-						rr->trigger.param.zone.b.x = parseInt(ini_nextListVal(ini));
-						rr->trigger.param.zone.b.y = parseInt(ini_nextListVal(ini));
+						rr->trigger.param.tPoints.a.x = parseInt(ini_nextListVal(ini));
+						rr->trigger.param.tPoints.a.y = parseInt(ini_nextListVal(ini));
+						rr->trigger.param.tPoints.b.x = parseInt(ini_nextListVal(ini));
+						rr->trigger.param.tPoints.b.y = parseInt(ini_nextListVal(ini));
 						break;
 					case REMAP_KEY_EMU_ACTION_TYPE: 
 						id = getActionTypeId(ini->val);
@@ -497,8 +506,14 @@ bool parseINIProfile(Profile* p, char* buff){
 						}
 						break;
 					case REMAP_KEY_EMU_TOUCH_POINT:
-						rr->trigger.param.touch.x = parseInt(ini_nextListVal(ini));
-						rr->trigger.param.touch.y = parseInt(ini_nextListVal(ini));
+						rr->trigger.param.tPoint.x = parseInt(ini_nextListVal(ini));
+						rr->trigger.param.tPoint.y = parseInt(ini_nextListVal(ini));
+						break;
+					case REMAP_KEY_EMU_TOUCH_SWIPE: 
+						rr->emu.param.tPoints.a.x = parseInt(ini_nextListVal(ini));
+						rr->emu.param.tPoints.a.y = parseInt(ini_nextListVal(ini));
+						rr->emu.param.tPoints.b.x = parseInt(ini_nextListVal(ini));
+						rr->emu.param.tPoints.b.y = parseInt(ini_nextListVal(ini));
 						break;
 					default: break;
 				}

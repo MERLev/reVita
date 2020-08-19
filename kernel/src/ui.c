@@ -263,10 +263,10 @@ static struct Menu menu_pick_touch_point = (Menu){
 
 #define MENU_PICK_TOUCH_ZONE_NUM 4
 static struct MenuEntry menu_pick_touch_zone_entries[MENU_PICK_TOUCH_ZONE_NUM] = {
-	(MenuEntry){.name = "Corner point 1 x", .data = 0},
-	(MenuEntry){.name = "               y", .data = 1},
-	(MenuEntry){.name = "Corner point 2 x", .data = 2},
-	(MenuEntry){.name = "               y", .data = 3}};
+	(MenuEntry){.name = "Point 1 x", .data = 0},
+	(MenuEntry){.name = "        y", .data = 1},
+	(MenuEntry){.name = "Point 2 x", .data = 2},
+	(MenuEntry){.name = "        y", .data = 3}};
 static struct Menu menu_pick_touch_zone = (Menu){
 	.id = MENU_PICK_TOUCH_ZONE_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
@@ -277,8 +277,23 @@ static struct Menu menu_pick_touch_zone = (Menu){
 	.onDraw = onDraw_pickTouchZone,
 	.entries = menu_pick_touch_zone_entries};
 
+#define MENU_PICK_TOUCH_SWIPE_NUM 4
+static struct MenuEntry menu_pick_touch_swipe_entries[MENU_PICK_TOUCH_SWIPE_NUM] = {
+	(MenuEntry){.name = "Point 1 x", .data = 0},
+	(MenuEntry){.name = "        y", .data = 1},
+	(MenuEntry){.name = "Point 2 x", .data = 2},
+	(MenuEntry){.name = "        y", .data = 3}};
+static struct Menu menu_pick_touch_swipe = (Menu){
+	.id = MENU_PICK_TOUCH_SWIPE_ID, 
+	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
+	.num = MENU_PICK_TOUCH_SWIPE_NUM, 
+	.name = "SELECT SWIPE POINTS", 
+	.onInput = onInput_touchPicker,
+	.onButton = onButton_pickTouchZone,
+	.onDraw = onDraw_pickTouchZone,
+	.entries = menu_pick_touch_swipe_entries};
+
 #define MENU_REMAP_NUM 1
-// char str_remaps[REMAP_NUM + MENU_REMAP_NUM][STR_SIZE];
 static struct MenuEntry menu_remap_entries_def[MENU_REMAP_NUM] = {
 	(MenuEntry){.name = "<new remap rule>", .data = NEW_RULE_IDX}};
 static struct MenuEntry menu_remap_entries[REMAP_NUM + MENU_REMAP_NUM];
@@ -383,7 +398,7 @@ static struct Menu menu_remap_emu_type = (Menu){
 	.onButton = onButton_remapEmuType,
 	.entries = menu_remap_emu_type_entries};
 
-#define MENU_REMAP_EMU_TOUCH_FRONT_NUM 7
+#define MENU_REMAP_EMU_TOUCH_FRONT_NUM 8
 static struct MenuEntry menu_remap_emu_touch_front_entries[MENU_REMAP_EMU_TOUCH_FRONT_NUM] = {
 	(MenuEntry){.name = "$1 Left Touch", .data = REMAP_TOUCH_ZONE_L},
 	(MenuEntry){.name = "$2 Right Touch", .data = REMAP_TOUCH_ZONE_R},
@@ -391,7 +406,8 @@ static struct MenuEntry menu_remap_emu_touch_front_entries[MENU_REMAP_EMU_TOUCH_
 	(MenuEntry){.name = "$4 Top Right Touch", .data = REMAP_TOUCH_ZONE_TR},
 	(MenuEntry){.name = "$5 Bottom Left Touch", .data = REMAP_TOUCH_ZONE_BL},
 	(MenuEntry){.name = "$6 Bottom Right Touch", .data = REMAP_TOUCH_ZONE_BR},
-	(MenuEntry){.name = "$F Custom Touch", .data = REMAP_TOUCH_CUSTOM}};
+	(MenuEntry){.name = "$F Custom Touch", .data = REMAP_TOUCH_CUSTOM},
+	(MenuEntry){.name = "$i Swipe", .data = REMAP_TOUCH_SWIPE}};
 static struct Menu menu_remap_emu_touch_front = (Menu){
 	.id = MENU_REMAP_EMU_TOUCH_FRONT_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
@@ -400,7 +416,7 @@ static struct Menu menu_remap_emu_touch_front = (Menu){
 	.onButton = onButton_remapEmuTouch,
 	.entries = menu_remap_emu_touch_front_entries};
 
-#define MENU_REMAP_EMU_TOUCH_BACK_NUM 7
+#define MENU_REMAP_EMU_TOUCH_BACK_NUM 8
 static struct MenuEntry menu_remap_emu_touch_back_entries[MENU_REMAP_EMU_TOUCH_FRONT_NUM] = {
 	(MenuEntry){.name = "$7 Left Touch", .data = REMAP_TOUCH_ZONE_L},
 	(MenuEntry){.name = "$8 Right Touch", .data = REMAP_TOUCH_ZONE_R},
@@ -408,7 +424,8 @@ static struct MenuEntry menu_remap_emu_touch_back_entries[MENU_REMAP_EMU_TOUCH_F
 	(MenuEntry){.name = "$0 Top Right Touch", .data = REMAP_TOUCH_ZONE_TR},
 	(MenuEntry){.name = "$_ Bottom Left Touch", .data = REMAP_TOUCH_ZONE_BL},
 	(MenuEntry){.name = "$= Bottom Right Touch", .data = REMAP_TOUCH_ZONE_BR},
-	(MenuEntry){.name = "$B Custom Touch", .data = REMAP_TOUCH_CUSTOM}};
+	(MenuEntry){.name = "$B Custom Touch", .data = REMAP_TOUCH_CUSTOM},
+	(MenuEntry){.name = "$j Swipe", .data = REMAP_TOUCH_SWIPE}};
 static struct Menu menu_remap_emu_touch_back = (Menu){
 	.id = MENU_REMAP_EMU_TOUCH_BACK_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
@@ -447,6 +464,7 @@ void registerMenus(){
 	registerMenu(&menu_pick_analog_right);
 	registerMenu(&menu_pick_touch_point);
 	registerMenu(&menu_pick_touch_zone);
+	registerMenu(&menu_pick_touch_swipe);
 
 	registerMenu(&menu_remap);
 	registerMenu(&menu_remap_trigger_type);

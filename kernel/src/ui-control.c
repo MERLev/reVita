@@ -10,7 +10,7 @@
 #include "log.h"
 
 #define DELAY_LONGPRESS   	400*1000	//0.400 sec
-#define DELAY_REPEAT   		 70*1000	//0.070 sec
+#define DELAY_REPEAT   		 60*1000	//0.070 sec
 
 typedef struct BtnInfo{
 	uint32_t btn;
@@ -37,7 +37,7 @@ void touchPicker(TouchPoint* tp, int port){
 	isInternalTouchCall = 1;
 	int ret = ksceTouchPeek(port, &std, 1);
 	isInternalTouchCall = 0;
-	if (ret && std.reportNum){
+	if (ret && std.reportNum > 0){
 		tp->x = std.report[0].x;
 		tp->y =std.report[0].y;
 	}
@@ -46,15 +46,16 @@ void onInput_touchPicker(SceCtrlData *ctrl){
 	RemapAction* ra = (RemapAction*)ui_menu->data;
 	int port = (ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE) ?
 		SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
-	if (ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_BACK_TOUCH_POINT){
-		touchPicker(&ra->param.touch, SCE_TOUCH_PORT_FRONT);
-		analogTouchPicker(&ra->param.touch, ctrl, port == SCE_TOUCH_PORT_FRONT, 0);
-	} else if (ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE){
-		TouchPoint* tpA = &ra->param.zone.a;
-		TouchPoint* tpB = &ra->param.zone.b;
+	if ((ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_BACK_TOUCH_POINT) && ra->action != REMAP_TOUCH_SWIPE){
+		touchPicker(&ra->param.tPoint, SCE_TOUCH_PORT_FRONT);
+		analogTouchPicker(&ra->param.tPoint, ctrl, port == SCE_TOUCH_PORT_FRONT, false);
+	} else if (ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE || ra->type == REMAP_TYPE_BACK_TOUCH_ZONE || 
+			((ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_BACK_TOUCH_POINT) && ra->action == REMAP_TOUCH_SWIPE)){
+		TouchPoint* tpA = &ra->param.tPoints.a;
+		TouchPoint* tpB = &ra->param.tPoints.b;
 		touchPicker((ui_entry->data < 2) ? tpA : tpB, SCE_TOUCH_PORT_FRONT);
-		analogTouchPicker(tpA, ctrl, port == SCE_TOUCH_PORT_FRONT, 0);
-		analogTouchPicker(tpB, ctrl, port == SCE_TOUCH_PORT_FRONT, 1);
+		analogTouchPicker(tpA, ctrl, port == SCE_TOUCH_PORT_FRONT, false);
+		analogTouchPicker(tpB, ctrl, port == SCE_TOUCH_PORT_FRONT, true);
 	}
 }
 void onInput_debugButtons(SceCtrlData *ctrl){
@@ -263,14 +264,14 @@ void onButton_pickTouchPoint(uint32_t btn){
 			ui_openMenuNext();
 		case SCE_CTRL_RIGHT:
 			switch (ui_entry->data){
-				case 0: ra->param.touch.x = min(ra->param.touch.x + 1, isFront ? T_FRONT_SIZE.x : T_BACK_SIZE.x); break;
-				case 1: ra->param.touch.y = min(ra->param.touch.y + 1, isFront ? T_FRONT_SIZE.y : T_BACK_SIZE.y); break;
+				case 0: ra->param.tPoint.x = min(ra->param.tPoint.x + 1, isFront ? T_FRONT_SIZE.x : T_BACK_SIZE.x); break;
+				case 1: ra->param.tPoint.y = min(ra->param.tPoint.y + 1, isFront ? T_FRONT_SIZE.y : T_BACK_SIZE.y); break;
 			}
 			break;
 		case SCE_CTRL_LEFT:
 			switch (ui_entry->data){
-				case 0: ra->param.touch.x = max(ra->param.touch.x - 1, 0); break;
-				case 1: ra->param.touch.y = max(ra->param.touch.y - 1, 0); break;
+				case 0: ra->param.tPoint.x = max(ra->param.tPoint.x - 1, 0); break;
+				case 1: ra->param.tPoint.y = max(ra->param.tPoint.y - 1, 0); break;
 			}
 			break;
 		case SCE_CTRL_CIRCLE: ui_openMenuPrev();
@@ -287,18 +288,18 @@ void onButton_pickTouchZone(uint32_t btn){
 			ui_openMenuNext();
 		case SCE_CTRL_RIGHT:
 			switch (ui_entry->data){
-				case 0: ra->param.zone.a.x = min(ra->param.zone.a.x + 1, isFront ? T_FRONT_SIZE.x : T_BACK_SIZE.x); break;
-				case 1: ra->param.zone.a.y = min(ra->param.zone.a.y + 1, isFront ? T_FRONT_SIZE.y : T_BACK_SIZE.y); break;
-				case 2: ra->param.zone.b.x = min(ra->param.zone.b.x + 1, isFront ? T_FRONT_SIZE.x : T_BACK_SIZE.x); break;
-				case 3: ra->param.zone.b.y = min(ra->param.zone.b.y + 1, isFront ? T_FRONT_SIZE.y : T_BACK_SIZE.y); break;
+				case 0: ra->param.tPoints.a.x = min(ra->param.tPoints.a.x + 1, isFront ? T_FRONT_SIZE.x : T_BACK_SIZE.x); break;
+				case 1: ra->param.tPoints.a.y = min(ra->param.tPoints.a.y + 1, isFront ? T_FRONT_SIZE.y : T_BACK_SIZE.y); break;
+				case 2: ra->param.tPoints.b.x = min(ra->param.tPoints.b.x + 1, isFront ? T_FRONT_SIZE.x : T_BACK_SIZE.x); break;
+				case 3: ra->param.tPoints.b.y = min(ra->param.tPoints.b.y + 1, isFront ? T_FRONT_SIZE.y : T_BACK_SIZE.y); break;
 			}
 			break;
 		case SCE_CTRL_LEFT:
 			switch (ui_entry->data){
-				case 0: ra->param.zone.a.x = max(ra->param.zone.a.x - 1, 0); break;
-				case 1: ra->param.zone.a.y = max(ra->param.zone.a.y - 1, 0); break;
-				case 2: ra->param.zone.b.x = max(ra->param.zone.b.x - 1, 0); break;
-				case 3: ra->param.zone.b.y = max(ra->param.zone.b.y - 1, 0); break;
+				case 0: ra->param.tPoints.a.x = max(ra->param.tPoints.a.x - 1, 0); break;
+				case 1: ra->param.tPoints.a.y = max(ra->param.tPoints.a.y - 1, 0); break;
+				case 2: ra->param.tPoints.b.x = max(ra->param.tPoints.b.x - 1, 0); break;
+				case 3: ra->param.tPoints.b.y = max(ra->param.tPoints.b.y - 1, 0); break;
 			}
 			break;
 		case SCE_CTRL_CIRCLE: ui_openMenuPrev();
@@ -407,6 +408,10 @@ void onButton_remapEmuTouch(uint32_t btn){
 			ui_ruleEdited.emu.action = ui_entry->data;
 			if (ui_entry->data == REMAP_TOUCH_CUSTOM){
 				ui_openMenuSmart(MENU_PICK_TOUCH_POINT_ID, ui_menu->id, MENU_REMAP_ID, 
+					(uint32_t)&ui_ruleEdited.emu);
+				break;
+			} else if (ui_entry->data == REMAP_TOUCH_SWIPE){
+				ui_openMenuSmart(MENU_PICK_TOUCH_SWIPE_ID, ui_menu->id, MENU_REMAP_ID, 
 					(uint32_t)&ui_ruleEdited.emu);
 				break;
 			}

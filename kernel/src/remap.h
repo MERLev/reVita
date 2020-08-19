@@ -32,6 +32,7 @@ enum REMAP_ACTION{
     REMAP_TOUCH_ZONE_BL,
     REMAP_TOUCH_ZONE_BR,
     REMAP_TOUCH_CUSTOM,
+    REMAP_TOUCH_SWIPE,
     REMAP_GYRO_UP,
     REMAP_GYRO_DOWN,
     REMAP_GYRO_LEFT,
@@ -44,13 +45,14 @@ enum REMAP_ACTION{
 typedef struct TouchPoint{
 	uint16_t x, y;
 }TouchPoint;
-typedef struct TouchZone{
-	TouchPoint a, b;
-}TouchZone;
 
-typedef union RemapRuleParam{
-	TouchPoint touch;
-    TouchZone zone;
+typedef struct TouchPoints2{
+	TouchPoint a, b;
+}TouchPoints2;
+
+typedef struct RemapRuleParam{
+	TouchPoint tPoint;
+    TouchPoints2 tPoints;
     uint32_t btn;
 }RemapRuleParam;
 

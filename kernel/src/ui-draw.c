@@ -112,6 +112,7 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 				case REMAP_TOUCH_ZONE_BL: strcat(str, "$5"); break;
 				case REMAP_TOUCH_ZONE_BR: strcat(str, "$6"); break;
 				case REMAP_TOUCH_CUSTOM:  strcat(str, "$F"); break;
+				case REMAP_TOUCH_SWIPE:   strcat(str, "$i"); break;
 				default: break;
 			}
 			break;
@@ -125,6 +126,7 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 				case REMAP_TOUCH_ZONE_BL: strcat(str, "$_"); break;
 				case REMAP_TOUCH_ZONE_BR: strcat(str, "$="); break;
 				case REMAP_TOUCH_CUSTOM:  strcat(str, "$B"); break;
+				case REMAP_TOUCH_SWIPE:   strcat(str, "$j"); break;
 				default: break;
 			}
 			break;
@@ -312,7 +314,7 @@ void onDraw_pickTouchPoint(){
 	RemapAction* ra = (RemapAction*)ui_menu->data;
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {	
 		int32_t id = ui_menu->entries[i].data;
-		int coord = (id == 0) ? ra->param.touch.x : ra->param.touch.y;
+		int coord = (id == 0) ? ra->param.tPoint.x : ra->param.tPoint.y;
 		setColor(i == ui_menu->idx, 1);
 		renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", ui_menu->entries[i].name, coord);
 	}
@@ -326,10 +328,10 @@ void onDraw_pickTouchZone(){
 		int32_t id = ui_menu->entries[i].data;
 		int coord = 0;
 		switch (id){
-			case 0: coord = ra->param.zone.a.x; break;
-			case 1: coord = ra->param.zone.a.y; break;
-			case 2: coord = ra->param.zone.b.x; break;
-			case 3: coord = ra->param.zone.b.y; break;}
+			case 0: coord = ra->param.tPoints.a.x; break;
+			case 1: coord = ra->param.tPoints.a.y; break;
+			case 2: coord = ra->param.tPoints.b.x; break;
+			case 3: coord = ra->param.tPoints.b.y; break;}
 		setColor(i == ui_menu->idx, 1);
 		renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", ui_menu->entries[i].name, coord);
 	}
@@ -533,7 +535,7 @@ void drawTouchPointer(uint32_t panel, TouchPoint* tp){
 	renderer_drawImageDirectlyToFB(left - ic_halfsize, top - ic_halfsize, 64, 64, ICN_TOUCH);
 }
 
-void drawTouchZone(uint32_t panel, TouchZone* tz){
+void drawTouchZone(uint32_t panel, TouchPoints2* tz){
 	//ToDo draw rectangle
 	drawTouchPointer(panel, &(TouchPoint){.x = tz->a.x, .y = tz->a.y});
 	drawTouchPointer(panel, &(TouchPoint){.x = tz->b.x, .y = tz->b.y});
@@ -559,11 +561,12 @@ void drawDirectlyToFB(){
 	switch (ui_menu->id){
 		case MENU_PICK_TOUCH_POINT_ID: 
 		case MENU_PICK_TOUCH_ZONE_ID: 
+		case MENU_PICK_TOUCH_SWIPE_ID: 
 			ra = (RemapAction*) ui_menu->data;
 			uint32_t panel = (ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE) ?
 				SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
-			if (ui_menu->id == MENU_PICK_TOUCH_POINT_ID) drawTouchPointer(panel, &ra->param.touch); 
-			else drawTouchZone(panel, &ra->param.zone); 
+			if (ui_menu->id == MENU_PICK_TOUCH_POINT_ID) drawTouchPointer(panel, &ra->param.tPoint); 
+			else drawTouchZone(panel, &ra->param.tPoints); 
 			break;
 		default: break;
 	}
