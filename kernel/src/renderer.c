@@ -38,12 +38,12 @@ void renderer_drawIcon(char character, int x, int y){
 		case '>': idx = ICON_BTN_RIGHT; break;
 		case '[': idx = ICON_BTN_LT; break;
 		case '{': idx = ICON_BTN_L1; break;
-		case '(': idx = ICON_BTN_L2; break;
-		case ',': idx = ICON_BTN_L3; break;
+		case ',': idx = ICON_BTN_L2; break;
+		case '(': idx = ICON_BTN_L3; break;
 		case ']': idx = ICON_BTN_RT; break;
 		case '}': idx = ICON_BTN_R1; break;
-		case ')': idx = ICON_BTN_R2; break;
-		case '.': idx = ICON_BTN_R3; break;
+		case '.': idx = ICON_BTN_R2; break;
+		case ')': idx = ICON_BTN_R3; break;
 		case 'p': idx = ICON_BTNPOWER; break;
 		case '+': idx = ICON_BTN_VOLUP; break;
 		case '-': idx = ICON_BTN_VOLDOWN; break;

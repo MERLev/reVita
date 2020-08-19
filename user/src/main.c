@@ -40,7 +40,7 @@ int patchToExt(SceCtrlData *ctrl, int nBufs, bool positive){
 
 int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, nBufs);
-	LOG("sceCtrlPeekBufferPositive %i \n", ret);
+	// LOG("sceCtrlPeekBufferPositive %i \n", ret);
 	if (!patchExtEnabled) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, true);
@@ -48,7 +48,7 @@ int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 }
 int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, nBufs);
-	LOG("sceCtrlReadBufferPositive_patched %i \n", ret);
+	// LOG("sceCtrlReadBufferPositive_patched %i \n", ret);
 	if (!patchExtEnabled) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, true);
@@ -56,7 +56,7 @@ int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 }
 int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, nBufs);
-	LOG("sceCtrlPeekBufferNegative_patched %i \n", ret);
+	// LOG("sceCtrlPeekBufferNegative_patched %i \n", ret);
 	if (!patchExtEnabled) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, false);
@@ -64,7 +64,7 @@ int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 }
 int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, nBufs);
-	LOG("sceCtrlReadBufferNegative_patched %i \n", ret);
+	// LOG("sceCtrlReadBufferNegative_patched %i \n", ret);
 	if (!patchExtEnabled) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, false);
@@ -115,8 +115,7 @@ int module_start(SceSize argc, const void *args) {
 	remaPSV2k_userPluginReady();
 	
 	//Start gyro sampling
-	sceMotionStartSampling();
-
+	//sceMotionStartSampling();
 	//Hooking
 	hookFunction(0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
 	hookFunction(0x67E7AB83, sceCtrlReadBufferPositive_patched);

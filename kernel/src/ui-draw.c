@@ -47,7 +47,7 @@ static const char* str_btns[HW_BUTTONS_NUM] = {
 	"$: Start", "$; Select", 
 	"$[ LT/L2", "$] RT/R2",
 	"$^ Up", "$> Right", "$< Left", "$v Down", 
-	"${ L1", "$} R1", "$, L3", "$. R3",
+	"${ L1", "$} R1", "$( L3", "$) R3",
 	"$+ Volume UP", "$- Volume DOWN", "$p POWER", "$P PS",
 	"$t DS4 Touchpad"
 };
