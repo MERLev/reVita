@@ -56,7 +56,8 @@ enum PROFILE_ANALOG_ID getAnalogId(char* n){
 }
 
 const char* TOUCH_STR[PROFILE_TOUCH__NUM] = {
-	"SWAP"
+	"SWAP",
+	"SWIPE_DURATION"
 };
 enum PROFILE_TOUCH_ID getTouchId(char* n){
 	for (int i = 0; i < PROFILE_TOUCH__NUM; i++)
@@ -228,8 +229,8 @@ Profile profile_def;
 Profile profile_global;
 Profile profile_home;
 
-int32_t profile_settings[PROFILE_SETTINGS_NUM];
-int32_t profile_settings_def[PROFILE_SETTINGS_NUM];
+int32_t profile_settings[PROFILE_SETTINGS__NUM];
+int32_t profile_settings_def[PROFILE_SETTINGS__NUM];
 
 void clone(Profile* pd, Profile* ps){
 	pd->remapsNum = ps->remapsNum;
@@ -262,23 +263,23 @@ void profile_resetRemapRules(){
 }
 
 void profile_resetAnalog(){
-	for (int i = 0; i < PROFILE_ANALOG_NUM; i++)
+	for (int i = 0; i < PROFILE_ANALOG__NUM; i++)
 		profile.analog[i] = profile_def.analog[i];
 }
 void profile_resetTouch(){
-	for (int i = 0; i < PROFILE_TOUCH_NUM; i++)
+	for (int i = 0; i < PROFILE_TOUCH__NUM; i++)
 		profile.touch[i] = profile_def.touch[i];
 }
 void profile_resetGyro() {
-	for (int i = 0; i < PROFILE_GYRO_NUM; i++)
+	for (int i = 0; i < PROFILE_GYRO__NUM; i++)
 		profile.gyro[i] = profile_def.gyro[i];
 }
 void profile_resetController(){
-	for (int i = 0; i < PROFILE_CONTROLLER_NUM; i++)
+	for (int i = 0; i < PROFILE_CONTROLLER__NUM; i++)
 		profile.controller[i] = profile_def.controller[i];
 }
 void profile_resetSettings(){
-	for (int i = 0; i < PROFILE_SETTINGS_NUM; i++)
+	for (int i = 0; i < PROFILE_SETTINGS__NUM; i++)
 		profile_settings[i] = profile_settings_def[i];
 }
 
@@ -344,8 +345,8 @@ bool generateINIProfile(Profile* p, char* buff){
 
 	//Touch
 	ini_addSection(ini, SECTION_STR[SECTION_TOUCH]);
-	for (int i = 0; i < PROFILE_TOUCH__NUM; i++)
-		ini_addInt(ini, TOUCH_STR[i], p->touch[i]);
+	ini_addBool(ini, TOUCH_STR[PROFILE_TOUCH_SWAP], p->touch[PROFILE_TOUCH_SWAP]);
+	ini_addInt(ini, TOUCH_STR[PROFILE_TOUCH_SWIPE_DURATION], p->touch[PROFILE_TOUCH_SWIPE_DURATION]);
 	ini_addNL(ini);
 
 	//Gyro
@@ -411,7 +412,7 @@ bool generateINIProfile(Profile* p, char* buff){
 	return true;
 }
 bool parseINISettings(char* buff){
-	for (int i = 0; i < PROFILE_SETTINGS_NUM; i++)
+	for (int i = 0; i < PROFILE_SETTINGS__NUM; i++)
 		profile_settings[i] = profile_settings_def[i];
 
 	INI_READER _ini = ini_read(buff);
@@ -444,9 +445,15 @@ bool parseINIProfile(Profile* p, char* buff){
 					p->analog[id] = parseInt(ini->val);
 				break;
 			case SECTION_TOUCH:
-				id = getTouchId(ini->name);
-				if (id >= 0)
-					p->touch[id] = parseInt(ini->val);
+				switch(getTouchId(ini->name)){
+					case PROFILE_TOUCH_SWAP: 
+						p->touch[PROFILE_TOUCH_SWAP] = parseBool(ini->val); 
+						break;
+					case PROFILE_TOUCH_SWIPE_DURATION: 
+						p->touch[PROFILE_TOUCH_SWIPE_DURATION] = parseInt(ini->val); 
+						break;
+					default: break;
+				}
 				break;
 			case SECTION_GYRO:
 				id = getGyroId(ini->name);
@@ -683,6 +690,7 @@ void setDefProfile(){
 	profile_def.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y] = 30;
 
 	profile_def.touch[PROFILE_TOUCH_SWAP] = 0;
+	profile_def.touch[PROFILE_TOUCH_SWIPE_DURATION] = 50;
 
 	profile_def.gyro[PROFILE_GYRO_SENSIVITY_X] = 127;
 	profile_def.gyro[PROFILE_GYRO_SENSIVITY_Y] = 127;

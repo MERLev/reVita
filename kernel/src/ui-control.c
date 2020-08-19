@@ -112,11 +112,21 @@ void onButton_analog(uint32_t btn){
 	}
 }
 void onButton_touch(uint32_t btn){
-	int8_t idx = ui_entry->data;
+	int8_t id = ui_entry->data;
 	switch (btn) {
-		case SCE_CTRL_RIGHT: profile.touch[idx] = !profile.touch[idx]; break;
-		case SCE_CTRL_LEFT: profile.touch[idx] = !profile.touch[idx]; break;
-		case SCE_CTRL_SQUARE: profile.touch[idx] = profile_def.touch[idx]; break;
+		case SCE_CTRL_RIGHT: 
+			if (id == PROFILE_TOUCH_SWAP)
+				profile.touch[id] = !profile.touch[id]; 
+			else if (id == PROFILE_TOUCH_SWIPE_DURATION)
+				profile.touch[id] = (profile.touch[id] + 1) % 1000; 
+			break;
+		case SCE_CTRL_LEFT: 
+			if (id == PROFILE_TOUCH_SWAP)
+				profile.touch[id] = !profile.touch[id]; 
+			else if (id == PROFILE_TOUCH_SWIPE_DURATION)
+				profile.touch[id] = (profile.touch[id] + 1000 - 1) % 1000; 
+			break;
+		case SCE_CTRL_SQUARE: profile.touch[id] = profile_def.touch[id]; break;
 		case SCE_CTRL_START: profile_resetTouch(); break;
 		default: onButton_generic(btn);
 	}
@@ -131,9 +141,6 @@ void onButton_gyro(uint32_t btn){
 				profile.gyro[id] = min(2, profile.gyro[id] + 1);
 			else if (id == 7) // Wheel mode
 				profile.gyro[id] = (profile.gyro[id] + 1) % 2;
-			/*else if (cfg_i < 10) // Reset wheel buttons
-				profile.gyro[cfg_i] 
-					= min(HW_BUTTONS_NUM - 1, profile.gyro[cfg_i] + 1);*/
 			break;
 		case SCE_CTRL_LEFT:
 			if (profile.gyro[id]) 	
@@ -145,8 +152,6 @@ void onButton_gyro(uint32_t btn){
 					profile.gyro[id] = max(0, profile.gyro[id] - 1);
 				else if (id == 7) //Wheel mode
 					profile.gyro[id] = 1;
-				/*else if (idx < 10)  // Reset wheel btns
-					profile.gyro[idx] = max(0, profile.gyro[idx] - 1);*/
 			}
 			break;
 		case SCE_CTRL_SQUARE:

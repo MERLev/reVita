@@ -7,11 +7,11 @@
 
 #define REMAP_NUM                   25
 
-#define PROFILE_ANALOG_NUM          8
-#define PROFILE_GYRO_NUM			10
-#define PROFILE_TOUCH_NUM			18
-#define PROFILE_CONTROLLER_NUM		3
-#define PROFILE_SETTINGS_NUM		4
+// #define PROFILE_ANALOG_NUM          8
+// #define PROFILE_GYRO_NUM			10
+// #define PROFILE_TOUCH_NUM			18
+// #define PROFILE_CONTROLLER_NUM		3
+// #define PROFILE_SETTINGS_NUM		4
 
 enum PROFILE_ANALOG_ID{
 	PROFILE_ANALOG_LEFT_DEADZONE_X = 0,
@@ -22,6 +22,7 @@ enum PROFILE_ANALOG_ID{
 };
 enum PROFILE_TOUCH_ID{
 	PROFILE_TOUCH_SWAP = 0,
+	PROFILE_TOUCH_SWIPE_DURATION,
     PROFILE_TOUCH__NUM
 };
 enum PROFILE_GYRO_ID{
@@ -55,17 +56,17 @@ typedef struct Profile{
 	char titleid[32];
     uint8_t remapsNum;
     struct RemapRule remaps[REMAP_NUM];
-    uint8_t analog[PROFILE_ANALOG_NUM];
-    uint8_t gyro[PROFILE_GYRO_NUM];
-    uint16_t touch[PROFILE_TOUCH_NUM];
-    uint8_t controller[PROFILE_CONTROLLER_NUM];
+    uint8_t analog[PROFILE_ANALOG__NUM];
+    uint8_t gyro[PROFILE_GYRO__NUM];
+    uint16_t touch[PROFILE_TOUCH__NUM];
+    uint8_t controller[PROFILE_CONTROLLER__NUM];
 }Profile;
 
 extern Profile profile;
 extern Profile profile_def;
 extern Profile profile_global;
-extern int32_t profile_settings[PROFILE_SETTINGS_NUM];
-extern int32_t profile_settings_def[PROFILE_SETTINGS_NUM];
+extern int32_t profile_settings[PROFILE_SETTINGS__NUM];
+extern int32_t profile_settings_def[PROFILE_SETTINGS__NUM];
 
 void profile_addRemapRule(struct RemapRule rule);
 void profile_removeRemapRule(uint8_t idx);

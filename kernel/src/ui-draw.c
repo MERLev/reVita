@@ -305,10 +305,14 @@ void onDraw_touch(){
 		if (ui_menu->entries[i].type == HEADER_TYPE){
 			setColorHeader(ui_menu->idx == i);
 			renderer_drawString(L_1, y+=CHA_H, ui_menu->entries[i].name);
-		} else if (id == 0){
+		} else if (id == PROFILE_TOUCH_SWAP){
 			setColor(i == ui_menu->idx, profile.touch[id] == profile_def.touch[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", 
 					ui_menu->entries[i].name, str_yes_no[profile.touch[id]]);
+		} else if (id == PROFILE_TOUCH_SWIPE_DURATION){
+			setColor(i == ui_menu->idx, profile.touch[id] == profile_def.touch[id]);
+			renderer_drawStringF(L_2, y += CHA_H, "%s: %i", 
+					ui_menu->entries[i].name, profile.touch[id]);
 		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));

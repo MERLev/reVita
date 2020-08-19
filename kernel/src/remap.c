@@ -42,8 +42,9 @@ typedef struct EmulatedStick{
 typedef struct EmulatedTouchEvent{
 	TouchPoint point, swipeEndPoint;
 	int id;
+	int64_t tick;
 	bool isSwipe;
-	bool isSwipeStarted;
+	bool isSwipeFinished;
 }EmulatedTouchEvent;
 
 typedef struct EmulatedTouch{
@@ -105,8 +106,9 @@ void storeTouchSwipe(EmulatedTouch *et, TouchPoints2 tps){
 	et->reports[et->num].point.y = tps.a.y;
 	et->reports[et->num].swipeEndPoint.x = tps.b.x;
 	et->reports[et->num].swipeEndPoint.y = tps.b.y;
+	et->reports[et->num].tick = 0;
 	et->reports[et->num].isSwipe = true;
-	et->reports[et->num].isSwipeStarted = false;
+	et->reports[et->num].isSwipeFinished = false;
 	et->num++;
 }
 
@@ -476,14 +478,26 @@ void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et,
 		uint8_t touchPointsMaxNum, int panel){
 	int touchIdx = 0;
 	while (touchIdx < et->num && pData->reportNum < touchPointsMaxNum){
-		if (!et->reports[touchIdx].isSwipe || !et->reports[touchIdx].isSwipeStarted){
+		if (!et->reports[touchIdx].isSwipe){ //Emulate touch point
 			pData->report[pData->reportNum].x = et->reports[touchIdx].point.x;
 			pData->report[pData->reportNum].y = et->reports[touchIdx].point.y;
 			et->reports[touchIdx].id = generateTouchId(
 				et->reports[touchIdx].point.x, et->reports[touchIdx].point.y, panel);
 		} else {
-			pData->report[pData->reportNum].x = et->reports[touchIdx].swipeEndPoint.x;
-			pData->report[pData->reportNum].y = et->reports[touchIdx].swipeEndPoint.y;
+			int64_t tick = ksceKernelGetSystemTimeWide();
+			if (et->reports[touchIdx].tick == 0){ //Init swipe
+				et->reports[touchIdx].id = generateTouchId(
+					et->reports[touchIdx].point.x, et->reports[touchIdx].point.y, panel);
+				et->reports[touchIdx].tick = tick;
+			}
+			if (tick < et->reports[touchIdx].tick + profile.touch[PROFILE_TOUCH_SWIPE_DURATION] * 1000){ //Emulate swipe starting point
+				pData->report[pData->reportNum].x = et->reports[touchIdx].point.x;
+				pData->report[pData->reportNum].y = et->reports[touchIdx].point.y;
+			} else { //Emulate swipe ending point
+				pData->report[pData->reportNum].x = et->reports[touchIdx].swipeEndPoint.x;
+				pData->report[pData->reportNum].y = et->reports[touchIdx].swipeEndPoint.y;
+				et->reports[touchIdx].isSwipeFinished = true;
+			}
 		}
 		pData->report[pData->reportNum].id = et->reports[touchIdx].id;
 		pData->reportNum ++;
@@ -503,14 +517,11 @@ void removeEmuReport(EmulatedTouch *et, int idx){
 }
 void cleanEmuReports(EmulatedTouch *et){
 	int i = 0;
-	while (i < et->num){
-		if (et->reports[i].isSwipe && !et->reports[i].isSwipeStarted){
-			et->reports[i].isSwipeStarted = true;
-			i++;
-		} else {
+	while (i < et->num)
+		if (!et->reports[i].isSwipe || et->reports[i].isSwipeFinished) 
 			removeEmuReport(et, i);
-		}
-	}
+		else 
+			i++;
 }
 void updateTouchInfo(SceUInt32 port, SceTouchData *pData){	
 	if (port == SCE_TOUCH_PORT_FRONT) {

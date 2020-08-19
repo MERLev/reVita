@@ -50,8 +50,9 @@ static struct Menu menu_analog = (Menu){
 	.onDraw = onDraw_analog,
 	.entries = menu_analog_entries};
 
-#define MENU_TOUCH_NUM 1
+#define MENU_TOUCH_NUM 2
 static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
+	(MenuEntry){.name = "Swipe duration", .data = PROFILE_TOUCH_SWIPE_DURATION},
 	(MenuEntry){.name = "Swap touchpads", .data = PROFILE_TOUCH_SWAP}};
 static struct Menu menu_touch = (Menu){
 	.id = MENU_TOUCH_ID, 
