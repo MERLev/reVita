@@ -401,10 +401,10 @@ bool generateINIProfile(Profile* p, char* buff){
 				ini_addListInt(ini, r->emu.param.tPoint.y);
 			} else if (r->emu.action == REMAP_TOUCH_SWIPE){
 				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_SWIPE]);
-				ini_addListInt(ini, r->trigger.param.tPoints.a.x);
-				ini_addListInt(ini, r->trigger.param.tPoints.a.y);
-				ini_addListInt(ini, r->trigger.param.tPoints.b.x);
-				ini_addListInt(ini, r->trigger.param.tPoints.b.y);
+				ini_addListInt(ini, r->emu.param.tPoints.a.x);
+				ini_addListInt(ini, r->emu.param.tPoints.a.y);
+				ini_addListInt(ini, r->emu.param.tPoints.b.x);
+				ini_addListInt(ini, r->emu.param.tPoints.b.y);
 			}
 		}
 	}

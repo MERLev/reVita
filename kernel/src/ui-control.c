@@ -46,16 +46,18 @@ void onInput_touchPicker(SceCtrlData *ctrl){
 	RemapAction* ra = (RemapAction*)ui_menu->data;
 	int port = (ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE) ?
 		SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
+	bool isFront = port == SCE_TOUCH_PORT_FRONT;
 	if ((ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_BACK_TOUCH_POINT) && ra->action != REMAP_TOUCH_SWIPE){
-		touchPicker(&ra->param.tPoint, SCE_TOUCH_PORT_FRONT);
-		analogTouchPicker(&ra->param.tPoint, ctrl, port == SCE_TOUCH_PORT_FRONT, false);
+		touchPicker(&ra->param.tPoint, port);
+		analogTouchPicker(&ra->param.tPoint, ctrl, isFront, true);
+		analogTouchPicker(&ra->param.tPoint, ctrl, isFront, false);
 	} else if (ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE || ra->type == REMAP_TYPE_BACK_TOUCH_ZONE || 
 			((ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_BACK_TOUCH_POINT) && ra->action == REMAP_TOUCH_SWIPE)){
 		TouchPoint* tpA = &ra->param.tPoints.a;
 		TouchPoint* tpB = &ra->param.tPoints.b;
-		touchPicker((ui_entry->data < 2) ? tpA : tpB, SCE_TOUCH_PORT_FRONT);
-		analogTouchPicker(tpA, ctrl, port == SCE_TOUCH_PORT_FRONT, false);
-		analogTouchPicker(tpB, ctrl, port == SCE_TOUCH_PORT_FRONT, true);
+		touchPicker((ui_entry->data < 2) ? tpA : tpB, port);
+		analogTouchPicker(tpA, ctrl, isFront, true);
+		analogTouchPicker(tpB, ctrl, isFront, false);
 	}
 }
 void onInput_debugButtons(SceCtrlData *ctrl){

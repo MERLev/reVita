@@ -200,9 +200,10 @@ DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(15, ksceCtrlReadBufferNegative)
 #define DECL_FUNC_HOOK_PATCH_TOUCH(index, name) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
-		if (isInternalTouchCall) return ret; \
+		/*if (isInternalTouchCall) return ret; */\
         used_funcs[(index)] = 1; \
-        return remap_touch(port, pData, ret, (index - 16)); \
+        /*return remap_touch(port, pData, ret, (index - 16));*/ \
+        return onTouch(port, pData, ret, (index - 16)); \
     }
 DECL_FUNC_HOOK_PATCH_TOUCH(16, ksceTouchPeek)
 DECL_FUNC_HOOK_PATCH_TOUCH(17, ksceTouchRead)

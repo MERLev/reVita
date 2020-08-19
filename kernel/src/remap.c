@@ -15,6 +15,8 @@
 #define MULTITOUCH_BACK_NUM			4
 #define TURBO_DELAY			        50*1000
 
+SceCtrlData scdPrev;
+
 TouchPoint T_FRONT_SIZE = (TouchPoint){1920, 1080};
 TouchPoint T_BACK_SIZE  = (TouchPoint){1920, 890};
 static TouchPoint 
@@ -89,6 +91,7 @@ void storeTouchPoint(EmulatedTouch *et, TouchPoint tp){
 			return;
 	et->reports[et->num].point.x = tp.x;
 	et->reports[et->num].point.y = tp.y;
+	et->reports[et->num].isSwipe = false;
 	et->num++;
 }
 
@@ -121,7 +124,7 @@ void swapTriggersBumpers(SceCtrlData *ctrl){
 	ctrl->buttons = b;
 }
 
-void addEmu(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick) {
+void addEmu(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick, bool isFirstTime) {
 	EmulatedStick* stick = emustick;
 	switch (emu->type){
 		case REMAP_TYPE_BUTTON: 
@@ -149,7 +152,7 @@ void addEmu(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick) {
 				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etFront, T_FRONT_BL); break;
 				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etFront, T_FRONT_BR); break;
 				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etFront, emu->param.tPoint); break;
-				case REMAP_TOUCH_SWIPE:   storeTouchSwipe(&etFront, emu->param.tPoints); break;
+				case REMAP_TOUCH_SWIPE:   if (isFirstTime) storeTouchSwipe(&etFront, emu->param.tPoints); break;
 				default: break;
 			}
 			break;
@@ -162,7 +165,7 @@ void addEmu(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick) {
 				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etBack, T_BACK_BL); break;
 				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etBack, T_BACK_BR); break;
 				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etBack, emu->param.tPoint); break;
-				case REMAP_TOUCH_SWIPE:   storeTouchSwipe(&etBack, emu->param.tPoints); break;
+				case REMAP_TOUCH_SWIPE:   if (isFirstTime) storeTouchSwipe(&etBack, emu->param.tPoints); break;
 				default: break;
 			}
 			break;
@@ -183,7 +186,7 @@ void addEmuFromAnalog(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emu
 				default: break;
 			}
 			break;
-		default: addEmu(emu, btn, emustick); break;
+		default: addEmu(emu, btn, emustick, true); break;
 	}
 	
 }
@@ -201,7 +204,7 @@ void addEmuFromGyro(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emust
 				default: break;
 			}
 			break;
-		default: addEmu(emu, btn, emustick); break;
+		default: addEmu(emu, btn, emustick, true); break;
 	}
 }
 
@@ -230,13 +233,13 @@ void applyRemap(SceCtrlData *ctrl) {
 	int ret = -1;
 
 	//Set propagation sticks def values
-	if (ctrl->lx < 128) propSticks[0].left = 127 - ctrl->lx;
+	if (ctrl->lx <= 127) propSticks[0].left = 127 - ctrl->lx;
 	else propSticks[0].right = ctrl->lx - 127;
-	if (ctrl->ly < 128) propSticks[0].up = 127 - ctrl->ly;
+	if (ctrl->ly <= 127) propSticks[0].up = 127 - ctrl->ly;
 	else  propSticks[0].down = ctrl->ly - 127;
-	if (ctrl->rx < 128) propSticks[1].left = 127 - ctrl->rx;
+	if (ctrl->rx <= 127) propSticks[1].left = 127 - ctrl->rx;
 	else  propSticks[1].right = ctrl->rx - 127;
-	if (ctrl->ry <= 128) propSticks[1].up = 127 - ctrl->ry;
+	if (ctrl->ry <= 127) propSticks[1].up = 127 - ctrl->ry;
 	else  propSticks[1].down = ctrl->ry - 127;
 
 	//Applying remap rules
@@ -251,7 +254,7 @@ void applyRemap(SceCtrlData *ctrl) {
 					if (!rr->propagate)
 						btn_del(&propBtns, trigger->param.btn);
 					if (rr->turbo && turboTick) continue;
-					addEmu(&rr->emu, &emuBtns, &eSticks[0]);
+					addEmu(&rr->emu, &emuBtns, &eSticks[0], !btn_has(scdPrev.buttons, trigger->param.btn));
 				}
 				break;
 			case REMAP_TYPE_LEFT_ANALOG: 
@@ -334,7 +337,7 @@ void applyRemap(SceCtrlData *ctrl) {
 						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.tPoints; break;
 						default: break;
 					}
-					if (reportInZone(&front.report[j], tz)) addEmu(&rr->emu, &emuBtns, eSticks); 
+					if (reportInZone(&front.report[j], tz)) addEmu(&rr->emu, &emuBtns, eSticks, true); 
 				}
 				break;
 			case REMAP_TYPE_BACK_TOUCH_ZONE: 
@@ -351,7 +354,7 @@ void applyRemap(SceCtrlData *ctrl) {
 						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.tPoints; break;
 						default: break;
 					}
-					if (reportInZone(&back.report[j], tz)) addEmu(&rr->emu, &emuBtns, eSticks); 
+					if (reportInZone(&back.report[j], tz)) addEmu(&rr->emu, &emuBtns, eSticks, true); 
 				}
 				break;
 			case REMAP_TYPE_GYROSCOPE: 
@@ -402,6 +405,9 @@ void applyRemap(SceCtrlData *ctrl) {
 	// 	if (abs(ctrl->ry - 127) < profile.analog[3]) 
 	// 		ctrl->ry = 127;
 	// }
+
+	//Store current ctrl as prev for future usage
+	scdPrev = ctrl[0];
 
 	//Storing emulated HW buttons
 	btn_add(&emuBtns, propBtns);
@@ -470,8 +476,7 @@ void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et,
 		uint8_t touchPointsMaxNum, int panel){
 	int touchIdx = 0;
 	while (touchIdx < et->num && pData->reportNum < touchPointsMaxNum){
-		if (!et->reports[touchIdx].isSwipe || 
-				(et->reports[touchIdx].isSwipe && !et->reports[touchIdx].isSwipeStarted)){
+		if (!et->reports[touchIdx].isSwipe || !et->reports[touchIdx].isSwipeStarted){
 			pData->report[pData->reportNum].x = et->reports[touchIdx].point.x;
 			pData->report[pData->reportNum].y = et->reports[touchIdx].point.y;
 			et->reports[touchIdx].id = generateTouchId(
@@ -483,6 +488,7 @@ void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et,
 		pData->report[pData->reportNum].id = et->reports[touchIdx].id;
 		pData->reportNum ++;
 		touchIdx ++;
+		
 	}
 }
 
@@ -534,13 +540,11 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 			}
 
 		if (!newEmulatedFrontTouchBuffer){//New touchbuffer not ready - using previous one
-			addVirtualTouches(pData, &prevEtFront, 
-				MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
+			addVirtualTouches(pData, &prevEtFront, MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
 			return;
 		}
 		
-		addVirtualTouches(pData, &etFront, 
-			MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
+		addVirtualTouches(pData, &etFront, MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
 		prevEtFront = etFront;
 		cleanEmuReports(&etFront);
 		newEmulatedFrontTouchBuffer = false;
@@ -570,13 +574,11 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 			}
 			
 		if (!newEmulatedBackTouchBuffer){//New touchbuffer not ready - using previous one
-			addVirtualTouches(pData, &prevEtBack, 
-				MULTITOUCH_BACK_NUM, SCE_TOUCH_PORT_BACK);
+			addVirtualTouches(pData, &prevEtBack, MULTITOUCH_BACK_NUM, SCE_TOUCH_PORT_BACK);
 			return;
 		}
 		
-		addVirtualTouches(pData, &etBack, 
-			MULTITOUCH_BACK_NUM, SCE_TOUCH_PORT_BACK);
+		addVirtualTouches(pData, &etBack, MULTITOUCH_BACK_NUM, SCE_TOUCH_PORT_BACK);
 		prevEtBack = etBack;
 		cleanEmuReports(&etBack);
 		newEmulatedBackTouchBuffer = 0;
