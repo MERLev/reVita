@@ -15,8 +15,6 @@
 #define MULTITOUCH_BACK_NUM			4
 #define TURBO_DELAY			        50*1000
 
-SceCtrlData scdPrev;
-
 TouchPoint T_FRONT_SIZE = (TouchPoint){1920, 1080};
 TouchPoint T_BACK_SIZE  = (TouchPoint){1920, 890};
 static TouchPoint 
@@ -52,7 +50,10 @@ typedef struct EmulatedTouch{
 	uint8_t num;
 }EmulatedTouch;
 
-//For now let's store them on the stack
+//Storing previous SceCtrlData
+static SceCtrlData prevCtrl[HOOKS_NUM-4];
+
+//For now let's store buffers on the stack
 static SceCtrlData _remappedBuffers[HOOKS_NUM-4][BUFFERS_NUM];
 static SceTouchData _remappedBuffersFront[4][BUFFERS_NUM];
 static SceTouchData _remappedBuffersBack[4][BUFFERS_NUM];
@@ -210,7 +211,7 @@ void addEmuFromGyro(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emust
 	}
 }
 
-void applyRemap(SceCtrlData *ctrl) {
+void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 	if (profile.controller[PROFILE_CONTROLLER_SWAP_BUTTONS])
 		swapTriggersBumpers(ctrl);
 	
@@ -256,7 +257,7 @@ void applyRemap(SceCtrlData *ctrl) {
 					if (!rr->propagate)
 						btn_del(&propBtns, trigger->param.btn);
 					if (rr->turbo && turboTick) continue;
-					addEmu(&rr->emu, &emuBtns, &eSticks[0], !btn_has(scdPrev.buttons, trigger->param.btn));
+					addEmu(&rr->emu, &emuBtns, &eSticks[0], !btn_has(ctrlPrev->buttons, trigger->param.btn));
 				}
 				break;
 			case REMAP_TYPE_LEFT_ANALOG: 
@@ -408,9 +409,6 @@ void applyRemap(SceCtrlData *ctrl) {
 	// 		ctrl->ry = 127;
 	// }
 
-	//Store current ctrl as prev for future usage
-	scdPrev = ctrl[0];
-
 	//Storing emulated HW buttons
 	btn_add(&emuBtns, propBtns);
 	ctrl->buttons = emuBtns;
@@ -442,9 +440,14 @@ int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId) {
 	remappedBuffersSizes[hookId] = min(remappedBuffersSizes[hookId] + 1, BUFFERS_NUM);
 	remappedBuffers[hookId][buffIdx] = ctrl[nBufs-1];
 	
+	//Store copy of latest buffer before applying remap
+	SceCtrlData scd = ctrl[nBufs-1];
+
 	//Applying remap to latest buffer
-	//ToDo
-	applyRemap(&remappedBuffers[hookId][buffIdx]);
+	applyRemap(&remappedBuffers[hookId][buffIdx], &prevCtrl[hookId]);
+
+	//Save latest unremapped buffer as previous one
+	prevCtrl[hookId] = scd;
 	
 	//Limit returned buffers with amount we have cached
 	nBufs = min(nBufs, remappedBuffersSizes[hookId]);
