@@ -175,7 +175,7 @@ void addEmu(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick, boo
 		default: break;
 	}
 }
-void addEmuFromAnalog(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick, uint8_t stickposval){
+void addEmuFromAnalog(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick, uint8_t stickposval, bool isFirstTime){
 	EmulatedStick* stick = emustick;
 	switch (emu->type){
 		case REMAP_TYPE_RIGHT_ANALOG: 
@@ -189,11 +189,11 @@ void addEmuFromAnalog(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emu
 				default: break;
 			}
 			break;
-		default: addEmu(emu, btn, emustick, true); break;
+		default: addEmu(emu, btn, emustick, isFirstTime); break;
 	}
 	
 }
-void addEmuFromGyro(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick,  float gyroval){
+void addEmuFromGyro(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick,  float gyroval, bool isFirstTime){
 	EmulatedStick* stick = emustick;
 	switch (emu->type){
 		case REMAP_TYPE_RIGHT_ANALOG: 
@@ -207,7 +207,7 @@ void addEmuFromGyro(struct RemapAction* emu, uint32_t* btn, EmulatedStick* emust
 				default: break;
 			}
 			break;
-		default: addEmu(emu, btn, emustick, true); break;
+		default: addEmu(emu, btn, emustick, isFirstTime); break;
 	}
 }
 
@@ -250,6 +250,7 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 		struct RemapRule* rr = &profile.remaps[i];
 		if (rr->disabled) continue;
 		struct RemapAction* trigger = &rr->trigger;
+		bool isFirstTime;
 
 		switch (trigger->type){
 			case REMAP_TYPE_BUTTON: 
@@ -267,28 +268,32 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 							break;
 						if (!rr->propagate) propSticks[0].left = 0;
 						if (rr->turbo && turboTick) continue;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->lx);
+						isFirstTime = ctrlPrev->lx >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X];
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->lx, isFirstTime);
 						break;
 					case REMAP_ANALOG_RIGHT: 
 						if (ctrl->lx < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
 							break;
 						if (!rr->propagate) propSticks[0].right = 0;
 						if (rr->turbo && turboTick) continue;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->lx - 127);
+						isFirstTime = ctrlPrev->lx < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X];
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->lx - 127, isFirstTime);
 						break;
 					case REMAP_ANALOG_UP: 
 						if (ctrl->ly >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
 							break;
 						if (!rr->propagate) propSticks[0].up = 0;
 						if (rr->turbo && turboTick) continue;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->ly);
+						isFirstTime = ctrlPrev->ly >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y];
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->ly, isFirstTime);
 						break;
 					case REMAP_ANALOG_DOWN: 
 						if (ctrl->ly < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
 							break;
 						if (!rr->propagate) propSticks[0].down = 0;
 						if (rr->turbo && turboTick) continue;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->ly - 127);
+						isFirstTime = ctrlPrev->ly < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y];
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->ly - 127, isFirstTime);
 						break;
 					default: break;
 				}
@@ -300,28 +305,32 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 							break;
 						if (!rr->propagate) propSticks[1].left = 0;
 						if (rr->turbo && turboTick) continue;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->rx);
+						isFirstTime = ctrlPrev->rx >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X];
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->rx, isFirstTime);
 						break;
 					case REMAP_ANALOG_RIGHT: 
 						if (ctrl->rx < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])
 							break;
 						if (!rr->propagate) propSticks[1].right = 0;
 						if (rr->turbo && turboTick) continue;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->rx - 127);
+						isFirstTime = ctrlPrev->rx < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X];
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->rx - 127, isFirstTime);
 						break;
 					case REMAP_ANALOG_UP: 
 						if (ctrl->ry >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
 							break;
 						if (!rr->propagate) propSticks[1].up = 0;
 						if (rr->turbo && turboTick) continue;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->ry);
+						isFirstTime = ctrlPrev->ry >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y];
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, 127 - ctrl->ry, isFirstTime);
 						break;
 					case REMAP_ANALOG_DOWN: 
 						if (ctrl->ry < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
 							break;
 						if (!rr->propagate) propSticks[1].down = 0;
 						if (rr->turbo && turboTick) continue;
-						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->ry - 127);
+						isFirstTime = ctrlPrev->ry < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y];
+						addEmuFromAnalog(&rr->emu, &emuBtns, eSticks, ctrl->ry - 127, isFirstTime);
 						break;
 					default: break;
 				}
@@ -366,27 +375,27 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 				switch (trigger->action){
 					case REMAP_GYRO_UP:  
 						if (sms.angularVelocity.x > 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y]);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y], true);
 						break;
 					case REMAP_GYRO_DOWN:
 						if (sms.angularVelocity.x < 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y]);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y], true);
 						break;
 					case REMAP_GYRO_LEFT:
 						if (sms.angularVelocity.y > 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X]);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X], true);
 						break;
 					case REMAP_GYRO_RIGHT:
 						if (sms.angularVelocity.y < 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X]);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X], true);
 						break;
 					case REMAP_GYRO_ROLL_LEFT:
 						if (sms.deviceQuat.z > 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4, true);
 						break;
 					case REMAP_GYRO_ROLL_RIGHT:
 						if (sms.deviceQuat.z < 0) 
-							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4);
+							addEmuFromGyro(&rr->emu, &emuBtns, eSticks, - sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4, true);
 						break;
 					default: break;
 				}
