@@ -478,26 +478,34 @@ void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et,
 		uint8_t touchPointsMaxNum, int panel){
 	int touchIdx = 0;
 	while (touchIdx < et->num && pData->reportNum < touchPointsMaxNum){
+		uint16_t ax = et->reports[touchIdx].point.x;
+		uint16_t ay = et->reports[touchIdx].point.y;
+		uint16_t bx = et->reports[touchIdx].swipeEndPoint.x;
+		uint16_t by = et->reports[touchIdx].swipeEndPoint.y;
 		if (!et->reports[touchIdx].isSwipe){ //Emulate touch point
-			pData->report[pData->reportNum].x = et->reports[touchIdx].point.x;
-			pData->report[pData->reportNum].y = et->reports[touchIdx].point.y;
-			et->reports[touchIdx].id = generateTouchId(
-				et->reports[touchIdx].point.x, et->reports[touchIdx].point.y, panel);
-		} else {
+			pData->report[pData->reportNum].x = ax;
+			pData->report[pData->reportNum].y = ay;
+			et->reports[touchIdx].id = generateTouchId(ax, ay, panel);
+		} else { //Emulate swipe
 			int64_t tick = ksceKernelGetSystemTimeWide();
-			if (et->reports[touchIdx].tick == 0){ //Init swipe
-				et->reports[touchIdx].id = generateTouchId(
-					et->reports[touchIdx].point.x, et->reports[touchIdx].point.y, panel);
+
+			//Initialize swipe
+			if (et->reports[touchIdx].tick == 0){
+				et->reports[touchIdx].id = generateTouchId(ax, ay, panel);
 				et->reports[touchIdx].tick = tick;
 			}
-			if (tick < et->reports[touchIdx].tick + profile.touch[PROFILE_TOUCH_SWIPE_DURATION] * 1000){ //Emulate swipe starting point
-				pData->report[pData->reportNum].x = et->reports[touchIdx].point.x;
-				pData->report[pData->reportNum].y = et->reports[touchIdx].point.y;
-			} else { //Emulate swipe ending point
-				pData->report[pData->reportNum].x = et->reports[touchIdx].swipeEndPoint.x;
-				pData->report[pData->reportNum].y = et->reports[touchIdx].swipeEndPoint.y;
+
+			//Calculate swipe point pisition for current tick
+			pData->report[pData->reportNum].x = clampSmart(
+				ax + (bx - ax) * (tick - et->reports[touchIdx].tick) / (profile.touch[PROFILE_TOUCH_SWIPE_DURATION] * 1000), 
+				ax, bx);
+			pData->report[pData->reportNum].y = clampSmart(
+				ay + (by - ay) * (tick - et->reports[touchIdx].tick) / (profile.touch[PROFILE_TOUCH_SWIPE_DURATION] * 1000), 
+				ay, by);
+
+			//If swipe point reached it's ending
+			if (pData->report[pData->reportNum].x == bx && pData->report[pData->reportNum].y == by)
 				et->reports[touchIdx].isSwipeFinished = true;
-			}
 		}
 		pData->report[pData->reportNum].id = et->reports[touchIdx].id;
 		pData->reportNum ++;

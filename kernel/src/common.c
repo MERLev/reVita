@@ -3,9 +3,16 @@
 #include <string.h>
 
 int32_t clamp(int32_t value, int32_t mini, int32_t maxi) {
-	if (value < mini) { return mini; }
-	if (value > maxi) { return maxi; }
+	if (value < mini) return mini; 
+	if (value > maxi) return maxi;
 	return value;
+}
+
+//min and max could be swapped
+int32_t clampSmart(int32_t val, int32_t min, int32_t max) {
+	if ((max > min && val < min) || (max <= min && val > min)) return min;
+	if ((max > min && val > max) || (max <= min && val < max)) return max;
+	return val;
 }
 
 bool btn_has(uint32_t btns, uint32_t btn){
