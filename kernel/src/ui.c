@@ -487,6 +487,7 @@ Menu* ui_menu;
 MenuEntry* ui_entry;
 
 struct RemapRule ui_ruleEdited; //Rule currently edited
+int ui_ruleEditedIdx; //Rule currently edited
 
 void onBuild_remap(Menu* m){
 	memset(&ui_ruleEdited, 0, sizeof(ui_ruleEdited));

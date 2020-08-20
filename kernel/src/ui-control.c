@@ -240,8 +240,12 @@ void onButton_pickButton(uint32_t btn){
 			break;
 		case SCE_CTRL_CROSS:
 			if (!*btnP) break;
-			if (ui_menu->next == MENU_REMAP_ID)
-				profile_addRemapRule(ui_ruleEdited);
+			if (ui_menu->next == MENU_REMAP_ID){
+				if (ui_ruleEditedIdx >= 0) 
+					profile.remaps[ui_ruleEditedIdx] = ui_ruleEdited;
+				else
+					profile_addRemapRule(ui_ruleEdited);
+			}
 			ui_openMenuNext();
 			break;
 		case SCE_CTRL_CIRCLE: ui_openMenuPrev(); break;
@@ -253,8 +257,12 @@ void onButton_pickAnalog(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
 			*actn = ui_entry->data;
-			if (ui_menu->next == MENU_REMAP_ID)
-				profile_addRemapRule(ui_ruleEdited);
+			if (ui_menu->next == MENU_REMAP_ID){
+				if (ui_ruleEditedIdx >= 0) 
+					profile.remaps[ui_ruleEditedIdx] = ui_ruleEdited;
+				else
+					profile_addRemapRule(ui_ruleEdited);
+			}
 			ui_openMenuNext();
 			break;
 		case SCE_CTRL_CIRCLE: ui_openMenuPrev(); break;
@@ -266,8 +274,12 @@ void onButton_pickTouchPoint(uint32_t btn){
 	uint8_t isFront = ra->type == REMAP_TYPE_FRONT_TOUCH_POINT;
 	switch (btn) {
 		case SCE_CTRL_CROSS:
-			if(ui_menu->next == MENU_REMAP_ID)
-				profile_addRemapRule(ui_ruleEdited);
+			if(ui_menu->next == MENU_REMAP_ID){
+				if (ui_ruleEditedIdx >= 0) 
+					profile.remaps[ui_ruleEditedIdx] = ui_ruleEdited;
+				else
+					profile_addRemapRule(ui_ruleEdited);
+			}
 			ui_openMenuNext();
 		case SCE_CTRL_RIGHT:
 			switch (ui_entry->data){
@@ -290,8 +302,12 @@ void onButton_pickTouchZone(uint32_t btn){
 	uint8_t isFront = ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE;
 	switch (btn) {
 		case SCE_CTRL_CROSS:
-			if(ui_menu->next == MENU_REMAP_ID)
-				profile_addRemapRule(ui_ruleEdited);
+			if(ui_menu->next == MENU_REMAP_ID){
+				if (ui_ruleEditedIdx >= 0) 
+					profile.remaps[ui_ruleEditedIdx] = ui_ruleEdited;
+				else
+					profile_addRemapRule(ui_ruleEdited);
+			}
 			ui_openMenuNext();
 		case SCE_CTRL_RIGHT:
 			switch (ui_entry->data){
@@ -317,8 +333,12 @@ void onButton_pickTouchZone(uint32_t btn){
 void onButton_remap(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS: 
-			if (ui_entry->data != NEW_RULE_IDX)
+			if (ui_entry->data != NEW_RULE_IDX){
 				ui_ruleEdited = profile.remaps[ui_entry->data];
+				ui_ruleEditedIdx = ui_entry->data;
+			} else {
+				ui_ruleEditedIdx = -1;
+			}
 			ui_openMenu(MENU_REMAP_TRIGGER_TYPE_ID); 
 			break;
 		case SCE_CTRL_SQUARE:
@@ -428,8 +448,10 @@ void onButton_remapEmuTouch(uint32_t btn){
 					(uint32_t)&ui_ruleEdited.emu);
 				break;
 			}
-			//ToDo Add custom touch points here
-			profile_addRemapRule(ui_ruleEdited);
+			if (ui_ruleEditedIdx >= 0) 
+				profile.remaps[ui_ruleEditedIdx] = ui_ruleEdited;
+			else
+				profile_addRemapRule(ui_ruleEdited);
 			ui_openMenu(MENU_REMAP_ID);
 			break;
 		default: onButton_generic(btn);

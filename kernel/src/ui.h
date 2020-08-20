@@ -84,6 +84,7 @@ extern struct Menu* ui_menu;
 extern MenuEntry* ui_entry;
 
 extern struct RemapRule ui_ruleEdited; //Rule currently edited
+extern int ui_ruleEditedIdx;
 
 void ui_openMenu(enum MENU_ID id);
 void ui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, uint32_t data);
