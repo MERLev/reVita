@@ -102,12 +102,8 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 		return 1;
 	}
 	
-	if (ui_opened){	
-		//Clear buffers when in menu
-		remap_resetTouchBuffers(hookId);
-	} else {
+	if (!ui_opened)
 		return remap_touch(port, pData, nBufs, hookId);
-	}
 	return nBufs;
 }
 
@@ -245,7 +241,8 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
                 for (int i = 0; i < HOOKS_NUM; i++)
                     used_funcs[i] = false;
                 profile_load(titleid);
-                delayedStartDone = true;
+                remap_resetBuffers();
+                delayedStartDone = false;
             }
             break;
         case 3: //Close
@@ -257,7 +254,8 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
                     for (int i = 0; i < HOOKS_NUM; i++)
                         used_funcs[i] = false;
                     profile_load(HOME);
-                    delayedStartDone = true;
+                    remap_resetBuffers();
+                    delayedStartDone = false;
                 }
             }
             break;
@@ -277,7 +275,7 @@ static int main_thread(SceSize args, void *argp) {
         if (!delayedStartDone 
             && startTick + profile_settings[3] * 1000000 < ksceKernelGetSystemTimeWide()){
             remap_setup();
-	        delayedStartDone = 1;
+	        delayedStartDone = true;
         }
 
         SceCtrlData ctrl;
@@ -290,7 +288,7 @@ static int main_thread(SceSize args, void *argp) {
         if (!ui_opened 
                 && (ctrl.buttons & HW_BUTTONS[profile_settings[0]]) 
                 && (ctrl.buttons & HW_BUTTONS[profile_settings[1]])) {
-            // remap_resetCtrlBuffers(hookId);
+            remap_resetBuffers();
             ui_open();
         }
 

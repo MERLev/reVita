@@ -462,7 +462,6 @@ int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId) {
 	nBufs = min(nBufs, remappedBuffersSizes[hookId]);
 	
 	//Restoring stored buffers
-	
 	for (int i = 0; i < nBufs; i++)
 		ctrl[i] = remappedBuffers[hookId]
 			[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
@@ -658,15 +657,17 @@ int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t ho
 	return nBufs;
 }
 
-void remap_resetCtrlBuffers(uint8_t hookId){
-	remappedBuffersIdxs[hookId] = 0;
-	remappedBuffersSizes[hookId] = 0;
-}
-void remap_resetTouchBuffers(uint8_t hookId){
-	remappedBuffersFrontIdxs[hookId] = 0;
-	remappedBuffersBackIdxs[hookId] = 0;
-	remappedBuffersFrontSizes[hookId] = 0;
-	remappedBuffersBackSizes[hookId] = 0;
+void remap_resetBuffers(){
+	for (int i = 0; i < HOOKS_NUM-4; i++){
+		remappedBuffersIdxs[i] =
+		remappedBuffersSizes[i] = 0;
+	}
+	for (int i = 0; i < 4; i++){
+		remappedBuffersFrontIdxs[i] = 
+		remappedBuffersBackIdxs[i] = 
+		remappedBuffersFrontSizes[i] = 
+		remappedBuffersBackSizes[i] = 0;
+	}
 }
 
 void initTouchParams(){
