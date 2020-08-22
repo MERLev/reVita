@@ -131,6 +131,8 @@ const char* REMAP_ACTION_STR[REMAP_ACTION_NUM] = {
     "TOUCH_ZONE_BR",
     "TOUCH_CUSTOM",
     "TOUCH_SWIPE",
+    "TOUCH_SWIPE_SMART_L",
+    "TOUCH_SWIPE_SMART_R",
     "GYRO_UP",
     "GYRO_DOWN",
     "GYRO_LEFT",
@@ -158,6 +160,8 @@ enum REMAP_KEY{
 	REMAP_KEY_EMU_BUTTONS,
 	REMAP_KEY_EMU_TOUCH_POINT,
 	REMAP_KEY_EMU_TOUCH_SWIPE,
+	REMAP_KEY_EMU_TOUCH_SWIPE_SMART_L,
+	REMAP_KEY_EMU_TOUCH_SWIPE_SMART_R,
 	REMAP_KEY__NUM
 };
 const char* REMAP_KEY_STR[REMAP_KEY__NUM] = {
@@ -172,7 +176,9 @@ const char* REMAP_KEY_STR[REMAP_KEY__NUM] = {
 	"EMU_ACTION",
 	"EMU_BUTTONS",
 	"EMU_TOUCH_POINT",
-	"EMU_TOUCH_SWIPE"
+	"EMU_TOUCH_SWIPE",
+	"EMU_TOUCH_SWIPE_SMART_L",
+	"EMU_TOUCH_SWIPE_SMART_R"
 };
 enum REMAP_KEY getRemapKeyId(char* n){
 	for (int i = 0; i < REMAP_KEY__NUM; i++)
@@ -400,6 +406,14 @@ bool generateINIProfile(Profile* p, char* buff){
 				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_POINT]);
 				ini_addListInt(ini, r->emu.param.tPoint.x);
 				ini_addListInt(ini, r->emu.param.tPoint.y);
+			} else if (r->emu.action == REMAP_TOUCH_SWIPE_SMART_L){
+				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_SWIPE_SMART_L]);
+				ini_addListInt(ini, r->emu.param.tPoint.x);
+				ini_addListInt(ini, r->emu.param.tPoint.y);
+			} else if (r->emu.action == REMAP_TOUCH_SWIPE_SMART_R){
+				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_SWIPE_SMART_R]);
+				ini_addListInt(ini, r->emu.param.tPoint.x);
+				ini_addListInt(ini, r->emu.param.tPoint.y);
 			} else if (r->emu.action == REMAP_TOUCH_SWIPE){
 				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_SWIPE]);
 				ini_addListInt(ini, r->emu.param.tPoints.a.x);
@@ -517,6 +531,8 @@ bool parseINIProfile(Profile* p, char* buff){
 						}
 						break;
 					case REMAP_KEY_EMU_TOUCH_POINT:
+					case REMAP_KEY_EMU_TOUCH_SWIPE_SMART_L: 
+					case REMAP_KEY_EMU_TOUCH_SWIPE_SMART_R: 
 						rr->trigger.param.tPoint.x = parseInt(ini_nextListVal(ini));
 						rr->trigger.param.tPoint.y = parseInt(ini_nextListVal(ini));
 						break;

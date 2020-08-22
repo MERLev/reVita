@@ -439,7 +439,9 @@ void onButton_remapEmuTouch(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
 			ui_ruleEdited.emu.action = ui_entry->data;
-			if (ui_entry->data == REMAP_TOUCH_CUSTOM){
+			if (ui_entry->data == REMAP_TOUCH_CUSTOM || 
+					ui_entry->data == REMAP_TOUCH_SWIPE_SMART_L || 
+					ui_entry->data == REMAP_TOUCH_SWIPE_SMART_R){
 				ui_openMenuSmart(MENU_PICK_TOUCH_POINT_ID, ui_menu->id, MENU_REMAP_ID, 
 					(uint32_t)&ui_ruleEdited.emu);
 				break;

@@ -399,7 +399,7 @@ static struct Menu menu_remap_emu_type = (Menu){
 	.onButton = onButton_remapEmuType,
 	.entries = menu_remap_emu_type_entries};
 
-#define MENU_REMAP_EMU_TOUCH_FRONT_NUM 8
+#define MENU_REMAP_EMU_TOUCH_FRONT_NUM 10
 static struct MenuEntry menu_remap_emu_touch_front_entries[MENU_REMAP_EMU_TOUCH_FRONT_NUM] = {
 	(MenuEntry){.name = "$1 Left Touch", .data = REMAP_TOUCH_ZONE_L},
 	(MenuEntry){.name = "$2 Right Touch", .data = REMAP_TOUCH_ZONE_R},
@@ -408,7 +408,9 @@ static struct MenuEntry menu_remap_emu_touch_front_entries[MENU_REMAP_EMU_TOUCH_
 	(MenuEntry){.name = "$5 Bottom Left Touch", .data = REMAP_TOUCH_ZONE_BL},
 	(MenuEntry){.name = "$6 Bottom Right Touch", .data = REMAP_TOUCH_ZONE_BR},
 	(MenuEntry){.name = "$F Custom Touch", .data = REMAP_TOUCH_CUSTOM},
-	(MenuEntry){.name = "$i Swipe", .data = REMAP_TOUCH_SWIPE}};
+	(MenuEntry){.name = "$i Swipe", .data = REMAP_TOUCH_SWIPE},
+	(MenuEntry){.name = "$i Swipe controlled with $U", .data = REMAP_TOUCH_SWIPE_SMART_L},
+	(MenuEntry){.name = "$i Swipe controlled with $u", .data = REMAP_TOUCH_SWIPE_SMART_R}};
 static struct Menu menu_remap_emu_touch_front = (Menu){
 	.id = MENU_REMAP_EMU_TOUCH_FRONT_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
@@ -417,7 +419,7 @@ static struct Menu menu_remap_emu_touch_front = (Menu){
 	.onButton = onButton_remapEmuTouch,
 	.entries = menu_remap_emu_touch_front_entries};
 
-#define MENU_REMAP_EMU_TOUCH_BACK_NUM 8
+#define MENU_REMAP_EMU_TOUCH_BACK_NUM 10
 static struct MenuEntry menu_remap_emu_touch_back_entries[MENU_REMAP_EMU_TOUCH_FRONT_NUM] = {
 	(MenuEntry){.name = "$7 Left Touch", .data = REMAP_TOUCH_ZONE_L},
 	(MenuEntry){.name = "$8 Right Touch", .data = REMAP_TOUCH_ZONE_R},
@@ -426,7 +428,9 @@ static struct MenuEntry menu_remap_emu_touch_back_entries[MENU_REMAP_EMU_TOUCH_F
 	(MenuEntry){.name = "$_ Bottom Left Touch", .data = REMAP_TOUCH_ZONE_BL},
 	(MenuEntry){.name = "$= Bottom Right Touch", .data = REMAP_TOUCH_ZONE_BR},
 	(MenuEntry){.name = "$B Custom Touch", .data = REMAP_TOUCH_CUSTOM},
-	(MenuEntry){.name = "$j Swipe", .data = REMAP_TOUCH_SWIPE}};
+	(MenuEntry){.name = "$j Swipe", .data = REMAP_TOUCH_SWIPE},
+	(MenuEntry){.name = "$j Swipe controlled with $U", .data = REMAP_TOUCH_SWIPE_SMART_L},
+	(MenuEntry){.name = "$j Swipe controlled with $u", .data = REMAP_TOUCH_SWIPE_SMART_R}};
 static struct Menu menu_remap_emu_touch_back = (Menu){
 	.id = MENU_REMAP_EMU_TOUCH_BACK_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
