@@ -37,6 +37,14 @@ typedef struct EmulatedStick{
 	uint32_t up, down, left, right;
 }EmulatedStick;
 
+typedef struct RuleData{
+	SceCtrlData *ctrl;
+	uint32_t btns, btnsEmu, btnsProp;
+	struct RemapRule* rr;
+	EmulatedStick analogLeftEmu, analogRightEmu, analogLeftProp, analogRightProp;
+	uint8_t stickposval;
+}RuleData;
+
 typedef struct EmulatedTouchEvent{
 	TouchPoint point, swipeEndPoint;
 	int id;
@@ -133,14 +141,6 @@ EmulatedTouchEvent* storeTouchSmartSwipe(EmulatedTouch *et, TouchPoint tp){
 	return &et->reports[et->num - 1];
 }
 
-// *EmulatedTouchEvent* locateCreateSmartSwipe(EmulatedTouch *et, TouchPoint tp){
-// 	for (int i = 0; i < et->num; i++)
-// 		if (et->reports[i].isSmartSwipe == true &&
-// 				et->reports[i].point.x == tp.x && et->reports[i].point.y == tp.y)
-// 			return &et->reports[i];
-// 	return storeTouchSmartSwipe(et, tp);
-// }
-
 void swapTriggersBumpers(SceCtrlData *ctrl){
 	uint32_t b = 0;
 	for (int j = 0; j < HW_BUTTONS_NUM; j++)
@@ -155,23 +155,25 @@ void swapTriggersBumpers(SceCtrlData *ctrl){
 	ctrl->buttons = b;
 }
 
-void addEmu(SceCtrlData *ctrl, struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick, bool isFirstTime) {
-	EmulatedStick* stick = emustick;
+// void addEmu(SceCtrlData *ctrl, struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick, bool isFirstTime) {
+void addEmu(RuleData* rd) {
+	EmulatedStick* stick = &rd->analogLeftEmu;
+	struct RemapAction* emu = &rd->rr->emu;
 	EmulatedTouchEvent* ete;
 	switch (emu->type){
 		case REMAP_TYPE_BUTTON: 
-			btn_add(btn, emu->param.btn);
+			btn_add(&rd->btns, emu->param.btn);
 			break;
 		case REMAP_TYPE_RIGHT_ANALOG: 
 		case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: 
-			stick = &emustick[1];
+			stick = &rd->analogRightEmu;
 		case REMAP_TYPE_LEFT_ANALOG: 
 		case REMAP_TYPE_LEFT_ANALOG_DIGITAL: 
 			switch (emu->action){
-				case REMAP_ANALOG_UP:    stick->up    += 127; break;
-				case REMAP_ANALOG_DOWN:  stick->down  += 127; break;
-				case REMAP_ANALOG_LEFT:  stick->left  += 127; break;
-				case REMAP_ANALOG_RIGHT: stick->right += 127; break;
+				case REMAP_ANALOG_UP:    stick->up    += rd->stickposval; break;
+				case REMAP_ANALOG_DOWN:  stick->down  += rd->stickposval; break;
+				case REMAP_ANALOG_LEFT:  stick->left  += rd->stickposval; break;
+				case REMAP_ANALOG_RIGHT: stick->right += rd->stickposval; break;
 				default: break;
 			}
 			break;
@@ -184,24 +186,25 @@ void addEmu(SceCtrlData *ctrl, struct RemapAction* emu, uint32_t* btn, EmulatedS
 				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etFront, T_FRONT_BL); break;
 				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etFront, T_FRONT_BR); break;
 				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etFront, emu->param.tPoint); break;
-				case REMAP_TOUCH_SWIPE:   if (isFirstTime) storeTouchSwipe(&etFront, emu->param.tPoints); break;
+				// case REMAP_TOUCH_SWIPE:   if (isFirstTime) storeTouchSwipe(&etFront, emu->param.tPoints); break;
+				case REMAP_TOUCH_SWIPE:   if (true) storeTouchSwipe(&etFront, emu->param.tPoints); break;
 				case REMAP_TOUCH_SWIPE_SMART_L:   
 					ete = storeTouchSmartSwipe(&etFront, emu->param.tPoint);
-					if (ctrl->lx < 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X] ||
-							ctrl->lx >= 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + ctrl->lx - 127, 0, T_FRONT_SIZE.x);
-					if (ctrl->ly < 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y] ||
-							ctrl->ly >= 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + ctrl->ly - 127, 0, T_FRONT_SIZE.y);
+					if (rd->ctrl->lx < 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X] ||
+							rd->ctrl->lx >= 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
+						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + rd->ctrl->lx - 127, 0, T_FRONT_SIZE.x);
+					if (rd->ctrl->ly < 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y] ||
+							rd->ctrl->ly >= 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
+						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + rd->ctrl->ly - 127, 0, T_FRONT_SIZE.y);
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_R:  
 					ete = storeTouchSmartSwipe(&etFront, emu->param.tPoint); 
-					if (ctrl->rx < 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X] ||
-							ctrl->rx >= 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + ctrl->rx - 127, 0, T_FRONT_SIZE.x);
-					if (ctrl->ry < 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y] ||
-							ctrl->ry >= 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + ctrl->ry - 127, 0, T_FRONT_SIZE.y);
+					if (rd->ctrl->rx < 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X] ||
+							rd->ctrl->rx >= 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])
+						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + rd->ctrl->rx - 127, 0, T_FRONT_SIZE.x);
+					if (rd->ctrl->ry < 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y] ||
+							rd->ctrl->ry >= 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
+						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + rd->ctrl->ry - 127, 0, T_FRONT_SIZE.y);
 					break;
 				default: break;
 			}
@@ -215,64 +218,30 @@ void addEmu(SceCtrlData *ctrl, struct RemapAction* emu, uint32_t* btn, EmulatedS
 				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etBack, T_BACK_BL); break;
 				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etBack, T_BACK_BR); break;
 				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etBack, emu->param.tPoint); break;
-				case REMAP_TOUCH_SWIPE:   if (isFirstTime) storeTouchSwipe(&etBack, emu->param.tPoints); break;
+				// case REMAP_TOUCH_SWIPE:   if (isFirstTime) storeTouchSwipe(&etBack, emu->param.tPoints); break;
+				case REMAP_TOUCH_SWIPE:   if (true) storeTouchSwipe(&etBack, emu->param.tPoints); break;
 				case REMAP_TOUCH_SWIPE_SMART_L:   
 					ete = storeTouchSmartSwipe(&etBack, emu->param.tPoint);
-					if (ctrl->lx < 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X] ||
-							ctrl->lx >= 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + ctrl->lx - 127, 0, T_BACK_SIZE.x);
-					if (ctrl->ly < 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y] ||
-							ctrl->ly >= 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + ctrl->ly - 127, 0, T_BACK_SIZE.y);
+					if (rd->ctrl->lx < 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X] ||
+							rd->ctrl->lx >= 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
+						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + rd->ctrl->lx - 127, 0, T_BACK_SIZE.x);
+					if (rd->ctrl->ly < 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y] ||
+							rd->ctrl->ly >= 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
+						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + rd->ctrl->ly - 127, 0, T_BACK_SIZE.y);
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_R:  
 					ete = storeTouchSmartSwipe(&etBack, emu->param.tPoint); 
-					if (ctrl->rx < 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X] ||
-							ctrl->rx >= 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + ctrl->rx - 127, 0, T_BACK_SIZE.x);
-					if (ctrl->ry < 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y] ||
-							ctrl->ry >= 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + ctrl->ry - 127, 0, T_BACK_SIZE.y);
+					if (rd->ctrl->rx < 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X] ||
+							rd->ctrl->rx >= 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])
+						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + rd->ctrl->rx - 127, 0, T_BACK_SIZE.x);
+					if (rd->ctrl->ry < 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y] ||
+							rd->ctrl->ry >= 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
+						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + rd->ctrl->ry - 127, 0, T_BACK_SIZE.y);
 					break;
 				default: break;
 			}
 			break;
 		default: break;
-	}
-}
-void addEmuFromAnalog(SceCtrlData *ctrl, struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick, uint8_t stickposval, bool isFirstTime){
-	EmulatedStick* stick = emustick;
-	switch (emu->type){
-		case REMAP_TYPE_RIGHT_ANALOG: 
-			stick = &emustick[1];
-		case REMAP_TYPE_LEFT_ANALOG: 
-			switch (emu->action){
-				case REMAP_ANALOG_UP:    stick->up    += stickposval; break;
-				case REMAP_ANALOG_DOWN:  stick->down  += stickposval; break;
-				case REMAP_ANALOG_LEFT:  stick->left  += stickposval; break;
-				case REMAP_ANALOG_RIGHT: stick->right += stickposval; break;
-				default: break;
-			}
-			break;
-		default: addEmu(ctrl, emu, btn, emustick, isFirstTime); break;
-	}
-	
-}
-void addEmuFromGyro(SceCtrlData *ctrl, struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick,  float gyroval, bool isFirstTime){
-	EmulatedStick* stick = emustick;
-	switch (emu->type){
-		case REMAP_TYPE_RIGHT_ANALOG: 
-			stick = &emustick[1];
-		case REMAP_TYPE_LEFT_ANALOG: 
-			switch (emu->action){
-				case REMAP_ANALOG_UP:    stick->up    += clamp(gyroval, -127, 127); break;
-				case REMAP_ANALOG_DOWN:  stick->down  += clamp(gyroval, -127, 127); break;
-				case REMAP_ANALOG_LEFT:  stick->left  += clamp(gyroval, -127, 127); break;
-				case REMAP_ANALOG_RIGHT: stick->right += clamp(gyroval, -127, 127); break;
-				default: break;
-			}
-			break;
-		default: addEmu(ctrl, emu, btn, emustick, isFirstTime); break;
 	}
 }
 
@@ -289,41 +258,42 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 	int backRet = ksceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
 	isInternalTouchCall = false;
 
-	uint32_t btns = ctrl->buttons;
-	uint32_t propBtns = ctrl->buttons; //Propagated buttons
-	uint32_t emuBtns = 0;
-
-	EmulatedStick eSticks[2] =    {(EmulatedStick){0, 0, 0, 0}, (EmulatedStick){0, 0, 0, 0}};
-	EmulatedStick propSticks[2] = {(EmulatedStick){0, 0, 0, 0}, (EmulatedStick){0, 0, 0, 0}};
+	RuleData rd;
+	rd.btns = 0;
+	rd.btnsProp = ctrl->buttons;
+	rd.btnsEmu = 0;
 
 	SceMotionState sms;
 	// int ret = _sceMotionGetState(&sms);
-	int ret = -1;
+	int gyroRet = -1;
 
-	//Set propagation sticks def values
-	if (ctrl->lx <= 127) propSticks[0].left = 127 - ctrl->lx;
-	else propSticks[0].right = ctrl->lx - 127;
-	if (ctrl->ly <= 127) propSticks[0].up = 127 - ctrl->ly;
-	else  propSticks[0].down = ctrl->ly - 127;
-	if (ctrl->rx <= 127) propSticks[1].left = 127 - ctrl->rx;
-	else  propSticks[1].right = ctrl->rx - 127;
-	if (ctrl->ry <= 127) propSticks[1].up = 127 - ctrl->ry;
-	else  propSticks[1].down = ctrl->ry - 127;
+	//Set sticks def values
+	rd.analogLeftEmu = rd.analogRightEmu = rd.analogLeftProp = rd.analogRightProp = (EmulatedStick){0, 0, 0, 0};
+	if (ctrl->lx <= 127) rd.analogLeftProp.left = 127 - ctrl->lx;
+	else rd.analogLeftProp.right = ctrl->lx - 127;
+	if (ctrl->ly <= 127) rd.analogLeftProp.up = 127 - ctrl->ly;
+	else  rd.analogLeftProp.down = ctrl->ly - 127;
+	if (ctrl->rx <= 127) rd.analogRightProp.left = 127 - ctrl->rx;
+	else  rd.analogRightProp.right = ctrl->rx - 127;
+	if (ctrl->ry <= 127) rd.analogRightProp.up = 127 - ctrl->ry;
+	else  rd.analogRightProp.down = ctrl->ry - 127;
 
 	//Applying remap rules
 	for (int i = 0; i < profile.remapsNum; i++){
 		struct RemapRule* rr = &profile.remaps[i];
-		if (rr->disabled) continue;
-		struct RemapAction* trigger = &rr->trigger;
-		bool isFirstTime;
+		rd.rr = &profile.remaps[i];
+		if (rd.rr->disabled) continue;
+		struct RemapAction* trigger = &rd.rr->trigger;
+		rd.stickposval = 127;
+		// bool isFirstTime;
 
 		switch (trigger->type){
 			case REMAP_TYPE_BUTTON: 
-				if (btn_has(btns, trigger->param.btn)){
-					if (!rr->propagate)
-						btn_del(&propBtns, trigger->param.btn);
-					if (rr->turbo && turboTick) continue;
-					addEmu(ctrl, &rr->emu, &emuBtns, &eSticks[0], !btn_has(ctrlPrev->buttons, trigger->param.btn));
+				if (btn_has(rd.btns, trigger->param.btn)){
+					if (!rd.rr->propagate)
+						btn_del(&rd.btnsProp, trigger->param.btn);
+					if (rd.rr->turbo && turboTick) continue;
+					addEmu(&rd);
 				}
 				break;
 			case REMAP_TYPE_LEFT_ANALOG: 
@@ -331,34 +301,38 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 					case REMAP_ANALOG_LEFT: 
 						if (ctrl->lx >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
 							break;
-						if (!rr->propagate) propSticks[0].left = 0;
+						if (!rr->propagate) rd.analogLeftProp.left = 0;
 						if (rr->turbo && turboTick) continue;
-						isFirstTime = ctrlPrev->lx >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X];
-						addEmuFromAnalog(ctrl, &rr->emu, &emuBtns, eSticks, 127 - ctrl->lx, isFirstTime);
+						// isFirstTime = ctrlPrev->lx >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X];
+						rd.stickposval = 127 - ctrl->lx;
+						addEmu(&rd);
 						break;
 					case REMAP_ANALOG_RIGHT: 
 						if (ctrl->lx < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
 							break;
-						if (!rr->propagate) propSticks[0].right = 0;
+						if (!rr->propagate) rd.analogLeftProp.right = 0;
 						if (rr->turbo && turboTick) continue;
-						isFirstTime = ctrlPrev->lx < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X];
-						addEmuFromAnalog(ctrl, &rr->emu, &emuBtns, eSticks, ctrl->lx - 127, isFirstTime);
+						// isFirstTime = ctrlPrev->lx < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X];
+						rd.stickposval = ctrl->lx - 127;
+						addEmu(&rd);
 						break;
 					case REMAP_ANALOG_UP: 
 						if (ctrl->ly >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
 							break;
-						if (!rr->propagate) propSticks[0].up = 0;
+						if (!rr->propagate) rd.analogLeftProp.up = 0;
 						if (rr->turbo && turboTick) continue;
-						isFirstTime = ctrlPrev->ly >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y];
-						addEmuFromAnalog(ctrl, &rr->emu, &emuBtns, eSticks, 127 - ctrl->ly, isFirstTime);
+						// isFirstTime = ctrlPrev->ly >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y];
+						rd.stickposval = 127 - ctrl->ly;
+						addEmu(&rd);
 						break;
 					case REMAP_ANALOG_DOWN: 
 						if (ctrl->ly < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
 							break;
-						if (!rr->propagate) propSticks[0].down = 0;
+						if (!rr->propagate) rd.analogLeftProp.down = 0;
 						if (rr->turbo && turboTick) continue;
-						isFirstTime = ctrlPrev->ly < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y];
-						addEmuFromAnalog(ctrl, &rr->emu, &emuBtns, eSticks, ctrl->ly - 127, isFirstTime);
+						// isFirstTime = ctrlPrev->ly < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y];
+						rd.stickposval = ctrl->ly - 127;
+						addEmu(&rd);
 						break;
 					default: break;
 				}
@@ -368,34 +342,38 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 					case REMAP_ANALOG_LEFT: 
 						if (ctrl->rx >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])
 							break;
-						if (!rr->propagate) propSticks[1].left = 0;
+						if (!rr->propagate) rd.analogRightProp.left = 0;
 						if (rr->turbo && turboTick) continue;
-						isFirstTime = ctrlPrev->rx >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X];
-						addEmuFromAnalog(ctrl, &rr->emu, &emuBtns, eSticks, 127 - ctrl->rx, isFirstTime);
+						// isFirstTime = ctrlPrev->rx >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X];
+						rd.stickposval = 127 - ctrl->rx;
+						addEmu(&rd);
 						break;
 					case REMAP_ANALOG_RIGHT: 
 						if (ctrl->rx < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])
 							break;
-						if (!rr->propagate) propSticks[1].right = 0;
+						if (!rr->propagate) rd.analogRightProp.right = 0;
 						if (rr->turbo && turboTick) continue;
-						isFirstTime = ctrlPrev->rx < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X];
-						addEmuFromAnalog(ctrl, &rr->emu, &emuBtns, eSticks, ctrl->rx - 127, isFirstTime);
+						// isFirstTime = ctrlPrev->rx < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X];
+						rd.stickposval = ctrl->rx - 127;
+						addEmu(&rd);
 						break;
 					case REMAP_ANALOG_UP: 
 						if (ctrl->ry >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
 							break;
-						if (!rr->propagate) propSticks[1].up = 0;
+						if (!rr->propagate) rd.analogRightProp.up = 0;
 						if (rr->turbo && turboTick) continue;
-						isFirstTime = ctrlPrev->ry >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y];
-						addEmuFromAnalog(ctrl, &rr->emu, &emuBtns, eSticks, 127 - ctrl->ry, isFirstTime);
+						// isFirstTime = ctrlPrev->ry >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y];
+						rd.stickposval = 127 - ctrl->ry;
+						addEmu(&rd);
 						break;
 					case REMAP_ANALOG_DOWN: 
 						if (ctrl->ry < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
 							break;
-						if (!rr->propagate) propSticks[1].down = 0;
+						if (!rr->propagate) rd.analogRightProp.down = 0;
 						if (rr->turbo && turboTick) continue;
-						isFirstTime = ctrlPrev->ry < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y];
-						addEmuFromAnalog(ctrl, &rr->emu, &emuBtns, eSticks, ctrl->ry - 127, isFirstTime);
+						// isFirstTime = ctrlPrev->ry < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y];
+						rd.stickposval = ctrl->ry - 127;
+						addEmu(&rd);
 						break;
 					default: break;
 				}
@@ -414,7 +392,7 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.tPoints; break;
 						default: break;
 					}
-					if (reportInZone(&front.report[j], tz)) addEmu(ctrl, &rr->emu, &emuBtns, eSticks, true); 
+					if (reportInZone(&front.report[j], tz)) addEmu(&rd); 
 				}
 				break;
 			case REMAP_TYPE_BACK_TOUCH_ZONE: 
@@ -431,36 +409,42 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.tPoints; break;
 						default: break;
 					}
-					if (reportInZone(&back.report[j], tz)) addEmu(ctrl, &rr->emu, &emuBtns, eSticks, true); 
+					if (reportInZone(&back.report[j], tz)) addEmu(&rd); 
 				}
 				break;
 			case REMAP_TYPE_GYROSCOPE: 
-				if (ret != 0) break;
+				if (gyroRet != 0) break;
 				if (rr->turbo && turboTick) continue;
 				switch (trigger->action){
 					case REMAP_GYRO_UP:  
-						if (sms.angularVelocity.x > 0) 
-							addEmuFromGyro(ctrl, &rr->emu, &emuBtns, eSticks, sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y], true);
+						if (sms.angularVelocity.x < 0) break;
+						rd.stickposval = clamp(sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y], -127, 127);
+						addEmu(&rd);
 						break;
 					case REMAP_GYRO_DOWN:
-						if (sms.angularVelocity.x < 0) 
-							addEmuFromGyro(ctrl, &rr->emu, &emuBtns, eSticks, - sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y], true);
+						if (sms.angularVelocity.x > 0) break; 
+						rd.stickposval = clamp(- sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y], -127, 127);
+						addEmu(&rd);
 						break;
 					case REMAP_GYRO_LEFT:
-						if (sms.angularVelocity.y > 0) 
-							addEmuFromGyro(ctrl, &rr->emu, &emuBtns, eSticks, sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X], true);
+						if (sms.angularVelocity.y < 0) break;
+						rd.stickposval = clamp(sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X], -127, 127);
+						addEmu(&rd);
 						break;
 					case REMAP_GYRO_RIGHT:
-						if (sms.angularVelocity.y < 0) 
-							addEmuFromGyro(ctrl, &rr->emu, &emuBtns, eSticks, - sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X], true);
+						if (sms.angularVelocity.y > 0) break;
+						rd.stickposval = clamp(- sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X], -127, 127);
+						addEmu(&rd);
 						break;
 					case REMAP_GYRO_ROLL_LEFT:
-						if (sms.deviceQuat.z > 0) 
-							addEmuFromGyro(ctrl, &rr->emu, &emuBtns, eSticks, sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4, true);
+						if (sms.deviceQuat.z < 0) break;
+						rd.stickposval = clamp(sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4, -127, 127);
+						addEmu(&rd);
 						break;
 					case REMAP_GYRO_ROLL_RIGHT:
-						if (sms.deviceQuat.z < 0) 
-							addEmuFromGyro(ctrl, &rr->emu, &emuBtns, eSticks, - sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4, true);
+						if (sms.deviceQuat.z > 0) break;
+						rd.stickposval = clamp(- sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4, -127, 127);
+						addEmu(&rd);
 						break;
 					default: break;
 				}
@@ -484,22 +468,24 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 	// }
 
 	//Storing emulated HW buttons
-	btn_add(&emuBtns, propBtns);
-	ctrl->buttons = emuBtns;
+	btn_add(&rd.btnsEmu, rd.btnsProp);
+	ctrl->buttons = rd.btnsEmu;
 
 	//Restoring propagated values for analog sticks
-	for (int i = 0; i < 2; i++){
-		eSticks[i].left += propSticks[i].left;
-		eSticks[i].right += propSticks[i].right;
-		eSticks[i].up += propSticks[i].up;
-		eSticks[i].down += propSticks[i].down;
-	}
+	rd.analogLeftEmu.left += rd.analogLeftProp.left;
+	rd.analogLeftEmu.right += rd.analogLeftProp.right;
+	rd.analogLeftEmu.up += rd.analogLeftProp.up;
+	rd.analogLeftEmu.down += rd.analogLeftProp.down;
+	rd.analogRightEmu.left += rd.analogRightProp.left;
+	rd.analogRightEmu.right += rd.analogRightProp.right;
+	rd.analogRightEmu.up += rd.analogRightProp.up;
+	rd.analogRightEmu.down += rd.analogRightProp.down;
 
 	//Storing remap for analog axises
-	ctrl->lx = clamp(127  + eSticks[0].right- eSticks[0].left, 0, 255);
-	ctrl->ly = clamp(127 + eSticks[0].down - eSticks[0].up, 0, 255);
-	ctrl->rx = clamp(127 + eSticks[1].right - eSticks[1].left, 0, 255);
-	ctrl->ry = clamp(127 + eSticks[1].down - eSticks[1].up, 0, 255);
+	ctrl->lx = clamp(127  + rd.analogLeftEmu.right- rd.analogLeftEmu.left, 0, 255);
+	ctrl->ly = clamp(127 + rd.analogLeftEmu.down - rd.analogLeftEmu.up, 0, 255);
+	ctrl->rx = clamp(127 + rd.analogRightEmu.right - rd.analogRightEmu.left, 0, 255);
+	ctrl->ry = clamp(127 + rd.analogRightEmu.down - rd.analogRightEmu.up, 0, 255);
 
 	//Telling that new emulated touch buffer is ready to be taken
 	newEmulatedFrontTouchBuffer = true;
