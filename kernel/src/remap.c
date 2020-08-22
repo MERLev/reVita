@@ -479,7 +479,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 					default: break;
 				}
 				break;
-			case REMAP_TYPE_FRONT_TOUCH_ZONE: 
+			case REMAP_TYPE_FRONT_TOUCH_ZONE:
 				if (frontRet < 1) break;
 				for (int j = 0; j < front.reportNum; j++) {
 					TouchPoints2 tz = TZ_FRONT_L;
@@ -493,10 +493,11 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.tPoints; break;
 						default: break;
 					}
-					if (updateStatus(rd.status, reportInZone(&front.report[j], tz)))
+					if (updateStatus(rd.status, reportInZone(&front.report[j], tz))) {
 						addEmu(&rd);
-					else
+					} else {
 						remEmu(&rd);
+					}
 				}
 				break;
 			case REMAP_TYPE_BACK_TOUCH_ZONE: 
@@ -886,7 +887,7 @@ void initTouchParams(){
 }
 void remap_setup(){
     //ksceKernelGetSystemTimeLow
-
+	
 	// Enabling analogs sampling 
 	ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
 	

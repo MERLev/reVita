@@ -96,14 +96,15 @@ int onKernelInputNegative(SceCtrlData *ctrl, int nBufs, int hookId){
 
 int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){	
 	//Disable in menu
-	if (!isInternalTouchCall && ui_opened) {
+    if (isInternalTouchCall) return nBufs;
+
+	if (ui_opened) {
 		pData[0] = pData[nBufs - 1];
 		pData[0].reportNum = 0;
 		return 1;
-	}
-	
-	if (!ui_opened)
+	} else {
 		return remap_touch(port, pData, nBufs, hookId);
+    }
 	return nBufs;
 }
 
@@ -196,9 +197,7 @@ DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(15, ksceCtrlReadBufferNegative)
 #define DECL_FUNC_HOOK_PATCH_TOUCH(index, name) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
-		/*if (isInternalTouchCall) return ret; */\
         used_funcs[(index)] = 1; \
-        /*return remap_touch(port, pData, ret, (index - 16));*/ \
         return onTouch(port, pData, ret, (index - 16)); \
     }
 DECL_FUNC_HOOK_PATCH_TOUCH(16, ksceTouchPeek)
@@ -345,7 +344,6 @@ int module_start(SceSize argc, const void *args) {
     hook(14,"SceCtrl", 0x7823A5D1, 0x19895843, ksceCtrlPeekBufferNegative_patched);
     hook(15,"SceCtrl", 0x7823A5D1, 0x8D4E0DD1, ksceCtrlReadBufferNegative_patched);
 
-    
     hook(16,"SceTouch", TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek_patched);
     hook(17,"SceTouch", TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead_patched);
 
