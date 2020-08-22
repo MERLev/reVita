@@ -83,7 +83,7 @@ void onButton_main(uint32_t btn){
 			ui_setIdx(0);
 			break;
 		case SCE_CTRL_CIRCLE:
-			ui_opened = 0;
+			ui_close();
 			profile_saveSettings();
 			if (profile_settings[0])
 				profile_save(titleid);
@@ -119,12 +119,16 @@ void onButton_touch(uint32_t btn){
 				profile.touch[id] = !profile.touch[id]; 
 			else if (id == PROFILE_TOUCH_SWIPE_DURATION)
 				profile.touch[id] = (profile.touch[id] + 1) % 1000; 
+			else if (id == PROFILE_TOUCH_SWIPE_SMART_SENSIVITY)
+				profile.touch[id] = (profile.touch[id] + 1) % 100; 
 			break;
 		case SCE_CTRL_LEFT: 
 			if (id == PROFILE_TOUCH_SWAP)
 				profile.touch[id] = !profile.touch[id]; 
 			else if (id == PROFILE_TOUCH_SWIPE_DURATION)
 				profile.touch[id] = (profile.touch[id] + 1000 - 1) % 1000; 
+			else if (id == PROFILE_TOUCH_SWIPE_SMART_SENSIVITY)
+				profile.touch[id] = (profile.touch[id] + 100 - 1) % 100; 
 			break;
 		case SCE_CTRL_SQUARE: profile.touch[id] = profile_def.touch[id]; break;
 		case SCE_CTRL_START: profile_resetTouch(); break;
@@ -440,6 +444,7 @@ void onButton_remapEmuTouch(uint32_t btn){
 		case SCE_CTRL_CROSS:
 			ui_ruleEdited.emu.action = ui_entry->data;
 			if (ui_entry->data == REMAP_TOUCH_CUSTOM || 
+					ui_entry->data == REMAP_TOUCH_SWIPE_SMART_DPAD || 
 					ui_entry->data == REMAP_TOUCH_SWIPE_SMART_L || 
 					ui_entry->data == REMAP_TOUCH_SWIPE_SMART_R){
 				ui_openMenuSmart(MENU_PICK_TOUCH_POINT_ID, ui_menu->id, MENU_REMAP_ID, 

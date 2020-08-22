@@ -11,9 +11,21 @@
 #include "common.h"
 #include "log.h"
 
+#define CTRL_HOOKS_NUM 				HOOKS_NUM - 4
+#define TOUCH_HOOKS_NUM 			2
 #define MULTITOUCH_FRONT_NUM		6
 #define MULTITOUCH_BACK_NUM			4
 #define TURBO_DELAY			        50*1000
+
+enum RULE_STATUS{
+	RS_NONACTIVE,   //Rule is stopped for some time
+	RS_STARTED,     //Rule just started
+	RS_ACTIVE,      //Rule is active for some time
+	RS_STOPPED      //Rule just stopped
+}RULE_STATUS;
+
+//Status of each rule
+enum RULE_STATUS rs[CTRL_HOOKS_NUM][REMAP_NUM];
 
 TouchPoint T_FRONT_SIZE = (TouchPoint){1920, 1080};
 TouchPoint T_BACK_SIZE  = (TouchPoint){1920, 890};
@@ -43,6 +55,8 @@ typedef struct RuleData{
 	struct RemapRule* rr;
 	EmulatedStick analogLeftEmu, analogRightEmu, analogLeftProp, analogRightProp;
 	uint8_t stickposval;
+	enum RULE_STATUS* status;
+	bool isTurboTick;
 }RuleData;
 
 typedef struct EmulatedTouchEvent{
@@ -59,32 +73,39 @@ typedef struct EmulatedTouch{
 	uint8_t num;
 }EmulatedTouch;
 
-//Storing previous SceCtrlData
-static SceCtrlData prevCtrl[HOOKS_NUM-4];
-
 //For now let's store buffers on the stack
-static SceCtrlData _remappedBuffers[HOOKS_NUM-4][BUFFERS_NUM];
-static SceTouchData _remappedBuffersFront[4][BUFFERS_NUM];
-static SceTouchData _remappedBuffersBack[4][BUFFERS_NUM];
+static SceCtrlData _remappedBuffers[CTRL_HOOKS_NUM][BUFFERS_NUM];
+static SceTouchData _remappedBuffersFront[TOUCH_HOOKS_NUM][BUFFERS_NUM];
+static SceTouchData _remappedBuffersBack[TOUCH_HOOKS_NUM][BUFFERS_NUM];
 
 //Circular cache to store remapped keys buffers per each ctrs hook
-static SceCtrlData *remappedBuffers[HOOKS_NUM-5];
-static int remappedBuffersSizes[HOOKS_NUM];
-static int remappedBuffersIdxs[HOOKS_NUM];
+static SceCtrlData *remappedBuffers[CTRL_HOOKS_NUM];
+static int remappedBuffersSizes[CTRL_HOOKS_NUM];
+static int remappedBuffersIdxs[CTRL_HOOKS_NUM];
 
 //Circular cache to store Touch buffers per each touch hook
-static SceTouchData *remappedBuffersFront[4];
-static int remappedBuffersFrontSizes[4];
-static int remappedBuffersFrontIdxs[4];
+static SceTouchData *remappedBuffersFront[TOUCH_HOOKS_NUM];
+static int remappedBuffersFrontSizes[TOUCH_HOOKS_NUM];
+static int remappedBuffersFrontIdxs[TOUCH_HOOKS_NUM];
 bool newEmulatedFrontTouchBuffer = false;
-static SceTouchData *remappedBuffersBack[4];
-static int remappedBuffersBackSizes[4];
-static int remappedBuffersBackIdxs[4];
+static SceTouchData *remappedBuffersBack[TOUCH_HOOKS_NUM];
+static int remappedBuffersBackSizes[TOUCH_HOOKS_NUM];
+static int remappedBuffersBackIdxs[TOUCH_HOOKS_NUM];
 bool newEmulatedBackTouchBuffer = false;
 
 static EmulatedTouch etFront, etBack, prevEtFront, prevEtBack;
 static uint8_t etFrontIdCounter = 64;
 static uint8_t etBackIdCounter = 64;
+
+bool updateStatus(enum RULE_STATUS* status, bool active){
+	switch (*status){
+		case RS_ACTIVE: if (!active) *status = RS_STOPPED; break;
+		case RS_NONACTIVE: if (active) *status = RS_STARTED; break;
+		case RS_STARTED: *status = active ? RS_ACTIVE : RS_STOPPED; break;
+		case RS_STOPPED: *status = active ? RS_STARTED : RS_NONACTIVE; break;
+	}
+	return active;
+}
 
 bool inZone(const TouchPoint tp, const TouchPoints2 tz){
 	if (tp.x > min(tz.a.x, tz.b.x) && tp.x <= max(tz.a.x, tz.b.x) &&
@@ -129,16 +150,43 @@ EmulatedTouchEvent* storeTouchSmartSwipe(EmulatedTouch *et, TouchPoint tp){
 		if (et->reports[i].isSmartSwipe == true &&
 				et->reports[i].point.x == tp.x && et->reports[i].point.y == tp.y)
 			return &et->reports[i];
-	et->reports[et->num].point.x = tp.x;
-	et->reports[et->num].point.y = tp.y;
-	et->reports[et->num].swipeEndPoint.x = tp.x;
-	et->reports[et->num].swipeEndPoint.y = tp.y;
-	et->reports[et->num].id = -1;
-	et->reports[et->num].isSwipe = false;
-	et->reports[et->num].isSmartSwipe = true;
-	et->reports[et->num].isSwipeFinished = false;
+	EmulatedTouchEvent* ete = &et->reports[et->num];
+	ete->point.x = tp.x;
+	ete->point.y = tp.y;
+	ete->swipeEndPoint.x = tp.x;
+	ete->swipeEndPoint.y = tp.y;
+	ete->id = -1;
+	ete->isSwipe = false;
+	ete->isSmartSwipe = true;
+	ete->isSwipeFinished = false;
 	et->num++;
-	return &et->reports[et->num - 1];
+	return ete;
+}
+
+void removeEmuReport(EmulatedTouch *et, int idx){
+	for (int i = idx + 1; i < et->num; i++)
+		et->reports[i - 1] = et->reports[i];
+	et->num--;
+}
+
+void removeEmuSmartSwipe(EmulatedTouch *et, TouchPoint tp){
+	int i = 0;
+	while (i < et->num){
+		if (et->reports[i].isSmartSwipe && et->reports[i].point.x == tp.x && et->reports[i].point.y == tp.y) {
+			removeEmuReport(et, i);
+			break;
+		}
+		i++;
+	}
+}
+
+void cleanEmuReports(EmulatedTouch *et){
+	int i = 0;
+	while (i < et->num)
+		if ((!et->reports[i].isSwipe && !et->reports[i].isSmartSwipe) || et->reports[i].isSwipeFinished) 
+			removeEmuReport(et, i);
+		else 
+			i++;
 }
 
 void swapTriggersBumpers(SceCtrlData *ctrl){
@@ -162,13 +210,15 @@ void addEmu(RuleData* rd) {
 	EmulatedTouchEvent* ete;
 	switch (emu->type){
 		case REMAP_TYPE_BUTTON: 
-			btn_add(&rd->btns, emu->param.btn);
+			if (rd->rr->turbo && rd->isTurboTick) break;
+			btn_add(&rd->btnsEmu, emu->param.btn);
 			break;
 		case REMAP_TYPE_RIGHT_ANALOG: 
 		case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: 
 			stick = &rd->analogRightEmu;
 		case REMAP_TYPE_LEFT_ANALOG: 
 		case REMAP_TYPE_LEFT_ANALOG_DIGITAL: 
+			if (rd->rr->turbo && rd->isTurboTick) break;
 			switch (emu->action){
 				case REMAP_ANALOG_UP:    stick->up    += rd->stickposval; break;
 				case REMAP_ANALOG_DOWN:  stick->down  += rd->stickposval; break;
@@ -178,6 +228,9 @@ void addEmu(RuleData* rd) {
 			}
 			break;
 		case REMAP_TYPE_FRONT_TOUCH_POINT: 
+			if (rd->rr->turbo && rd->isTurboTick && 
+				emu->action != REMAP_TOUCH_SWIPE && emu->action != REMAP_TOUCH_SWIPE_SMART_L && emu->action != REMAP_TOUCH_SWIPE_SMART_R)
+					break;
 			switch (emu->action){
 				case REMAP_TOUCH_ZONE_L:  storeTouchPoint(&etFront, T_FRONT_L);  break;
 				case REMAP_TOUCH_ZONE_R:  storeTouchPoint(&etFront, T_FRONT_R);  break;
@@ -186,30 +239,46 @@ void addEmu(RuleData* rd) {
 				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etFront, T_FRONT_BL); break;
 				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etFront, T_FRONT_BR); break;
 				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etFront, emu->param.tPoint); break;
-				// case REMAP_TOUCH_SWIPE:   if (isFirstTime) storeTouchSwipe(&etFront, emu->param.tPoints); break;
-				case REMAP_TOUCH_SWIPE:   if (true) storeTouchSwipe(&etFront, emu->param.tPoints); break;
-				case REMAP_TOUCH_SWIPE_SMART_L:   
+				case REMAP_TOUCH_SWIPE:   
+					if (*rd->status == RS_STARTED || (*rd->status == RS_ACTIVE && rd->rr->turbo && rd->isTurboTick)) 
+						storeTouchSwipe(&etFront, emu->param.tPoints); 
+					break;
+				case REMAP_TOUCH_SWIPE_SMART_DPAD:  
 					ete = storeTouchSmartSwipe(&etFront, emu->param.tPoint);
-					if (rd->ctrl->lx < 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X] ||
-							rd->ctrl->lx >= 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + rd->ctrl->lx - 127, 0, T_FRONT_SIZE.x);
-					if (rd->ctrl->ly < 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y] ||
-							rd->ctrl->ly >= 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + rd->ctrl->ly - 127, 0, T_FRONT_SIZE.y);
+					if (btn_has(rd->btns, SCE_CTRL_LEFT)) ete->swipeEndPoint.x -= profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY];
+					if (btn_has(rd->btns, SCE_CTRL_RIGHT)) ete->swipeEndPoint.x += profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY];
+					if (btn_has(rd->btns, SCE_CTRL_UP)) ete->swipeEndPoint.y -= profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY];
+					if (btn_has(rd->btns, SCE_CTRL_DOWN)) ete->swipeEndPoint.y += profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY];
+					break;
+				case REMAP_TOUCH_SWIPE_SMART_L:  
+					ete = storeTouchSmartSwipe(&etFront, emu->param.tPoint);
+					if (abs(127 - rd->ctrl->lx) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
+						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + 
+							((float)(rd->ctrl->lx - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
+							0, T_FRONT_SIZE.x);
+					if (abs(127 - rd->ctrl->ly) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
+						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + 
+							((float)(rd->ctrl->ly - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
+							0, T_FRONT_SIZE.y);
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_R:  
 					ete = storeTouchSmartSwipe(&etFront, emu->param.tPoint); 
-					if (rd->ctrl->rx < 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X] ||
-							rd->ctrl->rx >= 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + rd->ctrl->rx - 127, 0, T_FRONT_SIZE.x);
-					if (rd->ctrl->ry < 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y] ||
-							rd->ctrl->ry >= 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + rd->ctrl->ry - 127, 0, T_FRONT_SIZE.y);
+					if (abs(127 - rd->ctrl->rx) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
+						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + 
+							((float)(rd->ctrl->rx - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
+							0, T_FRONT_SIZE.x);
+					if (abs(127 - rd->ctrl->ry) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
+						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + 
+							((float)(rd->ctrl->ry - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
+							0, T_FRONT_SIZE.y);
 					break;
 				default: break;
 			}
 			break;
 		case REMAP_TYPE_BACK_TOUCH_POINT: 
+			if (rd->rr->turbo && rd->isTurboTick && 
+				emu->action != REMAP_TOUCH_SWIPE && emu->action != REMAP_TOUCH_SWIPE_SMART_L && emu->action != REMAP_TOUCH_SWIPE_SMART_R)
+					break;
 			switch (emu->action){
 				case REMAP_TOUCH_ZONE_L:  storeTouchPoint(&etBack, T_BACK_L);  break;
 				case REMAP_TOUCH_ZONE_R:  storeTouchPoint(&etBack, T_BACK_R);  break;
@@ -218,25 +287,38 @@ void addEmu(RuleData* rd) {
 				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etBack, T_BACK_BL); break;
 				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etBack, T_BACK_BR); break;
 				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etBack, emu->param.tPoint); break;
-				// case REMAP_TOUCH_SWIPE:   if (isFirstTime) storeTouchSwipe(&etBack, emu->param.tPoints); break;
-				case REMAP_TOUCH_SWIPE:   if (true) storeTouchSwipe(&etBack, emu->param.tPoints); break;
+				case REMAP_TOUCH_SWIPE:   
+					if (*rd->status == RS_STARTED || (*rd->status == RS_ACTIVE && rd->rr->turbo && rd->isTurboTick)) 
+						storeTouchSwipe(&etBack, emu->param.tPoints); 
+					break;
+				case REMAP_TOUCH_SWIPE_SMART_DPAD:  
+					ete = storeTouchSmartSwipe(&etFront, emu->param.tPoint);
+					if (btn_has(rd->btns, SCE_CTRL_LEFT)) ete->swipeEndPoint.x -= profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY];
+					if (btn_has(rd->btns, SCE_CTRL_RIGHT)) ete->swipeEndPoint.x += profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY];
+					if (btn_has(rd->btns, SCE_CTRL_UP)) ete->swipeEndPoint.y -= profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY];
+					if (btn_has(rd->btns, SCE_CTRL_DOWN)) ete->swipeEndPoint.y += profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY];
+					break;
 				case REMAP_TOUCH_SWIPE_SMART_L:   
 					ete = storeTouchSmartSwipe(&etBack, emu->param.tPoint);
-					if (rd->ctrl->lx < 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X] ||
-							rd->ctrl->lx >= 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + rd->ctrl->lx - 127, 0, T_BACK_SIZE.x);
-					if (rd->ctrl->ly < 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y] ||
-							rd->ctrl->ly >= 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + rd->ctrl->ly - 127, 0, T_BACK_SIZE.y);
+					if (abs(127 - rd->ctrl->lx) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
+						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + 
+							((float)(rd->ctrl->lx - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
+							0, T_FRONT_SIZE.x);
+					if (abs(127 - rd->ctrl->ly) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
+						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + 
+							((float)(rd->ctrl->ly - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
+							0, T_FRONT_SIZE.y);
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_R:  
 					ete = storeTouchSmartSwipe(&etBack, emu->param.tPoint); 
-					if (rd->ctrl->rx < 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X] ||
-							rd->ctrl->rx >= 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + rd->ctrl->rx - 127, 0, T_BACK_SIZE.x);
-					if (rd->ctrl->ry < 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y] ||
-							rd->ctrl->ry >= 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + rd->ctrl->ry - 127, 0, T_BACK_SIZE.y);
+					if (abs(127 - rd->ctrl->rx) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
+						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + 
+							((float)(rd->ctrl->rx - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
+							0, T_FRONT_SIZE.x);
+					if (abs(127 - rd->ctrl->ry) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
+						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + 
+							((float)(rd->ctrl->ry - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
+							0, T_FRONT_SIZE.y);
 					break;
 				default: break;
 			}
@@ -245,11 +327,28 @@ void addEmu(RuleData* rd) {
 	}
 }
 
-void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
+void remEmu(RuleData* rd) {
+	EmulatedTouch* et = &etBack;
+	switch (rd->rr->emu.type){
+		case REMAP_TYPE_FRONT_TOUCH_POINT: 
+			et = &etFront;
+		case REMAP_TYPE_BACK_TOUCH_POINT: 
+			switch (rd->rr->emu.action){
+				case REMAP_TOUCH_SWIPE_SMART_L:   
+				case REMAP_TOUCH_SWIPE_SMART_R:   
+				case REMAP_TOUCH_SWIPE_SMART_DPAD:   
+					removeEmuSmartSwipe(et, rd->rr->emu.param.tPoint);
+					break;
+				default: break;
+			}
+			break;
+		default: break;
+	}
+}
+
+void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 	if (profile.controller[PROFILE_CONTROLLER_SWAP_BUTTONS])
 		swapTriggersBumpers(ctrl);
-	
-	bool turboTick = (ksceKernelGetSystemTimeWide() % TURBO_DELAY) < (TURBO_DELAY / 2);
 	
 	// Gathering real touch data
 	SceTouchData front, back;
@@ -259,9 +358,11 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 	isInternalTouchCall = false;
 
 	RuleData rd;
-	rd.btns = 0;
+	rd.isTurboTick = (ksceKernelGetSystemTimeWide() % TURBO_DELAY) < (TURBO_DELAY / 2);
+	rd.btns = ctrl->buttons;
 	rd.btnsProp = ctrl->buttons;
 	rd.btnsEmu = 0;
+	rd.ctrl = ctrl;
 
 	SceMotionState sms;
 	// int ret = _sceMotionGetState(&sms);
@@ -285,54 +386,54 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 		if (rd.rr->disabled) continue;
 		struct RemapAction* trigger = &rd.rr->trigger;
 		rd.stickposval = 127;
-		// bool isFirstTime;
+		rd.status = &statuses[i];
 
 		switch (trigger->type){
 			case REMAP_TYPE_BUTTON: 
-				if (btn_has(rd.btns, trigger->param.btn)){
-					if (!rd.rr->propagate)
-						btn_del(&rd.btnsProp, trigger->param.btn);
-					if (rd.rr->turbo && turboTick) continue;
+				if (updateStatus(rd.status, btn_has(rd.btns, trigger->param.btn))){
+					if (!rd.rr->propagate) btn_del(&rd.btnsProp, trigger->param.btn);
 					addEmu(&rd);
+				} else {
+					remEmu(&rd);
 				}
 				break;
 			case REMAP_TYPE_LEFT_ANALOG: 
 				switch(trigger->action){
 					case REMAP_ANALOG_LEFT: 
-						if (ctrl->lx >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
-							break;
-						if (!rr->propagate) rd.analogLeftProp.left = 0;
-						if (rr->turbo && turboTick) continue;
-						// isFirstTime = ctrlPrev->lx >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X];
-						rd.stickposval = 127 - ctrl->lx;
-						addEmu(&rd);
+						if (updateStatus(rd.status, ctrl->lx <= 127 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])){
+							if (!rr->propagate) rd.analogLeftProp.left = 0;
+							rd.stickposval = 127 - ctrl->lx;
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					case REMAP_ANALOG_RIGHT: 
-						if (ctrl->lx < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
-							break;
-						if (!rr->propagate) rd.analogLeftProp.right = 0;
-						if (rr->turbo && turboTick) continue;
-						// isFirstTime = ctrlPrev->lx < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X];
-						rd.stickposval = ctrl->lx - 127;
-						addEmu(&rd);
+						if (updateStatus(rd.status, ctrl->lx > 127 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])){
+							if (!rr->propagate) rd.analogLeftProp.right = 0;
+							rd.stickposval = ctrl->lx - 127;
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					case REMAP_ANALOG_UP: 
-						if (ctrl->ly >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
-							break;
-						if (!rr->propagate) rd.analogLeftProp.up = 0;
-						if (rr->turbo && turboTick) continue;
-						// isFirstTime = ctrlPrev->ly >= 128 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y];
-						rd.stickposval = 127 - ctrl->ly;
-						addEmu(&rd);
+						if (updateStatus(rd.status, ctrl->ly <= 127 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])){
+							if (!rr->propagate) rd.analogLeftProp.right = 0;
+							rd.stickposval = 127 - ctrl->ly;
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					case REMAP_ANALOG_DOWN: 
-						if (ctrl->ly < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
-							break;
-						if (!rr->propagate) rd.analogLeftProp.down = 0;
-						if (rr->turbo && turboTick) continue;
-						// isFirstTime = ctrlPrev->ly < 128 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y];
-						rd.stickposval = ctrl->ly - 127;
-						addEmu(&rd);
+						if (updateStatus(rd.status, ctrl->ly > 127 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])){
+							if (!rr->propagate) rd.analogLeftProp.right = 0;
+							rd.stickposval = ctrl->ly - 127;
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					default: break;
 				}
@@ -340,40 +441,40 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 			case REMAP_TYPE_RIGHT_ANALOG: 
 				switch(trigger->action){
 					case REMAP_ANALOG_LEFT: 
-						if (ctrl->rx >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])
-							break;
-						if (!rr->propagate) rd.analogRightProp.left = 0;
-						if (rr->turbo && turboTick) continue;
-						// isFirstTime = ctrlPrev->rx >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X];
-						rd.stickposval = 127 - ctrl->rx;
-						addEmu(&rd);
+						if (updateStatus(rd.status, ctrl->rx <= 127 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])){
+							if (!rr->propagate) rd.analogRightProp.left = 0;
+							rd.stickposval = 127 - ctrl->rx;
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					case REMAP_ANALOG_RIGHT: 
-						if (ctrl->rx < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])
-							break;
-						if (!rr->propagate) rd.analogRightProp.right = 0;
-						if (rr->turbo && turboTick) continue;
-						// isFirstTime = ctrlPrev->rx < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X];
-						rd.stickposval = ctrl->rx - 127;
-						addEmu(&rd);
+						if (updateStatus(rd.status, ctrl->rx > 127 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])){
+							if (!rr->propagate) rd.analogRightProp.right = 0;
+							rd.stickposval = ctrl->rx - 127;
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					case REMAP_ANALOG_UP: 
-						if (ctrl->ry >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
-							break;
-						if (!rr->propagate) rd.analogRightProp.up = 0;
-						if (rr->turbo && turboTick) continue;
-						// isFirstTime = ctrlPrev->ry >= 128 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y];
-						rd.stickposval = 127 - ctrl->ry;
-						addEmu(&rd);
+						if (updateStatus(rd.status, ctrl->ry <= 127 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])){
+							if (!rr->propagate) rd.analogRightProp.up = 0;
+							rd.stickposval = 127 - ctrl->ry;
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					case REMAP_ANALOG_DOWN: 
-						if (ctrl->ry < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])
-							break;
-						if (!rr->propagate) rd.analogRightProp.down = 0;
-						if (rr->turbo && turboTick) continue;
-						// isFirstTime = ctrlPrev->ry < 128 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y];
-						rd.stickposval = ctrl->ry - 127;
-						addEmu(&rd);
+						if (updateStatus(rd.status, ctrl->ry > 127 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])){
+							if (!rr->propagate) rd.analogRightProp.down = 0;
+							rd.stickposval = ctrl->ry - 127;
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					default: break;
 				}
@@ -392,7 +493,10 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.tPoints; break;
 						default: break;
 					}
-					if (reportInZone(&front.report[j], tz)) addEmu(&rd); 
+					if (updateStatus(rd.status, reportInZone(&front.report[j], tz)))
+						addEmu(&rd);
+					else
+						remEmu(&rd);
 				}
 				break;
 			case REMAP_TYPE_BACK_TOUCH_ZONE: 
@@ -409,42 +513,62 @@ void applyRemap(SceCtrlData *ctrl, SceCtrlData *ctrlPrev) {
 						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.tPoints; break;
 						default: break;
 					}
-					if (reportInZone(&back.report[j], tz)) addEmu(&rd); 
+					if (updateStatus(rd.status, reportInZone(&back.report[j], tz)))
+						addEmu(&rd);
+					else
+						remEmu(&rd);
 				}
 				break;
 			case REMAP_TYPE_GYROSCOPE: 
 				if (gyroRet != 0) break;
-				if (rr->turbo && turboTick) continue;
 				switch (trigger->action){
 					case REMAP_GYRO_UP:  
-						if (sms.angularVelocity.x < 0) break;
-						rd.stickposval = clamp(sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y], -127, 127);
-						addEmu(&rd);
+						if (updateStatus(rd.status, sms.angularVelocity.x > 0)){
+							rd.stickposval = clamp(sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y], -127, 127);
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					case REMAP_GYRO_DOWN:
-						if (sms.angularVelocity.x > 0) break; 
-						rd.stickposval = clamp(- sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y], -127, 127);
-						addEmu(&rd);
+						if (updateStatus(rd.status, sms.angularVelocity.x < 0)){
+							rd.stickposval = clamp(- sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y], -127, 127);
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					case REMAP_GYRO_LEFT:
-						if (sms.angularVelocity.y < 0) break;
-						rd.stickposval = clamp(sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X], -127, 127);
-						addEmu(&rd);
+						if (updateStatus(rd.status, sms.angularVelocity.y > 0)){
+							rd.stickposval = clamp(sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X], -127, 127);
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					case REMAP_GYRO_RIGHT:
-						if (sms.angularVelocity.y > 0) break;
-						rd.stickposval = clamp(- sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X], -127, 127);
-						addEmu(&rd);
+						if (updateStatus(rd.status, sms.angularVelocity.y < 0)){
+							rd.stickposval = clamp(- sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X], -127, 127);
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					case REMAP_GYRO_ROLL_LEFT:
-						if (sms.deviceQuat.z < 0) break;
-						rd.stickposval = clamp(sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4, -127, 127);
-						addEmu(&rd);
+						if (updateStatus(rd.status, sms.angularVelocity.z < 0)){
+							rd.stickposval = clamp(sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4, -127, 127);
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					case REMAP_GYRO_ROLL_RIGHT:
-						if (sms.deviceQuat.z > 0) break;
-						rd.stickposval = clamp(- sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4, -127, 127);
-						addEmu(&rd);
+						if (updateStatus(rd.status, sms.angularVelocity.z > 0)){
+							rd.stickposval = clamp(- sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4, -127, 127);
+							addEmu(&rd);
+						} else {
+							remEmu(&rd);
+						}
 						break;
 					default: break;
 				}
@@ -500,14 +624,8 @@ int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId) {
 	remappedBuffersSizes[hookId] = min(remappedBuffersSizes[hookId] + 1, BUFFERS_NUM);
 	remappedBuffers[hookId][buffIdx] = ctrl[nBufs-1];
 	
-	//Store copy of latest buffer before applying remap
-	SceCtrlData scd = ctrl[nBufs-1];
-
 	//Applying remap to latest buffer
-	applyRemap(&remappedBuffers[hookId][buffIdx], &prevCtrl[hookId]);
-
-	//Save latest unremapped buffer as previous one
-	prevCtrl[hookId] = scd;
+	applyRemap(&remappedBuffers[hookId][buffIdx], &rs[hookId][0]);
 	
 	//Limit returned buffers with amount we have cached
 	nBufs = min(nBufs, remappedBuffersSizes[hookId]);
@@ -584,19 +702,6 @@ void removeReport(SceTouchData *pData, int idx){
 	for (int i = idx + 1; i < pData->reportNum; i++)
 		pData->report[i - 1] = pData->report[i];
 	pData->reportNum--;
-}
-void removeEmuReport(EmulatedTouch *et, int idx){
-	for (int i = idx + 1; i < et->num; i++)
-		et->reports[i - 1] = et->reports[i];
-	et->num--;
-}
-void cleanEmuReports(EmulatedTouch *et){
-	int i = 0;
-	while (i < et->num)
-		if ((!et->reports[i].isSwipe && !et->reports[i].isSmartSwipe)|| et->reports[i].isSwipeFinished) 
-			removeEmuReport(et, i);
-		else 
-			i++;
 }
 void updateTouchInfo(SceUInt32 port, SceTouchData *pData){	
 	if (port == SCE_TOUCH_PORT_FRONT) {
@@ -714,11 +819,12 @@ int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t ho
 }
 
 void remap_resetBuffers(){
-	for (int i = 0; i < HOOKS_NUM-4; i++){
-		remappedBuffersIdxs[i] =
-		remappedBuffersSizes[i] = 0;
+	for (int i = 0; i < CTRL_HOOKS_NUM; i++){
+		remappedBuffersIdxs[i] = remappedBuffersSizes[i] = 0;
+		for (int j = 0; j < REMAP_NUM; j++)
+			rs[i][j] = RS_NONACTIVE;
 	}
-	for (int i = 0; i < 4; i++){
+	for (int i = 0; i < TOUCH_HOOKS_NUM; i++){
 		remappedBuffersFrontIdxs[i] = 
 		remappedBuffersBackIdxs[i] = 
 		remappedBuffersFrontSizes[i] = 
@@ -801,12 +907,13 @@ void remap_setup(){
 }
 
 void remap_init(){
-	for (int i = 0; i < HOOKS_NUM-5; i++) //Allocating mem for stored buffers
+	for (int i = 0; i < CTRL_HOOKS_NUM; i++) //Allocating mem for stored buffers
 		remappedBuffers[i] = &_remappedBuffers[i][0];
-	for (int i = 0; i < 4; i++){
+	for (int i = 0; i < TOUCH_HOOKS_NUM; i++){
 		remappedBuffersFront[i] = (SceTouchData*)&_remappedBuffersFront[i][0];
 		remappedBuffersBack[i] = (SceTouchData*)&_remappedBuffersBack[i][0];
 	}
+	remap_resetBuffers();
 	initTouchParams();
 }
 

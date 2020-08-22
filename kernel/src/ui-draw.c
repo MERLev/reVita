@@ -105,28 +105,34 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 		case REMAP_TYPE_FRONT_TOUCH_ZONE:
 		case REMAP_TYPE_FRONT_TOUCH_POINT:
 			switch (ra->action){
-				case REMAP_TOUCH_ZONE_L:  strcat(str, "$1"); break;
-				case REMAP_TOUCH_ZONE_R:  strcat(str, "$2"); break;
-				case REMAP_TOUCH_ZONE_TL: strcat(str, "$3"); break;
-				case REMAP_TOUCH_ZONE_TR: strcat(str, "$4"); break;
-				case REMAP_TOUCH_ZONE_BL: strcat(str, "$5"); break;
-				case REMAP_TOUCH_ZONE_BR: strcat(str, "$6"); break;
-				case REMAP_TOUCH_CUSTOM:  strcat(str, "$F"); break;
-				case REMAP_TOUCH_SWIPE:   strcat(str, "$i"); break;
+				case REMAP_TOUCH_ZONE_L:           strcat(str, "$1"); break;
+				case REMAP_TOUCH_ZONE_R:           strcat(str, "$2"); break;
+				case REMAP_TOUCH_ZONE_TL:          strcat(str, "$3"); break;
+				case REMAP_TOUCH_ZONE_TR:          strcat(str, "$4"); break;
+				case REMAP_TOUCH_ZONE_BL:          strcat(str, "$5"); break;
+				case REMAP_TOUCH_ZONE_BR:          strcat(str, "$6"); break;
+				case REMAP_TOUCH_CUSTOM:           strcat(str, "$F"); break;
+				case REMAP_TOUCH_SWIPE:            strcat(str, "$i"); break;
+				case REMAP_TOUCH_SWIPE_SMART_DPAD: strcat(str, "$i $x"); break;
+				case REMAP_TOUCH_SWIPE_SMART_L:    strcat(str, "$i $U"); break;
+				case REMAP_TOUCH_SWIPE_SMART_R:    strcat(str, "$i $u"); break;
 				default: break;
 			}
 			break;
 		case REMAP_TYPE_BACK_TOUCH_ZONE:
 		case REMAP_TYPE_BACK_TOUCH_POINT:
 			switch (ra->action){
-				case REMAP_TOUCH_ZONE_L:  strcat(str, "$7"); break;
-				case REMAP_TOUCH_ZONE_R:  strcat(str, "$8"); break;
-				case REMAP_TOUCH_ZONE_TL: strcat(str, "$9"); break;
-				case REMAP_TOUCH_ZONE_TR: strcat(str, "$0"); break;
-				case REMAP_TOUCH_ZONE_BL: strcat(str, "$_"); break;
-				case REMAP_TOUCH_ZONE_BR: strcat(str, "$="); break;
-				case REMAP_TOUCH_CUSTOM:  strcat(str, "$B"); break;
-				case REMAP_TOUCH_SWIPE:   strcat(str, "$j"); break;
+				case REMAP_TOUCH_ZONE_L:           strcat(str, "$7"); break;
+				case REMAP_TOUCH_ZONE_R:           strcat(str, "$8"); break;
+				case REMAP_TOUCH_ZONE_TL:          strcat(str, "$9"); break;
+				case REMAP_TOUCH_ZONE_TR:          strcat(str, "$0"); break;
+				case REMAP_TOUCH_ZONE_BL:          strcat(str, "$_"); break;
+				case REMAP_TOUCH_ZONE_BR:          strcat(str, "$="); break;
+				case REMAP_TOUCH_CUSTOM:           strcat(str, "$B"); break;
+				case REMAP_TOUCH_SWIPE:            strcat(str, "$j"); break;
+				case REMAP_TOUCH_SWIPE_SMART_DPAD: strcat(str, "$j $x"); break;
+				case REMAP_TOUCH_SWIPE_SMART_L:    strcat(str, "$j $U"); break;
+				case REMAP_TOUCH_SWIPE_SMART_R:    strcat(str, "$j $u"); break;
 				default: break;
 			}
 			break;
@@ -309,7 +315,7 @@ void onDraw_touch(){
 			setColor(i == ui_menu->idx, profile.touch[id] == profile_def.touch[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", 
 					ui_menu->entries[i].name, str_yes_no[profile.touch[id]]);
-		} else if (id == PROFILE_TOUCH_SWIPE_DURATION){
+		} else if (id == PROFILE_TOUCH_SWIPE_DURATION || id == PROFILE_TOUCH_SWIPE_SMART_SENSIVITY){
 			setColor(i == ui_menu->idx, profile.touch[id] == profile_def.touch[id]);
 			renderer_drawStringF(L_2, y += CHA_H, "%s: %i", 
 					ui_menu->entries[i].name, profile.touch[id]);
