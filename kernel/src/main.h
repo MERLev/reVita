@@ -2,7 +2,9 @@
 #define _MAIN_H_
 #include <stdbool.h>
 
-#define HOOKS_NUM 22
+#define HOOKS_NUM                   22
+#define TOUCH_HOOKS_NUM 			4
+#define CTRL_HOOKS_NUM 				HOOKS_NUM - TOUCH_HOOKS_NUM - 2
 
 extern char titleid[32];
 

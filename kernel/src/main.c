@@ -28,6 +28,10 @@ static SceUID mutex_procevent_uid = -1;
 static SceUID thread_uid = -1;
 static bool   thread_run = true;
 
+SceUID bufsMemId;
+uint32_t* bufsMemBase;
+SceTouchData* bufsStd[TOUCH_HOOKS_NUM];
+
 char titleid[32] = "";
 
 bool used_funcs[HOOKS_NUM];
@@ -110,10 +114,9 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 
 /*export*/ int remaPSV2k_onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
     if (nBufs < 1 || nBufs > BUFFERS_NUM) return nBufs;
-    SceTouchData touch_kernel[nBufs];
-    ksceKernelMemcpyUserToKernel(&touch_kernel[0], (uintptr_t)&pData[0], nBufs * sizeof(SceTouchData)); 
-    int ret = onTouch(port, touch_kernel, nBufs, hookId); 
-    ksceKernelMemcpyKernelToUser((uintptr_t)&pData[0], &touch_kernel, ret * sizeof(SceTouchData)); 
+    ksceKernelMemcpyUserToKernel(bufsStd[hookId], (uintptr_t)&pData[0], nBufs * sizeof(SceTouchData)); 
+    int ret = onTouch(port, bufsStd[hookId], nBufs, hookId); 
+    ksceKernelMemcpyKernelToUser((uintptr_t)&pData[0], bufsStd[hookId], ret * sizeof(SceTouchData)); 
     return ret;
 }
 
@@ -341,6 +344,15 @@ int module_start(SceSize argc, const void *args) {
 
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
 
+	//Allocate memory for buffers
+    bufsMemId = ksceKernelAllocMemBlock("remapsv2_bufs_main", 
+        SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, 
+        (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM  + 0xfff) & ~0xfff, 
+        NULL);
+    ksceKernelGetMemBlockBase(bufsMemId, (void**)&bufsMemBase);
+    for (int i = 0; i < TOUCH_HOOKS_NUM; i++)
+        bufsStd[i] = (SceTouchData*)(bufsMemBase + sizeof(SceTouchData) * i * BUFFERS_NUM);
+
     // Hooking functions
     for (int i = 0; i < HOOKS_NUM; i++)
         hooks[i] = 0;
@@ -407,6 +419,9 @@ int module_stop(SceSize argc, const void *args) {
 
     if (mutex_procevent_uid >= 0)
         ksceKernelDeleteMutex(mutex_procevent_uid);
+
+    //Free mem
+	ksceKernelFreeMemBlock(bufsMemId);
 
     profile_destroy();
     ui_destroy();

@@ -11,8 +11,6 @@
 #include "common.h"
 #include "log.h"
 
-#define TOUCH_HOOKS_NUM 			4
-#define CTRL_HOOKS_NUM 				HOOKS_NUM - TOUCH_HOOKS_NUM - 2
 #define MULTITOUCH_FRONT_NUM		6
 #define MULTITOUCH_BACK_NUM			4
 #define TURBO_DELAY			        50*1000
