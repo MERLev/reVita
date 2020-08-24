@@ -270,6 +270,7 @@ void renderer_init(uint32_t w, uint32_t h){
 	uiHeight = h;
     fbuf_uid = ksceKernelAllocMemBlock("fb_base", SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, (uiWidth*uiHeight*sizeof(uint32_t)  + 0xfff) & ~0xfff, NULL);
     ksceKernelGetMemBlockBase(fbuf_uid, (void**)&fb_base);
+    LOG("MEMORY ALLOC renderer %i : %i\n", (int)fb_base, (uiWidth*uiHeight*sizeof(uint32_t) + 0xfff) & ~0xfff);
 }
 
 void renderer_destroy(){

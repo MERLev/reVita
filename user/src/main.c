@@ -65,22 +65,18 @@ int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 
 int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[4], port, pData, nBufs);
-	if (!profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret;
 	return remaPSV2k_onTouch(port, pData, ret, 0);
 }
 int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[5], port, pData, nBufs);
-	if (!profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret;
 	return remaPSV2k_onTouch(port, pData, ret, 1);
 }
 int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[6], port, pData, nBufs);
-	if (!profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret;
 	return remaPSV2k_onTouch(port, pData, ret, 2);
 }
 int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[7], port, pData, nBufs);
-	if (!profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret;
 	return remaPSV2k_onTouch(port, pData, ret, 3);
 }
 

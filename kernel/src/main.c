@@ -29,8 +29,9 @@ static SceUID thread_uid = -1;
 static bool   thread_run = true;
 
 SceUID bufsMemId;
-uint32_t* bufsMemBase;
+uint8_t* bufsMemBase;
 SceTouchData* bufsStd[TOUCH_HOOKS_NUM];
+SceCtrlData* bufsScd[CTRL_HOOKS_NUM];
 
 char titleid[32] = "";
 
@@ -114,6 +115,7 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 
 /*export*/ int remaPSV2k_onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
     if (nBufs < 1 || nBufs > BUFFERS_NUM) return nBufs;
+	if (!profile.touch[PROFILE_TOUCH_PSTV_MODE]) return nBufs;
     ksceKernelMemcpyUserToKernel(bufsStd[hookId], (uintptr_t)&pData[0], nBufs * sizeof(SceTouchData)); 
     int ret = onTouch(port, bufsStd[hookId], nBufs, hookId); 
     ksceKernelMemcpyKernelToUser((uintptr_t)&pData[0], bufsStd[hookId], ret * sizeof(SceTouchData)); 
@@ -125,10 +127,9 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
         if (profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret; \
-        SceCtrlData ctrl_kernel[BUFFERS_NUM]; \
-        ksceKernelMemcpyUserToKernel(&ctrl_kernel[0], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
-		ret = onInput(ctrl_kernel, ret, (index)); \
-        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], &ctrl_kernel, ret * sizeof(SceCtrlData)); \
+        ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
+		ret = onInput(bufsScd[(index)], ret, (index)); \
+        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], bufsScd[(index)], ret * sizeof(SceCtrlData)); \
 		used_funcs[(index)] = 1; \
         return ret; \
     }
@@ -140,10 +141,9 @@ DECL_FUNC_HOOK_PATCH_CTRL(1, sceCtrlReadBufferPositive)
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
         if (profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret; \
-        SceCtrlData ctrl_kernel[BUFFERS_NUM]; \
-        ksceKernelMemcpyUserToKernel(&ctrl_kernel[0], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
-		ret = onInputNegative(ctrl_kernel, ret, (index)); \
-        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], &ctrl_kernel, ret * sizeof(SceCtrlData)); \
+        ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
+		ret = onInputNegative(bufsScd[(index)], ret, (index)); \
+        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], bufsScd[(index)], ret * sizeof(SceCtrlData)); \
 		used_funcs[(index)] = 1; \
         return ret; \
     }
@@ -155,10 +155,9 @@ DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(3, sceCtrlReadBufferNegative)
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
 		if (isInternalExtCall) return ret; \
-        SceCtrlData ctrl_kernel[BUFFERS_NUM]; \
-        ksceKernelMemcpyUserToKernel(&ctrl_kernel[0], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
-		ret = onInput(ctrl_kernel, ret, (index)); \
-        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], &ctrl_kernel, ret * sizeof(SceCtrlData)); \
+        ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
+		ret = onInput(bufsScd[(index)], ret, (index)); \
+        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], bufsScd[(index)], ret * sizeof(SceCtrlData)); \
 		used_funcs[(index)] = 1; \
         return ret; \
     }
@@ -174,10 +173,9 @@ DECL_FUNC_HOOK_PATCH_CTRL_EXT(9, sceCtrlReadBufferPositiveExt2)
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
 		if (isInternalExtCall) return ret; \
-        SceCtrlData ctrl_kernel[BUFFERS_NUM]; \
-        ksceKernelMemcpyUserToKernel(&ctrl_kernel[0], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
-		ret = onInputNegative(ctrl_kernel, ret, (index)); \
-        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], &ctrl_kernel, ret * sizeof(SceCtrlData)); \
+        ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
+		ret = onInputNegative(bufsScd[(index)], ret, (index)); \
+        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], bufsScd[(index)], ret * sizeof(SceCtrlData)); \
 		used_funcs[(index)] = 1; \
         return ret; \
     }
@@ -333,7 +331,7 @@ void hook(uint8_t hookId, const char *module, uint32_t library_nid, uint32_t fun
 
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
-    LOG("\n RemaPSV2 started\n");log_flush();
+    LOG("\n RemaPSV2 started\n");
 
     snprintf(titleid, sizeof(titleid), HOME);
     profile_init();
@@ -347,11 +345,16 @@ int module_start(SceSize argc, const void *args) {
 	//Allocate memory for buffers
     bufsMemId = ksceKernelAllocMemBlock("remapsv2_bufs_main", 
         SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, 
-        (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM  + 0xfff) & ~0xfff, 
+        (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM  + sizeof(SceCtrlData) * BUFFERS_NUM * CTRL_HOOKS_NUM + 0xfff) & ~0xfff, 
         NULL);
     ksceKernelGetMemBlockBase(bufsMemId, (void**)&bufsMemBase);
+    LOG("MEMORY ALLOC main[SceCtrlData] %i : %i\n", (int)bufsMemBase, (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM  + sizeof(SceCtrlData) * BUFFERS_NUM * CTRL_HOOKS_NUM + 0xfff) & ~0xfff);
     for (int i = 0; i < TOUCH_HOOKS_NUM; i++)
         bufsStd[i] = (SceTouchData*)(bufsMemBase + sizeof(SceTouchData) * i * BUFFERS_NUM);
+    for (int i = 0; i < CTRL_HOOKS_NUM; i++)
+        bufsScd[i] = (SceCtrlData*)(bufsMemBase + 
+                (sizeof(SceTouchData) * TOUCH_HOOKS_NUM * BUFFERS_NUM+ 
+                sizeof(SceCtrlData) * i * BUFFERS_NUM));
 
     // Hooking functions
     for (int i = 0; i < HOOKS_NUM; i++)
@@ -401,6 +404,8 @@ int module_start(SceSize argc, const void *args) {
 
     thread_uid = ksceKernelCreateThread("remaPSV2_thread", main_thread, 0x3C, 0x3000, 0, 0x10000, 0);
     ksceKernelStartThread(thread_uid, 0, NULL);
+
+    log_flush();
 
     return SCE_KERNEL_START_SUCCESS;
 }

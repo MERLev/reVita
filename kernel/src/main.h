@@ -4,7 +4,7 @@
 
 #define HOOKS_NUM                   22
 #define TOUCH_HOOKS_NUM 			4
-#define CTRL_HOOKS_NUM 				HOOKS_NUM - TOUCH_HOOKS_NUM - 2
+#define CTRL_HOOKS_NUM 				HOOKS_NUM - TOUCH_HOOKS_NUM - 6
 
 extern char titleid[32];
 
