@@ -56,6 +56,7 @@ enum PROFILE_ANALOG_ID getAnalogId(char* n){
 }
 
 const char* TOUCH_STR[PROFILE_TOUCH__NUM] = {
+	"PSTV_MODE",
 	"SWAP",
 	"SWIPE_DURATION",
 	"SWIPE_SENSIVITY"
@@ -246,7 +247,7 @@ void clone(Profile* pd, Profile* ps){
 	memcpy(pd->touch, ps->touch, sizeof(ps->touch[0]) * PROFILE_TOUCH__NUM);
 	memcpy(pd->gyro, ps->gyro, sizeof(ps->gyro[0]) * PROFILE_GYRO__NUM);
 	memcpy(pd->controller, ps->controller, sizeof(ps->controller[0]) * PROFILE_CONTROLLER__NUM);
-	memcpy(pd->remaps, ps->remaps, sizeof(struct RemapRule) * ps->remapsNum);
+	memcpy(pd->remaps, ps->remaps, sizeof(struct RemapRule) * REMAP_NUM);
 }
 
 void profile_addRemapRule(struct RemapRule ui_ruleEdited){
@@ -351,6 +352,7 @@ bool generateINIProfile(Profile* p, char* buff){
 
 	//Touch
 	ini_addSection(ini, SECTION_STR[SECTION_TOUCH]);
+	ini_addBool(ini, TOUCH_STR[PROFILE_TOUCH_PSTV_MODE], p->touch[PROFILE_TOUCH_PSTV_MODE]);
 	ini_addBool(ini, TOUCH_STR[PROFILE_TOUCH_SWAP], p->touch[PROFILE_TOUCH_SWAP]);
 	ini_addInt(ini, TOUCH_STR[PROFILE_TOUCH_SWIPE_DURATION], p->touch[PROFILE_TOUCH_SWIPE_DURATION]);
 	ini_addInt(ini, TOUCH_STR[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY], p->touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY]);
@@ -441,6 +443,7 @@ bool parseINISettings(char* buff){
 }
 bool parseINIProfile(Profile* p, char* buff){
 	clone(p, &profile_def);
+	p->version = ksceKernelGetSystemTimeWide();
 	INI_READER _ini = ini_read(buff);
 	INI_READER* ini = &_ini;
 	while(ini_nextEntry(ini)){
@@ -457,6 +460,9 @@ bool parseINIProfile(Profile* p, char* buff){
 				break;
 			case SECTION_TOUCH:
 				switch(getTouchId(ini->name)){
+					case PROFILE_TOUCH_PSTV_MODE: 
+						p->touch[PROFILE_TOUCH_PSTV_MODE] = parseBool(ini->val); 
+						break;
 					case PROFILE_TOUCH_SWAP: 
 						p->touch[PROFILE_TOUCH_SWAP] = parseBool(ini->val); 
 						break;
@@ -652,7 +658,7 @@ bool profile_save(char* titleId) {
 }
 bool profile_load(char* titleId) {
 	if (strcmp(profile.titleid, HOME) == 0){  //If used home profile previously
-		clone(&profile_home, &profile);      //copy it back to its cache
+		clone(&profile_home, &profile);       //copy it back to its cache
 	}
 	
 	if (strcmp(titleid, HOME) == 0){ //If home profile requested
@@ -696,8 +702,16 @@ void profile_resetGlobal(){
 	writeProfile(&profile_global, NAME_GLOBAL);
 }
 
+Profile createProfile(){
+	Profile p;
+	memset(&p, 0, sizeof(Profile));
+	p.version = ksceKernelGetSystemTimeWide();
+	return p;
+}
+
 void setDefProfile(){
 	strclone(profile_def.titleid, HOME);
+	profile_def.version = ksceKernelGetSystemTimeWide();
 
 	profile_def.analog[PROFILE_ANALOG_LEFT_DEADZONE_X] = 30;
 	profile_def.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y] = 30;
@@ -729,6 +743,11 @@ void setDefProfile(){
 	profile_settings_def[PROFILE_SETTINGS_DELAY] = 10;
 }
 void profile_init(){
+	//Init profiles
+	profile = createProfile();
+	profile_def = createProfile();
+	profile_home = createProfile();
+
 	//Set default profile
 	setDefProfile();
 

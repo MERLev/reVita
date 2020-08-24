@@ -116,20 +116,32 @@ void onButton_touch(uint32_t btn){
 	int8_t id = ui_entry->data;
 	switch (btn) {
 		case SCE_CTRL_RIGHT: 
-			if (id == PROFILE_TOUCH_SWAP)
-				profile.touch[id] = !profile.touch[id]; 
-			else if (id == PROFILE_TOUCH_SWIPE_DURATION)
-				profile.touch[id] = (profile.touch[id] + 1) % 1000; 
-			else if (id == PROFILE_TOUCH_SWIPE_SMART_SENSIVITY)
-				profile.touch[id] = (profile.touch[id] + 1) % 100; 
+			switch (id){
+				case PROFILE_TOUCH_SWAP:
+				case PROFILE_TOUCH_PSTV_MODE: 
+					profile.touch[id] = !profile.touch[id];  
+					break;
+				case PROFILE_TOUCH_SWIPE_DURATION: 
+					profile.touch[id] = (profile.touch[id] + 1) % 1000; 
+					break;
+				case PROFILE_TOUCH_SWIPE_SMART_SENSIVITY: 
+					profile.touch[id] = (profile.touch[id] + 1) % 100; 
+					break;
+			}
 			break;
 		case SCE_CTRL_LEFT: 
-			if (id == PROFILE_TOUCH_SWAP)
-				profile.touch[id] = !profile.touch[id]; 
-			else if (id == PROFILE_TOUCH_SWIPE_DURATION)
-				profile.touch[id] = (profile.touch[id] + 1000 - 1) % 1000; 
-			else if (id == PROFILE_TOUCH_SWIPE_SMART_SENSIVITY)
-				profile.touch[id] = (profile.touch[id] + 100 - 1) % 100; 
+			switch (id){
+				case PROFILE_TOUCH_SWAP:
+				case PROFILE_TOUCH_PSTV_MODE: 
+					profile.touch[id] = !profile.touch[id];  
+					break;
+				case PROFILE_TOUCH_SWIPE_DURATION: 
+					profile.touch[id] = (profile.touch[id] + 1000 - 1) % 1000; 
+					break;
+				case PROFILE_TOUCH_SWIPE_SMART_SENSIVITY: 
+					profile.touch[id] = (profile.touch[id] + 100 - 1) % 100;  
+					break;
+			}
 			break;
 		case SCE_CTRL_SQUARE: profile.touch[id] = profile_def.touch[id]; break;
 		case SCE_CTRL_START: profile_resetTouch(); break;

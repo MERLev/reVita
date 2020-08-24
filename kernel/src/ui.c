@@ -50,8 +50,9 @@ static struct Menu menu_analog = (Menu){
 	.onDraw = onDraw_analog,
 	.entries = menu_analog_entries};
 
-#define MENU_TOUCH_NUM 3
+#define MENU_TOUCH_NUM 4
 static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
+	(MenuEntry){.name = "PSTV mode", .data = PROFILE_TOUCH_PSTV_MODE},
 	(MenuEntry){.name = "Swipe duration", .data = PROFILE_TOUCH_SWIPE_DURATION},
 	(MenuEntry){.name = "Smart Swipe sensivity", .data = PROFILE_TOUCH_SWIPE_SMART_SENSIVITY},
 	(MenuEntry){.name = "Swap touchpads", .data = PROFILE_TOUCH_SWAP}};
@@ -583,6 +584,7 @@ void ui_open(const SceDisplayFrameBuf *pParam){
 }
 void ui_close(){
 	ui_opened = 0;
+	profile.version = ksceKernelGetSystemTimeWide();
 	log_flush();
 }
 

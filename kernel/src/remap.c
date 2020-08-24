@@ -97,6 +97,12 @@ static EmulatedTouch etFront, etBack, prevEtFront, prevEtBack;
 static uint8_t etFrontIdCounter = 64;
 static uint8_t etBackIdCounter = 64;
 
+struct RemapRule remap_createRemapRule(){
+	struct RemapRule rr;
+	memset(&rr, 0, sizeof(rr));
+	return rr;
+}
+
 bool updateStatus(enum RULE_STATUS* status, bool active){
 	switch (*status){
 		case RS_ACTIVE: if (!active) *status = RS_STOPPED; break;

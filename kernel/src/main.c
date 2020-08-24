@@ -202,10 +202,11 @@ DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(13, ksceCtrlReadBufferPositive)
     }
 DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(14, ksceCtrlPeekBufferNegative)
 DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(15, ksceCtrlReadBufferNegative)
-/*
+
 #define DECL_FUNC_HOOK_PATCH_TOUCH(index, name) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
+	    if (profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret; \
         used_funcs[(index)] = 1; \
         if (nBufs < 1 || nBufs > BUFFERS_NUM) return nBufs; \
         return onTouch(port, pData, ret, (index - 16)); \
@@ -216,13 +217,14 @@ DECL_FUNC_HOOK_PATCH_TOUCH(17, ksceTouchRead)
 #define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(index, name) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, int region) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
+	    if (profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret; \
         used_funcs[(index)] = 1; \
         if (nBufs < 1 || nBufs > BUFFERS_NUM) return nBufs; \
         return onTouch(port, pData, ret, (index - 16)); \
     }
 DECL_FUNC_HOOK_PATCH_TOUCH_REGION(18, ksceTouchPeekRegion)
 DECL_FUNC_HOOK_PATCH_TOUCH_REGION(19, ksceTouchReadRegion)
-*/
+
 int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplayFrameBuf *pParam, int sync) {
     used_funcs[20] = 1;
 
@@ -364,10 +366,10 @@ int module_start(SceSize argc, const void *args) {
     hook(14,"SceCtrl", 0x7823A5D1, 0x19895843, ksceCtrlPeekBufferNegative_patched);
     hook(15,"SceCtrl", 0x7823A5D1, 0x8D4E0DD1, ksceCtrlReadBufferNegative_patched);
 
-    // hook(16,"SceTouch", TAI_ANY_LIBRARY, 0x169A1D58, sceTouchRead_patched);
-    // hook(17,"SceTouch", TAI_ANY_LIBRARY, 0x39401BEA, sceTouchRead2_patched);
-    // hook(18,"SceTouch", TAI_ANY_LIBRARY, 0xFF082DF0, sceTouchPeek_patched);
-    // hook(19,"SceTouch", TAI_ANY_LIBRARY, 0x3AD3D0A1, sceTouchPeek2_patched);
+    hook(16,"SceTouch", TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek_patched);
+    hook(17,"SceTouch", TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead_patched);
+    hook(18,"SceTouch", TAI_ANY_LIBRARY, 0x9B3F7207, ksceTouchPeekRegion_patched);
+    hook(19,"SceTouch", TAI_ANY_LIBRARY, 0x9A91F624, ksceTouchReadRegion_patched);
 
 	hook(20,"SceDisplay", 0x9FED47AC, 0x16466675, ksceDisplaySetFrameBufInternal_patched);
 				

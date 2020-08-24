@@ -16,36 +16,14 @@ bool hasStoredData = false;
 SceMotionState sms;
 int ret; 
 
-//Configuration
-int configVersion = 0;
-bool deadband;
-bool patchExtEnabled;
-int patchExtPort;
-
 /*export*/ void remaPSV2k_userPluginReady(){
     userPluginLoaded = true;
 }
-/*export*/ int remaPSV2k_getConfigVersion(){
-    if (profile.gyro[PROFILE_GYRO_DEADBAND] != deadband 
-            || profile.controller[PROFILE_CONTROLLER_ENABLED] != patchExtEnabled
-            || profile.controller[PROFILE_CONTROLLER_PORT] != patchExtPort){
-        LOG("Config updated\n");
-        log_flush();
-        deadband = profile.gyro[PROFILE_GYRO_DEADBAND];
-        patchExtEnabled = profile.controller[PROFILE_CONTROLLER_ENABLED];
-        patchExtPort = profile.controller[PROFILE_CONTROLLER_PORT];
-        configVersion = ksceKernelGetSystemTimeWide();
-    }
-    return configVersion;
+/*export*/ int remaPSV2k_getProfileVersion(){
+    return profile.version;
 }
-/*export*/ bool remaPSV2k_getConfigDeadband(){
-    return deadband;
-}
-/*export*/ bool remaPSV2k_getConfigPatchExtEnabled(){
-    return patchExtEnabled;
-}
-/*export*/ int remaPSV2k_getConfigPatchExtPort(){
-    return patchExtPort;
+/*export*/ void remaPSV2k_getProfile(Profile* p){
+    ksceKernelMemcpyKernelToUser((uintptr_t)&p[0], &profile, sizeof(profile));
 }
 /*export*/ void remaPSV2k_setSceMotionState(SceMotionState *pData, int r){
     bool readyToReturn = false;

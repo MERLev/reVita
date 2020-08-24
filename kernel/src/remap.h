@@ -78,6 +78,7 @@ extern const uint32_t HW_BUTTONS[HW_BUTTONS_NUM];
 extern TouchPoint T_FRONT_SIZE;
 extern TouchPoint T_BACK_SIZE;
 
+struct RemapRule remap_createRemapRule();
 int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId);
 void remap_patchToExt(SceCtrlData *ctrl);
 int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId);

@@ -19,16 +19,12 @@ static uint8_t current_hook = 0;
 static SceUID hooks[HOOKS_NUM];
 static tai_hook_ref_t refs[HOOKS_NUM];
 
-//Configuration
-int configVersion = -1;
-bool deadband;
-bool patchExtEnabled;
-int patchExtPort;
+Profile profile;
 
 //Used to add support for R1/R3/L1/L3
 int patchToExt(SceCtrlData *ctrl, int nBufs, bool positive){
 	SceCtrlData pstv_fakepad;
-	int ret = sceCtrlPeekBufferPositiveExt2(patchExtPort, &pstv_fakepad, 1);
+	int ret = sceCtrlPeekBufferPositiveExt2(profile.controller[PROFILE_CONTROLLER_PORT], &pstv_fakepad, 1);
 	if (ret > 0){
 		if (positive) 
 			ctrl[nBufs - 1].buttons = pstv_fakepad.buttons;
@@ -40,28 +36,28 @@ int patchToExt(SceCtrlData *ctrl, int nBufs, bool positive){
 
 int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, nBufs);
-	if (!patchExtEnabled) return ret;
+	if (!profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, true);
 	return ret;
 }
 int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, nBufs);
-	if (!patchExtEnabled) return ret;
+	if (!profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, true);
 	return ret;
 }
 int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, nBufs);
-	if (!patchExtEnabled) return ret;
+	if (!profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, false);
 	return ret;
 }
 int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, nBufs);
-	if (!patchExtEnabled) return ret;
+	if (!profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, false);
 	return ret;
@@ -69,18 +65,22 @@ int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 
 int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[4], port, pData, nBufs);
+	if (!profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret;
 	return remaPSV2k_onTouch(port, pData, ret, 0);
 }
 int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[5], port, pData, nBufs);
+	if (!profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret;
 	return remaPSV2k_onTouch(port, pData, ret, 1);
 }
 int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[6], port, pData, nBufs);
+	if (!profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret;
 	return remaPSV2k_onTouch(port, pData, ret, 2);
 }
 int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[7], port, pData, nBufs);
+	if (!profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret;
 	return remaPSV2k_onTouch(port, pData, ret, 3);
 }
 
@@ -103,16 +103,9 @@ static int motion_thread(SceSize args, void *argp) {
 //Thread to keep up-to-date config
 static int config_thread(SceSize args, void *argp) {
     while (thread_config_run) {
-		int version = remaPSV2k_getConfigVersion();
-		if (version != configVersion){
-			configVersion = version;
-			deadband = remaPSV2k_getConfigDeadband();
-			patchExtEnabled = remaPSV2k_getConfigPatchExtEnabled();
-			patchExtPort = remaPSV2k_getConfigPatchExtPort();
-			LOG("Config updated : %i %i %i : %i\n", 
-				deadband, patchExtEnabled, patchExtPort, configVersion);
-			log_flush();
-			sceMotionSetDeadband(deadband);
+		if (profile.version != remaPSV2k_getProfileVersion()){
+			remaPSV2k_getProfile(&profile);
+			sceMotionSetDeadband(profile.gyro[PROFILE_GYRO_DEADBAND]);
 		}
 		sceKernelDelayThread(DELAY_CONFIG_CHECK);
     }
@@ -121,13 +114,21 @@ static int config_thread(SceSize args, void *argp) {
 
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
-	LOG("\nUser plugin startedd\n"); log_flush();
+	LOG("\nUser plugin started\n"); log_flush();
+	memset(&profile, 0, sizeof(profile));
 
 	//Send ready to kernel plugin
 	remaPSV2k_userPluginReady();
 	
 	//Start gyro sampling
 	//sceMotionStartSampling();
+
+	//Start threads
+	thread_config_uid = sceKernelCreateThread("remaPSV2_u_config_thread", config_thread, 64, 0x3000, 0, 0x10000, 0);
+    sceKernelStartThread(thread_config_uid, 0, NULL);
+	thread_motion_uid = sceKernelCreateThread("remaPSV2_u_motion_thread", motion_thread, 64, 0x3000, 0, 0x10000, 0);
+    // sceKernelStartThread(thread_motion_uid, 0, NULL);
+
 	//Hooking
 	hookFunction(0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
 	hookFunction(0x67E7AB83, sceCtrlReadBufferPositive_patched);
@@ -138,12 +139,6 @@ int module_start(SceSize argc, const void *args) {
 	hookFunction(0x39401BEA, sceTouchRead2_patched);
 	hookFunction(0xFF082DF0, sceTouchPeek_patched);
 	hookFunction(0x3AD3D0A1, sceTouchPeek2_patched);
-
-	//Start threads
-	thread_config_uid = sceKernelCreateThread("remaPSV2_u_config_thread", config_thread, 64, 0x3000, 0, 0x10000, 0);
-    sceKernelStartThread(thread_config_uid, 0, NULL);
-	thread_motion_uid = sceKernelCreateThread("remaPSV2_u_motion_thread", motion_thread, 64, 0x3000, 0, 0x10000, 0);
-    // sceKernelStartThread(thread_motion_uid, 0, NULL);
 
 	return SCE_KERNEL_START_SUCCESS;
 }

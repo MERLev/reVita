@@ -15,7 +15,8 @@ enum PROFILE_ANALOG_ID{
     PROFILE_ANALOG__NUM
 };
 enum PROFILE_TOUCH_ID{
-	PROFILE_TOUCH_SWAP = 0,
+	PROFILE_TOUCH_PSTV_MODE = 0,
+	PROFILE_TOUCH_SWAP,
 	PROFILE_TOUCH_SWIPE_DURATION,
 	PROFILE_TOUCH_SWIPE_SMART_SENSIVITY,
     PROFILE_TOUCH__NUM
@@ -49,6 +50,7 @@ enum PROFILE_SETTINGS_ID{
 
 typedef struct Profile{
 	char titleid[32];
+	int version;
     uint8_t remapsNum;
     struct RemapRule remaps[REMAP_NUM];
     uint8_t analog[PROFILE_ANALOG__NUM];
@@ -60,6 +62,7 @@ typedef struct Profile{
 extern Profile profile;
 extern Profile profile_def;
 extern Profile profile_global;
+extern Profile profile_home;
 extern int32_t profile_settings[PROFILE_SETTINGS__NUM];
 extern int32_t profile_settings_def[PROFILE_SETTINGS__NUM];
 
@@ -72,6 +75,7 @@ void profile_resetTouch();
 void profile_resetGyro();
 void profile_resetController();
 void profile_resetSettings();
+struct Profile createProfile();
 
 bool profile_saveSettings();
 bool profile_loadSettings();
