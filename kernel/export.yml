@@ -16,3 +16,4 @@ remaPSV2:
         - remaPSV2k_getConfigPatchExtEnabled
         - remaPSV2k_getConfigPatchExtPort
         - remaPSV2k_setSceMotionState
+        - remaPSV2k_onTouch

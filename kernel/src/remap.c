@@ -11,8 +11,8 @@
 #include "common.h"
 #include "log.h"
 
-#define CTRL_HOOKS_NUM 				HOOKS_NUM - 4
-#define TOUCH_HOOKS_NUM 			2
+#define TOUCH_HOOKS_NUM 			4
+#define CTRL_HOOKS_NUM 				HOOKS_NUM - TOUCH_HOOKS_NUM - 2
 #define MULTITOUCH_FRONT_NUM		6
 #define MULTITOUCH_BACK_NUM			4
 #define TURBO_DELAY			        50*1000
@@ -887,7 +887,7 @@ void initTouchParams(){
 }
 void remap_setup(){
     //ksceKernelGetSystemTimeLow
-	
+
 	// Enabling analogs sampling 
 	ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
 	

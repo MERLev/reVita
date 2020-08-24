@@ -7,7 +7,7 @@
 #include "../../kernel/src/remapsv.h"
 
 #define DELAY_CONFIG_CHECK 1000000
-#define HOOKS_NUM 4
+#define HOOKS_NUM 8
 
 //Threads
 static SceUID thread_motion_uid = -1;
@@ -40,7 +40,6 @@ int patchToExt(SceCtrlData *ctrl, int nBufs, bool positive){
 
 int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, nBufs);
-	// LOG("sceCtrlPeekBufferPositive %i \n", ret);
 	if (!patchExtEnabled) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, true);
@@ -48,7 +47,6 @@ int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 }
 int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, nBufs);
-	// LOG("sceCtrlReadBufferPositive_patched %i \n", ret);
 	if (!patchExtEnabled) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, true);
@@ -56,7 +54,6 @@ int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 }
 int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, nBufs);
-	// LOG("sceCtrlPeekBufferNegative_patched %i \n", ret);
 	if (!patchExtEnabled) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, false);
@@ -64,11 +61,27 @@ int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 }
 int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, nBufs);
-	// LOG("sceCtrlReadBufferNegative_patched %i \n", ret);
 	if (!patchExtEnabled) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, false);
 	return ret;
+}
+
+int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
+	int ret = TAI_CONTINUE(int, refs[4], port, pData, nBufs);
+	return remaPSV2k_onTouch(port, pData, ret, 0);
+}
+int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
+	int ret = TAI_CONTINUE(int, refs[5], port, pData, nBufs);
+	return remaPSV2k_onTouch(port, pData, ret, 1);
+}
+int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
+	int ret = TAI_CONTINUE(int, refs[6], port, pData, nBufs);
+	return remaPSV2k_onTouch(port, pData, ret, 2);
+}
+int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
+	int ret = TAI_CONTINUE(int, refs[7], port, pData, nBufs);
+	return remaPSV2k_onTouch(port, pData, ret, 3);
 }
 
 // Simplified generic hooking function
@@ -108,8 +121,7 @@ static int config_thread(SceSize args, void *argp) {
 
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
-	LOG("User plugin started\n");
-	log_flush();
+	LOG("\nUser plugin startedd\n"); log_flush();
 
 	//Send ready to kernel plugin
 	remaPSV2k_userPluginReady();
@@ -121,6 +133,11 @@ int module_start(SceSize argc, const void *args) {
 	hookFunction(0x67E7AB83, sceCtrlReadBufferPositive_patched);
 	hookFunction(0x104ED1A7, sceCtrlPeekBufferNegative_patched);
 	hookFunction(0x15F96FB0, sceCtrlReadBufferNegative_patched);
+
+	hookFunction(0x169A1D58, sceTouchRead_patched);
+	hookFunction(0x39401BEA, sceTouchRead2_patched);
+	hookFunction(0xFF082DF0, sceTouchPeek_patched);
+	hookFunction(0x3AD3D0A1, sceTouchPeek2_patched);
 
 	//Start threads
 	thread_config_uid = sceKernelCreateThread("remaPSV2_u_config_thread", config_thread, 64, 0x3000, 0, 0x10000, 0);

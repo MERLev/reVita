@@ -139,7 +139,7 @@ static struct Menu menu_profiles = (Menu){
 	.onDraw = onDraw_profiles,
 	.entries = menu_profiles_entries};
 
-#define MENU_HOKS_NUM 18
+#define MENU_HOKS_NUM 20
 static struct MenuEntry menu_hooks_entries[MENU_HOKS_NUM] = {
 	(MenuEntry){.name = "sceCtrlPeekBufferPositive    ", .data = 0},
 	(MenuEntry){.name = "sceCtrlReadBufferPositive    ", .data = 1},
@@ -158,7 +158,9 @@ static struct MenuEntry menu_hooks_entries[MENU_HOKS_NUM] = {
     (MenuEntry){.name = "ksceCtrlPeekBufferNegative   ", .data =14},
     (MenuEntry){.name = "ksceCtrlReadBufferNegative   ", .data =15},
 	(MenuEntry){.name = "ksceTouchPeek                ", .data =16},
-	(MenuEntry){.name = "ksceTouchRead                ", .data =17}
+	(MenuEntry){.name = "ksceTouchRead                ", .data =17},
+	(MenuEntry){.name = "ksceTouchPeekRegion          ", .data =18},
+	(MenuEntry){.name = "ksceTouchReadRegion          ", .data =19}
 };
 static struct Menu menu_hooks = (Menu){
 	.id = MENU_HOKS_ID, 

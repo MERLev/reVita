@@ -2,7 +2,7 @@
 #define _MAIN_H_
 #include <stdbool.h>
 
-#define HOOKS_NUM 20
+#define HOOKS_NUM 22
 
 extern char titleid[32];
 
