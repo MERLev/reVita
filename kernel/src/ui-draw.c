@@ -14,9 +14,7 @@
 #define UI_WIDTH            480
 #define UI_HEIGHT           272
 #define HEADER_HEIGHT		(CHA_H + 6)
-
 #define BOTTOM_OFFSET		5
-
 #define COLOR_DEFAULT     	0x00C2C0BD
 #define COLOR_CURSOR      	0x00FFFFFF
 #define COLOR_HEADER      	0x00FF6600

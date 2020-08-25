@@ -397,9 +397,9 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 				if (updateStatus(rd.status, btn_has(rd.btns, trigger->param.btn))){
 					if (!rd.rr->propagate) btn_del(&rd.btnsProp, trigger->param.btn);
 					addEmu(&rd);
-				} else {
-					remEmu(&rd);
 				}
+				if (*rd.status == RS_STOPPED)
+					remEmu(&rd);
 				break;
 			case REMAP_TYPE_LEFT_ANALOG: 
 				switch(trigger->action){
@@ -408,36 +408,36 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 							if (!rr->propagate) rd.analogLeftProp.left = 0;
 							rd.stickposval = 127 - ctrl->lx;
 							addEmu(&rd);
-						} else {
-							remEmu(&rd);
 						}
+						if (*rd.status == RS_STOPPED)
+							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_RIGHT: 
 						if (updateStatus(rd.status, ctrl->lx > 127 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])){
 							if (!rr->propagate) rd.analogLeftProp.right = 0;
 							rd.stickposval = ctrl->lx - 127;
 							addEmu(&rd);
-						} else {
-							remEmu(&rd);
 						}
+						if (*rd.status == RS_STOPPED)
+							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_UP: 
 						if (updateStatus(rd.status, ctrl->ly <= 127 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])){
 							if (!rr->propagate) rd.analogLeftProp.right = 0;
 							rd.stickposval = 127 - ctrl->ly;
 							addEmu(&rd);
-						} else {
+						} 
+						if (*rd.status == RS_STOPPED)
 							remEmu(&rd);
-						}
 						break;
 					case REMAP_ANALOG_DOWN: 
 						if (updateStatus(rd.status, ctrl->ly > 127 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])){
 							if (!rr->propagate) rd.analogLeftProp.right = 0;
 							rd.stickposval = ctrl->ly - 127;
 							addEmu(&rd);
-						} else {
+						} 
+						if (*rd.status == RS_STOPPED)
 							remEmu(&rd);
-						}
 						break;
 					default: break;
 				}
@@ -449,36 +449,36 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 							if (!rr->propagate) rd.analogRightProp.left = 0;
 							rd.stickposval = 127 - ctrl->rx;
 							addEmu(&rd);
-						} else {
+						} 
+						if (*rd.status == RS_STOPPED)
 							remEmu(&rd);
-						}
 						break;
 					case REMAP_ANALOG_RIGHT: 
 						if (updateStatus(rd.status, ctrl->rx > 127 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])){
 							if (!rr->propagate) rd.analogRightProp.right = 0;
 							rd.stickposval = ctrl->rx - 127;
 							addEmu(&rd);
-						} else {
+						} 
+						if (*rd.status == RS_STOPPED)
 							remEmu(&rd);
-						}
 						break;
 					case REMAP_ANALOG_UP: 
 						if (updateStatus(rd.status, ctrl->ry <= 127 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])){
 							if (!rr->propagate) rd.analogRightProp.up = 0;
 							rd.stickposval = 127 - ctrl->ry;
 							addEmu(&rd);
-						} else {
+						} 
+						if (*rd.status == RS_STOPPED)
 							remEmu(&rd);
-						}
 						break;
 					case REMAP_ANALOG_DOWN: 
 						if (updateStatus(rd.status, ctrl->ry > 127 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])){
 							if (!rr->propagate) rd.analogRightProp.down = 0;
 							rd.stickposval = ctrl->ry - 127;
 							addEmu(&rd);
-						} else {
+						} 
+						if (*rd.status == RS_STOPPED)
 							remEmu(&rd);
-						}
 						break;
 					default: break;
 				}
@@ -499,9 +499,9 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 					}
 					if (updateStatus(rd.status, reportInZone(&front.report[j], tz))) {
 						addEmu(&rd);
-					} else {
+					} 
+					if (*rd.status == RS_STOPPED)
 						remEmu(&rd);
-					}
 				}
 				break;
 			case REMAP_TYPE_BACK_TOUCH_ZONE: 
@@ -520,7 +520,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 					}
 					if (updateStatus(rd.status, reportInZone(&back.report[j], tz)))
 						addEmu(&rd);
-					else
+					if (*rd.status == RS_STOPPED)
 						remEmu(&rd);
 				}
 				break;
@@ -531,49 +531,49 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 						if (updateStatus(rd.status, sms.angularVelocity.x > 0)){
 							rd.stickposval = clamp(sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y], -127, 127);
 							addEmu(&rd);
-						} else {
+						} 
+						if (*rd.status == RS_STOPPED)
 							remEmu(&rd);
-						}
 						break;
 					case REMAP_GYRO_DOWN:
 						if (updateStatus(rd.status, sms.angularVelocity.x < 0)){
 							rd.stickposval = clamp(- sms.angularVelocity.x * profile.gyro[PROFILE_GYRO_SENSIVITY_Y], -127, 127);
 							addEmu(&rd);
-						} else {
-							remEmu(&rd);
 						}
+						if (*rd.status == RS_STOPPED)
+							remEmu(&rd);
 						break;
 					case REMAP_GYRO_LEFT:
 						if (updateStatus(rd.status, sms.angularVelocity.y > 0)){
 							rd.stickposval = clamp(sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X], -127, 127);
 							addEmu(&rd);
-						} else {
-							remEmu(&rd);
 						}
+						if (*rd.status == RS_STOPPED)
+							remEmu(&rd);
 						break;
 					case REMAP_GYRO_RIGHT:
 						if (updateStatus(rd.status, sms.angularVelocity.y < 0)){
 							rd.stickposval = clamp(- sms.angularVelocity.y * profile.gyro[PROFILE_GYRO_SENSIVITY_X], -127, 127);
 							addEmu(&rd);
-						} else {
-							remEmu(&rd);
 						}
+						if (*rd.status == RS_STOPPED)
+							remEmu(&rd);
 						break;
 					case REMAP_GYRO_ROLL_LEFT:
 						if (updateStatus(rd.status, sms.angularVelocity.z < 0)){
 							rd.stickposval = clamp(sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4, -127, 127);
 							addEmu(&rd);
-						} else {
-							remEmu(&rd);
 						}
+						if (*rd.status == RS_STOPPED)
+							remEmu(&rd);
 						break;
 					case REMAP_GYRO_ROLL_RIGHT:
 						if (updateStatus(rd.status, sms.angularVelocity.z > 0)){
 							rd.stickposval = clamp(- sms.deviceQuat.z * profile.gyro[PROFILE_GYRO_SENSIVITY_Z] * 4, -127, 127);
 							addEmu(&rd);
-						} else {
-							remEmu(&rd);
 						}
+						if (*rd.status == RS_STOPPED)
+							remEmu(&rd);
 						break;
 					default: break;
 				}
