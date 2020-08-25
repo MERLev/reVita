@@ -141,7 +141,13 @@ const char* REMAP_ACTION_STR[REMAP_ACTION_NUM] = {
     "GYRO_LEFT",
     "GYRO_RIGHT",
     "GYRO_ROLL_LEFT",
-    "GYRO_ROLL_RIGHT"
+    "GYRO_ROLL_RIGHT",
+	"SYS_RESET_SOFT",
+	"SYS_RESET_COLD",
+	"SYS_STANDBY",
+	"SYS_SUSPEND",
+	"SYS_DISPLAY_OFF",
+	"SYS_KILL"
 };
 enum REMAP_ACTION getActionId(char* n){
 	for (int i = 0; i < REMAP_ACTION_NUM; i++)

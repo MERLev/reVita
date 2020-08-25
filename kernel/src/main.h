@@ -7,6 +7,7 @@
 #define CTRL_HOOKS_NUM 				HOOKS_NUM - TOUCH_HOOKS_NUM - 6
 
 extern char titleid[32];
+extern int processid;
 
 extern bool used_funcs[HOOKS_NUM];
 extern bool isInternalTouchCall;

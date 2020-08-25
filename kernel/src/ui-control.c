@@ -447,6 +447,7 @@ void onButton_remapEmuType(uint32_t btn){
 					break;
 				case REMAP_TYPE_FRONT_TOUCH_POINT: ui_openMenu(MENU_REMAP_EMU_TOUCH_FRONT_ID); break;
 				case REMAP_TYPE_BACK_TOUCH_POINT: ui_openMenu(MENU_REMAP_EMU_TOUCH_BACK_ID); break;
+				case REMAP_TYPE_SYSACTIONS: ui_openMenu(MENU_REMAP_EMU_SYSACTIONS_ID); break;
 			};
 			break;
 		default: onButton_generic(btn);
@@ -478,6 +479,19 @@ void onButton_remapEmuTouch(uint32_t btn){
 	}
 }
 
+void onButton_remapEmuActions(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_CROSS:
+			ui_ruleEdited.emu.action = ui_entry->data;
+			if (ui_ruleEditedIdx >= 0) 
+				profile.remaps[ui_ruleEditedIdx] = ui_ruleEdited;
+			else
+				profile_addRemapRule(ui_ruleEdited);
+			ui_openMenu(MENU_REMAP_ID);
+			break;
+		default: onButton_generic(btn);
+	}
+}
 void ctrl_onInput(SceCtrlData *ctrl) {
 	if ((ctrl->buttons & HW_BUTTONS[profile_settings[0]]) 
 			&& (ctrl->buttons & HW_BUTTONS[profile_settings[1]]))

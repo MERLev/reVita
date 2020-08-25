@@ -34,6 +34,7 @@ SceTouchData* bufsStd[TOUCH_HOOKS_NUM];
 SceCtrlData* bufsScd[CTRL_HOOKS_NUM];
 
 char titleid[32] = "";
+int processid = -1;
 
 bool used_funcs[HOOKS_NUM];
 bool isInternalTouchCall = false;
@@ -259,6 +260,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             
             if (strncmp(titleid, titleidLocal, sizeof(titleid))) {
                 strnclone(titleid, titleidLocal, sizeof(titleid));
+                processid = pid;
                 ui_close();
                 for (int i = 0; i < HOOKS_NUM; i++)
                     used_funcs[i] = false;
@@ -272,6 +274,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             if (!strcmp(titleid, titleidLocal)){ //If current app suspended
                 if (strncmp(titleid, HOME, sizeof(titleid))) {
                     strnclone(titleid, HOME, sizeof(titleid));
+                    processid = -1;
                     ui_close();
                     for (int i = 0; i < HOOKS_NUM; i++)
                         used_funcs[i] = false;

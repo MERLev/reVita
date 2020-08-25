@@ -25,6 +25,7 @@ void onButton_remapTriggerTouch(uint32_t btn);
 void onButton_remapTriggerGyro(uint32_t btn);
 void onButton_remapEmuType(uint32_t btn);
 void onButton_remapEmuTouch(uint32_t btn);
+void onButton_remapEmuActions(uint32_t btn);
 
 void ui_control_init();
 void ui_control_destroy();

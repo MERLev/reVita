@@ -33,6 +33,7 @@ add_executable(${PROJECT_NAME}
   src/ui-draw.c
   src/renderer.c
   src/log.c
+  src/sysactions.c
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -47,6 +48,7 @@ target_link_libraries(${PROJECT_NAME}
   SceCtrlForDriver_stub
   SceIofilemgrForDriver_stub
   SceTouchForDriver_stub
+  ScePowerForDriver_stub 
 )
 
 set_target_properties(${PROJECT_NAME}

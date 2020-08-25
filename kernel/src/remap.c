@@ -9,6 +9,7 @@
 #include "remap.h"
 #include "profile.h"
 #include "common.h"
+#include "sysactions.h"
 #include "log.h"
 
 #define MULTITOUCH_FRONT_NUM		6
@@ -327,6 +328,18 @@ void addEmu(RuleData* rd) {
 				default: break;
 			}
 			break;
+		case REMAP_TYPE_SYSACTIONS:
+			if (*rd->status != RS_STARTED) break;
+			switch (emu->action){
+				case REMAP_SYS_RESET_SOFT: sysactions_softReset();  break;
+				case REMAP_SYS_RESET_COLD: sysactions_coldReset();  break;
+				case REMAP_SYS_STANDBY: sysactions_standby();  break;
+				case REMAP_SYS_SUSPEND: sysactions_suspend();  break;
+				case REMAP_SYS_DISPLAY_OFF: sysactions_displayOff();  break;
+				case REMAP_SYS_KILL: sysactions_killCurrentApp();  break;
+				default: break;
+			}
+		break;
 		default: break;
 	}
 }

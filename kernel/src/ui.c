@@ -383,7 +383,7 @@ static struct Menu menu_remap_trigger_gyro = (Menu){
 	.onButton = onButton_remapTriggerGyro,
 	.entries = menu_remap_trigger_gyro_entries};
 
-#define MENU_REMAP_EMU_TYPE_NUM 9
+#define MENU_REMAP_EMU_TYPE_NUM 8
 static struct MenuEntry menu_remap_emu_type_entries[MENU_REMAP_EMU_TYPE_NUM] = {
 	(MenuEntry){.name = "$X Buttons", .data = REMAP_TYPE_BUTTON},
 	(MenuEntry){.name = "$U Analog Stick Left", .data = REMAP_TYPE_LEFT_ANALOG},
@@ -392,8 +392,7 @@ static struct MenuEntry menu_remap_emu_type_entries[MENU_REMAP_EMU_TYPE_NUM] = {
 	(MenuEntry){.name = "$u Analog Stick Right [DIGITAL]", .data = REMAP_TYPE_RIGHT_ANALOG_DIGITAL},
 	(MenuEntry){.name = "$F Front Touch", .data = REMAP_TYPE_FRONT_TOUCH_POINT},
 	(MenuEntry){.name = "$B Back Touch", .data = REMAP_TYPE_BACK_TOUCH_POINT},
-	(MenuEntry){.name = "   RemaPSV2", .data = REMAP_TYPE_REMAPSV},
-	(MenuEntry){.name = "   Actions", .data = REMAP_TYPE_USYSACTIONS}
+	(MenuEntry){.name = "   Actions", .data = REMAP_TYPE_SYSACTIONS}
 };
 static struct Menu menu_remap_emu_type = (Menu){
 	.id = MENU_REMAP_EMU_TYPE_ID, 
@@ -445,6 +444,21 @@ static struct Menu menu_remap_emu_touch_back = (Menu){
 	.onButton = onButton_remapEmuTouch,
 	.entries = menu_remap_emu_touch_back_entries};
 
+#define MENU_REMAP_EMU_SYSACTIONS_NUM 6
+static struct MenuEntry menu_remap_emu_sysactions_entries[MENU_REMAP_EMU_SYSACTIONS_NUM] = {
+	(MenuEntry){.name = "Soft reset", .data = REMAP_SYS_RESET_SOFT},
+	(MenuEntry){.name = "Reboot", .data = REMAP_SYS_RESET_COLD},
+	(MenuEntry){.name = "Power Off", .data = REMAP_SYS_STANDBY},
+	(MenuEntry){.name = "Suspend", .data = REMAP_SYS_SUSPEND},
+	(MenuEntry){.name = "Display Off", .data = REMAP_SYS_DISPLAY_OFF},
+	(MenuEntry){.name = "Kill App", .data = REMAP_SYS_KILL}};
+static struct Menu menu_remap_emu_sysactions = (Menu){
+	.id = MENU_REMAP_EMU_SYSACTIONS_ID, 
+	.num = MENU_REMAP_EMU_SYSACTIONS_NUM, 
+	.name = "SYSTEM ACTIONS",
+	.onButton = onButton_remapEmuActions,
+	.entries = menu_remap_emu_sysactions_entries};
+
 void ui_fixIdx(Menu* m, int idx){
 	for (int i = 0; i < m->num; i++)
 		if(m->entries[(idx + i) % m->num].type != HEADER_TYPE){
@@ -485,6 +499,7 @@ void registerMenus(){
 	registerMenu(&menu_remap_emu_type);
 	registerMenu(&menu_remap_emu_touch_front);
 	registerMenu(&menu_remap_emu_touch_back);
+	registerMenu(&menu_remap_emu_sysactions);
 }
 
 SceUID mem_uid;
