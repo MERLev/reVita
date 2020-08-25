@@ -36,10 +36,10 @@ static struct Menu menu_main = (Menu){
 #define MENU_ANALOG_NUM 5
 static struct MenuEntry menu_analog_entries[MENU_ANALOG_NUM] = {
 	(MenuEntry){.name = "Deadzone", .type = HEADER_TYPE},
-	(MenuEntry){.name = "Left Analog  [X]", .data = PROFILE_ANALOG_LEFT_DEADZONE_X},
-	(MenuEntry){.name = "             [Y]", .data = PROFILE_ANALOG_LEFT_DEADZONE_Y},
-	(MenuEntry){.name = "Right Analog [X]", .data = PROFILE_ANALOG_RIGHT_DEADZONE_X},
-	(MenuEntry){.name = "             [Y]", .data = PROFILE_ANALOG_RIGHT_DEADZONE_Y}};
+	(MenuEntry){.name = "$U Left  Analog - X Axis", .data = PROFILE_ANALOG_LEFT_DEADZONE_X},
+	(MenuEntry){.name = "$L Left  Analog - Y Axis", .data = PROFILE_ANALOG_LEFT_DEADZONE_Y},
+	(MenuEntry){.name = "$u Right Analog - X Axis", .data = PROFILE_ANALOG_RIGHT_DEADZONE_X},
+	(MenuEntry){.name = "$l Right Analog - Y Axis", .data = PROFILE_ANALOG_RIGHT_DEADZONE_Y}};
 static struct Menu menu_analog = (Menu){
 	.id = MENU_ANALOG_ID, 
 	.parent = MENU_MAIN_ID,
@@ -69,13 +69,13 @@ static struct Menu menu_touch = (Menu){
 #define MENU_GYRO_NUM 11
 static struct MenuEntry menu_gyro_entries[MENU_GYRO_NUM] = {
 	(MenuEntry){.name = "Sensivity", .type = HEADER_TYPE},
-	(MenuEntry){.name = "    X Axis", .data = PROFILE_GYRO_SENSIVITY_X},
-	(MenuEntry){.name = "    Y Axis", .data = PROFILE_GYRO_SENSIVITY_Y},
-	(MenuEntry){.name = "    Z Axis", .data = PROFILE_GYRO_SENSIVITY_Z},
+	(MenuEntry){.name = "$q X AXIS", .data = PROFILE_GYRO_SENSIVITY_X},
+	(MenuEntry){.name = "$w Y Axis", .data = PROFILE_GYRO_SENSIVITY_Y},
+	(MenuEntry){.name = "$E Z Axis", .data = PROFILE_GYRO_SENSIVITY_Z},
 	(MenuEntry){.name = "Deadzone", .type = HEADER_TYPE},
-	(MenuEntry){.name = "    X Axis", .data = PROFILE_GYRO_DEADZONE_X},
-	(MenuEntry){.name = "    Y Axis", .data = PROFILE_GYRO_DEADZONE_Y},
-	(MenuEntry){.name = "    Z Axis", .data = PROFILE_GYRO_DEADZONE_Z},
+	(MenuEntry){.name = "$q X Axis", .data = PROFILE_GYRO_DEADZONE_X},
+	(MenuEntry){.name = "$w Y Axis", .data = PROFILE_GYRO_DEADZONE_Y},
+	(MenuEntry){.name = "$E Z Axis", .data = PROFILE_GYRO_DEADZONE_Z},
 	(MenuEntry){.name = "More", .type = HEADER_TYPE},
 	(MenuEntry){.name = "Deadband  ", .data = PROFILE_GYRO_DEADBAND},
 	(MenuEntry){.name = "Wheel mode", .data = PROFILE_GYRO_WHEEL}};
@@ -91,8 +91,8 @@ static struct Menu menu_gyro = (Menu){
 
 #define MENU_CONTROLLER_NUM 3
 static struct MenuEntry menu_controllers_entries[MENU_CONTROLLER_NUM] = {
-	(MenuEntry){.name = "Use external  ", .data = PROFILE_CONTROLLER_ENABLED},
-	(MenuEntry){.name = "Selected port ", .data = PROFILE_CONTROLLER_PORT},
+	(MenuEntry){.name = "Use external", .data = PROFILE_CONTROLLER_ENABLED},
+	(MenuEntry){.name = "Selected port", .data = PROFILE_CONTROLLER_PORT},
 	(MenuEntry){.name = "Swap $[$] ${$}", .data = PROFILE_CONTROLLER_SWAP_BUTTONS}};
 static struct Menu menu_controllers = (Menu){
 	.id = MENU_CONTROLLER_ID, 
@@ -106,10 +106,10 @@ static struct Menu menu_controllers = (Menu){
 
 #define MENU_SETTINGS_NUM 4
 static struct MenuEntry menu_settings_entries[MENU_SETTINGS_NUM] = {
-	(MenuEntry){.name = "Menu trigger first key", .data = PROFILE_SETTINGS_KEY1},
-	(MenuEntry){.name = "            second key", .data = PROFILE_SETTINGS_KEY2},
-	(MenuEntry){.name = "Save profile on close ", .data = PROFILE_SETTINGS_AUTOSAVE},
-	(MenuEntry){.name = "Startup delay         ", .data = PROFILE_SETTINGS_DELAY}};
+	(MenuEntry){.name = "Menu trigger first  key", .data = PROFILE_SETTINGS_KEY1},
+	(MenuEntry){.name = "Menu trigger second key", .data = PROFILE_SETTINGS_KEY2},
+	(MenuEntry){.name = "Save profile on close", .data = PROFILE_SETTINGS_AUTOSAVE},
+	(MenuEntry){.name = "Startup delay", .data = PROFILE_SETTINGS_DELAY}};
 static struct Menu menu_settings = (Menu){
 	.id = MENU_SETTINGS_ID, 
 	.parent = MENU_MAIN_ID,
@@ -142,26 +142,26 @@ static struct Menu menu_profiles = (Menu){
 
 #define MENU_HOKS_NUM 20
 static struct MenuEntry menu_hooks_entries[MENU_HOKS_NUM] = {
-	(MenuEntry){.name = "sceCtrlPeekBufferPositive    ", .data = 0},
-	(MenuEntry){.name = "sceCtrlReadBufferPositive    ", .data = 1},
-	(MenuEntry){.name = "sceCtrlPeekBufferNegative    ", .data = 2},
-	(MenuEntry){.name = "sceCtrlReadBufferNegative    ", .data = 3},
-	(MenuEntry){.name = "sceCtrlPeekBufferPositive2   ", .data = 4},
-	(MenuEntry){.name = "sceCtrlReadBufferPositive2   ", .data = 5},
-	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt ", .data = 6},
-	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt ", .data = 7},
+	(MenuEntry){.name = "sceCtrlPeekBufferPositive", .data = 0},
+	(MenuEntry){.name = "sceCtrlReadBufferPositive", .data = 1},
+	(MenuEntry){.name = "sceCtrlPeekBufferNegative", .data = 2},
+	(MenuEntry){.name = "sceCtrlReadBufferNegative", .data = 3},
+	(MenuEntry){.name = "sceCtrlPeekBufferPositive2", .data = 4},
+	(MenuEntry){.name = "sceCtrlReadBufferPositive2", .data = 5},
+	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt", .data = 6},
+	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt", .data = 7},
 	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt2", .data = 8},
 	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt2", .data = 9},
-	(MenuEntry){.name = "sceCtrlPeekBufferNegative2   ", .data =10},
-	(MenuEntry){.name = "sceCtrlReadBufferNegative2   ", .data =11},    
-	(MenuEntry){.name = "ksceCtrlPeekBufferPositive   ", .data =12},
-    (MenuEntry){.name = "ksceCtrlReadBufferPositive   ", .data =13},
-    (MenuEntry){.name = "ksceCtrlPeekBufferNegative   ", .data =14},
-    (MenuEntry){.name = "ksceCtrlReadBufferNegative   ", .data =15},
-	(MenuEntry){.name = "ksceTouchPeek                ", .data =16},
-	(MenuEntry){.name = "ksceTouchRead                ", .data =17},
-	(MenuEntry){.name = "ksceTouchPeekRegion          ", .data =18},
-	(MenuEntry){.name = "ksceTouchReadRegion          ", .data =19}
+	(MenuEntry){.name = "sceCtrlPeekBufferNegative2", .data =10},
+	(MenuEntry){.name = "sceCtrlReadBufferNegative2", .data =11},    
+	(MenuEntry){.name = "ksceCtrlPeekBufferPositive", .data =12},
+    (MenuEntry){.name = "ksceCtrlReadBufferPositive", .data =13},
+    (MenuEntry){.name = "ksceCtrlPeekBufferNegative", .data =14},
+    (MenuEntry){.name = "ksceCtrlReadBufferNegative", .data =15},
+	(MenuEntry){.name = "ksceTouchPeek", .data =16},
+	(MenuEntry){.name = "ksceTouchRead", .data =17},
+	(MenuEntry){.name = "ksceTouchPeekRegion", .data =18},
+	(MenuEntry){.name = "ksceTouchReadRegion", .data =19}
 };
 static struct Menu menu_hooks = (Menu){
 	.id = MENU_HOKS_ID, 

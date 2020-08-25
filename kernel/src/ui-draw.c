@@ -190,6 +190,16 @@ void setColorExt(uint8_t isCursor, uint8_t isDefault, uint8_t isDisabled){
 		else                renderer_setColor(COLOR_ACTIVE);
 	}
 }
+void drawStringFRight(int x, int y, const char *format, ...){
+	char str[512] = { 0 };
+	va_list va;
+
+	va_start(va, format);
+	vsnprintf(str, 512, format, va);
+	va_end(va);
+
+	renderer_drawString(UI_WIDTH - (strlen(str) + 2) * CHA_W - x, y, str);
+}
 void drawScroll(int8_t up, int8_t down){
 	renderer_setColor(COLOR_HEADER);
 	if (up)
@@ -296,8 +306,8 @@ void onDraw_analog(){
 			renderer_drawString(L_1, y+=CHA_H, ui_menu->entries[i].name);
 		} else if (id < 4){
 			setColor(i == ui_menu->idx, profile.analog[id] == profile_def.analog[id]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %hhu", 
-					ui_menu->entries[i].name, profile.analog[id]);
+			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
+			drawStringFRight(0, y, "%hhu", profile.analog[id]);
 		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num-1));
@@ -313,12 +323,12 @@ void onDraw_touch(){
 			renderer_drawString(L_1, y+=CHA_H, ui_menu->entries[i].name);
 		} else if (id == PROFILE_TOUCH_SWAP || id == PROFILE_TOUCH_PSTV_MODE){
 			setColor(i == ui_menu->idx, profile.touch[id] == profile_def.touch[id]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", 
-					ui_menu->entries[i].name, str_yes_no[profile.touch[id]]);
+			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
+			drawStringFRight(0, y, "%s", str_yes_no[profile.touch[id]]);
 		} else if (id == PROFILE_TOUCH_SWIPE_DURATION || id == PROFILE_TOUCH_SWIPE_SMART_SENSIVITY){
 			setColor(i == ui_menu->idx, profile.touch[id] == profile_def.touch[id]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %i", 
-					ui_menu->entries[i].name, profile.touch[id]);
+			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
+			drawStringFRight(0, y, "%i", profile.touch[id]);
 		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
@@ -363,13 +373,16 @@ void onDraw_gyro(){
 			renderer_drawString(L_1, y+=CHA_H, ui_menu->entries[i].name);
 		} else if (id < 6){//Draw sens and deadzone option
 			setColor(i == ui_menu->idx, profile.gyro[id] == profile_def.gyro[id]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %hhu", ui_menu->entries[i].name, profile.gyro[id]);
+			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
+			drawStringFRight(0, y, "%hhu", profile.gyro[id]);
 		} else if (id == 6) {//Draw deadband option
 			setColor(i == ui_menu->idx, profile.gyro[id] == profile_def.gyro[id]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", ui_menu->entries[i].name, str_deadband[profile.gyro[id]]);
+			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
+			drawStringFRight(0, y, "%s", str_deadband[profile.gyro[id]]);
 		} else if (id == 7) {//Draw wheel option
 			setColor(i == ui_menu->idx, profile.gyro[id] == profile_def.gyro[id]);
-			renderer_drawStringF(L_2, y += CHA_H, "%s: %s", ui_menu->entries[i].name, str_yes_no[profile.gyro[id]]);
+			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
+			drawStringFRight(0, y, "%s", str_yes_no[profile.gyro[id]]);
 		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx)/(ui_menu->num-1));
@@ -389,11 +402,11 @@ void onDraw_controller(){
 		int32_t id = ui_menu->entries[i].data;
 
 		setColor(i == ui_menu->idx, profile.controller[id] == profile_def.controller[id]);
-		if (id == 0 || id == 2)//Use external controller / buttons swap
-			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", ui_menu->entries[i].name, str_yes_no[profile.controller[id]]);
-		else if (id == 1){//Port selection
-			renderer_drawStringF(L_1, y += CHA_H, "%s: {%i} %s", ui_menu->entries[i].name, profile.controller[id],
-					getControllerName(pi.port[profile.controller[1]]));
+		renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
+		if (id == 0 || id == 2){//Use external controller / buttons swap
+			drawStringFRight(0, y, "%s", str_yes_no[profile.controller[id]]);
+		} else if (id == 1){//Port selection
+			drawStringFRight(0, y, "%s {%i}", getControllerName(pi.port[profile.controller[1]]), profile.controller[id]);
 		}
 	}
 
@@ -411,7 +424,8 @@ void onDraw_hooks(){
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, ui_lines - 1);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
 		renderer_setColor((used_funcs[ui_menu->entries[i].data] ? COLOR_ACTIVE : COLOR_DEFAULT));
-		renderer_drawStringF(L_1, y += CHA_H, "%s : %s", ui_menu->entries[i].name, str_yes_no[used_funcs[ui_menu->entries[i].data]]);
+		renderer_drawStringF(L_1, y += CHA_H, ui_menu->entries[i].name);
+		drawStringFRight(0, y, "%s", str_yes_no[used_funcs[ui_menu->entries[i].data]]);
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, 
 			((float)ui_menu->idx)/(ui_menu->num - (ui_lines - 1) - 1));
@@ -499,12 +513,13 @@ void onDraw_settings(){
 		int32_t id = ui_menu->entries[i].data;
 		
 		setColor(i == ui_menu->idx, profile_settings[id] == profile_settings_def[id]);
+			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
 		if (id < 2){//Draw opening buttons
-			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", ui_menu->entries[i].name, str_btns[profile_settings[id]]);
+			drawStringFRight(0, y, "%s", str_btns[profile_settings[id]]);
 		} else if (id == 2) {//Draw Save profile on close
-			renderer_drawStringF(L_1, y += CHA_H, "%s: %s", ui_menu->entries[i].name, str_yes_no[profile_settings[id]]);
+			drawStringFRight(0, y, "%s", str_yes_no[profile_settings[id]]);
 		} else if (id == 3) {//Startup delay
-			renderer_drawStringF(L_1, y += CHA_H, "%s: %hhu", ui_menu->entries[i].name, profile_settings[id]);
+			drawStringFRight(0, y, "%hhu", profile_settings[id]);
 		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num-1));
