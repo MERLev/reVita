@@ -368,11 +368,11 @@ bool generateINIProfile(Profile* p, char* buff){
 	ini_addSection(ini, SECTION_STR[SECTION_CONTROLLER]);
 	for (int i = 0; i < PROFILE_CONTROLLER__NUM; i++)
 		ini_addInt(ini, CONTROLLER_STR[i], p->controller[i]);
-	ini_addNL(ini);
 
 	//Remaps
 	for (int i = 0; i < p->remapsNum; i++){
 		struct RemapRule* r =  &p->remaps[i];
+		ini_addNL(ini);
 		ini_append(ini, "\n[%s:%i]", SECTION_STR[SECTION_RULE],i);
 		ini_addBool(ini, REMAP_KEY_STR[REMAP_KEY_PROPAGATE], r->propagate);
 		ini_addBool(ini, REMAP_KEY_STR[REMAP_KEY_TURBO], r->turbo);
