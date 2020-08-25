@@ -538,8 +538,8 @@ bool parseINIProfile(Profile* p, char* buff){
 						break;
 					case REMAP_KEY_EMU_TOUCH_POINT:
 					case REMAP_KEY_EMU_TOUCH_SWIPE_SMART: 
-						rr->trigger.param.tPoint.x = parseInt(ini_nextListVal(ini));
-						rr->trigger.param.tPoint.y = parseInt(ini_nextListVal(ini));
+						rr->emu.param.tPoint.x = parseInt(ini_nextListVal(ini));
+						rr->emu.param.tPoint.y = parseInt(ini_nextListVal(ini));
 						break;
 					case REMAP_KEY_EMU_TOUCH_SWIPE: 
 						rr->emu.param.tPoints.a.x = parseInt(ini_nextListVal(ini));
