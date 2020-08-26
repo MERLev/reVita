@@ -302,6 +302,12 @@ void addEmu(RuleData* rd) {
 					if (btn_has(rd->btns, SCE_CTRL_RIGHT)) ete->swipeEndPoint.x += profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY];
 					if (btn_has(rd->btns, SCE_CTRL_UP)) ete->swipeEndPoint.y -= profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY];
 					if (btn_has(rd->btns, SCE_CTRL_DOWN)) ete->swipeEndPoint.y += profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY];
+					if (!rd->rr->propagate){
+						btn_del(&rd->btnsProp, SCE_CTRL_LEFT);
+						btn_del(&rd->btnsProp, SCE_CTRL_RIGHT);
+						btn_del(&rd->btnsProp, SCE_CTRL_UP);
+						btn_del(&rd->btnsProp, SCE_CTRL_DOWN);
+					}
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_L:   
 					ete = storeTouchSmartSwipe(&etBack, emu->param.tPoint);
@@ -313,6 +319,9 @@ void addEmu(RuleData* rd) {
 						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + 
 							((float)(rd->ctrl->ly - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
 							0, T_FRONT_SIZE.y);
+					if (!rd->rr->propagate)
+						rd->analogLeftProp.left = rd->analogLeftProp.right = 
+								rd->analogLeftProp.up = rd->analogLeftProp.down = 0;
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_R:  
 					ete = storeTouchSmartSwipe(&etBack, emu->param.tPoint); 
@@ -324,6 +333,9 @@ void addEmu(RuleData* rd) {
 						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + 
 							((float)(rd->ctrl->ry - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
 							0, T_FRONT_SIZE.y);
+					if (!rd->rr->propagate)
+						rd->analogRightProp.left = rd->analogRightProp.right = 
+								rd->analogRightProp.up = rd->analogRightProp.down = 0;
 					break;
 				default: break;
 			}
