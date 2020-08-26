@@ -100,7 +100,7 @@ int onKernelInputNegative(SceCtrlData *ctrl, int nBufs, int hookId){
     return onInputNegative(ctrl, nBufs, hookId);
 }
 
-int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){	
+int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
 	//Disable in menu
     if (isInternalTouchCall) return nBufs;
 
@@ -117,6 +117,7 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 /*export*/ int remaPSV2k_onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
     if (nBufs < 1 || nBufs > BUFFERS_NUM) return nBufs;
 	if (!profile.touch[PROFILE_TOUCH_PSTV_MODE]) return nBufs;
+    // LOG("onTouchPatched%i(port:%i, nBufs:%i)\n", hookId, port, nBufs);	
     ksceKernelMemcpyUserToKernel(bufsStd[hookId], (uintptr_t)&pData[0], nBufs * sizeof(SceTouchData)); 
     int ret = onTouch(port, bufsStd[hookId], nBufs, hookId); 
     ksceKernelMemcpyKernelToUser((uintptr_t)&pData[0], bufsStd[hookId], ret * sizeof(SceTouchData)); 
@@ -182,14 +183,13 @@ DECL_FUNC_HOOK_PATCH_CTRL_EXT(9, sceCtrlReadBufferPositiveExt2)
     }
 DECL_FUNC_HOOK_PATCH_CTRL_EXT_NEGATIVE(10, sceCtrlPeekBufferNegative2)
 DECL_FUNC_HOOK_PATCH_CTRL_EXT_NEGATIVE(11, sceCtrlReadBufferNegative2)
-
+/*
 #define DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
 		used_funcs[(index)] = 1; \
-		/*ret = onKernelInput(ctrl, ret, (index));*/ \
-        return ret; \
+		ret = onKernelInput(ctrl, ret, (index)); \
     }
 DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(12, ksceCtrlPeekBufferPositive)
 DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(13, ksceCtrlReadBufferPositive)
@@ -199,12 +199,11 @@ DECL_FUNC_HOOK_PATCH_CTRL_KERNEL(13, ksceCtrlReadBufferPositive)
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
 		used_funcs[(index)] = 1; \
-		/*ret = onKernelInputNegative(ctrl, ret, (index));*/ \
-        return ret; \
+		ret = onKernelInputNegative(ctrl, ret, (index)); \
     }
 DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(14, ksceCtrlPeekBufferNegative)
 DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(15, ksceCtrlReadBufferNegative)
-
+*/
 #define DECL_FUNC_HOOK_PATCH_TOUCH(index, name) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
@@ -267,6 +266,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
                 profile_load(titleid);
                 remap_resetBuffers();
                 delayedStartDone = false;
+                LOG("\nPROFILE LOAD: %s\n", titleid);
             }
             break;
         case 3: //Close
@@ -281,6 +281,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
                     profile_load(HOME);
                     remap_resetBuffers();
                     delayedStartDone = false;
+                    LOG("\nPROFILE LOAD: %s\n", titleid);
                 }
             }
             break;
@@ -378,11 +379,11 @@ int module_start(SceSize argc, const void *args) {
     hook(10,"SceCtrl", 0xD197E3C7, 0x81A89660, sceCtrlPeekBufferNegative2_patched);
     hook(11,"SceCtrl", 0xD197E3C7, 0x27A0C5FB, sceCtrlReadBufferNegative2_patched);
     
-    hook(12,"SceCtrl", 0x7823A5D1, 0xEA1D3A34, ksceCtrlPeekBufferPositive_patched);
-    hook(13,"SceCtrl", 0x7823A5D1, 0x9B96A1AA, ksceCtrlReadBufferPositive_patched);
+    // hook(12,"SceCtrl", 0x7823A5D1, 0xEA1D3A34, ksceCtrlPeekBufferPositive_patched);
+    // hook(13,"SceCtrl", 0x7823A5D1, 0x9B96A1AA, ksceCtrlReadBufferPositive_patched);
 
-    hook(14,"SceCtrl", 0x7823A5D1, 0x19895843, ksceCtrlPeekBufferNegative_patched);
-    hook(15,"SceCtrl", 0x7823A5D1, 0x8D4E0DD1, ksceCtrlReadBufferNegative_patched);
+    // hook(14,"SceCtrl", 0x7823A5D1, 0x19895843, ksceCtrlPeekBufferNegative_patched);
+    // hook(15,"SceCtrl", 0x7823A5D1, 0x8D4E0DD1, ksceCtrlReadBufferNegative_patched);
 
     hook(16,"SceTouch", TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek_patched);
     hook(17,"SceTouch", TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead_patched);
