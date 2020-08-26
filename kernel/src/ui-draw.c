@@ -541,15 +541,13 @@ void onDraw_credits(){
 }
 
 void drawTouchPointer(uint32_t panel, TouchPoint* tp){
-	int8_t ic_halfsize = ICN_TOUCH_X / 2;
+	// int8_t ic_halfsize = ICN_TOUCH_X / 2;
 	int left = tp->x - 8;
 	left *= (float)fbWidth / ((panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE.x : T_BACK_SIZE.x);
-	left = min((max(ic_halfsize, left)), fbWidth - ic_halfsize);
 	int top = tp->y - 10;
 	top *= (float)fbHeight / ((panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE.y : T_BACK_SIZE.y); //Scale to framebuffer size
-	top = min((max(ic_halfsize, top)), fbHeight - ic_halfsize);//limit into screen
 	renderer_setColor((ticker % 8 < 4) ? COLOR_DANGER : COLOR_HEADER);
-	renderer_drawImageDirectlyToFB(left - ic_halfsize, top - ic_halfsize, 64, 64, ICN_TOUCH);
+	renderer_drawImageDirectlyToFB(left - 6, top - 1, ICON_W, ICON_H, &ICON[ICON_TOUCH * 54]);
 }
 
 void drawTouchZone(uint32_t panel, TouchPoints2* tz){
