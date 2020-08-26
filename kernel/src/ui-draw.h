@@ -23,7 +23,7 @@ void onDraw_debugButtons();
 void onDraw_settings();
 void onDraw_profiles();
 void onDraw_credits();
-
+void ui_updateEmulatedTouch(SceTouchPortType panel, EmulatedTouch et);
 void ui_draw_init();
 void ui_draw_destroy();
 #endif

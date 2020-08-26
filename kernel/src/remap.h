@@ -2,7 +2,9 @@
 #define _REMAP_H_
 
 #include <psp2/touch.h>
-#define BUFFERS_NUM         64
+#define BUFFERS_NUM             64
+#define MULTITOUCH_FRONT_NUM    6
+#define MULTITOUCH_BACK_NUM		4
 
 enum REMAP_ACTION_TYPE{
     REMAP_TYPE_BUTTON = 0,
@@ -78,6 +80,34 @@ typedef struct RemapRule{
     bool turbo;
 	bool disabled;
 }Rule;
+
+typedef struct EmulatedStick{
+	uint32_t up, down, left, right;
+}EmulatedStick;
+
+typedef struct RuleData{
+	SceCtrlData *ctrl;
+	uint32_t btns, btnsEmu, btnsProp;
+	struct RemapRule* rr;
+	EmulatedStick analogLeftEmu, analogRightEmu, analogLeftProp, analogRightProp;
+	uint8_t stickposval;
+	enum RULE_STATUS* status;
+	bool isTurboTick;
+}RuleData;
+
+typedef struct EmulatedTouchEvent{
+	TouchPoint point, swipeEndPoint, swipeCurrentPoint;
+	int id;
+	int64_t tick;
+	bool isSwipe;
+	bool isSmartSwipe;
+	bool isSwipeFinished;
+}EmulatedTouchEvent;
+
+typedef struct EmulatedTouch{
+	EmulatedTouchEvent reports[MULTITOUCH_FRONT_NUM];
+	uint8_t num;
+}EmulatedTouch;
 
 #define HW_BUTTONS_NUM    21 // Supported physical buttons num
 extern const uint32_t HW_BUTTONS[HW_BUTTONS_NUM];

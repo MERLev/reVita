@@ -119,6 +119,9 @@ void onButton_touch(uint32_t btn){
 			switch (id){
 				case PROFILE_TOUCH_SWAP:
 				case PROFILE_TOUCH_PSTV_MODE: 
+				case PROFILE_TOUCH_DRAW_POINTER_POINT: 
+				case PROFILE_TOUCH_DRAW_POINTER_SWIPE: 
+				case PROFILE_TOUCH_DRAW_POINTER_SMART_SWIPE: 
 					profile.touch[id] = !profile.touch[id];  
 					break;
 				case PROFILE_TOUCH_SWIPE_DURATION: 
@@ -133,6 +136,9 @@ void onButton_touch(uint32_t btn){
 			switch (id){
 				case PROFILE_TOUCH_SWAP:
 				case PROFILE_TOUCH_PSTV_MODE: 
+				case PROFILE_TOUCH_DRAW_POINTER_POINT: 
+				case PROFILE_TOUCH_DRAW_POINTER_SWIPE: 
+				case PROFILE_TOUCH_DRAW_POINTER_SMART_SWIPE: 
 					profile.touch[id] = !profile.touch[id];  
 					break;
 				case PROFILE_TOUCH_SWIPE_DURATION: 

@@ -230,10 +230,14 @@ DECL_FUNC_HOOK_PATCH_TOUCH_REGION(19, ksceTouchReadRegion)
 
 int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplayFrameBuf *pParam, int sync) {
     used_funcs[20] = 1;
+    
+    if (index && ksceAppMgrIsExclusiveProcessRunning())
+        goto DISPLAY_HOOK_RET; // Do not draw over SceShell overlay
 
     if (pParam)  
         ui_draw(pParam);
 
+DISPLAY_HOOK_RET:
     return TAI_CONTINUE(int, refs[20], head, index, pParam, sync);
 }
 
@@ -316,8 +320,8 @@ static int main_thread(SceSize args, void *argp) {
         if (!ui_opened 
                 && (ctrl.buttons & HW_BUTTONS[profile_settings[0]]) 
                 && (ctrl.buttons & HW_BUTTONS[profile_settings[1]])) {
-            remap_resetBuffers();
             ui_open();
+            remap_resetBuffers();
         }
 
         //In-menu inputs handling

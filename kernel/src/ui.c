@@ -50,12 +50,16 @@ static struct Menu menu_analog = (Menu){
 	.onDraw = onDraw_analog,
 	.entries = menu_analog_entries};
 
-#define MENU_TOUCH_NUM 4
+#define MENU_TOUCH_NUM 8
 static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
 	(MenuEntry){.name = "$V PSTV mode", .data = PROFILE_TOUCH_PSTV_MODE},
 	(MenuEntry){.name = "$j Swipe duration", .data = PROFILE_TOUCH_SWIPE_DURATION},
 	(MenuEntry){.name = "$j Smart Swipe sensivity", .data = PROFILE_TOUCH_SWIPE_SMART_SENSIVITY},
-	(MenuEntry){.name = "$B Swap touchpads", .data = PROFILE_TOUCH_SWAP}};
+	(MenuEntry){.name = "$B Swap touchpads", .data = PROFILE_TOUCH_SWAP},
+	(MenuEntry){.name = "Draw Pointer", .type = HEADER_TYPE},
+	(MenuEntry){.name = "$i Touch Point", .data = PROFILE_TOUCH_DRAW_POINTER_POINT},
+	(MenuEntry){.name = "$j Swipe", .data = PROFILE_TOUCH_DRAW_POINTER_SWIPE},
+	(MenuEntry){.name = "$j Smart Swipe", .data = PROFILE_TOUCH_DRAW_POINTER_SMART_SWIPE}};
 static struct Menu menu_touch = (Menu){
 	.id = MENU_TOUCH_ID, 
 	.parent = MENU_MAIN_ID,

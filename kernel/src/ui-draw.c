@@ -18,19 +18,23 @@
 #define COLOR_DEFAULT     	0x00C2C0BD
 #define COLOR_CURSOR      	0x00FFFFFF
 #define COLOR_HEADER      	0x00FF6600
-#define COLOR_CURSOR_HEADER	0x00FFAA22
 #define COLOR_ACTIVE      	0x0000B0B0
-#define COLOR_CURSOR_ACTIVE	0x0000DDDD
 #define COLOR_DANGER      	0x00000099
+#define COLOR_CURSOR_HEADER	0x00FFAA22
+#define COLOR_CURSOR_ACTIVE	0x0000DDDD
 #define COLOR_CURSOR_DANGER	0x000000DD
 #define COLOR_BG_HEADER   	0x00000000
 #define COLOR_BG_BODY     	0x00171717
+#define COLOR_TOUCH     	0x0000B0B0
 #define L_0    				5		//Left margin for menu
 #define L_1    				18		
 #define L_2    				36
 
 static uint32_t ticker;
 static uint32_t menuY = 0;
+
+//Active emulated touchpoints
+static EmulatedTouch etFront, etBack;
 
 const char* str_btn_small[HW_BUTTONS_NUM] = {
 	"$X", "$C", "$T", "$S", "$:", "$;", "$[", "$]", 
@@ -308,7 +312,10 @@ void onDraw_touch(){
 		if (ui_menu->entries[i].type == HEADER_TYPE){
 			setColorHeader(ui_menu->idx == i);
 			renderer_drawString(L_1, y+=CHA_H, ui_menu->entries[i].name);
-		} else if (id == PROFILE_TOUCH_SWAP || id == PROFILE_TOUCH_PSTV_MODE){
+		} else if (id == PROFILE_TOUCH_SWAP || id == PROFILE_TOUCH_PSTV_MODE || 
+					id == PROFILE_TOUCH_DRAW_POINTER_POINT || 
+					id == PROFILE_TOUCH_DRAW_POINTER_SWIPE || 
+					id == PROFILE_TOUCH_DRAW_POINTER_SMART_SWIPE){
 			setColor(i == ui_menu->idx, profile.touch[id] == profile_def.touch[id]);
 			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
 			drawStringFRight(0, y, "%s", str_yes_no[profile.touch[id]]);
@@ -541,13 +548,29 @@ void onDraw_credits(){
 }
 
 void drawTouchPointer(uint32_t panel, TouchPoint* tp){
-	// int8_t ic_halfsize = ICN_TOUCH_X / 2;
 	int left = tp->x - 8;
 	left *= (float)fbWidth / ((panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE.x : T_BACK_SIZE.x);
 	int top = tp->y - 10;
 	top *= (float)fbHeight / ((panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE.y : T_BACK_SIZE.y); //Scale to framebuffer size
-	renderer_setColor((ticker % 8 < 4) ? COLOR_DANGER : COLOR_HEADER);
-	renderer_drawImageDirectlyToFB(left - 6, top - 1, ICON_W, ICON_H, &ICON[ICON_TOUCH * 54]);
+	renderer_setColor(COLOR_TOUCH);
+	renderer_drawImageDirectlyToFB(left - 8, top - 1, ICN_TOUCH_X, ICN_TOUCH_Y, ICN_TOUCH);
+}
+
+void drawEmulatedPointersForPanel(uint32_t panel){
+	EmulatedTouch* et = &etBack;
+	if (panel == SCE_TOUCH_PORT_FRONT)
+		et = &etFront;
+	for (int i = 0; i < et->num; i++)
+		if (et->reports[i].isSwipe){
+			if (profile.touch[PROFILE_TOUCH_DRAW_POINTER_SWIPE])
+				drawTouchPointer(SCE_TOUCH_PORT_FRONT, &et->reports[i].swipeCurrentPoint);
+		} else if (et->reports[i].isSmartSwipe){
+			if (profile.touch[PROFILE_TOUCH_DRAW_POINTER_SMART_SWIPE])
+				drawTouchPointer(SCE_TOUCH_PORT_FRONT, &et->reports[i].swipeEndPoint);
+		} else {
+			if (profile.touch[PROFILE_TOUCH_DRAW_POINTER_POINT])
+				drawTouchPointer(SCE_TOUCH_PORT_FRONT, &et->reports[i].point);
+		}
 }
 
 void drawTouchZone(uint32_t panel, TouchPoints2* tz){
@@ -588,16 +611,27 @@ void drawDirectlyToFB(){
 }
 
 void ui_draw(const SceDisplayFrameBuf *pParam){
+	new_frame = 1;
+	ticker++;
 	if (ui_opened) {
-		new_frame = 1;
-		ticker++;
 		renderer_setFB(pParam);
 		drawHeader();
 		drawBody();
 		drawFooter();
 		renderer_writeToFB();
 		drawDirectlyToFB();	
+	} else {
+		renderer_setFB(pParam);
+		drawEmulatedPointersForPanel(SCE_TOUCH_PORT_FRONT);
+		drawEmulatedPointersForPanel(SCE_TOUCH_PORT_BACK);
 	}
+}
+
+void ui_updateEmulatedTouch(SceTouchPortType panel, EmulatedTouch et){
+	if (panel == SCE_TOUCH_PORT_FRONT)
+		etFront = et;
+	else 
+		etBack = et;
 }
 
 void ui_draw_init(){

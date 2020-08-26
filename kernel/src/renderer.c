@@ -125,17 +125,21 @@ void renderer_drawImageDirectlyToFB(int32_t x, int32_t y, uint32_t w, uint32_t h
 			marginY = realY - y,
 			realW = w - (realX - x) + (min(x + w, fbWidth) - (x + w)),
 			realH = h - (realY - y) + (min(y + h, fbHeight) - (y + h));
-	uint32_t cache[realW];
+	// uint32_t cache[realW];
 	for (int j = 0; j < realH; j++){
-		ksceKernelMemcpyUserToKernel(&cache[0],
-			(uintptr_t)&fbfbBase_user[(j + realY) * fbPitch + realX],
-			sizeof(uint32_t) * realW);
+		// ksceKernelMemcpyUserToKernel(&cache[0],
+		// 	(uintptr_t)&fbfbBase_user[(j + realY) * fbPitch + realX],
+		// 	sizeof(uint32_t) * realW);
+		// for (int i = 0; i < realW; i++)
+		// 	if (readPixel(i + marginX, j + marginY, w, h, img))
+		// 		cache[i] = color; 
+		// ksceKernelMemcpyKernelToUser((uintptr_t)&fbfbBase_user[(j + realY) * fbPitch + realX],
+		// 	&cache[0],
+		// 	sizeof(uint32_t) * realW);
 		for (int i = 0; i < realW; i++)
 			if (readPixel(i + marginX, j + marginY, w, h, img))
-				cache[i] = color; 
-		ksceKernelMemcpyKernelToUser((uintptr_t)&fbfbBase_user[(j + realY) * fbPitch + realX],
-			&cache[0],
-			sizeof(uint32_t) * realW);
+				ksceKernelMemcpyKernelToUser((uintptr_t)&fbfbBase_user[(j + realY) * fbPitch + realX + i],
+						&color, sizeof(color));
 	}
 }
 

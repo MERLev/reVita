@@ -59,7 +59,10 @@ const char* TOUCH_STR[PROFILE_TOUCH__NUM] = {
 	"PSTV_MODE",
 	"SWAP",
 	"SWIPE_DURATION",
-	"SWIPE_SENSIVITY"
+	"SWIPE_SENSIVITY",
+	"DRAW_POINTER_POINT",
+	"DRAW_POINTER_SWIPE",
+	"DRAW_POINTER_SMART_SWIPE"
 };
 enum PROFILE_TOUCH_ID getTouchId(char* n){
 	for (int i = 0; i < PROFILE_TOUCH__NUM; i++)
@@ -362,6 +365,9 @@ bool generateINIProfile(Profile* p, char* buff){
 	ini_addBool(ini, TOUCH_STR[PROFILE_TOUCH_SWAP], p->touch[PROFILE_TOUCH_SWAP]);
 	ini_addInt(ini, TOUCH_STR[PROFILE_TOUCH_SWIPE_DURATION], p->touch[PROFILE_TOUCH_SWIPE_DURATION]);
 	ini_addInt(ini, TOUCH_STR[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY], p->touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY]);
+	ini_addBool(ini, TOUCH_STR[PROFILE_TOUCH_DRAW_POINTER_POINT], p->touch[PROFILE_TOUCH_DRAW_POINTER_POINT]);
+	ini_addBool(ini, TOUCH_STR[PROFILE_TOUCH_DRAW_POINTER_SWIPE], p->touch[PROFILE_TOUCH_DRAW_POINTER_SWIPE]);
+	ini_addBool(ini, TOUCH_STR[PROFILE_TOUCH_DRAW_POINTER_SMART_SWIPE], p->touch[PROFILE_TOUCH_DRAW_POINTER_SMART_SWIPE]);
 	ini_addNL(ini);
 
 	//Gyro
@@ -477,6 +483,15 @@ bool parseINIProfile(Profile* p, char* buff){
 						break;
 					case PROFILE_TOUCH_SWIPE_SMART_SENSIVITY: 
 						p->touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] = parseInt(ini->val); 
+						break;
+					case PROFILE_TOUCH_DRAW_POINTER_POINT: 
+						p->touch[PROFILE_TOUCH_DRAW_POINTER_POINT] = parseBool(ini->val); 
+						break;
+					case PROFILE_TOUCH_DRAW_POINTER_SWIPE: 
+						p->touch[PROFILE_TOUCH_DRAW_POINTER_SWIPE] = parseBool(ini->val); 
+						break;
+					case PROFILE_TOUCH_DRAW_POINTER_SMART_SWIPE: 
+						p->touch[PROFILE_TOUCH_DRAW_POINTER_SMART_SWIPE] = parseBool(ini->val); 
 						break;
 					default: break;
 				}
@@ -724,9 +739,13 @@ void setDefProfile(){
 	profile_def.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X] = 30;
 	profile_def.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y] = 30;
 
-	profile_def.touch[PROFILE_TOUCH_SWAP] = 0;
+	profile_def.touch[PROFILE_TOUCH_SWAP] = false;
+	profile_def.touch[PROFILE_TOUCH_PSTV_MODE] = false;
 	profile_def.touch[PROFILE_TOUCH_SWIPE_DURATION] = 50;
 	profile_def.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] = 10;
+	profile_def.touch[PROFILE_TOUCH_DRAW_POINTER_POINT] = true;
+	profile_def.touch[PROFILE_TOUCH_DRAW_POINTER_SWIPE] = true;
+	profile_def.touch[PROFILE_TOUCH_DRAW_POINTER_SMART_SWIPE] = true;
 
 	profile_def.gyro[PROFILE_GYRO_SENSIVITY_X] = 127;
 	profile_def.gyro[PROFILE_GYRO_SENSIVITY_Y] = 127;

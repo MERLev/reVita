@@ -10,10 +10,9 @@
 #include "profile.h"
 #include "common.h"
 #include "sysactions.h"
+#include "ui-draw.h"
 #include "log.h"
 
-#define MULTITOUCH_FRONT_NUM		6
-#define MULTITOUCH_BACK_NUM			4
 #define TURBO_DELAY			        50*1000
 
 enum RULE_STATUS{
@@ -43,34 +42,6 @@ const uint32_t HW_BUTTONS[HW_BUTTONS_NUM] = {
 	SCE_CTRL_VOLUP, SCE_CTRL_VOLDOWN, SCE_CTRL_POWER, SCE_CTRL_PSBUTTON,
 	SCE_CTRL_TOUCHPAD
 };
-
-typedef struct EmulatedStick{
-	uint32_t up, down, left, right;
-}EmulatedStick;
-
-typedef struct RuleData{
-	SceCtrlData *ctrl;
-	uint32_t btns, btnsEmu, btnsProp;
-	struct RemapRule* rr;
-	EmulatedStick analogLeftEmu, analogRightEmu, analogLeftProp, analogRightProp;
-	uint8_t stickposval;
-	enum RULE_STATUS* status;
-	bool isTurboTick;
-}RuleData;
-
-typedef struct EmulatedTouchEvent{
-	TouchPoint point, swipeEndPoint;
-	int id;
-	int64_t tick;
-	bool isSwipe;
-	bool isSmartSwipe;
-	bool isSwipeFinished;
-}EmulatedTouchEvent;
-
-typedef struct EmulatedTouch{
-	EmulatedTouchEvent reports[MULTITOUCH_FRONT_NUM];
-	uint8_t num;
-}EmulatedTouch;
 
 //For now let's store buffers on the stack
 static SceCtrlData _remappedBuffers[CTRL_HOOKS_NUM][BUFFERS_NUM];
@@ -730,12 +701,14 @@ void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et,
 			}
 
 			//Calculate swipe point pisition for current tick
-			pData->report[pData->reportNum].x = clampSmart(
+			et->reports[touchIdx].swipeCurrentPoint.x = clampSmart(
 				ax + (bx - ax) * (tick - et->reports[touchIdx].tick) / (profile.touch[PROFILE_TOUCH_SWIPE_DURATION] * 1000), 
 				ax, bx);
-			pData->report[pData->reportNum].y = clampSmart(
+			et->reports[touchIdx].swipeCurrentPoint.y = clampSmart(
 				ay + (by - ay) * (tick - et->reports[touchIdx].tick) / (profile.touch[PROFILE_TOUCH_SWIPE_DURATION] * 1000), 
 				ay, by);
+			pData->report[pData->reportNum].x = et->reports[touchIdx].swipeCurrentPoint.x;
+			pData->report[pData->reportNum].y = et->reports[touchIdx].swipeCurrentPoint.y;
 
 			//If swipe point reached it's ending
 			if (pData->report[pData->reportNum].x == bx && pData->report[pData->reportNum].y == by)
@@ -793,6 +766,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 		}
 		
 		addVirtualTouches(pData, &etFront, MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
+		ui_updateEmulatedTouch(SCE_TOUCH_PORT_FRONT, etFront);
 		prevEtFront = etFront;
 		cleanEmuReports(&etFront);
 		newEmulatedFrontTouchBuffer = false;
@@ -827,6 +801,7 @@ void updateTouchInfo(SceUInt32 port, SceTouchData *pData){
 		}
 		
 		addVirtualTouches(pData, &etBack, MULTITOUCH_BACK_NUM, SCE_TOUCH_PORT_BACK);
+		ui_updateEmulatedTouch(SCE_TOUCH_PORT_BACK, etBack);
 		prevEtBack = etBack;
 		cleanEmuReports(&etBack);
 		newEmulatedBackTouchBuffer = 0;
@@ -888,6 +863,8 @@ void remap_resetBuffers(){
 		remappedBuffersFrontSizes[i] = 
 		remappedBuffersBackSizes[i] = 0;
 	}
+	etBack.num = 0;
+	etFront.num = 0;
 }
 
 void initTouchParams(){
