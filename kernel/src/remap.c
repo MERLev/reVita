@@ -429,8 +429,8 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 			case REMAP_TYPE_LEFT_ANALOG: 
 				switch(trigger->action){
 					case REMAP_ANALOG_LEFT: 
+						if (!rr->propagate) rd.analogLeftProp.left = 0;
 						if (updateStatus(rd.status, ctrl->lx <= 127 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])){
-							if (!rr->propagate) rd.analogLeftProp.left = 0;
 							rd.stickposval = 127 - ctrl->lx;
 							addEmu(&rd);
 						}
@@ -438,8 +438,8 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_RIGHT: 
+						if (!rr->propagate) rd.analogLeftProp.right = 0;
 						if (updateStatus(rd.status, ctrl->lx > 127 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])){
-							if (!rr->propagate) rd.analogLeftProp.right = 0;
 							rd.stickposval = ctrl->lx - 127;
 							addEmu(&rd);
 						}
@@ -447,8 +447,8 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_UP: 
+						if (!rr->propagate) rd.analogLeftProp.up = 0;
 						if (updateStatus(rd.status, ctrl->ly <= 127 - profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])){
-							if (!rr->propagate) rd.analogLeftProp.up = 0;
 							rd.stickposval = 127 - ctrl->ly;
 							addEmu(&rd);
 						} 
@@ -456,8 +456,8 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_DOWN: 
+						if (!rr->propagate) rd.analogLeftProp.down = 0;
 						if (updateStatus(rd.status, ctrl->ly > 127 + profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])){
-							if (!rr->propagate) rd.analogLeftProp.down = 0;
 							rd.stickposval = ctrl->ly - 127;
 							addEmu(&rd);
 						} 
