@@ -316,8 +316,8 @@ static struct Menu menu_remap = (Menu){
 #define MENU_REMAP_TRIGGER_TYPE_NUM 6
 static struct MenuEntry menu_remap_trigger_type_entries[MENU_REMAP_TRIGGER_TYPE_NUM] = {
 	(MenuEntry){.name = "$X Buttons", .data = REMAP_TYPE_BUTTON},
-	(MenuEntry){.name = "$u Analog Stick Left", .data = REMAP_TYPE_LEFT_ANALOG},
-	(MenuEntry){.name = "$U Analog Stick Right", .data = REMAP_TYPE_RIGHT_ANALOG},
+	(MenuEntry){.name = "$U Analog Stick Left", .data = REMAP_TYPE_LEFT_ANALOG},
+	(MenuEntry){.name = "$u Analog Stick Right", .data = REMAP_TYPE_RIGHT_ANALOG},
 	(MenuEntry){.name = "$F Touch - Front Panel", .data = REMAP_TYPE_FRONT_TOUCH_ZONE},
 	(MenuEntry){.name = "$B Touch - Back Panel", .data = REMAP_TYPE_BACK_TOUCH_ZONE},
 	(MenuEntry){.name = "$Q Gyroscope", .data = REMAP_TYPE_GYROSCOPE}
@@ -410,11 +410,11 @@ static struct MenuEntry menu_remap_emu_touch_front_entries[MENU_REMAP_EMU_TOUCH_
 	(MenuEntry){.name = "$4 Top Right Touch", .data = REMAP_TOUCH_ZONE_TR},
 	(MenuEntry){.name = "$5 Bottom Left Touch", .data = REMAP_TOUCH_ZONE_BL},
 	(MenuEntry){.name = "$6 Bottom Right Touch", .data = REMAP_TOUCH_ZONE_BR},
-	(MenuEntry){.name = "$F Custom Touch", .data = REMAP_TOUCH_CUSTOM},
-	(MenuEntry){.name = "$i Swipe", .data = REMAP_TOUCH_SWIPE},
-	(MenuEntry){.name = "$i Swipe controlled with $U", .data = REMAP_TOUCH_SWIPE_SMART_L},
-	(MenuEntry){.name = "$i Swipe controlled with $u", .data = REMAP_TOUCH_SWIPE_SMART_R},
-	(MenuEntry){.name = "$i Swipe controlled with $x", .data = REMAP_TOUCH_SWIPE_SMART_DPAD}};
+	(MenuEntry){.name = "$i Custom Touch", .data = REMAP_TOUCH_CUSTOM},
+	(MenuEntry){.name = "$j Swipe", .data = REMAP_TOUCH_SWIPE},
+	(MenuEntry){.name = "$j Swipe controlled with $U", .data = REMAP_TOUCH_SWIPE_SMART_L},
+	(MenuEntry){.name = "$j Swipe controlled with $u", .data = REMAP_TOUCH_SWIPE_SMART_R},
+	(MenuEntry){.name = "$j Swipe controlled with $x", .data = REMAP_TOUCH_SWIPE_SMART_DPAD}};
 static struct Menu menu_remap_emu_touch_front = (Menu){
 	.id = MENU_REMAP_EMU_TOUCH_FRONT_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
@@ -431,7 +431,7 @@ static struct MenuEntry menu_remap_emu_touch_back_entries[MENU_REMAP_EMU_TOUCH_F
 	(MenuEntry){.name = "$4 Top Right Touch", .data = REMAP_TOUCH_ZONE_TR},
 	(MenuEntry){.name = "$5 Bottom Left Touch", .data = REMAP_TOUCH_ZONE_BL},
 	(MenuEntry){.name = "$6 Bottom Right Touch", .data = REMAP_TOUCH_ZONE_BR},
-	(MenuEntry){.name = "$B Custom Touch", .data = REMAP_TOUCH_CUSTOM},
+	(MenuEntry){.name = "$i Custom Touch", .data = REMAP_TOUCH_CUSTOM},
 	(MenuEntry){.name = "$j Swipe", .data = REMAP_TOUCH_SWIPE},
 	(MenuEntry){.name = "$j Swipe controlled with $U", .data = REMAP_TOUCH_SWIPE_SMART_L},
 	(MenuEntry){.name = "$j Swipe controlled with $u", .data = REMAP_TOUCH_SWIPE_SMART_R},

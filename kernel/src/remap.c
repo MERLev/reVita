@@ -252,16 +252,16 @@ void addEmu(RuleData* rd) {
 					ete = storeTouchSmartSwipe(&etFront, emu->param.tPoint);
 					if (btn_has(rd->btns, SCE_CTRL_LEFT)) 
 						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x - profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
-								T_FRONT_SIZE.x, 0);
+								0, T_FRONT_SIZE.x);
 					if (btn_has(rd->btns, SCE_CTRL_RIGHT)) 
 						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
-								T_FRONT_SIZE.x, 0);
+								0, T_FRONT_SIZE.x);
 					if (btn_has(rd->btns, SCE_CTRL_UP)) 
 						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y - profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
-								T_FRONT_SIZE.y, 0);
+								0, T_FRONT_SIZE.y);
 					if (btn_has(rd->btns, SCE_CTRL_DOWN)) 
 						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
-								T_FRONT_SIZE.y, 0);
+								0, T_FRONT_SIZE.y);
 					if (!rd->rr->propagate){
 						btn_del(&rd->btnsProp, SCE_CTRL_LEFT);
 						btn_del(&rd->btnsProp, SCE_CTRL_RIGHT);
@@ -498,8 +498,8 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 			case REMAP_TYPE_RIGHT_ANALOG: 
 				switch(trigger->action){
 					case REMAP_ANALOG_LEFT: 
+						if (!rr->propagate) rd.analogRightProp.left = 0;
 						if (updateStatus(rd.status, ctrl->rx <= 127 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])){
-							if (!rr->propagate) rd.analogRightProp.left = 0;
 							rd.stickposval = 127 - ctrl->rx;
 							addEmu(&rd);
 						} 
@@ -507,8 +507,8 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_RIGHT: 
+						if (!rr->propagate) rd.analogRightProp.right = 0;
 						if (updateStatus(rd.status, ctrl->rx > 127 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_X])){
-							if (!rr->propagate) rd.analogRightProp.right = 0;
 							rd.stickposval = ctrl->rx - 127;
 							addEmu(&rd);
 						} 
@@ -516,8 +516,8 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_UP: 
+						if (!rr->propagate) rd.analogRightProp.up = 0;
 						if (updateStatus(rd.status, ctrl->ry <= 127 - profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])){
-							if (!rr->propagate) rd.analogRightProp.up = 0;
 							rd.stickposval = 127 - ctrl->ry;
 							addEmu(&rd);
 						} 
@@ -525,8 +525,8 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
 							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_DOWN: 
+						if (!rr->propagate) rd.analogRightProp.down = 0;
 						if (updateStatus(rd.status, ctrl->ry > 127 + profile.analog[PROFILE_ANALOG_RIGHT_DEADZONE_Y])){
-							if (!rr->propagate) rd.analogRightProp.down = 0;
 							rd.stickposval = ctrl->ry - 127;
 							addEmu(&rd);
 						} 

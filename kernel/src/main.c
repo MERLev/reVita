@@ -157,6 +157,8 @@ DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(3, sceCtrlReadBufferNegative)
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
 		if (isInternalExtCall) return ret; \
+        if (profile.controller[PROFILE_CONTROLLER_ENABLED] && \
+                port != profile.controller[PROFILE_CONTROLLER_PORT]) return ret; \
         ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
 		ret = onInput(bufsScd[(index)], ret, (index)); \
         ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], bufsScd[(index)], ret * sizeof(SceCtrlData)); \

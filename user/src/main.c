@@ -24,8 +24,11 @@ Profile profile;
 //Used to add support for R1/R3/L1/L3
 int patchToExt(SceCtrlData *ctrl, int nBufs, bool positive){
 	SceCtrlData pstv_fakepad;
+	//ToDo move elsewhere
+	sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
 	int ret = sceCtrlPeekBufferPositiveExt2(profile.controller[PROFILE_CONTROLLER_PORT], &pstv_fakepad, 1);
 	if (ret > 0){
+		ctrl[nBufs - 1] = pstv_fakepad;
 		if (positive) 
 			ctrl[nBufs - 1].buttons = pstv_fakepad.buttons;
 		else 
