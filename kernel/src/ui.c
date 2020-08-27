@@ -598,7 +598,6 @@ void ui_onInput(SceCtrlData *ctrl){
 void ui_open(const SceDisplayFrameBuf *pParam){
 	ui_menu = &menu_main;
 	ui_setIdx(0);
-	ui_setIdx(0);
 	ui_opened = 1;
 }
 void ui_close(){

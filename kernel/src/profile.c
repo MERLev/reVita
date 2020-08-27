@@ -11,10 +11,12 @@
 #define NAME_GLOBAL "GLOBAL"
 #define NAME_HOME "HOME"
 #define NAME_SETTINGS "SETTINGS"
+#define NAME_THEME "THEME"
 #define EXT "bin"
 #define EXT_INI "INI"
 #define BUFFER_SIZE (1000 * sizeof(char)+ 0xfff) & ~0xfff
 #define BUFFER_SIZE_SETTINGS (200 * sizeof(char)+ 0xfff) & ~0xfff
+#define BUFFER_SIZE_THEME (1000 * sizeof(char)+ 0xfff) & ~0xfff
 
 enum SECTION{
 	SECTION_PROFILE = 0,
@@ -24,6 +26,7 @@ enum SECTION{
 	SECTION_CONTROLLER,
 	SECTION_RULE,
 	SECTION_SETTINGS,
+	SECTION_THEME,
 	SECTION__NUM
 };
 static const char* SECTION_STR[SECTION__NUM] = {
@@ -33,7 +36,8 @@ static const char* SECTION_STR[SECTION__NUM] = {
 	"GYRO",
 	"CONTROLLER",
 	"RULE",
-	"SETTINGS"
+	"SETTINGS",
+	"THEME"
 };
 enum SECTION getSectionId(char* n){
 	for (int i = 0; i < SECTION__NUM; i++)
@@ -240,6 +244,26 @@ enum PROFILE_SETTINGS_ID getSettingsId(char* n){
 	return -1;
 }
 
+const char* THEME_STR[THEME__NUM] = {
+	"COLOR_DEFAULT",
+	"COLOR_CURSOR",
+	"COLOR_HEADER",
+	"COLOR_ACTIVE",
+	"COLOR_DANGER",
+	"COLOR_CURSOR_HEADER",
+	"COLOR_CURSOR_ACTIVE",
+	"COLOR_CURSOR_DANGER",
+	"COLOR_BG_HEADER",
+	"COLOR_BG_BODY",
+	"COLOR_TOUCH"
+};
+enum THEME_ID getThemeId(char* n){
+	for (int i = 0; i < THEME__NUM; i++)
+		if (!strcmp(THEME_STR[i], n)) 
+			return i;
+	return -1;
+}
+
 Profile profile;
 Profile profile_def;
 Profile profile_global;
@@ -247,6 +271,9 @@ Profile profile_home;
 
 int32_t profile_settings[PROFILE_SETTINGS__NUM];
 int32_t profile_settings_def[PROFILE_SETTINGS__NUM];
+
+uint32_t theme[THEME__NUM];
+uint32_t theme_def[THEME__NUM];
 
 void clone(Profile* pd, Profile* ps){
 	pd->remapsNum = ps->remapsNum;
@@ -298,6 +325,10 @@ void profile_resetSettings(){
 	for (int i = 0; i < PROFILE_SETTINGS__NUM; i++)
 		profile_settings[i] = profile_settings_def[i];
 }
+void profile_resetTheme(){
+	for (int i = 0; i < THEME__NUM; i++)
+		theme[i] = theme_def[i];
+}
 
 bool readFile(char* buff, int size, char* path, char* name, char* ext){
 	char fname[128];
@@ -342,6 +373,15 @@ bool generateINISettings(char* buff){
 	ini_addSection(ini, SECTION_STR[SECTION_SETTINGS]);
 	for (int i = 0; i < PROFILE_SETTINGS__NUM; i++)
 		ini_addInt(ini, SETTINGS_STR[i], profile_settings[i]);
+	return true;
+}
+bool generateINITheme(char* buff){
+	INI _ini = ini_create(buff, 99);
+	INI* ini = &_ini;
+	
+	ini_addSection(ini, SECTION_STR[SECTION_THEME]);
+	for (int i = 0; i < THEME__NUM; i++)
+		ini_addBGR(ini, THEME_STR[i], theme[i]);
 	return true;
 }
 bool generateINIProfile(Profile* p, char* buff){
@@ -450,6 +490,24 @@ bool parseINISettings(char* buff){
 		if (id < 0)
 			continue;
 		profile_settings[id] = parseInt(ini->val);
+	}
+	return true;
+}
+bool parseINITheme(char* buff){
+	for (int i = 0; i < THEME__NUM; i++)
+		theme[i] = theme_def[i];
+
+	INI_READER _ini = ini_read(buff);
+	INI_READER* ini = &_ini;
+
+	while(ini_nextEntry(ini)){
+		if (getSectionId(ini->section) != SECTION_THEME)
+			continue;
+		int id = getThemeId(ini->name);
+		if (id < 0)
+			continue;
+		theme[id] = parseBGR(ini->val);
+		LOG("Parsed: %i: %s=%08X\n", id, ini->val, theme[id]);
 	}
 	return true;
 }
@@ -674,6 +732,52 @@ ERROR: //Free allocated memory
 	return ret;
 }
 
+bool profile_loadTheme(){
+	char* buff;
+	bool ret = false;
+	profile_resetTheme();
+
+    //Mem allocation for buffer
+	SceUID buff_uid  = ksceKernelAllocMemBlock("RemaPSV2_INI_R", 
+		SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, BUFFER_SIZE_THEME, NULL);
+	if (buff_uid < 0) 
+		return false;
+    if (ksceKernelGetMemBlockBase(buff_uid, (void**)&buff) != 0)
+		goto ERROR;
+	//Read file to buffer
+	if (!readFile(buff, BUFFER_SIZE_THEME, PATH, NAME_THEME, EXT_INI))
+		goto ERROR;
+
+	// Parse INI
+	ret = parseINITheme(buff);
+	
+ERROR: //Free mem and quit
+	ksceKernelFreeMemBlock(buff_uid);
+	return ret;
+}
+bool profile_saveTheme(){
+	bool ret = false;
+	char* buff;
+    //Mem allocation
+	SceUID buff_uid  = ksceKernelAllocMemBlock("RemaPSV2_INI_W", 
+		SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, BUFFER_SIZE_THEME, NULL);
+	if (buff_uid < 0) 
+		return false;
+    if (ksceKernelGetMemBlockBase(buff_uid, (void**)&buff) != 0)
+		goto ERROR;
+	
+	//Generate INI into buffer
+	if (!generateINITheme(buff))
+		goto ERROR;
+	
+	//Write to file
+	ret = writeFile(buff, strlen(buff), PATH, NAME_THEME, EXT_INI);
+
+ERROR: //Free allocated memory
+	ksceKernelFreeMemBlock(buff_uid);
+	return ret;
+}
+
 bool profile_save(char* titleId) {
 	return writeProfile(&profile, titleId);
 }
@@ -766,6 +870,18 @@ void setDefProfile(){
 	profile_settings_def[PROFILE_SETTINGS_KEY2] = 3;
 	profile_settings_def[PROFILE_SETTINGS_AUTOSAVE] = 1;
 	profile_settings_def[PROFILE_SETTINGS_DELAY] = 10;
+
+	theme_def[COLOR_DEFAULT] = 			0x00C2C0BD;
+	theme_def[COLOR_CURSOR] = 			0x00FFFFFF;
+	theme_def[COLOR_HEADER] = 			0x00FF6600;
+	theme_def[COLOR_ACTIVE] = 			0x0000B0B0;
+	theme_def[COLOR_DANGER] = 			0x00000099;
+	theme_def[COLOR_CURSOR_HEADER] = 	0x00FFAA22;
+	theme_def[COLOR_CURSOR_ACTIVE] = 	0x0000DDDD;
+	theme_def[COLOR_CURSOR_DANGER] = 	0x000000DD;
+	theme_def[COLOR_BG_HEADER] = 		0x00000000;
+	theme_def[COLOR_BG_BODY] = 			0x00171717;
+	theme_def[COLOR_TOUCH] = 			0x0000B0B0;
 }
 void profile_init(){
 	//Init profiles
@@ -793,6 +909,9 @@ void profile_init(){
 
 	//Load settings
 	profile_loadSettings();
+
+	//Load theme
+	profile_loadTheme();
 }
 void profile_destroy(){
 }

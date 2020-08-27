@@ -48,6 +48,7 @@ void ini_addBool(struct INI* ini, const char* name, bool val);
 void ini_addList(struct INI* ini, const char* name);
 void ini_addListInt(struct INI* ini, int val);
 void ini_addListStr(struct INI* ini, const char* val);
+void ini_addBGR(struct INI* ini, const char* name, unsigned int val);
 
 char* ini_nextLine(INI_READER* ini);
 char* ini_nextEntry(INI_READER* ini);
@@ -59,3 +60,4 @@ int ini_write(struct INI* ini, const char* p, const char* n);
 
 int parseInt(char* c);
 bool parseBool(char* c);
+int parseBGR(char* c);

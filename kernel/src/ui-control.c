@@ -86,6 +86,7 @@ void onButton_main(uint32_t btn){
 		case SCE_CTRL_CIRCLE:
 			ui_close();
 			profile_saveSettings();
+			profile_saveTheme();
 			if (profile_settings[0])
 				profile_save(titleid);
 			remap_setup();

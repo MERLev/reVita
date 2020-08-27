@@ -50,6 +50,20 @@ enum PROFILE_SETTINGS_ID{
 	PROFILE_SETTINGS_DELAY,
     PROFILE_SETTINGS__NUM
 };
+enum THEME_ID{
+	COLOR_DEFAULT,
+	COLOR_CURSOR,
+	COLOR_HEADER,
+	COLOR_ACTIVE,
+	COLOR_DANGER,
+	COLOR_CURSOR_HEADER,
+	COLOR_CURSOR_ACTIVE,
+	COLOR_CURSOR_DANGER,
+	COLOR_BG_HEADER,
+	COLOR_BG_BODY,
+	COLOR_TOUCH,
+    THEME__NUM
+};
 
 typedef struct Profile{
 	char titleid[32];
@@ -68,6 +82,8 @@ extern Profile profile_global;
 extern Profile profile_home;
 extern int32_t profile_settings[PROFILE_SETTINGS__NUM];
 extern int32_t profile_settings_def[PROFILE_SETTINGS__NUM];
+extern uint32_t theme[THEME__NUM];
+extern uint32_t theme_def[THEME__NUM];
 
 void profile_addRemapRule(struct RemapRule rule);
 void profile_removeRemapRule(uint8_t idx);
@@ -78,10 +94,14 @@ void profile_resetTouch();
 void profile_resetGyro();
 void profile_resetController();
 void profile_resetSettings();
+void profile_resetTheme();
 struct Profile createProfile();
 
 bool profile_saveSettings();
 bool profile_loadSettings();
+
+bool profile_saveTheme();
+bool profile_loadTheme();
 
 bool profile_save(char* titleId);
 bool profile_load(char* titleId);

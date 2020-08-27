@@ -4,7 +4,7 @@
 #include "common.h"
 #include "remap.h"
 
-static const char* str_btns[HW_BUTTONS_NUM];
+extern char* str_btns[HW_BUTTONS_NUM];
 
 void generateRemapRuleName(char* str, struct RemapRule* ui_ruleEdited);
 

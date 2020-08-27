@@ -40,6 +40,10 @@ void ini_addListInt(struct INI* ini, int val){
 void ini_addListStr(struct INI* ini, const char* val){
 	ini_append(ini, "%s,", val);
 }
+void ini_addBGR(struct INI* ini, const char* name, unsigned int val){
+    ini_append(ini, "\n%s=#%02X%02X%02X", name, 
+            val & 0xFF, (val >> 8) & 0xFF, (val >> 16) & 0xFF);
+}
 
 char* ini_nextLine(INI_READER* ini){
     if (ini->_.EOL == ini->_.EOS)           //End of buffer reached
@@ -126,4 +130,33 @@ int parseInt(char* c){
 }
 bool parseBool(char* c){
     return !strcmp(c, TRUE_STR) ? true : false;
+}
+void addNumber(int* val, uint8_t number, uint8_t pos){
+    uint8_t alignedPos = pos % 2 ? pos - 1 : pos + 1;
+    *val += number << ((alignedPos) * 4);
+}
+int parseBGR(char* c){
+    //sscnf cannot parse HEX unfortunatly - had to do it manually
+    int ret = 0;
+    for (int i = 0; i < strlen(c) - 1; i++){
+        switch(c[i + 1]){
+            case '1': addNumber(&ret, 0x1, i); break;
+            case '2': addNumber(&ret, 0x2, i); break;
+            case '3': addNumber(&ret, 0x3, i); break;
+            case '4': addNumber(&ret, 0x4, i); break;
+            case '5': addNumber(&ret, 0x5, i); break;
+            case '6': addNumber(&ret, 0x6, i); break;
+            case '7': addNumber(&ret, 0x7, i); break;
+            case '8': addNumber(&ret, 0x8, i); break;
+            case '9': addNumber(&ret, 0x9, i); break;
+            case 'A': addNumber(&ret, 0xA, i); break;
+            case 'B': addNumber(&ret, 0xB, i); break;
+            case 'C': addNumber(&ret, 0xC, i); break;
+            case 'D': addNumber(&ret, 0xD, i); break;
+            case 'E': addNumber(&ret, 0xE, i); break;
+            case 'F': addNumber(&ret, 0xF, i); break;
+            default: break;
+        }
+    }
+    return ret;
 }

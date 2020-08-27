@@ -15,17 +15,6 @@
 #define UI_HEIGHT           272
 #define HEADER_HEIGHT		(CHA_H + 6)
 #define BOTTOM_OFFSET		5
-#define COLOR_DEFAULT     	0x00C2C0BD
-#define COLOR_CURSOR      	0x00FFFFFF
-#define COLOR_HEADER      	0x00FF6600
-#define COLOR_ACTIVE      	0x0000B0B0
-#define COLOR_DANGER      	0x00000099
-#define COLOR_CURSOR_HEADER	0x00FFAA22
-#define COLOR_CURSOR_ACTIVE	0x0000DDDD
-#define COLOR_CURSOR_DANGER	0x000000DD
-#define COLOR_BG_HEADER   	0x00000000
-#define COLOR_BG_BODY     	0x00171717
-#define COLOR_TOUCH     	0x0000B0B0
 #define L_0    				5		//Left margin for menu
 #define L_1    				18		
 #define L_2    				36
@@ -44,7 +33,7 @@ const char* str_btn_small[HW_BUTTONS_NUM] = {
 static const char* str_yes_no[] = {
 	"No", "Yes"
 };
-static const char* str_btns[HW_BUTTONS_NUM] = {
+char* str_btns[HW_BUTTONS_NUM] = {
 	"$X Cross", "$C Circle", "$T Triangle", "$S Square",
 	"$: Start", "$; Select", 
 	"$[ LT/L2", "$] RT/R2",
@@ -156,29 +145,29 @@ int calcStartingIndex(int idx, int entriesNum, int screenEntries, int bottomOffs
 }
 void setColorHeader(uint8_t isCursor){
 	if (isCursor){
-		renderer_setColor(COLOR_CURSOR_HEADER);
+		renderer_setColor(theme[COLOR_CURSOR_HEADER]);
 	} else {
-		renderer_setColor(COLOR_HEADER);
+		renderer_setColor(theme[COLOR_HEADER]);
 	}
 }
 void setColor(uint8_t isCursor, uint8_t isDefault){
 	if (isCursor){
-		if (isDefault) renderer_setColor(COLOR_CURSOR);
-		else renderer_setColor(COLOR_CURSOR_ACTIVE);
+		if (isDefault) renderer_setColor(theme[COLOR_CURSOR]);
+		else renderer_setColor(theme[COLOR_CURSOR_ACTIVE]);
 	} else {
-		if (isDefault) renderer_setColor(COLOR_DEFAULT);
-		else renderer_setColor(COLOR_ACTIVE);
+		if (isDefault) renderer_setColor(theme[COLOR_DEFAULT]);
+		else renderer_setColor(theme[COLOR_ACTIVE]);
 	}
 }
 void setColorExt(uint8_t isCursor, uint8_t isDefault, uint8_t isDisabled){
 	if (isCursor){
-		if     (isDisabled) renderer_setColor(COLOR_CURSOR_DANGER);
-		else if (isDefault) renderer_setColor(COLOR_CURSOR);
-		else                renderer_setColor(COLOR_CURSOR_ACTIVE);
+		if     (isDisabled) renderer_setColor(theme[COLOR_CURSOR_DANGER]);
+		else if (isDefault) renderer_setColor(theme[COLOR_CURSOR]);
+		else                renderer_setColor(theme[COLOR_CURSOR_ACTIVE]);
 	} else {
-		if     (isDisabled) renderer_setColor(COLOR_DANGER);
-		else if (isDefault) renderer_setColor(COLOR_DEFAULT);
-		else                renderer_setColor(COLOR_ACTIVE);
+		if     (isDisabled) renderer_setColor(theme[COLOR_DANGER]);
+		else if (isDefault) renderer_setColor(theme[COLOR_DEFAULT]);
+		else                renderer_setColor(theme[COLOR_ACTIVE]);
 	}
 }
 void drawStringFRight(int x, int y, const char *format, ...){
@@ -192,7 +181,7 @@ void drawStringFRight(int x, int y, const char *format, ...){
 	renderer_drawString(UI_WIDTH - (strlen(str) + 2) * CHA_W - x, y, str);
 }
 void drawScroll(int8_t up, int8_t down){
-	renderer_setColor(COLOR_HEADER);
+	renderer_setColor(theme[COLOR_HEADER]);
 	if (up)
 		renderer_drawImage(UI_WIDTH - ICN_ARROW_X - 3, HEADER_HEIGHT + 3, ICN_ARROW_X, ICN_ARROW_Y, ICN_ARROW_UP);
 	if (down)
@@ -200,7 +189,7 @@ void drawScroll(int8_t up, int8_t down){
 }
 void drawFullScroll(int8_t up, int8_t down, float pos){
 	if (!up && !down) return;
-	renderer_setColor(COLOR_HEADER);
+	renderer_setColor(theme[COLOR_HEADER]);
 	uint16_t calculatedPos = HEADER_HEIGHT + 4 + ICN_ARROW_Y + pos * (UI_HEIGHT - 2 * HEADER_HEIGHT - 2 * ICN_ARROW_Y - ICN_SLIDER_Y - 8);
 	renderer_drawImage(UI_WIDTH - ICN_ARROW_X - 3, calculatedPos, ICN_SLIDER_X, ICN_SLIDER_Y, ICN_SLIDER);
 	drawScroll(1,1);
@@ -210,9 +199,9 @@ void drawEditPointer(uint16_t x, uint16_t y){
 }
 
 void drawHeader(){
-	renderer_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, COLOR_BG_HEADER);//BG
-	renderer_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, COLOR_HEADER);//Separator
-	renderer_setColor(COLOR_HEADER);
+	renderer_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
+	renderer_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
+	renderer_setColor(theme[COLOR_HEADER]);
 	if (ui_menu->id == MENU_MAIN_ID){
 		renderer_drawStringF(L_0, 3, "$P remaPSV2 v.%s", VERSION);
 		renderer_drawString(UI_WIDTH - CHA_W * strlen(titleid) - 10, 2, titleid);
@@ -221,18 +210,18 @@ void drawHeader(){
 	
 }
 void drawFooter(){
-	renderer_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, COLOR_HEADER);//Separator
-	renderer_drawRectangle(0, UI_HEIGHT - (HEADER_HEIGHT - 1), UI_WIDTH, HEADER_HEIGHT - 1, COLOR_BG_HEADER);//BG
-	renderer_setColor(COLOR_HEADER);   
+	renderer_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
+	renderer_drawRectangle(0, UI_HEIGHT - (HEADER_HEIGHT - 1), UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
+	renderer_setColor(theme[COLOR_HEADER]);   
 	if (ui_menu->footer)                                                            
 		renderer_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, ui_menu->footer);
 }
 void drawIndent(){
 	int y = (ui_menu->idx - calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET)) * CHA_H
 		+ HEADER_HEIGHT + CHA_H / 2;
-	//renderer_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, COLOR_HEADER);//Separator
-	renderer_drawRectangle(L_1 - 5, y - 1, UI_WIDTH - 2 * L_1 + 10, CHA_H + 2, COLOR_BG_HEADER);//BG
-	renderer_setColor(COLOR_HEADER);   
+	//renderer_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, theme[COLOR_HEADER);//Separator
+	renderer_drawRectangle(L_1 - 5, y - 1, UI_WIDTH - 2 * L_1 + 10, CHA_H + 2, theme[COLOR_BG_HEADER]);//BG
+	renderer_setColor(theme[COLOR_HEADER]);   
 }
 
 void onDraw_generic(){
@@ -260,10 +249,10 @@ void onDraw_remap(){
 			int len = strlen(str) * CHA_W;
 			renderer_drawString(L_1, y += CHA_H, str);
 			if (!rr->disabled){
-				renderer_setColor(COLOR_DEFAULT);
+				renderer_setColor(theme[COLOR_DEFAULT]);
 				renderer_drawString(L_1 + len + CHA_W, y, ">");
 			} else {
-				renderer_setColor(COLOR_DANGER);
+				renderer_setColor(theme[COLOR_DANGER]);
 				renderer_drawString(L_1 + len + CHA_W, y, "X");
 			}
 			str[0] = '\0';
@@ -386,7 +375,7 @@ void onDraw_controller(){
 	SceCtrlPortInfo pi;
 	int res = ksceCtrlGetControllerPortInfo(&pi);
 	if (res != 0){//Should not ever trigger
-		renderer_setColor(COLOR_DANGER);
+		renderer_setColor(theme[COLOR_DANGER]);
 		renderer_drawString(L_1, y+= CHA_H, "Error getting controllers info");
 		return;
 	}
@@ -406,10 +395,10 @@ void onDraw_controller(){
 
 	//Ports stats
 	y+=CHA_H;
-	renderer_setColor(COLOR_HEADER);
+	renderer_setColor(theme[COLOR_HEADER]);
 	renderer_drawString(L_1, y+= CHA_H, "Detected controllers:");
 	for (int i = 0; i < 5; i++){
-		renderer_setColor((pi.port[i] == SCE_CTRL_TYPE_UNPAIRED) ? COLOR_DANGER : COLOR_ACTIVE);
+		renderer_setColor((pi.port[i] == SCE_CTRL_TYPE_UNPAIRED) ? theme[COLOR_DANGER] : theme[COLOR_ACTIVE]);
 		renderer_drawStringF(L_2, y += CHA_H, "Port %i: %s", i, getControllerName(pi.port[i]));
 	}
 }
@@ -417,7 +406,7 @@ void onDraw_hooks(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, ui_lines - 1);
 	for (int i = ii; i < min(ii + ui_lines, ui_menu->num); i++) {
-		renderer_setColor((used_funcs[ui_menu->entries[i].data] ? COLOR_ACTIVE : COLOR_DEFAULT));
+		renderer_setColor((used_funcs[ui_menu->entries[i].data] ? theme[COLOR_ACTIVE] : theme[COLOR_DEFAULT]));
 		renderer_drawStringF(L_1, y += CHA_H, ui_menu->entries[i].name);
 		drawStringFRight(0, y, "%s", str_yes_no[used_funcs[ui_menu->entries[i].data]]);
 	}
@@ -454,11 +443,11 @@ void onDraw_debugButtons(){
 		ctrl = *ctrlP;
 	unsigned int buttons = ctrl.buttons;
 	if (ret < 1){
-		renderer_setColor(COLOR_DANGER);
+		renderer_setColor(theme[COLOR_DANGER]);
 		renderer_drawString(L_1, y += CHA_H, "ERROR READING INPUT");
 		return;
 	}
-	renderer_setColor(COLOR_DEFAULT);
+	renderer_setColor(theme[COLOR_DEFAULT]);
 	renderer_drawStringF(L_1, y += CHA_H, "Port: {%i}", profile.controller[1]);
 	y += CHA_H;
 	for(int i = 0; i < 16; i++){
@@ -486,7 +475,7 @@ void onDraw_debugButtons(){
 			default: renderer_drawStringF(x += CHA_W*4, y, "%i", i + 16); break;
 		}
 	}
-	renderer_setColor(COLOR_DEFAULT);
+	renderer_setColor(theme[COLOR_DEFAULT]);
 	renderer_drawStringF(L_1, y += CHA_H, "LT: %i, RT: %i, reserved0 : [%i, %i, %i, %i]", 
 		ctrl.lt, ctrl.rt,
 		ctrl.reserved0[0], ctrl.reserved0[1], ctrl.reserved0[2], ctrl.reserved0[3]);
@@ -540,7 +529,7 @@ void onDraw_credits(){
     int y = menuY;
 	int ii = calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, ui_lines - 1);
 	for (int i = ii; i < min(ui_menu->num, ii + ui_lines); i++) {	
-		renderer_setColor(COLOR_DEFAULT);
+		renderer_setColor(theme[COLOR_DEFAULT]);
 		renderer_drawString(L_0, y += CHA_H, ui_menu->entries[i].name);
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, 
@@ -552,7 +541,7 @@ void drawTouchPointer(uint32_t panel, TouchPoint* tp){
 	left *= (float)fbWidth / ((panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE.x : T_BACK_SIZE.x);
 	int top = tp->y - 10;
 	top *= (float)fbHeight / ((panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE.y : T_BACK_SIZE.y); //Scale to framebuffer size
-	renderer_setColor(COLOR_TOUCH);
+	renderer_setColor(theme[COLOR_TOUCH]);
 	renderer_drawImageDirectlyToFB(left - 8, top - 1, ICN_TOUCH_X, ICN_TOUCH_Y, ICN_TOUCH);
 }
 
@@ -580,7 +569,7 @@ void drawTouchZone(uint32_t panel, TouchPoints2* tz){
 }
 
 void drawBody() {
-	renderer_drawRectangle(0, HEADER_HEIGHT, UI_WIDTH, UI_HEIGHT -  2 * HEADER_HEIGHT, COLOR_BG_BODY);//BG
+	renderer_drawRectangle(0, HEADER_HEIGHT, UI_WIDTH, UI_HEIGHT -  2 * HEADER_HEIGHT, theme[COLOR_BG_BODY]);//BG
 	if (!ui_menu->noIndent)
 		drawIndent();
 	//Draw menu
