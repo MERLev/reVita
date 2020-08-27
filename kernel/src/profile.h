@@ -48,21 +48,27 @@ enum PROFILE_SETTINGS_ID{
 	PROFILE_SETTINGS_KEY2,
 	PROFILE_SETTINGS_AUTOSAVE,
 	PROFILE_SETTINGS_DELAY,
+	PROFILE_SETTINGS_THEME,
     PROFILE_SETTINGS__NUM
 };
 enum THEME_ID{
+	THEME_DARK,
+	THEME_LIGHT,
+    THEME__NUM
+};
+enum THEME_COLOR_ID{
 	COLOR_DEFAULT,
-	COLOR_CURSOR,
 	COLOR_HEADER,
 	COLOR_ACTIVE,
 	COLOR_DANGER,
+	COLOR_CURSOR_DEFAULT,
 	COLOR_CURSOR_HEADER,
 	COLOR_CURSOR_ACTIVE,
 	COLOR_CURSOR_DANGER,
 	COLOR_BG_HEADER,
 	COLOR_BG_BODY,
 	COLOR_TOUCH,
-    THEME__NUM
+    THEME_COLOR__NUM
 };
 
 typedef struct Profile{
@@ -82,8 +88,7 @@ extern Profile profile_global;
 extern Profile profile_home;
 extern int32_t profile_settings[PROFILE_SETTINGS__NUM];
 extern int32_t profile_settings_def[PROFILE_SETTINGS__NUM];
-extern uint32_t theme[THEME__NUM];
-extern uint32_t theme_def[THEME__NUM];
+extern uint32_t theme[THEME_COLOR__NUM];
 
 void profile_addRemapRule(struct RemapRule rule);
 void profile_removeRemapRule(uint8_t idx);
@@ -100,8 +105,8 @@ struct Profile createProfile();
 bool profile_saveSettings();
 bool profile_loadSettings();
 
-bool profile_saveTheme();
-bool profile_loadTheme();
+bool profile_saveTheme(int themeId);
+bool profile_loadTheme(int themeId);
 
 bool profile_save(char* titleId);
 bool profile_load(char* titleId);

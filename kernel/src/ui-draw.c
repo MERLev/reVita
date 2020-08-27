@@ -45,6 +45,9 @@ char* str_btns[HW_BUTTONS_NUM] = {
 static char* str_deadband[] = {
 	"Game default", "Enable", "Disable"
 };
+const char* str_theme[THEME__NUM] = {
+	"DARK", "LIGHT"
+};
 char* getControllerName(int id){
 	if 		(id == 	SCE_CTRL_TYPE_UNPAIRED) return "Unpaired";
 	else if (id == 	SCE_CTRL_TYPE_PHY) 		return "Physical VITA";
@@ -152,7 +155,7 @@ void setColorHeader(uint8_t isCursor){
 }
 void setColor(uint8_t isCursor, uint8_t isDefault){
 	if (isCursor){
-		if (isDefault) renderer_setColor(theme[COLOR_CURSOR]);
+		if (isDefault) renderer_setColor(theme[COLOR_CURSOR_DEFAULT]);
 		else renderer_setColor(theme[COLOR_CURSOR_ACTIVE]);
 	} else {
 		if (isDefault) renderer_setColor(theme[COLOR_DEFAULT]);
@@ -162,7 +165,7 @@ void setColor(uint8_t isCursor, uint8_t isDefault){
 void setColorExt(uint8_t isCursor, uint8_t isDefault, uint8_t isDisabled){
 	if (isCursor){
 		if     (isDisabled) renderer_setColor(theme[COLOR_CURSOR_DANGER]);
-		else if (isDefault) renderer_setColor(theme[COLOR_CURSOR]);
+		else if (isDefault) renderer_setColor(theme[COLOR_CURSOR_DEFAULT]);
 		else                renderer_setColor(theme[COLOR_CURSOR_ACTIVE]);
 	} else {
 		if     (isDisabled) renderer_setColor(theme[COLOR_DANGER]);
@@ -219,7 +222,6 @@ void drawFooter(){
 void drawIndent(){
 	int y = (ui_menu->idx - calcStartingIndex(ui_menu->idx, ui_menu->num, ui_lines, BOTTOM_OFFSET)) * CHA_H
 		+ HEADER_HEIGHT + CHA_H / 2;
-	//renderer_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, theme[COLOR_HEADER);//Separator
 	renderer_drawRectangle(L_1 - 5, y - 1, UI_WIDTH - 2 * L_1 + 10, CHA_H + 2, theme[COLOR_BG_HEADER]);//BG
 	renderer_setColor(theme[COLOR_HEADER]);   
 }
@@ -242,7 +244,6 @@ void onDraw_remap(){
 			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
 		} else {
 			struct RemapRule* rr = &profile.remaps[ui_menu->entries[i].data];
-			//renderer_stripped(rr->disabled);
 			setColorExt(i == ui_menu->idx, true, !rr->propagate || rr->disabled);
 			char str[20] = "";
 			generateRemapActionName(str, &rr->trigger);
@@ -261,7 +262,6 @@ void onDraw_remap(){
 			renderer_drawString(L_1 + len + 3*CHA_W, y, str);
 			if (rr->turbo)
 				renderer_drawString(UI_WIDTH - 4*CHA_W, y, "$M");
-			//renderer_stripped(0);
 		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num - 1));
@@ -496,13 +496,22 @@ void onDraw_settings(){
 		int32_t id = ui_menu->entries[i].data;
 		
 		setColor(i == ui_menu->idx, profile_settings[id] == profile_settings_def[id]);
-			renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
-		if (id < 2){//Draw opening buttons
-			drawStringFRight(0, y, "%s", str_btns[profile_settings[id]]);
-		} else if (id == 2) {//Draw Save profile on close
-			drawStringFRight(0, y, "%s", str_yes_no[profile_settings[id]]);
-		} else if (id == 3) {//Startup delay
-			drawStringFRight(0, y, "%hhu", profile_settings[id]);
+		renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
+		switch (id){
+			case PROFILE_SETTINGS_KEY1:
+			case PROFILE_SETTINGS_KEY2:
+				drawStringFRight(0, y, "%s", str_btns[profile_settings[id]]);
+				break;
+			case PROFILE_SETTINGS_AUTOSAVE:
+				drawStringFRight(0, y, "%s", str_yes_no[profile_settings[id]]);
+				break;
+			case PROFILE_SETTINGS_DELAY:
+				drawStringFRight(0, y, "%hhu", profile_settings[id]);
+				break;
+			case PROFILE_SETTINGS_THEME:
+				drawStringFRight(0, y, "%s", str_theme[profile_settings[id]]);
+				break;
+			default: break;
 		}
 	}
 	drawFullScroll(ii > 0, ii + ui_lines < ui_menu->num, ((float)ui_menu->idx) / (ui_menu->num-1));

@@ -86,7 +86,6 @@ void onButton_main(uint32_t btn){
 		case SCE_CTRL_CIRCLE:
 			ui_close();
 			profile_saveSettings();
-			profile_saveTheme();
 			if (profile_settings[0])
 				profile_save(titleid);
 			remap_setup();
@@ -211,30 +210,50 @@ void onButton_settings(uint32_t btn){
 	int8_t id = ui_entry->data;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
-			if (id < 2)
-				profile_settings[id] 
-					= min(HW_BUTTONS_NUM - 1, profile_settings[id] + 1);
-			else if (id == 2)
-				profile_settings[id] = !profile_settings[id];
-			else if (id == 3)
-				profile_settings[id] 
-					= min(60, profile_settings[id] + 1);
+			switch (id){
+				case PROFILE_SETTINGS_KEY1:
+				case PROFILE_SETTINGS_KEY2:
+					profile_settings[id] = min(HW_BUTTONS_NUM - 1, profile_settings[id] + 1);
+					break;
+				case PROFILE_SETTINGS_AUTOSAVE:
+					profile_settings[id] = !profile_settings[id];
+					break;
+				case PROFILE_SETTINGS_DELAY:
+					profile_settings[id] = min(60, profile_settings[id] + 1);
+					break;
+				case PROFILE_SETTINGS_THEME:
+					profile_settings[id] = min(THEME__NUM - 1, profile_settings[id] + 1);
+					profile_loadTheme(profile_settings[id]);
+					break;
+				default: break;
+			}
 			break;
 		case SCE_CTRL_LEFT:
-			if (id < 2)
-				profile_settings[id] 
-					= max(0, profile_settings[id] - 1);
-			else if (id == 2)
-				profile_settings[id] = !profile_settings[id];
-			else if (id == 3)
-				profile_settings[id] 
-					= max(0, profile_settings[id] - 1);
+			switch (id){
+				case PROFILE_SETTINGS_KEY1:
+				case PROFILE_SETTINGS_KEY2:
+				case PROFILE_SETTINGS_DELAY:
+					profile_settings[id] = max(0, profile_settings[id] - 1);
+					break;
+				case PROFILE_SETTINGS_THEME:
+					profile_settings[id] = max(0, profile_settings[id] - 1);
+					profile_loadTheme(profile_settings[id]);
+					break;
+				case PROFILE_SETTINGS_AUTOSAVE:
+					profile_settings[id] = !profile_settings[id];
+					break;
+				default: break;
+			}
 			break;
 		case SCE_CTRL_SQUARE:
-			if (id <= 2)
-				profile_settings[id] = profile_settings_def[id];
+			profile_settings[id] = profile_settings_def[id];
+			if (id == PROFILE_SETTINGS_THEME)
+				profile_loadTheme(profile_settings[id]);
 			break;
-		case SCE_CTRL_START: profile_resetSettings(); break;
+		case SCE_CTRL_START: 
+			profile_loadTheme(profile_settings[id]);
+			profile_resetSettings(); 
+			break;
 		default: onButton_generic(btn);
 	}
 }

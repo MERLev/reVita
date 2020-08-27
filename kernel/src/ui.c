@@ -108,12 +108,13 @@ static struct Menu menu_controllers = (Menu){
 	.onDraw = onDraw_controller,
 	.entries = menu_controllers_entries};
 
-#define MENU_SETTINGS_NUM 4
+#define MENU_SETTINGS_NUM 5
 static struct MenuEntry menu_settings_entries[MENU_SETTINGS_NUM] = {
 	(MenuEntry){.name = "Menu trigger first  key", .data = PROFILE_SETTINGS_KEY1},
 	(MenuEntry){.name = "Menu trigger second key", .data = PROFILE_SETTINGS_KEY2},
 	(MenuEntry){.name = "Save profile on close", .data = PROFILE_SETTINGS_AUTOSAVE},
-	(MenuEntry){.name = "Startup delay", .data = PROFILE_SETTINGS_DELAY}};
+	(MenuEntry){.name = "Startup delay", .data = PROFILE_SETTINGS_DELAY},
+	(MenuEntry){.name = "Theme", .data = PROFILE_SETTINGS_THEME}};
 static struct Menu menu_settings = (Menu){
 	.id = MENU_SETTINGS_ID, 
 	.parent = MENU_MAIN_ID,
