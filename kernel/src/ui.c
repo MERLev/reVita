@@ -46,7 +46,7 @@ static struct Menu menu_analog = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_ANALOG_NUM, 
 	.name = "$u ANALOG STICKS", 
-	.footer = "$SRESET  $:RESET ALL",
+	.footer = "$SRESET  $RESET ALL",
 	.onButton = onButton_analog,
 	.onDraw = onDraw_analog,
 	.entries = menu_analog_entries};
@@ -66,7 +66,7 @@ static struct Menu menu_touch = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_TOUCH_NUM, 
 	.name = "$F TOUCH", 
-	.footer = "$SRESET  $:RESET ALL",
+	.footer = "$SRESET  $RESET ALL",
 	.onButton = onButton_touch,
 	.onDraw = onDraw_touch,
 	.entries = menu_touch_entries};
@@ -89,7 +89,7 @@ static struct Menu menu_gyro = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_GYRO_NUM, 
 	.name = "$Q GYROSCOPE", 
-	.footer = "$SRESET  $:RESET ALL",
+	.footer = "$SRESET  $RESET ALL",
 	.onButton = onButton_gyro,
 	.onDraw = onDraw_gyro,
 	.entries = menu_gyro_entries};
@@ -104,7 +104,7 @@ static struct Menu menu_controllers = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_CONTROLLER_NUM, 
 	.name = "$t CONTROLLER", 
-	.footer = "$SRESET  $:RESET ALL",
+	.footer = "$SRESET  $RESET ALL",
 	.onButton = onButton_controller,
 	.onDraw = onDraw_controller,
 	.entries = menu_controllers_entries};
@@ -121,7 +121,7 @@ static struct Menu menu_settings = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_SETTINGS_NUM, 
 	.name = "$| SETTINGS", 
-	.footer = "$SRESET  $:RESET ALL",
+	.footer = "$SRESET  $RESET ALL",
 	.onButton = onButton_settings,
 	.onDraw = onDraw_settings,
 	.entries = menu_settings_entries};
@@ -267,6 +267,7 @@ static struct Menu menu_pick_touch_point = (Menu){
 	.parent = MENU_REMAP_EMU_TYPE_ID,
 	.num = MENU_PICK_TOUCH_POINT_NUM, 
 	.name = "$i SELECT TOUCH POINT", 
+	.footer = "$U$uCHANGE", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchPoint,
 	.onDraw = onDraw_pickTouchPoint,
@@ -283,6 +284,7 @@ static struct Menu menu_pick_touch_zone = (Menu){
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_PICK_TOUCH_ZONE_NUM, 
 	.name = "$i SELECT TOUCH ZONE", 
+	.footer = "$UPOINT1 $uPOINT2", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchZone,
 	.onDraw = onDraw_pickTouchZone,
@@ -290,15 +292,16 @@ static struct Menu menu_pick_touch_zone = (Menu){
 
 #define MENU_PICK_TOUCH_SWIPE_NUM 4
 static struct MenuEntry menu_pick_touch_swipe_entries[MENU_PICK_TOUCH_SWIPE_NUM] = {
-	(MenuEntry){.name = "Point 1 x", .data = 0},
-	(MenuEntry){.name = "        y", .data = 1},
-	(MenuEntry){.name = "Point 2 x", .data = 2},
-	(MenuEntry){.name = "        y", .data = 3}};
+	(MenuEntry){.name = "Start Point x", .data = 0},
+	(MenuEntry){.name = "            y", .data = 1},
+	(MenuEntry){.name = "End   Point x", .data = 2},
+	(MenuEntry){.name = "            y", .data = 3}};
 static struct Menu menu_pick_touch_swipe = (Menu){
 	.id = MENU_PICK_TOUCH_SWIPE_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.num = MENU_PICK_TOUCH_SWIPE_NUM, 
 	.name = "$j SELECT SWIPE POINTS", 
+	.footer = "$USTART $uEND", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchZone,
 	.onDraw = onDraw_pickTouchZone,
@@ -521,7 +524,7 @@ struct RemapRule ui_ruleEdited; //Rule currently edited
 int ui_ruleEditedIdx; //Rule currently edited
 
 void onBuild_remap(Menu* m){
-	memset(&ui_ruleEdited, 0, sizeof(ui_ruleEdited));
+	ui_ruleEdited = remap_createRemapRule();
 	m->num = profile.remapsNum + MENU_REMAP_NUM;
 	for (int i = 0; i < profile.remapsNum; i++){
 		m->entries[i].data = i;

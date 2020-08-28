@@ -25,8 +25,8 @@ enum RULE_STATUS{
 //Status of each rule
 enum RULE_STATUS rs[CTRL_HOOKS_NUM][REMAP_NUM];
 
-TouchPoint T_FRONT_SIZE = (TouchPoint){1920, 1080};
-TouchPoint T_BACK_SIZE  = (TouchPoint){1920, 890};
+TouchPoints2 T_FRONT_SIZE;
+TouchPoints2 T_BACK_SIZE;
 static TouchPoint 
 	T_FRONT_L, T_FRONT_R, T_FRONT_TL, T_FRONT_TR, T_FRONT_BL, T_FRONT_BR,
 	T_BACK_L, T_BACK_R, T_BACK_TL, T_BACK_TR, T_BACK_BL, T_BACK_BR;
@@ -70,6 +70,18 @@ static uint8_t etBackIdCounter = 64;
 struct RemapRule remap_createRemapRule(){
 	struct RemapRule rr;
 	memset(&rr, 0, sizeof(rr));
+	rr.emu.param.tPoint.x = 200;
+	rr.emu.param.tPoint.y = 200;
+	rr.emu.param.tPoints.a.x = 200;
+	rr.emu.param.tPoints.a.y = 200;
+	rr.emu.param.tPoints.b.x = 1700;
+	rr.emu.param.tPoints.b.y = 825;
+	rr.trigger.param.tPoint.x = 200;
+	rr.trigger.param.tPoint.y = 200;
+	rr.trigger.param.tPoints.a.x = 200;
+	rr.trigger.param.tPoints.a.y = 200;
+	rr.trigger.param.tPoints.b.x = 1700;
+	rr.trigger.param.tPoints.b.y = 825;
 	return rr;
 }
 
@@ -222,17 +234,25 @@ void addEmu(RuleData* rd) {
 				case REMAP_TOUCH_SWIPE_SMART_DPAD:  
 					ete = storeTouchSmartSwipe(&etFront, emu->param.tPoint);
 					if (btn_has(rd->btns, SCE_CTRL_LEFT)) 
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x - profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
-								0, T_FRONT_SIZE.x);
+						ete->swipeEndPoint.x = clamp(
+							ete->swipeEndPoint.x - profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
+							T_FRONT_SIZE.a.x, 
+							T_FRONT_SIZE.b.x);
 					if (btn_has(rd->btns, SCE_CTRL_RIGHT)) 
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
-								0, T_FRONT_SIZE.x);
+						ete->swipeEndPoint.x = clamp(
+							ete->swipeEndPoint.x + profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
+							T_FRONT_SIZE.a.x, 
+							T_FRONT_SIZE.b.x);
 					if (btn_has(rd->btns, SCE_CTRL_UP)) 
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y - profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
-								0, T_FRONT_SIZE.y);
+						ete->swipeEndPoint.y = clamp(
+							ete->swipeEndPoint.y - profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
+							T_FRONT_SIZE.a.y, 
+							T_FRONT_SIZE.b.y);
 					if (btn_has(rd->btns, SCE_CTRL_DOWN)) 
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
-								0, T_FRONT_SIZE.y);
+						ete->swipeEndPoint.y = clamp(
+							ete->swipeEndPoint.y + profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
+							T_FRONT_SIZE.a.y, 
+							T_FRONT_SIZE.b.y);
 					if (!rd->rr->propagate){
 						btn_del(&rd->btnsProp, SCE_CTRL_LEFT);
 						btn_del(&rd->btnsProp, SCE_CTRL_RIGHT);
@@ -243,13 +263,16 @@ void addEmu(RuleData* rd) {
 				case REMAP_TOUCH_SWIPE_SMART_L:  
 					ete = storeTouchSmartSwipe(&etFront, emu->param.tPoint);
 					if (abs(127 - rd->ctrl->lx) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + 
-							((float)(rd->ctrl->lx - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
-							0, T_FRONT_SIZE.x);
+						ete->swipeEndPoint.x = clamp(
+							ete->swipeEndPoint.x + 
+								((float)(rd->ctrl->lx - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127,
+							T_FRONT_SIZE.a.x, 
+							T_FRONT_SIZE.b.x);
 					if (abs(127 - rd->ctrl->ly) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
 						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + 
-							((float)(rd->ctrl->ly - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
-							0, T_FRONT_SIZE.y);
+							((float)(rd->ctrl->ly - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127,
+							T_FRONT_SIZE.a.y, 
+							T_FRONT_SIZE.b.y);
 					if (!rd->rr->propagate)
 						rd->analogLeftProp.left = rd->analogLeftProp.right = 
 								rd->analogLeftProp.up = rd->analogLeftProp.down = 0;
@@ -257,13 +280,17 @@ void addEmu(RuleData* rd) {
 				case REMAP_TOUCH_SWIPE_SMART_R:  
 					ete = storeTouchSmartSwipe(&etFront, emu->param.tPoint); 
 					if (abs(127 - rd->ctrl->rx) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + 
-							((float)(rd->ctrl->rx - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
-							0, T_FRONT_SIZE.x);
+						ete->swipeEndPoint.x = clamp(
+							ete->swipeEndPoint.x + 
+								((float)(rd->ctrl->rx - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127,
+							T_FRONT_SIZE.a.x, 
+							T_FRONT_SIZE.b.x);
 					if (abs(127 - rd->ctrl->ry) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + 
-							((float)(rd->ctrl->ry - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
-							0, T_FRONT_SIZE.y);
+						ete->swipeEndPoint.y = clamp(
+							ete->swipeEndPoint.y + 
+								((float)(rd->ctrl->ry - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127,
+							T_FRONT_SIZE.a.y, 
+							T_FRONT_SIZE.b.y);
 					if (!rd->rr->propagate)
 						rd->analogRightProp.left = rd->analogRightProp.right = 
 								rd->analogRightProp.up = rd->analogRightProp.down = 0;
@@ -290,17 +317,25 @@ void addEmu(RuleData* rd) {
 				case REMAP_TOUCH_SWIPE_SMART_DPAD:  
 					ete = storeTouchSmartSwipe(&etBack, emu->param.tPoint);
 					if (btn_has(rd->btns, SCE_CTRL_LEFT)) 
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x - profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
-								0, T_BACK_SIZE.x);
+						ete->swipeEndPoint.x = clamp(
+							ete->swipeEndPoint.x - profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
+							T_BACK_SIZE.a.x, 
+							T_BACK_SIZE.b.x);
 					if (btn_has(rd->btns, SCE_CTRL_RIGHT)) 
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
-								0, T_BACK_SIZE.x);
+						ete->swipeEndPoint.x = clamp(
+							ete->swipeEndPoint.x + profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
+							T_BACK_SIZE.a.x, 
+							T_BACK_SIZE.b.x);
 					if (btn_has(rd->btns, SCE_CTRL_UP)) 
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y - profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
-								0, T_BACK_SIZE.y);
+						ete->swipeEndPoint.y = clamp(
+							ete->swipeEndPoint.y - profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
+							T_BACK_SIZE.a.y, 
+							T_BACK_SIZE.b.y);
 					if (btn_has(rd->btns, SCE_CTRL_DOWN)) 
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
-								0, T_BACK_SIZE.y);
+						ete->swipeEndPoint.y = clamp(
+							ete->swipeEndPoint.y + profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY],
+							T_BACK_SIZE.a.y, 
+							T_BACK_SIZE.b.y);
 					if (!rd->rr->propagate){
 						btn_del(&rd->btnsProp, SCE_CTRL_LEFT);
 						btn_del(&rd->btnsProp, SCE_CTRL_RIGHT);
@@ -311,13 +346,17 @@ void addEmu(RuleData* rd) {
 				case REMAP_TOUCH_SWIPE_SMART_L:   
 					ete = storeTouchSmartSwipe(&etBack, emu->param.tPoint);
 					if (abs(127 - rd->ctrl->lx) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + 
-							((float)(rd->ctrl->lx - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
-							0, T_BACK_SIZE.x);
+						ete->swipeEndPoint.x = clamp(
+							ete->swipeEndPoint.x + 
+								((float)(rd->ctrl->lx - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127,
+							T_BACK_SIZE.a.x, 
+							T_BACK_SIZE.b.x);
 					if (abs(127 - rd->ctrl->ly) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_Y])
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + 
-							((float)(rd->ctrl->ly - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
-							0, T_BACK_SIZE.y);
+						ete->swipeEndPoint.y = clamp(
+							ete->swipeEndPoint.y + 
+								((float)(rd->ctrl->ly - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127,
+							T_BACK_SIZE.a.y, 
+							T_BACK_SIZE.b.y);
 					if (!rd->rr->propagate)
 						rd->analogLeftProp.left = rd->analogLeftProp.right = 
 								rd->analogLeftProp.up = rd->analogLeftProp.down = 0;
@@ -325,13 +364,17 @@ void addEmu(RuleData* rd) {
 				case REMAP_TOUCH_SWIPE_SMART_R:  
 					ete = storeTouchSmartSwipe(&etBack, emu->param.tPoint); 
 					if (abs(127 - rd->ctrl->rx) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
-						ete->swipeEndPoint.x = clamp(ete->swipeEndPoint.x + 
-							((float)(rd->ctrl->rx - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
-							0, T_BACK_SIZE.x);
+						ete->swipeEndPoint.x = clamp(
+							ete->swipeEndPoint.x + 
+								((float)(rd->ctrl->rx - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127,
+							T_BACK_SIZE.a.x, 
+							T_BACK_SIZE.b.x);
 					if (abs(127 - rd->ctrl->ry) > profile.analog[PROFILE_ANALOG_LEFT_DEADZONE_X])
-						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + 
-							((float)(rd->ctrl->ry - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127, 
-							0, T_BACK_SIZE.y);
+						ete->swipeEndPoint.y = clamp(
+							ete->swipeEndPoint.y + 
+								((float)(rd->ctrl->ry - 127)) * profile.touch[PROFILE_TOUCH_SWIPE_SMART_SENSIVITY] / 127,
+							T_BACK_SIZE.a.y, 
+							T_BACK_SIZE.b.y);
 					if (!rd->rr->propagate)
 						rd->analogRightProp.left = rd->analogRightProp.right = 
 								rd->analogRightProp.up = rd->analogRightProp.down = 0;
@@ -868,57 +911,131 @@ void remap_resetBuffers(){
 }
 
 void initTouchParams(){
-	T_FRONT_L = (TouchPoint){T_FRONT_SIZE.x / 6, T_FRONT_SIZE.y / 2};
-	T_FRONT_R = (TouchPoint){T_FRONT_SIZE.x * 5 / 6, T_FRONT_SIZE.y / 2};
-	T_FRONT_TL = (TouchPoint){T_FRONT_SIZE.x / 6, T_FRONT_SIZE.y / 4};
-	T_FRONT_TR = (TouchPoint){T_FRONT_SIZE.x * 5 / 6, T_FRONT_SIZE.y / 4};
-	T_FRONT_BL = (TouchPoint){T_FRONT_SIZE.x / 6, T_FRONT_SIZE.y * 3 / 4};
-	T_FRONT_BR = (TouchPoint){T_FRONT_SIZE.x * 5 / 6, T_FRONT_SIZE.y * 3 / 4};
-	T_BACK_L = (TouchPoint){T_BACK_SIZE.x / 6, T_BACK_SIZE.y / 2};
-	T_BACK_R = (TouchPoint){T_BACK_SIZE.x * 5 / 6, T_BACK_SIZE.y / 2};
-	T_BACK_TL = (TouchPoint){T_BACK_SIZE.x / 6, T_BACK_SIZE.y / 4};
-	T_BACK_TR = (TouchPoint){T_BACK_SIZE.x * 5 / 6, T_BACK_SIZE.y / 4};
-	T_BACK_BL = (TouchPoint){T_BACK_SIZE.x / 6, T_BACK_SIZE.y * 3 / 4};
-	T_BACK_BR = (TouchPoint){T_BACK_SIZE.x * 5 / 6, T_BACK_SIZE.y * 3 / 4};
+	//Calculate predefinde touchpoints
+	T_FRONT_L = (TouchPoint){
+		(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 6,
+		(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 2};
+	T_FRONT_R = (TouchPoint){
+		(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) * 5 / 6,
+		(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 2};
+	T_FRONT_TL = (TouchPoint){
+		(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 6, 
+		(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 4};
+	T_FRONT_TR = (TouchPoint){
+		(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) * 5 / 6, 
+		(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 4};
+	T_FRONT_BL = (TouchPoint){
+		(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 6, 
+		(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) * 3 / 4};
+	T_FRONT_BR = (TouchPoint){
+		(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) * 5 / 6, 
+		(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) * 3 / 4};
 
+	T_BACK_L = (TouchPoint){
+		(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 6, 
+		(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 2};
+	T_BACK_R = (TouchPoint){
+		(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) * 5 / 6, 
+		(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 2};
+	T_BACK_TL = (TouchPoint){
+		(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 6, 
+		(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 4};
+	T_BACK_TR = (TouchPoint){
+		(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) * 5 / 6, 
+		(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 4};
+	T_BACK_BL = (TouchPoint){
+		(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 6, 
+		(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) * 3 / 4};
+	T_BACK_BR = (TouchPoint){
+		(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) * 5 / 6, 
+		(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) * 3 / 4};
+
+	//Calculate predefined touchzones
 	TZ_FRONT_L = (TouchPoints2){
-		(TouchPoint){0, 0}, 
-		(TouchPoint){T_FRONT_SIZE.x / 2, T_FRONT_SIZE.y}};
+		(TouchPoint){
+			0, 
+			0}, 
+		(TouchPoint){
+			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 2, 
+			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y)}};
 	TZ_FRONT_R = (TouchPoints2){
-		(TouchPoint){T_FRONT_SIZE.x / 2, 0}, 
-		(TouchPoint){T_FRONT_SIZE.x, T_FRONT_SIZE.y}};
+		(TouchPoint){
+			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 2, 
+			0}, 
+		(TouchPoint){
+			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x), 
+			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y)}};
 	TZ_FRONT_TL = (TouchPoints2){
 		(TouchPoint){0, 0}, 
-		(TouchPoint){T_FRONT_SIZE.x / 2, T_FRONT_SIZE.y / 2}};
+		(TouchPoint){
+			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 2, 
+			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 2}};
 	TZ_FRONT_TR = (TouchPoints2){
-		(TouchPoint){T_FRONT_SIZE.x / 2, 0}, 
-		(TouchPoint){T_FRONT_SIZE.x, T_FRONT_SIZE.y / 2}};
+		(TouchPoint){
+			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 2, 
+			0}, 
+		(TouchPoint){
+			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x), 
+			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 2}};
 	TZ_FRONT_BL = (TouchPoints2){
-		(TouchPoint){0, T_FRONT_SIZE.y / 2}, 
-		(TouchPoint){T_FRONT_SIZE.x / 2, T_FRONT_SIZE.y}};
+		(TouchPoint){
+			0, 
+			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 2}, 
+		(TouchPoint){
+			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 2, 
+			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y)}};
 	TZ_FRONT_BR = (TouchPoints2){
-		(TouchPoint){T_FRONT_SIZE.x / 2, T_FRONT_SIZE.y / 2}, 
-		(TouchPoint){T_FRONT_SIZE.x, T_FRONT_SIZE.y}};
+		(TouchPoint){
+			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 2, 
+			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 2}, 
+		(TouchPoint){
+			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x), 
+			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y)}};
 
 	TZ_BACK_L = (TouchPoints2){
-		(TouchPoint){0, 0}, 
-		(TouchPoint){T_BACK_SIZE.x / 2, T_BACK_SIZE.y}};
+		(TouchPoint){
+			0, 
+			0}, 
+		(TouchPoint){
+			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 2, 
+			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y)}};
 	TZ_BACK_R = (TouchPoints2){
-		(TouchPoint){T_BACK_SIZE.x / 2, 0}, 
-		(TouchPoint){T_BACK_SIZE.x, T_BACK_SIZE.y}};
+		(TouchPoint){
+			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 2, 
+			0}, 
+		(TouchPoint){
+			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x), 
+			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y)}};
 	TZ_BACK_TL = (TouchPoints2){
-		(TouchPoint){0, 0}, 
-		(TouchPoint){T_BACK_SIZE.x / 2, T_BACK_SIZE.y / 2}};
+		(TouchPoint){
+			0, 
+			0}, 
+		(TouchPoint){
+			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 2, 
+			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 2}};
 	TZ_BACK_TR = (TouchPoints2){
-		(TouchPoint){T_BACK_SIZE.x / 2, 0}, 
-		(TouchPoint){T_BACK_SIZE.x, T_BACK_SIZE.y / 2}};
+		(TouchPoint){
+			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 2, 
+			0}, 
+		(TouchPoint){
+			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x), 
+			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 2}};
 	TZ_BACK_BL = (TouchPoints2){
-		(TouchPoint){0, T_BACK_SIZE.y / 2}, 
-		(TouchPoint){T_BACK_SIZE.x / 2, T_BACK_SIZE.y}};
+		(TouchPoint){
+			0, 
+			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 2}, 
+		(TouchPoint){
+			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 2, 
+			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y)}};
 	TZ_BACK_BR = (TouchPoints2){
-		(TouchPoint){T_BACK_SIZE.x / 2, T_BACK_SIZE.y / 2}, 
-		(TouchPoint){T_BACK_SIZE.x, T_BACK_SIZE.y}};
+		(TouchPoint){
+			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 2, 
+			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 2}, 
+		(TouchPoint){
+			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x), 
+			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y)}};
 }
+
 void remap_setup(){
     //ksceKernelGetSystemTimeLow
 
@@ -932,13 +1049,18 @@ void remap_setup(){
 	// Detecting touch panels size
 	SceTouchPanelInfo pi;	
 	if (ksceTouchGetPanelInfo(SCE_TOUCH_PORT_FRONT, &pi) >= 0){
-		T_FRONT_SIZE.x = pi.maxAaX;
-		T_FRONT_SIZE.y = pi.maxAaY;
+		T_FRONT_SIZE.a.x = pi.minAaX;
+		T_FRONT_SIZE.a.y = pi.minAaY;
+		T_FRONT_SIZE.b.x = pi.maxAaX;
+		T_FRONT_SIZE.b.y = pi.maxAaY;
 	}
 	if (ksceTouchGetPanelInfo(SCE_TOUCH_PORT_BACK, &pi) >= 0){
-		T_BACK_SIZE.x = pi.maxAaX;
-		T_BACK_SIZE.y = pi.maxAaY;
+		T_BACK_SIZE.a.x = pi.minAaX;
+		T_BACK_SIZE.a.y = pi.minAaY;
+		T_BACK_SIZE.b.x = pi.maxAaX;
+		T_BACK_SIZE.b.y = pi.maxAaY;
 	}
+	initTouchParams();
 }
 
 void remap_init(){
@@ -949,6 +1071,14 @@ void remap_init(){
 		remappedBuffersBack[i] = (SceTouchData*)&_remappedBuffersBack[i][0];
 	}
 	remap_resetBuffers();
+	T_FRONT_SIZE = (TouchPoints2){
+		(TouchPoint){0, 0},
+		(TouchPoint){1919, 1087}
+	};
+	T_BACK_SIZE  = (TouchPoints2){
+		(TouchPoint){0, 108},
+		(TouchPoint){1919, 889}
+	};
 	initTouchParams();
 }
 

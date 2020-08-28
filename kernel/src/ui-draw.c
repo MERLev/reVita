@@ -546,12 +546,11 @@ void onDraw_credits(){
 }
 
 void drawTouchPointer(uint32_t panel, TouchPoint* tp){
-	int left = tp->x - 8;
-	left *= (float)fbWidth / ((panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE.x : T_BACK_SIZE.x);
-	int top = tp->y - 10;
-	top *= (float)fbHeight / ((panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE.y : T_BACK_SIZE.y); //Scale to framebuffer size
+	TouchPoints2 size = (panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE : T_BACK_SIZE;
+	int x = (float)fbWidth / (size.b.x - size.a.x) * (tp->x - size.a.x);
+	int y = (float)fbHeight / (size.b.y - size.a.y) * (tp->y - size.a.y);
 	renderer_setColor(theme[COLOR_TOUCH]);
-	renderer_drawImageDirectlyToFB(left - 8, top - 1, ICN_TOUCH_X, ICN_TOUCH_Y, ICN_TOUCH);
+	renderer_drawImageDirectlyToFB(x - 11, y - 5, ICN_TOUCH_X, ICN_TOUCH_Y, ICN_TOUCH);
 }
 
 void drawEmulatedPointersForPanel(uint32_t panel){
@@ -561,32 +560,42 @@ void drawEmulatedPointersForPanel(uint32_t panel){
 	for (int i = 0; i < et->num; i++)
 		if (et->reports[i].isSwipe){
 			if (profile.touch[PROFILE_TOUCH_DRAW_POINTER_SWIPE])
-				drawTouchPointer(SCE_TOUCH_PORT_FRONT, &et->reports[i].swipeCurrentPoint);
+				drawTouchPointer(panel, &et->reports[i].swipeCurrentPoint);
 		} else if (et->reports[i].isSmartSwipe){
 			if (profile.touch[PROFILE_TOUCH_DRAW_POINTER_SMART_SWIPE])
-				drawTouchPointer(SCE_TOUCH_PORT_FRONT, &et->reports[i].swipeEndPoint);
+				drawTouchPointer(panel, &et->reports[i].swipeEndPoint);
 		} else {
 			if (profile.touch[PROFILE_TOUCH_DRAW_POINTER_POINT])
-				drawTouchPointer(SCE_TOUCH_PORT_FRONT, &et->reports[i].point);
+				drawTouchPointer(panel, &et->reports[i].point);
 		}
 }
 
 void drawTouchZone(uint32_t panel, TouchPoints2* tz){
-	//ToDo draw rectangle
 	renderer_setColor(theme[COLOR_TOUCH]);
-	renderer_drawLineThick(tz->a.x / 2, tz->a.y / 2, tz->a.x / 2, tz->b.y / 2, 3); //Vertical 1
-	renderer_drawLineThick(tz->a.x / 2, tz->a.y / 2, tz->b.x / 2, tz->a.y / 2, 3); //Horizontal 1
-	renderer_drawLineThick(tz->a.x / 2, tz->b.y / 2, tz->b.x / 2, tz->b.y / 2, 3); //Vertical 2
-	renderer_drawLineThick(tz->b.x / 2, tz->a.y / 2, tz->b.x / 2, tz->b.y / 2, 3); //Horizontal 2
-	drawTouchPointer(panel, &(TouchPoint){.x = tz->a.x, .y = tz->a.y});
-	drawTouchPointer(panel, &(TouchPoint){.x = tz->b.x, .y = tz->b.y});
+	TouchPoints2 size = (panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE : T_BACK_SIZE;
+	int ax = (float)fbWidth  / (size.b.x - size.a.x) * max(0, (tz->a.x - size.a.x)),
+		bx = (float)fbWidth  / (size.b.x - size.a.x) * max(0, (tz->b.x - size.a.x)),
+		ay = (float)fbHeight / (size.b.y - size.a.y) * max(0, (tz->a.y - size.a.y)),
+		by = (float)fbHeight / (size.b.y - size.a.y) * max(0, (tz->b.y - size.a.y));
+	renderer_drawLineThick(ax, ay, bx, ay, 3); // Horizontal 1
+	renderer_drawLineThick(ax, by, bx, by, 3); // Horizontal 2
+	renderer_drawLineThick(ax, ay, ax, by, 3); // Vertical 1
+	renderer_drawLineThick(bx, ay, bx, by, 3); // Vertical 2
+
+	drawTouchPointer(panel, &tz->a);
+	drawTouchPointer(panel, &tz->b);
 }
 void drawTouchSwipe(uint32_t panel, TouchPoints2* tz){
-	//ToDo draw rectangle
+	TouchPoints2 size = (panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE : T_BACK_SIZE;
 	renderer_setColor(theme[COLOR_TOUCH]);
-	renderer_drawLineThick(tz->a.x / 2, tz->a.y / 2, tz->b.x / 2, tz->b.y / 2, 3);
-	drawTouchPointer(panel, &(TouchPoint){.x = tz->a.x, .y = tz->a.y});
-	drawTouchPointer(panel, &(TouchPoint){.x = tz->b.x, .y = tz->b.y});
+	renderer_drawLineThick(
+		(float)fbWidth  / (size.b.x - size.a.x) * max(0, (tz->a.x - size.a.x)), 
+		(float)fbHeight / (size.b.y - size.a.y) * max(0, (tz->a.y - size.a.y)), 
+		(float)fbWidth  / (size.b.x - size.a.x) * max(0, (tz->b.x - size.a.x)), 
+		(float)fbHeight / (size.b.y - size.a.y) * max(0, (tz->b.y - size.a.y)), 
+		3);
+	drawTouchPointer(panel, &tz->a);
+	drawTouchPointer(panel, &tz->b);
 }
 
 void drawBody() {

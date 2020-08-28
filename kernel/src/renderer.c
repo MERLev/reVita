@@ -121,7 +121,7 @@ bool readPixel(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const unsigned ch
 }
 
 void drawPixelToFB(int32_t x, int32_t y, uint32_t color){
-	if (x > 0 && x < fbWidth && y > 0 && y < fbHeight)
+	if (x >= 0 && x < fbWidth && y >= 0 && y < fbHeight)
 		ksceKernelMemcpyKernelToUser((uintptr_t)&fbfbBase_user[y * fbPitch + x], &color, sizeof(color));
 }
 
