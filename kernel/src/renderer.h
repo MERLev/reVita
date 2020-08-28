@@ -14,6 +14,8 @@ void renderer_writeToFB(int64_t timeFromOpene);
 void renderer_cpy();
 
 void renderer_stripped(uint8_t flag);
+void renderer_drawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
+void renderer_drawLineThick(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t thickness);
 void renderer_drawImage(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const unsigned char* img);
 void renderer_drawImageDirectlyToFB(int32_t x, int32_t y, uint32_t w, uint32_t h, const unsigned char* img);
 void renderer_drawCharacter(int character, int x, int y);

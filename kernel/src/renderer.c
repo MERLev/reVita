@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "font.h"
 #include "icons.h"
 #include "renderer.h"
@@ -21,6 +23,7 @@ uint32_t uiWidth, uiHeight;
 
 #define UI_CORNER_RADIUS 9
 #define ANIMATION_TIME  120000
+
 static const unsigned char UI_CORNER_OFF[UI_CORNER_RADIUS] = {9, 7, 5, 4, 3, 2, 2, 1, 1};
 
 void renderer_drawIcon(char character, int x, int y){
@@ -115,33 +118,81 @@ bool readPixel(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const unsigned ch
 	uint32_t idx = (realW * y + x) / 8;
 	uint8_t bitN = 7 - ((realW * y + x) % 8);
 	return READ(img[idx], bitN);
-	// uint32_t idx = (w * y + x) / 8;
-	// uint8_t bitN = 7 - ((w * y + x) % 8);
-	// return READ(img[idx], bitN);
+}
+
+void drawPixelToFB(int32_t x, int32_t y, uint32_t color){
+	if (x > 0 && x < fbWidth && y > 0 && y < fbHeight)
+		ksceKernelMemcpyKernelToUser((uintptr_t)&fbfbBase_user[y * fbPitch + x], &color, sizeof(color));
+}
+
+void renderer_drawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2) {
+	int32_t xinc, yinc, x, y;
+	int32_t dx, dy, e;
+	dx = abs(x2 - x1);
+	dy = abs(y2 - y1);
+	if (x1 < x2)
+		xinc = 1;
+	else
+		xinc = -1;
+	if (y1 < y2)
+		yinc = 1;
+	else
+		yinc = -1;
+	x = x1;
+	y = y1;
+	drawPixelToFB(x, y, color);
+	if (dx >= dy) {
+		e = (2 * dy) - dx;
+		while (x != x2) {
+			if (e < 0) {
+				e += (2 * dy);
+			} else {
+				e += (2 * (dy - dx));
+				y += yinc;
+			}
+			x += xinc;
+			drawPixelToFB(x, y, color);
+		}
+	} else {
+		e = (2 * dx) - dy;
+		while (y != y2) {
+			if (e < 0) {
+				e += (2 * dx);
+			} else {
+				e += (2 * (dx - dy));
+				x += xinc;
+			}
+			y += yinc;
+			drawPixelToFB(x, y, color);
+		}
+	}
+}
+
+void renderer_drawLineThick(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t thickness){
+	int32_t wy, wx;
+	renderer_drawLine(x1, y1, x2, y2);
+	if (abs(x1 - x2) > abs(y1 - y2)){
+		// wy = thickness + floorSqrt(thickness) * (((float) abs(y1 - y2)) / abs(x1 - x2));
+		wy = thickness + floorSqrt(thickness * (((float) abs(y1 - y2)) / abs(x1 - x2)));
+		for (int i = 0; i < wy; i++) {
+			renderer_drawLine(x1, y1 - i, x2, y2 - i);
+			renderer_drawLine(x1, y1 + i, x2, y2 + i);
+		}
+	} else {
+		// wx = thickness + floorSqrt(thickness) * (((float) abs(x1 - x2)) / abs(y1 - y2));
+		wx = thickness + floorSqrt(thickness * (((float) abs(x1 - x2)) / abs(y1 - y2)));
+		for (int i = 0; i < wx; i++) {
+			renderer_drawLine(x1 - i, y1, x2 - i, y2);
+			renderer_drawLine(x1 + i, y1, x2 + i, y2);
+		}
+	}
 }
 
 void renderer_drawImageDirectlyToFB(int32_t x, int32_t y, uint32_t w, uint32_t h, const unsigned char* img){
-	int32_t realX = max(x, 0), 
-			realY = max(y, 0),
-			marginX = realX - x,
-			marginY = realY - y,
-			realW = w - (realX - x) + (min(x + w, fbWidth) - (x + w)),
-			realH = h - (realY - y) + (min(y + h, fbHeight) - (y + h));
-	// uint32_t cache[realW];
-	for (int j = 0; j < realH; j++){
-		// ksceKernelMemcpyUserToKernel(&cache[0],
-		// 	(uintptr_t)&fbfbBase_user[(j + realY) * fbPitch + realX],
-		// 	sizeof(uint32_t) * realW);
-		// for (int i = 0; i < realW; i++)
-		// 	if (readPixel(i + marginX, j + marginY, w, h, img))
-		// 		cache[i] = color; 
-		// ksceKernelMemcpyKernelToUser((uintptr_t)&fbfbBase_user[(j + realY) * fbPitch + realX],
-		// 	&cache[0],
-		// 	sizeof(uint32_t) * realW);
-		for (int i = 0; i < realW; i++)
-			if (readPixel(i + marginX, j + marginY, w, h, img))
-				ksceKernelMemcpyKernelToUser((uintptr_t)&fbfbBase_user[(j + realY) * fbPitch + realX + i],
-						&color, sizeof(color));
+	for (int j = 0; j < h; j++){
+		for (int i = 0; i < w; i++)
+			if (readPixel(i, j, w, h, img))
+				drawPixelToFB(x + i, y + j, color);
 	}
 }
 

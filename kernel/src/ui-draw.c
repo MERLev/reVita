@@ -573,6 +573,18 @@ void drawEmulatedPointersForPanel(uint32_t panel){
 
 void drawTouchZone(uint32_t panel, TouchPoints2* tz){
 	//ToDo draw rectangle
+	renderer_setColor(theme[COLOR_TOUCH]);
+	renderer_drawLineThick(tz->a.x / 2, tz->a.y / 2, tz->a.x / 2, tz->b.y / 2, 3); //Vertical 1
+	renderer_drawLineThick(tz->a.x / 2, tz->a.y / 2, tz->b.x / 2, tz->a.y / 2, 3); //Horizontal 1
+	renderer_drawLineThick(tz->a.x / 2, tz->b.y / 2, tz->b.x / 2, tz->b.y / 2, 3); //Vertical 2
+	renderer_drawLineThick(tz->b.x / 2, tz->a.y / 2, tz->b.x / 2, tz->b.y / 2, 3); //Horizontal 2
+	drawTouchPointer(panel, &(TouchPoint){.x = tz->a.x, .y = tz->a.y});
+	drawTouchPointer(panel, &(TouchPoint){.x = tz->b.x, .y = tz->b.y});
+}
+void drawTouchSwipe(uint32_t panel, TouchPoints2* tz){
+	//ToDo draw rectangle
+	renderer_setColor(theme[COLOR_TOUCH]);
+	renderer_drawLineThick(tz->a.x / 2, tz->a.y / 2, tz->b.x / 2, tz->b.y / 2, 3);
 	drawTouchPointer(panel, &(TouchPoint){.x = tz->a.x, .y = tz->a.y});
 	drawTouchPointer(panel, &(TouchPoint){.x = tz->b.x, .y = tz->b.y});
 }
@@ -601,8 +613,12 @@ void drawDirectlyToFB(){
 			ra = (RemapAction*) ui_menu->data;
 			uint32_t panel = (ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE) ?
 				SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
-			if (ui_menu->id == MENU_PICK_TOUCH_POINT_ID) drawTouchPointer(panel, &ra->param.tPoint); 
-			else drawTouchZone(panel, &ra->param.tPoints); 
+			if (ui_menu->id == MENU_PICK_TOUCH_POINT_ID) 
+				drawTouchPointer(panel, &ra->param.tPoint); 
+			else if (ui_menu->id == MENU_PICK_TOUCH_SWIPE_ID) 
+				drawTouchSwipe(panel, &ra->param.tPoints); 
+			else if (ui_menu->id == MENU_PICK_TOUCH_ZONE_ID) 
+				drawTouchZone(panel, &ra->param.tPoints); 
 			break;
 		default: break;
 	}
