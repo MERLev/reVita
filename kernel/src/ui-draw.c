@@ -616,7 +616,7 @@ void ui_draw(const SceDisplayFrameBuf *pParam){
 		drawHeader();
 		drawBody();
 		drawFooter();
-		renderer_writeToFB();
+		renderer_writeToFB(tickUIOpen);
 		drawDirectlyToFB();	
 	} else {
 		renderer_setFB(pParam);

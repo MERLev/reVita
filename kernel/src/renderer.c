@@ -1,3 +1,4 @@
+#include <vitasdkkern.h>
 #include <psp2kern/display.h> 
 #include <psp2kern/kernel/sysmem.h> 
 #include <stdio.h>
@@ -19,6 +20,7 @@ uint32_t fbWidth, fbHeight, fbPitch;
 uint32_t uiWidth, uiHeight;
 
 #define UI_CORNER_RADIUS 9
+#define ANIMATION_TIME  120000
 static const unsigned char UI_CORNER_OFF[UI_CORNER_RADIUS] = {9, 7, 5, 4, 3, 2, 2, 1, 1};
 
 void renderer_drawIcon(char character, int x, int y){
@@ -204,10 +206,21 @@ void renderer_setFB(const SceDisplayFrameBuf *param){
 	fbPitch = param->pitch;
 }
 
-void renderer_writeToFB(){
+void renderer_writeToFB(int64_t tickOpened){
+	int64_t tick = ksceKernelGetSystemTimeWide();
+
 	uint32_t ui_x = (max(fbWidth - uiWidth, 0)) / 2;
 	uint32_t ui_y = (max(fbHeight - uiHeight, 0)) / 2;
-	for (int i = 0; i < uiHeight; i++){
+
+	float multiplyer = 0;
+	if (ANIMATION_TIME >= tick - tickOpened)
+		multiplyer = ((float)(ANIMATION_TIME - (int)(tick - tickOpened))) / ANIMATION_TIME;
+
+	int32_t ui_yAnimated = ui_y - (uiHeight + ui_y) * multiplyer;
+	uint32_t ui_yCalculated = max(ui_yAnimated, 0);
+	uint32_t ui_cutout = ui_yAnimated >= 0 ? 0 : -ui_yAnimated;
+		
+	for (int i = 0; i < uiHeight - ui_cutout; i++){
 		uint32_t off = 0;
 		if (i < UI_CORNER_RADIUS){
 			off = UI_CORNER_OFF[i];
@@ -215,8 +228,8 @@ void renderer_writeToFB(){
 			off = UI_CORNER_OFF[uiHeight - i];
 		}
 		ksceKernelMemcpyKernelToUser(
-			(uintptr_t)&fbfbBase_user[(ui_y + i) * fbPitch + ui_x + off],
-			&fb_base[i * uiWidth + off],
+			(uintptr_t)&fbfbBase_user[(ui_yCalculated + i) * fbPitch + ui_x + off],
+			&fb_base[(i + ui_cutout) * uiWidth + off],
 			sizeof(uint32_t) * (uiWidth - 2 * off));		
 	}
 }

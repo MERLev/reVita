@@ -11,6 +11,7 @@
 
 Menu* menus[MENU_ID__NUM];
 
+int64_t tickUIOpen = 0;
 void onBuild_remap(Menu* m);
 
 #define MENU_MAIN_NUM 10
@@ -600,6 +601,8 @@ void ui_open(const SceDisplayFrameBuf *pParam){
 	ui_menu = &menu_main;
 	ui_setIdx(0);
 	ui_opened = 1;
+	tickUIOpen = ksceKernelGetSystemTimeWide();
+	LOG("tickUIOpen=%lli\n", tickUIOpen);
 }
 void ui_close(){
 	ui_opened = 0;

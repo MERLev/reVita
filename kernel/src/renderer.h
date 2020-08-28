@@ -10,7 +10,7 @@ void renderer_init();
 void renderer_destroy();
 
 void renderer_setFB(const SceDisplayFrameBuf *param);
-void renderer_writeToFB();
+void renderer_writeToFB(int64_t timeFromOpene);
 void renderer_cpy();
 
 void renderer_stripped(uint8_t flag);
