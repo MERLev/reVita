@@ -417,7 +417,7 @@ void remEmu(RuleData* rd) {
 	}
 }
 
-void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS * statuses) {
+void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses) {
 	if (profile.controller[PROFILE_CONTROLLER_SWAP_BUTTONS])
 		swapTriggersBumpers(ctrl);
 	

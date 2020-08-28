@@ -68,19 +68,27 @@ int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 
 int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[4], port, pData, nBufs);
-	return remaPSV2k_onTouch(port, pData, ret, 0);
-}
-int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
-	int ret = TAI_CONTINUE(int, refs[5], port, pData, nBufs);
-	return remaPSV2k_onTouch(port, pData, ret, 1);
+	if (ret > 0)
+		return remaPSV2k_onTouch(port, pData, ret, 0);
+	return ret;
 }
 int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
+	int ret = TAI_CONTINUE(int, refs[5], port, pData, nBufs);
+	if (ret > 0)
+		return remaPSV2k_onTouch(port, pData, ret, 2);
+	return ret;
+}
+int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[6], port, pData, nBufs);
-	return remaPSV2k_onTouch(port, pData, ret, 2);
+	if (ret > 0)
+		return remaPSV2k_onTouch(port, pData, ret, 1);
+	return ret;
 }
 int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	int ret = TAI_CONTINUE(int, refs[7], port, pData, nBufs);
-	return remaPSV2k_onTouch(port, pData, ret, 3);
+	if (ret > 0)
+		return remaPSV2k_onTouch(port, pData, ret, 3);
+	return ret;
 }
 
 // Simplified generic hooking function
@@ -135,9 +143,9 @@ int module_start(SceSize argc, const void *args) {
 	hookFunction(0x15F96FB0, sceCtrlReadBufferNegative_patched);
 
 	hookFunction(0x169A1D58, sceTouchRead_patched);
-	hookFunction(0x39401BEA, sceTouchRead2_patched);
 	hookFunction(0xFF082DF0, sceTouchPeek_patched);
-	hookFunction(0x3AD3D0A1, sceTouchPeek2_patched);
+	// hookFunction(0x39401BEA, sceTouchRead2_patched);
+	// hookFunction(0x3AD3D0A1, sceTouchPeek2_patched);
 
 	return SCE_KERNEL_START_SUCCESS;
 }
