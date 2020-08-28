@@ -232,8 +232,9 @@ int getButtonId(char* n){
 }
 
 const char* SETTINGS_STR[PROFILE_SETTINGS__NUM] = {
-	"KEY1",
-	"KEY2",
+	"REMAP_ENABLED",
+	"KEYS_MENU",
+	"KEYS_REMAPS_TOGGLE",
 	"AUTOSAVE",
 	"DELAY",
 	"THEME"
@@ -381,16 +382,24 @@ bool generateINISettings(char* buff){
 
 	ini_addSection(ini, SECTION_STR[SECTION_SETTINGS]);
 	for (int i = 0; i < PROFILE_SETTINGS__NUM; i++){
+		int btns = profile_settings[PROFILE_SETTINGS_KEYS_MENU];
 		switch(i){
 			case PROFILE_SETTINGS_THEME: 
 				ini_addStr(ini, SETTINGS_STR[i], THEME_STR[profile_settings[i]]);
 				break;
-			case PROFILE_SETTINGS_KEY1:
-			case PROFILE_SETTINGS_KEY2:
+			case PROFILE_SETTINGS_KEYS_REMAPS_TOOGLE:
+				btns = profile_settings[PROFILE_SETTINGS_KEYS_MENU];
+			case PROFILE_SETTINGS_KEYS_MENU:
+				ini_addList(ini, SETTINGS_STR[i]);
+				for (int i = 0; i < HW_BUTTONS_NUM; i++)
+					if (btn_has(btns, HW_BUTTONS[i]))
+						ini_addListStr(ini, HW_BUTTONS_STR[i]);
+				break;
 			case PROFILE_SETTINGS_DELAY:
 				ini_addInt(ini, SETTINGS_STR[i], profile_settings[i]);
 				break;
 			case PROFILE_SETTINGS_AUTOSAVE:
+			case PROFILE_SETTINGS_REMAP_ENABLED:
 				ini_addBool(ini, SETTINGS_STR[i], profile_settings[i]);
 				break;
 			default: break;
@@ -510,18 +519,27 @@ bool parseINISettings(char* buff){
 		if (getSectionId(ini->section) != SECTION_SETTINGS)
 			continue;
 		int id = getSettingsId(ini->name);
+		int32_t* btns = &profile_settings[PROFILE_SETTINGS_KEYS_MENU];
 		if (id < 0)
 			continue;
 		switch(id){
 			case PROFILE_SETTINGS_THEME: 
 				profile_settings[id] = getThemeId(ini->val);
 				break;
-			case PROFILE_SETTINGS_KEY1:
-			case PROFILE_SETTINGS_KEY2:
+			case PROFILE_SETTINGS_KEYS_MENU:
+				btns = &profile_settings[PROFILE_SETTINGS_KEYS_REMAPS_TOOGLE];
+			case PROFILE_SETTINGS_KEYS_REMAPS_TOOGLE:
+				while(ini_nextListVal(ini)){
+					int btnId = getButtonId(ini->listVal);
+					if (btnId >= 0)
+						btn_add((uint32_t*)btns, HW_BUTTONS[btnId]);
+				}
+				break;
 			case PROFILE_SETTINGS_DELAY:
 				profile_settings[id] = parseInt(ini->val);
 				break;
 			case PROFILE_SETTINGS_AUTOSAVE:
+			case PROFILE_SETTINGS_REMAP_ENABLED:
 				profile_settings[id] = parseBool(ini->val);
 				break;
 			default: break;
@@ -897,8 +915,9 @@ void setDefProfile(){
 	profile_def.controller[PROFILE_CONTROLLER_PORT] = 0;
 	profile_def.controller[PROFILE_CONTROLLER_SWAP_BUTTONS] = 0;
 
-	profile_settings_def[PROFILE_SETTINGS_KEY1] = 4;
-	profile_settings_def[PROFILE_SETTINGS_KEY2] = 3;
+	profile_settings_def[PROFILE_SETTINGS_REMAP_ENABLED] = true;
+	profile_settings_def[PROFILE_SETTINGS_KEYS_MENU] = SCE_CTRL_START + SCE_CTRL_SQUARE;
+	profile_settings_def[PROFILE_SETTINGS_KEYS_REMAPS_TOOGLE] = SCE_CTRL_START + SCE_CTRL_TRIANGLE;
 	profile_settings_def[PROFILE_SETTINGS_AUTOSAVE] = 1;
 	profile_settings_def[PROFILE_SETTINGS_DELAY] = 10;
 	profile_settings_def[PROFILE_SETTINGS_THEME] = THEME_DARK;

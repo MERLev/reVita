@@ -129,6 +129,7 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
         if (profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret; \
+        if (!profile_settings[PROFILE_SETTINGS_REMAP_ENABLED]) return ret; \
         ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
 		ret = onInput(bufsScd[(index)], ret, (index)); \
         ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], bufsScd[(index)], ret * sizeof(SceCtrlData)); \
@@ -141,6 +142,7 @@ DECL_FUNC_HOOK_PATCH_CTRL(1, sceCtrlReadBufferPositive)
 #define DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
+        if (!profile_settings[PROFILE_SETTINGS_REMAP_ENABLED]) return ret; \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
         if (profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret; \
         ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
@@ -155,6 +157,7 @@ DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(3, sceCtrlReadBufferNegative)
 #define DECL_FUNC_HOOK_PATCH_CTRL_EXT(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
+        if (!profile_settings[PROFILE_SETTINGS_REMAP_ENABLED]) return ret; \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
 		if (isInternalExtCall) return ret; \
         if (profile.controller[PROFILE_CONTROLLER_ENABLED] && \
@@ -175,6 +178,7 @@ DECL_FUNC_HOOK_PATCH_CTRL_EXT(9, sceCtrlReadBufferPositiveExt2)
 #define DECL_FUNC_HOOK_PATCH_CTRL_EXT_NEGATIVE(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
+        if (!profile_settings[PROFILE_SETTINGS_REMAP_ENABLED]) return ret; \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
 		if (isInternalExtCall) return ret; \
         ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
@@ -209,6 +213,7 @@ DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(15, ksceCtrlReadBufferNegative)
 #define DECL_FUNC_HOOK_PATCH_TOUCH(index, name) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
+        if (!profile_settings[PROFILE_SETTINGS_REMAP_ENABLED]) return ret; \
 	    if (profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret; \
         used_funcs[(index)] = 1; \
         if (nBufs < 1 || nBufs > BUFFERS_NUM) return nBufs; \
@@ -220,6 +225,7 @@ DECL_FUNC_HOOK_PATCH_TOUCH(17, ksceTouchRead)
 #define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(index, name) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, int region) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
+        if (!profile_settings[PROFILE_SETTINGS_REMAP_ENABLED]) return ret; \
 	    if (profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret; \
         used_funcs[(index)] = 1; \
         if (nBufs < 1 || nBufs > BUFFERS_NUM) return nBufs; \
@@ -318,8 +324,10 @@ static int main_thread(SceSize args, void *argp) {
 
         //Checking for menu triggering
         if (!ui_opened 
-                && (ctrl.buttons & HW_BUTTONS[profile_settings[0]]) 
-                && (ctrl.buttons & HW_BUTTONS[profile_settings[1]])) {
+                // && (ctrl.buttons & HW_BUTTONS[profile_settings[PROFILE_SETTINGS_KEY1]]) 
+                // && (ctrl.buttons & HW_BUTTONS[profile_settings[PROFILE_SETTINGS_KEY2]])) {
+                && (ctrl.buttons & SCE_CTRL_SQUARE) 
+                && (ctrl.buttons & SCE_CTRL_START)) {
             ui_open();
             remap_resetBuffers();
         }

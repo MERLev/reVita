@@ -88,6 +88,10 @@ void renderer_drawIcon(char character, int x, int y){
 		case 'V': idx = ICON_PSTV; break;
 		case 'c': idx = ICON_CONFIG; break;
 		case '!': idx = ICON_DANGER; break;
+		case '~': idx = ICON_ON_L; break;
+		case '`': idx = ICON_ON_R; break;
+		case '@': idx = ICON_OFF_L; break;
+		case '#': idx = ICON_OFF_R; break;
 		default: break;
 	}
 	renderer_drawImage(x + 1, y, ICON_W, ICON_H, &ICON[idx * 54]);

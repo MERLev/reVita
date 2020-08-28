@@ -30,7 +30,7 @@ static struct Menu menu_main = (Menu){
 	.id = MENU_MAIN_ID, 
 	.num = MENU_MAIN_NUM, 
 	.name = "$P MAIN MENU",
-	.footer = "                       updated by Mer1e",
+	.footer = "$;TOGGLE REMAPS                by Mer1e",
 	.onButton = onButton_main,
 	.entries = menu_main_entries};
 
@@ -46,7 +46,7 @@ static struct Menu menu_analog = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_ANALOG_NUM, 
 	.name = "$u ANALOG STICKS", 
-	.footer = "$SRESET  $RESET ALL",
+	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_analog,
 	.onDraw = onDraw_analog,
 	.entries = menu_analog_entries};
@@ -66,7 +66,7 @@ static struct Menu menu_touch = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_TOUCH_NUM, 
 	.name = "$F TOUCH", 
-	.footer = "$SRESET  $RESET ALL",
+	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_touch,
 	.onDraw = onDraw_touch,
 	.entries = menu_touch_entries};
@@ -89,7 +89,7 @@ static struct Menu menu_gyro = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_GYRO_NUM, 
 	.name = "$Q GYROSCOPE", 
-	.footer = "$SRESET  $RESET ALL",
+	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_gyro,
 	.onDraw = onDraw_gyro,
 	.entries = menu_gyro_entries};
@@ -104,15 +104,16 @@ static struct Menu menu_controllers = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_CONTROLLER_NUM, 
 	.name = "$t CONTROLLER", 
-	.footer = "$SRESET  $RESET ALL",
+	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_controller,
 	.onDraw = onDraw_controller,
 	.entries = menu_controllers_entries};
 
-#define MENU_SETTINGS_NUM 5
+#define MENU_SETTINGS_NUM 6
 static struct MenuEntry menu_settings_entries[MENU_SETTINGS_NUM] = {
-	(MenuEntry){.name = "Menu trigger first  key", .data = PROFILE_SETTINGS_KEY1},
-	(MenuEntry){.name = "Menu trigger second key", .data = PROFILE_SETTINGS_KEY2},
+	(MenuEntry){.name = "Remap rules enabled", .data = PROFILE_SETTINGS_REMAP_ENABLED},
+	(MenuEntry){.name = "Menu trigger keys", .data = PROFILE_SETTINGS_KEYS_MENU},
+	(MenuEntry){.name = "Toggle remap rules keys", .data = PROFILE_SETTINGS_KEYS_REMAPS_TOOGLE},
 	(MenuEntry){.name = "Save profile on close", .data = PROFILE_SETTINGS_AUTOSAVE},
 	(MenuEntry){.name = "Startup delay", .data = PROFILE_SETTINGS_DELAY},
 	(MenuEntry){.name = "Theme", .data = PROFILE_SETTINGS_THEME}};
@@ -121,7 +122,7 @@ static struct Menu menu_settings = (Menu){
 	.parent = MENU_MAIN_ID,
 	.num = MENU_SETTINGS_NUM, 
 	.name = "$| SETTINGS", 
-	.footer = "$SRESET  $RESET ALL",
+	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_settings,
 	.onDraw = onDraw_settings,
 	.entries = menu_settings_entries};

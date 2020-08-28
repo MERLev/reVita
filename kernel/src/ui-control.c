@@ -91,6 +91,9 @@ void onButton_main(uint32_t btn){
 				profile_save(titleid);
 			remap_setup();
 			break;
+		case SCE_CTRL_SELECT:
+			profile_settings[PROFILE_SETTINGS_REMAP_ENABLED] = !profile_settings[PROFILE_SETTINGS_REMAP_ENABLED];
+			break;
 		default: onButton_generic(btn);
 	}
 }
@@ -212,11 +215,8 @@ void onButton_settings(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
 			switch (id){
-				case PROFILE_SETTINGS_KEY1:
-				case PROFILE_SETTINGS_KEY2:
-					profile_settings[id] = min(HW_BUTTONS_NUM - 1, profile_settings[id] + 1);
-					break;
 				case PROFILE_SETTINGS_AUTOSAVE:
+				case PROFILE_SETTINGS_REMAP_ENABLED:
 					profile_settings[id] = !profile_settings[id];
 					break;
 				case PROFILE_SETTINGS_DELAY:
@@ -231,8 +231,6 @@ void onButton_settings(uint32_t btn){
 			break;
 		case SCE_CTRL_LEFT:
 			switch (id){
-				case PROFILE_SETTINGS_KEY1:
-				case PROFILE_SETTINGS_KEY2:
 				case PROFILE_SETTINGS_DELAY:
 					profile_settings[id] = max(0, profile_settings[id] - 1);
 					break;
@@ -241,12 +239,26 @@ void onButton_settings(uint32_t btn){
 					profile_loadTheme(profile_settings[id]);
 					break;
 				case PROFILE_SETTINGS_AUTOSAVE:
+				case PROFILE_SETTINGS_REMAP_ENABLED:
 					profile_settings[id] = !profile_settings[id];
 					break;
 				default: break;
 			}
 			break;
 		case SCE_CTRL_SQUARE:
+			profile_settings[id] = profile_settings_def[id];
+			if (id == PROFILE_SETTINGS_THEME)
+				profile_loadTheme(profile_settings[id]);
+			break;
+		case SCE_CTRL_CROSS:
+			switch (id){
+				case PROFILE_SETTINGS_KEYS_MENU:
+				case PROFILE_SETTINGS_KEYS_REMAPS_TOOGLE:
+					ui_openMenuSmart(MENU_PICK_BUTTON_ID, 
+						ui_menu->id, ui_menu->id, (uint32_t)&profile_settings[id]); 
+					break;
+				default: break;
+			}
 			profile_settings[id] = profile_settings_def[id];
 			if (id == PROFILE_SETTINGS_THEME)
 				profile_loadTheme(profile_settings[id]);

@@ -206,8 +206,18 @@ void drawHeader(){
 	renderer_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
 	renderer_setColor(theme[COLOR_HEADER]);
 	if (ui_menu->id == MENU_MAIN_ID){
-		renderer_drawStringF(L_0, 3, "$P remaPSV2 v.%s", VERSION);
+		renderer_drawStringF(L_0, 3, "     remaPSV2 v.%s", VERSION);
 		renderer_drawString(UI_WIDTH - CHA_W * strlen(titleid) - 10, 2, titleid);
+		if (profile_settings[PROFILE_SETTINGS_REMAP_ENABLED]){
+			renderer_setColor(0x00329e15);
+			renderer_drawStringF(L_0, 3, "$~", VERSION);
+			renderer_drawStringF(L_0 + 22, 3, "$`", VERSION);
+		} else {
+			renderer_setColor(theme[COLOR_DANGER]);
+			renderer_drawStringF(L_0, 3, "$@", VERSION);
+			renderer_drawStringF(L_0 + 22, 3, "$#", VERSION);
+		}
+		renderer_setColor(theme[COLOR_HEADER]);
 	} else	
 		renderer_drawString(L_0, 3, ui_menu->name);
 	
@@ -498,11 +508,14 @@ void onDraw_settings(){
 		setColor(i == ui_menu->idx, profile_settings[id] == profile_settings_def[id]);
 		renderer_drawString(L_1, y += CHA_H, ui_menu->entries[i].name);
 		switch (id){
-			case PROFILE_SETTINGS_KEY1:
-			case PROFILE_SETTINGS_KEY2:
-				drawStringFRight(0, y, "%s", str_btns[profile_settings[id]]);
+			case PROFILE_SETTINGS_KEYS_MENU:
+			case PROFILE_SETTINGS_KEYS_REMAPS_TOOGLE:
+				;char str[10];
+				generateBtnComboName(str, (uint32_t)profile_settings[id], 6);
+				drawStringFRight(0, y, "%s", str);
 				break;
 			case PROFILE_SETTINGS_AUTOSAVE:
+			case PROFILE_SETTINGS_REMAP_ENABLED:
 				drawStringFRight(0, y, "%s", str_yes_no[profile_settings[id]]);
 				break;
 			case PROFILE_SETTINGS_DELAY:
