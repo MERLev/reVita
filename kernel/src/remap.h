@@ -2,6 +2,8 @@
 #define _REMAP_H_
 
 #include <psp2/touch.h>
+#include <stdbool.h>
+
 #define BUFFERS_NUM             64
 #define MULTITOUCH_FRONT_NUM    6
 #define MULTITOUCH_BACK_NUM		4

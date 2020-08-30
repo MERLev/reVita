@@ -3,7 +3,7 @@
 #include <psp2kern/power.h> 
 #include <psp2kern/appmgr.h> 
 #include "main.h"
-#include "profile.h"
+#include "fio/profile.h"
 #include "sysactions.h"
 
 // void sceAppMgrDestroyOtherAppByPidForDriver();

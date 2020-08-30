@@ -2,7 +2,7 @@
 #include <psp2/motion.h>
 #include <stdbool.h>
 #include <string.h>
-#include "profile.h"
+#include "fio/profile.h"
 #include "remapsv.h"
 #include "log.h"
 

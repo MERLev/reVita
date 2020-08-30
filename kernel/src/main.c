@@ -8,9 +8,11 @@
 
 #include "vitasdkext.h"
 #include "main.h"
-#include "ui.h"
+#include "gui/gui.h"
 #include "remap.h"
-#include "profile.h"
+#include "fio/profile.h"
+#include "fio/theme.h"
+#include "fio/settings.h"
 #include "common.h"
 #include "log.h"
 #include "userspace.h"
@@ -46,32 +48,23 @@ static bool delayedStartDone = false;
 SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
 int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
 
+
 int onInput(SceCtrlData *ctrl, int nBufs, int hookId){
 	//Nothing to do here
 	if (nBufs < 1)
 		return nBufs;	
 
-	//Reset wheel gyro buttons pressed
-	if (profile.gyro[7] == 1 
-            && (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile.gyro[8]]) 
-			&& (ctrl[nBufs - 1].buttons & HW_BUTTONS[profile.gyro[9]])) {
-		//ToDo
-        //sceMotionReset();		
-	}
-
-	//In-menu inputs handling
-	if (ui_opened){
-		// ui_onInput(&ctrl[nBufs - 1]);
-		
-		//Nullify all inputs
+	//Nullify all inputs when UI open
+	if (gui_opened){
 		for (int i = 0; i < nBufs; i++){
 			ctrl[i].buttons = 0;
             ctrl[i].lx = ctrl[i].ly = ctrl[i].rx = ctrl[i].ry = 127;
         }
-		
 		return nBufs;
 	}
-	
+
+	if (!settings[SETT_REMAP_ENABLED].v.b) return nBufs;
+
 	//Execute remapping
 	int ret = remap_controls(ctrl, nBufs, hookId);
 	return ret;
@@ -104,20 +97,21 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 	//Disable in menu
     if (isInternalTouchCall) return nBufs;
 
-	if (ui_opened) {
+    //Nullify input calls when UI is open
+	if (gui_opened) {
 		pData[0] = pData[nBufs - 1];
 		pData[0].reportNum = 0;
 		return 1;
-	} else {
-		return remap_touch(port, pData, nBufs, hookId);
-    }
-	return nBufs;
+	}
+    
+	if (!settings[SETT_REMAP_ENABLED].v.b) return nBufs;
+
+    return remap_touch(port, pData, nBufs, hookId);
 }
 
 /*export*/ int remaPSV2k_onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
     if (nBufs < 1 || nBufs > BUFFERS_NUM) return nBufs;
-	if (!profile.touch[PROFILE_TOUCH_PSTV_MODE]) return nBufs;
-    // LOG("onTouchPatched%i(port:%i, nBufs:%i)\n", hookId, port, nBufs);	
+	if (!profile.entries[PR_TO_PSTV_MODE].v.b) return nBufs;	
     ksceKernelMemcpyUserToKernel(bufsStd[hookId], (uintptr_t)&pData[0], nBufs * sizeof(SceTouchData)); 
     int ret = onTouch(port, bufsStd[hookId], nBufs, hookId); 
     ksceKernelMemcpyKernelToUser((uintptr_t)&pData[0], bufsStd[hookId], ret * sizeof(SceTouchData)); 
@@ -128,8 +122,7 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
-        if (profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret; \
-        if (!profile_settings[PROFILE_SETTINGS_REMAP_ENABLED]) return ret; \
+        if (profile.entries[PR_CO_ENABLED].v.b) return ret; \
         ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
 		ret = onInput(bufsScd[(index)], ret, (index)); \
         ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], bufsScd[(index)], ret * sizeof(SceCtrlData)); \
@@ -142,9 +135,8 @@ DECL_FUNC_HOOK_PATCH_CTRL(1, sceCtrlReadBufferPositive)
 #define DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
-        if (!profile_settings[PROFILE_SETTINGS_REMAP_ENABLED]) return ret; \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
-        if (profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret; \
+        if (profile.entries[PR_CO_ENABLED].v.b) return ret; \
         ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
 		ret = onInputNegative(bufsScd[(index)], ret, (index)); \
         ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], bufsScd[(index)], ret * sizeof(SceCtrlData)); \
@@ -157,11 +149,10 @@ DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(3, sceCtrlReadBufferNegative)
 #define DECL_FUNC_HOOK_PATCH_CTRL_EXT(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
-        if (!profile_settings[PROFILE_SETTINGS_REMAP_ENABLED]) return ret; \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
 		if (isInternalExtCall) return ret; \
-        if (profile.controller[PROFILE_CONTROLLER_ENABLED] && \
-                port != profile.controller[PROFILE_CONTROLLER_PORT]) return ret; \
+        if (profile.entries[PR_CO_ENABLED].v.b && \
+                port != profile.entries[PR_CO_PORT].v.u) return ret; \
         ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
 		ret = onInput(bufsScd[(index)], ret, (index)); \
         ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], bufsScd[(index)], ret * sizeof(SceCtrlData)); \
@@ -178,7 +169,6 @@ DECL_FUNC_HOOK_PATCH_CTRL_EXT(9, sceCtrlReadBufferPositiveExt2)
 #define DECL_FUNC_HOOK_PATCH_CTRL_EXT_NEGATIVE(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
-        if (!profile_settings[PROFILE_SETTINGS_REMAP_ENABLED]) return ret; \
         if (ret < 1 || ret > BUFFERS_NUM) return ret; \
 		if (isInternalExtCall) return ret; \
         ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
@@ -213,8 +203,7 @@ DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(15, ksceCtrlReadBufferNegative)
 #define DECL_FUNC_HOOK_PATCH_TOUCH(index, name) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
-        if (!profile_settings[PROFILE_SETTINGS_REMAP_ENABLED]) return ret; \
-	    if (profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret; \
+	    if (profile.entries[PR_TO_PSTV_MODE].v.b) return ret; \
         used_funcs[(index)] = 1; \
         if (nBufs < 1 || nBufs > BUFFERS_NUM) return nBufs; \
         return onTouch(port, pData, ret, (index - 16)); \
@@ -225,8 +214,7 @@ DECL_FUNC_HOOK_PATCH_TOUCH(17, ksceTouchRead)
 #define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(index, name) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, int region) { \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
-        if (!profile_settings[PROFILE_SETTINGS_REMAP_ENABLED]) return ret; \
-	    if (profile.touch[PROFILE_TOUCH_PSTV_MODE]) return ret; \
+        if (profile.entries[PR_TO_PSTV_MODE].v.b) return ret; \
         used_funcs[(index)] = 1; \
         if (nBufs < 1 || nBufs > BUFFERS_NUM) return nBufs; \
         return onTouch(port, pData, ret, (index - 16)); \
@@ -241,7 +229,7 @@ int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplay
         goto DISPLAY_HOOK_RET; // Do not draw over SceShell overlay
 
     if (pParam)  
-        ui_draw(pParam);
+        gui_draw(pParam);
 
 DISPLAY_HOOK_RET:
     return TAI_CONTINUE(int, refs[20], head, index, pParam, sync);
@@ -272,7 +260,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             if (strncmp(titleid, titleidLocal, sizeof(titleid))) {
                 strnclone(titleid, titleidLocal, sizeof(titleid));
                 processid = pid;
-                ui_close();
+                gui_close();
                 for (int i = 0; i < HOOKS_NUM; i++)
                     used_funcs[i] = false;
                 profile_load(titleid);
@@ -287,7 +275,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
                 if (strncmp(titleid, HOME, sizeof(titleid))) {
                     strnclone(titleid, HOME, sizeof(titleid));
                     processid = -1;
-                    ui_close();
+                    gui_close();
                     for (int i = 0; i < HOOKS_NUM; i++)
                         used_funcs[i] = false;
                     profile_load(HOME);
@@ -308,10 +296,11 @@ PROCEVENT_EXIT:
 }
 
 static int main_thread(SceSize args, void *argp) {
+    uint32_t oldBtns = 0;
     while (thread_run) {
         //Activate delayed start
         if (!delayedStartDone 
-            && startTick + profile_settings[3] * 1000000 < ksceKernelGetSystemTimeWide()){
+            && startTick + settings[3].v.u * 1000000 < ksceKernelGetSystemTimeWide()){
             remap_setup();
 	        delayedStartDone = true;
         }
@@ -322,19 +311,24 @@ static int main_thread(SceSize args, void *argp) {
             continue;
         }
 
-        //Checking for menu triggering
-        if (!ui_opened 
-                // && (ctrl.buttons & HW_BUTTONS[profile_settings[PROFILE_SETTINGS_KEY1]]) 
-                // && (ctrl.buttons & HW_BUTTONS[profile_settings[PROFILE_SETTINGS_KEY2]])) {
-                && (ctrl.buttons & SCE_CTRL_SQUARE) 
-                && (ctrl.buttons & SCE_CTRL_START)) {
-            ui_open();
+        if (!gui_opened && 
+                btn_has(ctrl.buttons, settings[SETT_KEYS_MENU].v.u) &&
+                !btn_has(oldBtns, settings[SETT_KEYS_MENU].v.u)) {
+            gui_open();
             remap_resetBuffers();
         }
 
+        if (!gui_opened && 
+                btn_has(ctrl.buttons, settings[SETT_KEYS_REMAPS_TOOGLE].v.u) &&
+                !btn_has(oldBtns, settings[SETT_KEYS_REMAPS_TOOGLE].v.u)) {
+            FLIP(settings[SETT_REMAP_ENABLED].v.b);
+        }
+
+        oldBtns = ctrl.buttons;
+
         //In-menu inputs handling
-        if (ui_opened){
-            ui_onInput(&ctrl);
+        if (gui_opened){
+            gui_onInput(&ctrl);
         }
         
         ksceKernelDelayThread(30 * 1000);
@@ -350,13 +344,16 @@ void hook(uint8_t hookId, const char *module, uint32_t library_nid, uint32_t fun
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
     LOG("\n RemaPSV2 started\n");
-
     snprintf(titleid, sizeof(titleid), HOME);
+    settings_init();
+    theme_init();
     profile_init();
-    ui_init();
+    gui_init();
     remap_init();
     userspace_init();
     startTick = ksceKernelGetSystemTimeWide();
+
+	theme_load(settings[SETT_THEME].v.u);
 
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
 
@@ -446,8 +443,10 @@ int module_stop(SceSize argc, const void *args) {
     //Free mem
 	ksceKernelFreeMemBlock(bufsMemId);
 
+    settings_destroy();
+    theme_destroy();
     profile_destroy();
-    ui_destroy();
+    gui_destroy();
     remap_destroy();
     userspace_destroy();
     log_flush();

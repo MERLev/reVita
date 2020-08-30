@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "ini.h"
-#include "log.h"
+#include "../log.h"
 
 #define TRUE_STR "TRUE"
 #define FALSE_STR "FALSE"

@@ -23,17 +23,32 @@ link_directories(
 
 add_executable(${PROJECT_NAME}
   src/main.c
-  src/userspace.c
-  src/profile.c
-  src/ini.c
   src/common.c
   src/remap.c
-  src/ui.c
-  src/ui-control.c
-  src/ui-draw.c
-  src/renderer.c
-  src/log.c
   src/sysactions.c
+  src/userspace.c
+  src/fio/ini.c
+  src/fio/fio.c
+  src/fio/profile.c
+  src/fio/theme.c
+  src/fio/settings.c
+  src/gui/renderer.c
+  src/gui/gui.c
+  src/gui/menu/menu-main.c
+  src/gui/menu/menu-analog.c
+  src/gui/menu/menu-touch.c
+  src/gui/menu/menu-gyro.c
+  src/gui/menu/menu-controller.c
+  src/gui/menu/menu-settings.c
+  src/gui/menu/menu-credits.c
+  src/gui/menu/menu-profile.c
+  src/gui/menu/menu-debug-hooks.c
+  src/gui/menu/menu-debug-buttons.c
+  src/gui/menu/menu-pick-button.c
+  src/gui/menu/menu-pick-analog.c
+  src/gui/menu/menu-pick-touch.c
+  src/gui/menu/menu-remap.c
+  src/log.c
 )
 
 target_link_libraries(${PROJECT_NAME}

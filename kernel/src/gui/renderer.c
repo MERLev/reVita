@@ -9,8 +9,8 @@
 #include "font.h"
 #include "icons.h"
 #include "renderer.h"
-#include "common.h"
-#include "log.h"
+#include "../common.h"
+#include "../log.h"
 
 uint32_t color;
 uint8_t stripped;

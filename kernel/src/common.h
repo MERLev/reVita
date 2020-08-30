@@ -11,6 +11,8 @@
 #define READ(x,y) ((0u == (x & (1<<y)))?0u:1u)
 #define TOGGLE(x,y) (x ^= (1<<y))
 
+#define FLIP(B) (B=!B)
+
 int32_t clamp(int32_t value, int32_t mini, int32_t maxi);
 int32_t clampSmart(int32_t val, int32_t min, int32_t max);
 bool btn_has(uint32_t btns, uint32_t btn);

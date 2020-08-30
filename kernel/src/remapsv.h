@@ -1,7 +1,7 @@
 #ifndef _REMAPSV_H_
 #define _REMAPSV_H_
 
-#include "profile.h"
+#include "fio/profile.h"
 
 /*export*/ int remaPSV2k_onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId);
 

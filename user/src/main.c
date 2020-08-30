@@ -26,7 +26,7 @@ int patchToExt(SceCtrlData *ctrl, int nBufs, bool positive){
 	SceCtrlData pstv_fakepad;
 	//ToDo move elsewhere
 	sceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
-	int ret = sceCtrlPeekBufferPositiveExt2(profile.controller[PROFILE_CONTROLLER_PORT], &pstv_fakepad, 1);
+	int ret = sceCtrlPeekBufferPositiveExt2(profile.entries[PR_CO_PORT].v.u, &pstv_fakepad, 1);
 	if (ret > 0){
 		ctrl[nBufs - 1] = pstv_fakepad;
 		if (positive) 
@@ -39,28 +39,28 @@ int patchToExt(SceCtrlData *ctrl, int nBufs, bool positive){
 
 int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, nBufs);
-	if (!profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret;
+	if (!profile.entries[PR_CO_ENABLED].v.b) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, true);
 	return ret;
 }
 int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, nBufs);
-	if (!profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret;
+	if (!profile.entries[PR_CO_ENABLED].v.b) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, true);
 	return ret;
 }
 int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, nBufs);
-	if (!profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret;
+	if (!profile.entries[PR_CO_ENABLED].v.b) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, false);
 	return ret;
 }
 int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, nBufs);
-	if (!profile.controller[PROFILE_CONTROLLER_ENABLED]) return ret;
+	if (!profile.entries[PR_CO_ENABLED].v.b) return ret;
 	if (ret > 0)
 		ret = patchToExt(ctrl, ret, false);
 	return ret;
@@ -112,7 +112,7 @@ static int config_thread(SceSize args, void *argp) {
     while (thread_config_run) {
 		if (profile.version != remaPSV2k_getProfileVersion()){
 			remaPSV2k_getProfile(&profile);
-			sceMotionSetDeadband(profile.gyro[PROFILE_GYRO_DEADBAND]);
+			sceMotionSetDeadband(profile.entries[PR_GY_DEADBAND].v.b);
 		}
 		sceKernelDelayThread(DELAY_CONFIG_CHECK);
     }
