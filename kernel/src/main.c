@@ -202,6 +202,8 @@ DECL_FUNC_HOOK_PATCH_CTRL_KERNEL_NEGATIVE(15, ksceCtrlReadBufferNegative)
 */
 #define DECL_FUNC_HOOK_PATCH_TOUCH(index, name) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
+        if (profile.entries[PR_TO_SWAP].v.b) \
+            port = !port; \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
 	    if (profile.entries[PR_TO_PSTV_MODE].v.b) return ret; \
         used_funcs[(index)] = 1; \
@@ -213,6 +215,8 @@ DECL_FUNC_HOOK_PATCH_TOUCH(17, ksceTouchRead)
 
 #define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(index, name) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, int region) { \
+        if (profile.entries[PR_TO_SWAP].v.b) \
+            port = !port; \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
         if (profile.entries[PR_TO_PSTV_MODE].v.b) return ret; \
         used_funcs[(index)] = 1; \

@@ -424,8 +424,15 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses) {
 	// Gathering real touch data
 	SceTouchData front, back;
 	isInternalTouchCall = true;
-	int frontRet = ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
-	int backRet = ksceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
+	int frontRet;
+	int backRet;
+	if (profile.entries[PR_TO_SWAP].v.b && !profile.entries[PR_TO_PSTV_MODE].v.b){
+		frontRet = ksceTouchPeek(SCE_TOUCH_PORT_BACK, &front, 1);
+		backRet = ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &back, 1);
+	} else {
+		frontRet = ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
+		backRet = ksceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
+	}
 	isInternalTouchCall = false;
 
 	RuleData rd;

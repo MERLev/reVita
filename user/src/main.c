@@ -19,6 +19,8 @@ static uint8_t current_hook = 0;
 static SceUID hooks[HOOKS_NUM];
 static tai_hook_ref_t refs[HOOKS_NUM];
 
+bool isInternalTouchCall = false;
+
 Profile profile;
 
 //Used to add support for R1/R3/L1/L3
@@ -65,26 +67,33 @@ int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 		ret = patchToExt(ctrl, ret, false);
 	return ret;
 }
-
 int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
+	if (profile.entries[PR_TO_SWAP].v.b)
+		port = !port;
 	int ret = TAI_CONTINUE(int, refs[4], port, pData, nBufs);
 	if (ret > 0)
 		return remaPSV2k_onTouch(port, pData, ret, 0);
 	return ret;
 }
 int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
+	if (profile.entries[PR_TO_SWAP].v.b)
+		port = !port;
 	int ret = TAI_CONTINUE(int, refs[5], port, pData, nBufs);
 	if (ret > 0)
 		return remaPSV2k_onTouch(port, pData, ret, 2);
 	return ret;
 }
 int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
+	if (profile.entries[PR_TO_SWAP].v.b)
+		port = !port;
 	int ret = TAI_CONTINUE(int, refs[6], port, pData, nBufs);
 	if (ret > 0)
 		return remaPSV2k_onTouch(port, pData, ret, 1);
 	return ret;
 }
 int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
+	if (profile.entries[PR_TO_SWAP].v.b)
+		port = !port;
 	int ret = TAI_CONTINUE(int, refs[7], port, pData, nBufs);
 	if (ret > 0)
 		return remaPSV2k_onTouch(port, pData, ret, 3);

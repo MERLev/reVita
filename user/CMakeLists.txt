@@ -39,6 +39,7 @@ target_link_libraries(${PROJECT_NAME}
   SceIofilemgr_stub_weak
   SceSysmem_stub_weak
   SceMotion_stub 
+  SceTouch_stub 
 )
 
 set_target_properties(${PROJECT_NAME}
