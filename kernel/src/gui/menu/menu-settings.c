@@ -5,43 +5,25 @@
 #include "../gui.h"
 #include "../renderer.h"
 
-const char* str_theme[THEME__NUM] = {
-	"DARK", "LIGHT"
-};
-
 void onButton_settings(uint32_t btn){
 	int8_t id = gui_getEntry()->data;
 	switch (btn) {
 		case SCE_CTRL_RIGHT:
 			switch (id){
-				case SETT_AUTOSAVE:
-				case SETT_REMAP_ENABLED:
-					settings[id].v.b = !settings[id].v.b;
+				case SETT_KEYS_MENU:
+				case SETT_KEYS_REMAPS_TOOGLE:
+					// Do nothing
 					break;
-				case SETT_DELAY_INIT:
-					settings[id].v.u = min(60, settings[id].v.u + 1);
-					break;
-				case SETT_THEME:
-					settings[id].v.u = min(THEME__NUM - 1, settings[id].v.u + 1);
-					theme_load(settings[id].v.u);
-					break;
-				default: break;
+				default: profile_inc(&settings[id], 1); break;
 			}
 			break;
 		case SCE_CTRL_LEFT:
 			switch (id){
-				case SETT_DELAY_INIT:
-					settings[id].v.u = max(0, settings[id].v.u - 1);
+				case SETT_KEYS_MENU:
+				case SETT_KEYS_REMAPS_TOOGLE:
+					// Do nothing
 					break;
-				case SETT_THEME:
-					settings[id].v.u = max(0, settings[id].v.u - 1);
-					theme_load(settings[id].v.u);
-					break;
-				case SETT_AUTOSAVE:
-				case SETT_REMAP_ENABLED:
-					settings[id].v.b = !settings[id].v.b;
-					break;
-				default: break;
+				default: profile_dec(&settings[id], 1); break;
 			}
 			break;
 		case SCE_CTRL_SQUARE:
@@ -91,7 +73,7 @@ void onDraw_settings(unsigned int menuY){
 				gui_drawStringFRight(0, y, "%hhu", settings[id].v.u);
 				break;
 			case SETT_THEME:
-				gui_drawStringFRight(0, y, "%s", str_theme[settings[id].v.u]);
+				gui_drawStringFRight(0, y, "%s", settings[id].key);
 				break;
 			default: break;
 		}

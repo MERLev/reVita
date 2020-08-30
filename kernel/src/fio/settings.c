@@ -192,11 +192,15 @@ void setDefSettings(){
 		.id = SETT_DELAY_INIT,
 		.type = TYPE_UINT32,
 		.def.u = 10, 
+		.min.u = 0,
+		.max.u = 60,
 		.key = "DELAY_INIT"});
 	set((ProfileEntry){
 		.id = SETT_THEME,
 		.def.u = THEME_DARK, 
 		.type = TYPE_UINT32,
+		.min.u = 0,
+		.max.u = THEME__NUM - 1,
 		.key = "THEME"});
 }
 
