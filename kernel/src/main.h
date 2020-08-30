@@ -28,7 +28,7 @@ enum H_ID{
     H_K_INV_PROC_EV_HANDLER,
     HOOKS_NUM
 };
-7
+
 #define TOUCH_HOOKS_NUM 			4
 #define CTRL_HOOKS_NUM 				12
 

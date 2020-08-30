@@ -7,6 +7,7 @@ void menu_initTouch();
 void menu_initGyro();
 void menu_initController();
 void menu_initSettings();
+void menu_initHotkeys();
 void menu_initCredits();
 void menu_initProfile();
 

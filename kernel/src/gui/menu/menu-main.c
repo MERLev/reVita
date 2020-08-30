@@ -31,8 +31,9 @@ static struct MenuEntry menu_main_entries[MENU_MAIN_NUM] = {
 	(MenuEntry){.name = "$Q Gyroscope", .data = MENU_GYRO_ID},
 	(MenuEntry){.name = "$t External gamepads", .data = MENU_CONTROLLER_ID},
 	(MenuEntry){.name = "$b Show hooks", .data = MENU_HOKS_ID},
-	(MenuEntry){.name = "$b Show buttons", .data = MENU_DEBUG_BUTTONS_ID},
+	// (MenuEntry){.name = "$b Show buttons", .data = MENU_DEBUG_BUTTONS_ID},
 	(MenuEntry){.name = "$| Settings", .data = MENU_SETT_ID},
+	(MenuEntry){.name = "$| Hotkeys", .data = MENU_HOTKEYS_ID},
 	(MenuEntry){.name = "$/ Profiles", .data = MENU_PROFILE_ID},
 	(MenuEntry){.name = "$? Credits", .data = MENU_CREDITS_ID},};
 static struct Menu menu_main = (Menu){

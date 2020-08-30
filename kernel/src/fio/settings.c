@@ -38,18 +38,9 @@ bool generateINISettings(char* buff){
 
 	ini_addSection(ini, SECTION);
 	for (int i = 0; i < SETT__NUM; i++){
-		uint32_t btns = settings[SETT_KEYS_MENU].v.u;
 		switch(i){
 			case SETT_THEME: 
 				ini_addStr(ini, settings[i].key, THEME_STR[settings[i].v.u]);
-				break;
-			case SETT_KEYS_REMAPS_TOOGLE:
-				btns = settings[SETT_KEYS_REMAPS_TOOGLE].v.u;
-			case SETT_KEYS_MENU:
-				ini_addList(ini, settings[i].key);
-				for (int i = 0; i < HW_BUTTONS_NUM; i++)
-					if (btn_has(btns, HW_BUTTONS[i]))
-						ini_addListStr(ini, HW_BUTTONS_STR[i]);
 				break;
 			case SETT_DELAY_INIT:
 				ini_addInt(ini, settings[i].key, settings[i].v.u);
@@ -62,14 +53,6 @@ bool generateINISettings(char* buff){
 		}
 	}
 	return true;
-}
-
-void parseINIButtons(INI_READER* ini, uint32_t* btns){
-	while(ini_nextListVal(ini)){
-		int btnId = getButtonId(ini->listVal);
-		if (btnId >= 0)
-			btn_add(btns, HW_BUTTONS[btnId]);
-	}
 }
 
 bool parseINISettings(char* buff){
@@ -87,11 +70,6 @@ bool parseINISettings(char* buff){
 			case SETT_THEME: 
 				e->v.u = theme_findIdByKey(ini->val);
 				break;
-			case SETT_KEYS_REMAPS_TOOGLE:
-			case SETT_KEYS_MENU:
-				e->v.u = 0;
-				parseINIButtons(ini, &e->v.u);
-				break;
 			case SETT_DELAY_INIT:
 				e->v.u = parseInt(ini->val);
 				break;
@@ -105,7 +83,7 @@ bool parseINISettings(char* buff){
 	return true;
 }
 
-bool profile_loadSettings(){
+bool settings_load(){
 	char* buff;
 	bool ret = false;
 	settings_resetAll();
@@ -174,16 +152,6 @@ void setDefSettings(){
 		.def.b = true, 
 		.key = "REMAP_ENABLED"});
 	set((ProfileEntry){
-		.id = SETT_KEYS_MENU,
-		.type = TYPE_UINT32,
-		.def.u = SCE_CTRL_START + SCE_CTRL_SQUARE, 
-		.key = "KEYS_MENU"});
-	set((ProfileEntry){
-		.id = SETT_KEYS_REMAPS_TOOGLE,
-		.type = TYPE_UINT32,
-		.def.u = SCE_CTRL_START + SCE_CTRL_TRIANGLE, 
-		.key = "KEYS_REMAPS_TOGGLE"});
-	set((ProfileEntry){
 		.id = SETT_AUTOSAVE,
 		.type = TYPE_BOOL,
 		.def.b = true, 
@@ -206,7 +174,7 @@ void setDefSettings(){
 
 void settings_init(){
 	setDefSettings();
-	profile_loadSettings();
+	settings_load();
 }
 void settings_destroy(){
 }

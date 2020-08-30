@@ -32,6 +32,7 @@ add_executable(${PROJECT_NAME}
   src/fio/profile.c
   src/fio/theme.c
   src/fio/settings.c
+  src/fio/hotkeys.c
   src/gui/renderer.c
   src/gui/gui.c
   src/gui/menu/menu-main.c
@@ -40,6 +41,7 @@ add_executable(${PROJECT_NAME}
   src/gui/menu/menu-gyro.c
   src/gui/menu/menu-controller.c
   src/gui/menu/menu-settings.c
+  src/gui/menu/menu-hotkeys.c
   src/gui/menu/menu-credits.c
   src/gui/menu/menu-profile.c
   src/gui/menu/menu-debug-hooks.c

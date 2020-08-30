@@ -1,6 +1,7 @@
 #include <vitasdkkern.h>
 #include "../fio/profile.h"
 #include "../fio/settings.h"
+#include "../fio/hotkeys.h"
 #include "../fio/theme.h"
 #include "../main.h"
 #include "../common.h"
@@ -263,7 +264,7 @@ void onButton_genericEntries(uint32_t btn){
 }
 
 void ctrl_onInput(SceCtrlData *ctrl) {
-	if (ctrl->buttons & HW_BUTTONS[settings[SETT_KEYS_MENU].v.u])
+	if (ctrl->buttons & HW_BUTTONS[hotkeys[HOTKEY_MENU].v.u])
 		return; //Menu trigger butoons should not trigger any menu actions on menu open
 
 	if (gui_menu->onInput)
@@ -402,6 +403,7 @@ void gui_init(){
 	menu_initGyro();
 	menu_initController();
 	menu_initSettings();
+	menu_initHotkeys();
 
 	menu_initCredits();
 	menu_initProfile();

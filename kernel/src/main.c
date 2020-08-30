@@ -13,7 +13,9 @@
 #include "fio/profile.h"
 #include "fio/theme.h"
 #include "fio/settings.h"
+#include "fio/hotkeys.h"
 #include "common.h"
+#include "sysactions.h"
 #include "log.h"
 #include "userspace.h"
 #include "remapsv.h"
@@ -321,18 +323,38 @@ static int main_thread(SceSize args, void *argp) {
             continue;
         }
 
-        if (!gui_opened && 
-                btn_has(ctrl.buttons, settings[SETT_KEYS_MENU].v.u) &&
-                !btn_has(oldBtns, settings[SETT_KEYS_MENU].v.u)) {
-            gui_open();
-            remap_resetBuffers();
+        for (int i = 0; i < HOTKEY__NUM; i++){
+            if (hotkeys[i].v.u != 0 && 
+                    btn_has(ctrl.buttons, hotkeys[i].v.u) && 
+                    !btn_has(oldBtns, hotkeys[i].v.u)){
+                switch(i){
+                    case HOTKEY_MENU:
+                        gui_open();
+                        remap_resetBuffers();
+                        break;
+                    case HOTKEY_REMAPS_TOOGLE: FLIP(settings[SETT_REMAP_ENABLED].v.b); break;
+                    case HOTKEY_RESET_SOFT: sysactions_softReset();  break;
+                    case HOTKEY_RESET_COLD: sysactions_coldReset();  break;
+                    case HOTKEY_STANDBY: sysactions_standby();  break;
+                    case HOTKEY_SUSPEND: sysactions_suspend();  break;
+                    case HOTKEY_DISPLAY_OFF: sysactions_displayOff();  break;
+                    case HOTKEY_KILL_APP: sysactions_killCurrentApp();  break;
+                }
+            }
         }
 
-        if (!gui_opened && 
-                btn_has(ctrl.buttons, settings[SETT_KEYS_REMAPS_TOOGLE].v.u) &&
-                !btn_has(oldBtns, settings[SETT_KEYS_REMAPS_TOOGLE].v.u)) {
-            FLIP(settings[SETT_REMAP_ENABLED].v.b);
-        }
+        // if (!gui_opened && 
+        //         btn_has(ctrl.buttons, settings[SETT_KEYS_MENU].v.u) &&
+        //         !btn_has(oldBtns, settings[SETT_KEYS_MENU].v.u)) {
+        //     gui_open();
+        //     remap_resetBuffers();
+        // }
+
+        // if (!gui_opened && 
+        //         btn_has(ctrl.buttons, settings[SETT_KEYS_REMAPS_TOOGLE].v.u) &&
+        //         !btn_has(oldBtns, settings[SETT_KEYS_REMAPS_TOOGLE].v.u)) {
+        //     FLIP(settings[SETT_REMAP_ENABLED].v.b);
+        // }
 
         oldBtns = ctrl.buttons;
 
@@ -356,6 +378,7 @@ int module_start(SceSize argc, const void *args) {
     LOG("\n RemaPSV2 started\n");
     snprintf(titleid, sizeof(titleid), HOME);
     settings_init();
+    hotkeys_init();
     theme_init();
     profile_init();
     gui_init();
@@ -457,6 +480,7 @@ int module_stop(SceSize argc, const void *args) {
 	ksceKernelFreeMemBlock(bufsMemId);
 
     settings_destroy();
+    hotkeys_destroy();
     theme_destroy();
     profile_destroy();
     gui_destroy();
