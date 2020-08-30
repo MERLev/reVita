@@ -132,20 +132,16 @@ void gui_drawEditPointer(uint16_t x, uint16_t y){
 void drawHeader(){
 	renderer_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
 	renderer_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
-	renderer_setColor(theme[COLOR_HEADER]);
 	if (gui_menu->id == MENU_MAIN_ID){
 		renderer_drawStringF(L_0, 3, "     remaPSV2 v.%s", VERSION);
 		renderer_drawString(UI_WIDTH - CHA_W * strlen(titleid) - 10, 2, titleid);
 		if (settings[SETT_REMAP_ENABLED].v.b){
 			renderer_setColor(0x00329e15);
-			renderer_drawStringF(L_0, 3, "$~", VERSION);
-			renderer_drawStringF(L_0 + 22, 3, "$`", VERSION);
+			renderer_drawStringF(L_0, 3, "$~$'", VERSION);
 		} else {
 			renderer_setColor(theme[COLOR_DANGER]);
-			renderer_drawStringF(L_0, 3, "$@", VERSION);
-			renderer_drawStringF(L_0 + 22, 3, "$#", VERSION);
+			renderer_drawStringF(L_0, 3, "$@$#", VERSION);
 		}
-		renderer_setColor(theme[COLOR_HEADER]);
 	} else	
 		renderer_drawString(L_0, 3, gui_menu->name);
 	

@@ -94,7 +94,7 @@ void renderer_drawIcon(char character, int x, int y){
 		case '#': idx = ICON_OFF_R; break;
 		default: break;
 	}
-	renderer_drawImage(x + 1, y, ICON_W, ICON_H, &ICON[idx * 54]);
+	renderer_drawImage(x, y - 1, ICON_W, ICON_H, &ICON[idx * ICON_W * ICON_H / 8]);
 }
 
 void renderer_drawImage(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const unsigned char* img){
