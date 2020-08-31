@@ -8,7 +8,7 @@
 #include "../log.h"
 #include "gui.h"
 #include "renderer.h"
-#include "icons.h"
+#include "img/icons.h"
 #include "menu/menu.h"
 
 #define STR_SIZE                  40

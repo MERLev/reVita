@@ -6,8 +6,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
-#include "font.h"
-#include "icons.h"
+#include "img/font.h"
+#include "img/icons.h"
+#include "img/icons-font.h"
 #include "renderer.h"
 #include "../common.h"
 #include "../log.h"
@@ -26,75 +27,12 @@ uint32_t uiWidth, uiHeight;
 
 static const unsigned char UI_CORNER_OFF[UI_CORNER_RADIUS] = {9, 7, 5, 4, 3, 2, 2, 1, 1};
 
-void renderer_drawIcon(char character, int x, int y){
-	uint32_t idx = 0;
-	switch (character){
-		case 'X': idx = ICON_BTN_CROSS; break;
-		case 'S': idx = ICON_BTN_SQUARE; break;
-		case 'T': idx = ICON_BTN_TRIANGLE; break;
-		case 'C': idx = ICON_BTN_CIRCLE; break;
-		case 'P': idx = ICON_BTN_PS; break;
-		case ';': idx = ICON_BTN_SELECT; break;
-		case ':': idx = ICON_BTN_START; break;
-		case '^': idx = ICON_BTN_UP; break;
-		case 'v': idx = ICON_BTN_DONW; break;
-		case '<': idx = ICON_BTN_LEFT; break;
-		case '>': idx = ICON_BTN_RIGHT; break;
-		case '[': idx = ICON_BTN_LT; break;
-		case '{': idx = ICON_BTN_L1; break;
-		case ',': idx = ICON_BTN_L2; break;
-		case '(': idx = ICON_BTN_L3; break;
-		case ']': idx = ICON_BTN_RT; break;
-		case '}': idx = ICON_BTN_R1; break;
-		case '.': idx = ICON_BTN_R2; break;
-		case ')': idx = ICON_BTN_R3; break;
-		case 'p': idx = ICON_BTNPOWER; break;
-		case '+': idx = ICON_BTN_VOLUP; break;
-		case '-': idx = ICON_BTN_VOLDOWN; break;
-		case 'l': idx = ICON_RS_LEFT; break;
-		case 'r': idx = ICON_RS_RIGHT; break;
-		case 'u': idx = ICON_RS_UP; break;
-		case 'd': idx = ICON_RS_DOWN; break;
-		case 'L': idx = ICON_LS_LEFT; break;
-		case 'R': idx = ICON_LS_RIGHT; break;
-		case 'U': idx = ICON_LS_UP; break;
-		case 'D': idx = ICON_LS_DOWN; break;
-		case 'F': idx = ICON_FT; break;
-		case 'B': idx = ICON_BT; break;
-		case 'q': idx = ICON_GY_LEFT; break;
-		case 'e': idx = ICON_GY_RIGHT; break;
-		case 'w': idx = ICON_GY_UP; break;
-		case 's': idx = ICON_GY_DOWN; break;
-		case 'Q': idx = ICON_GY_ROLLLEFT; break;
-		case 'E': idx = ICON_GY_ROLLRIGHT; break;
-		case 'o': idx = ICON_PSV_LEFT; break;
-		case 'O': idx = ICON_PSV_RIGHT; break;
-		case 't': idx = ICON_BTN_DS4TOUCH; break;
-		case 'b': idx = ICON_MENU_BUG; break;
-		case '|': idx = ICON_MENU_SETTINGS; break;
-		case '/': idx = ICON_MENU_STORAGE; break;
-		case '?': idx = ICON_MENU_CREDITS; break;
-		case 'm': idx = ICON_TURBO_OFF; break;
-		case 'M': idx = ICON_TURBO_ON; break;
-		case 'x': idx = ICON_DPAD; break;
-		case '1': idx = ICON_L; break;
-		case '2': idx = ICON_R; break;
-		case '3': idx = ICON_TL; break;
-		case '4': idx = ICON_TR; break;
-		case '5': idx = ICON_BL; break;
-		case '6': idx = ICON_BR; break;
-		case 'i': idx = ICON_TOUCH; break;
-		case 'j': idx = ICON_SWIPE; break;
-		case 'V': idx = ICON_PSTV; break;
-		case 'c': idx = ICON_CONFIG; break;
-		case '!': idx = ICON_DANGER; break;
-		case '~': idx = ICON_ON_L; break;
-		case '`': idx = ICON_ON_R; break;
-		case '@': idx = ICON_OFF_L; break;
-		case '#': idx = ICON_OFF_R; break;
-		default: break;
-	}
-	renderer_drawImage(x, y - 1, ICON_W, ICON_H, &ICON[idx * ICON_W * ICON_H / 8]);
+void renderer_drawChar(char character, int x, int y){
+	renderer_drawImage(x, y, FONT_WIDTH, FONT_HEIGHT, &font[character * 40]);
+}
+
+void renderer_drawCharIcon(char character, int x, int y){
+	renderer_drawImage(x, y - 1, ICON_W, ICON_H, &ICON[character * 60]);
 }
 
 void renderer_drawImage(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const unsigned char* img){
@@ -299,10 +237,11 @@ void renderer_drawString(int x, int y, const char *str){
     for (size_t i = 0; i < strlen(str); i++){
 		if (str[i] == ' ') continue;
 		if (str[i] == '$'){
-			renderer_drawIcon(str[i+1], x + i * 12, y);
+			renderer_drawCharIcon(str[i+1], x + i * 12, y);
 			i++;
 		} else {
-			renderer_drawImage(x + i * 12, y, FONT_WIDTH, FONT_HEIGHT, &font[(unsigned char)str[i]*40]);
+			renderer_drawChar(str[i], x + i * 12, y);
+			// renderer_drawImage(x + i * 12, y, FONT_WIDTH, FONT_HEIGHT, &font[(unsigned char)str[i]*40]);
 		}
 	}
 	if (stripped)
