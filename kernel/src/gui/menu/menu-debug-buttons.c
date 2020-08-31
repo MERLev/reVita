@@ -82,7 +82,7 @@ void onDraw_debugButtons(unsigned int menuY){
 }
 
 void onInput_debugButtons(SceCtrlData *ctrl){
-	gui_menu->data = (int32_t)&ctrl[0];
+	gui_menu->data = (uint32_t)&ctrl[0];
 }
 
 #define MENU_DEBUG_BUTTONS_NUM			4

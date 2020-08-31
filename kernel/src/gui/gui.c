@@ -128,7 +128,29 @@ void gui_drawFullScroll(int8_t up, int8_t down, float pos){
 void gui_drawEditPointer(uint16_t x, uint16_t y){
 	renderer_drawImage(x, y, ICN_ARROW_X, ICN_ARROW_Y, (ticker % 32 < 16) ? ICN_ARROW_LEFT : ICN_ARROW_RIGHT);
 }
+void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus){
+	if (me->type == HEADER_TYPE){
+		renderer_setColor(theme[COLOR_HEADER]);
+		renderer_drawString(x, y, me->name);
+		return;
+	}
+	ProfileEntry* pe = me->dataPE;
+	gui_setColor(focus, profile_isDef(pe->id));
+	renderer_drawString(x, y, me->name);
+	switch (pe->type){
+		case TYPE_BOOL:
+			gui_drawStringFRight(0, y, "%s", STR_YN[pe->v.b]);
+			break;
+		case TYPE_INT32:
+			gui_drawStringFRight(0, y, "%i", pe->v.i);
+			break;
+		case TYPE_UINT32:
+			gui_drawStringFRight(0, y, "%u", pe->v.u);
+			break;
+		default: break;
+	}
 
+}
 void drawHeader(){
 	renderer_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
 	renderer_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
@@ -250,11 +272,10 @@ void onButton_generic(uint32_t btn){
 }
 
 void onButton_genericEntries(uint32_t btn){
-	int8_t id = gui_getEntry()->data;
 	switch (btn) {
-		case SCE_CTRL_RIGHT: profile_inc(&profile.entries[id], 1); break;
-		case SCE_CTRL_LEFT: profile_dec(&profile.entries[id], 1); break;
-		case SCE_CTRL_SQUARE: profile_resetEntry(&profile.entries[id]); break;
+		case SCE_CTRL_RIGHT: profile_inc(gui_getEntry()->dataPE, 1); break;
+		case SCE_CTRL_LEFT: profile_dec(gui_getEntry()->dataPE, 1); break;
+		case SCE_CTRL_SQUARE: profile_resetEntry(gui_getEntry()->dataPE); break;
 		default: onButton_generic(btn); break;
 	}
 }
@@ -341,7 +362,6 @@ void gui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId
 	menus[id]->data = data;
 	menus[id]->next = nextId;
 	menus[id]->prev = prevId;
-	menus[id]->data = data;
 	open(id);
 }
 void gui_openMenuPrev(){

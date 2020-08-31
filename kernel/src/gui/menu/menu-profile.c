@@ -17,7 +17,7 @@ enum PROFILE_ACTIONS{
 void onButton_profiles(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_CROSS:
-			switch (gui_getEntry()->data){
+			switch (gui_getEntry()->dataUint){
 				case PROFILE_LOCAL_SAVE:   profile_localSave(); break;
 				case PROFILE_LOCAL_LOAD:   profile_localLoad(); break;
 				case PROFILE_LOCAL_RESET:  profile_localReset(); break;
@@ -54,14 +54,14 @@ void onDraw_profiles(unsigned int menuY){
 #define MENU_PROFILE_NUM 9
 static struct MenuEntry menu_profiles_entries[MENU_PROFILE_NUM] = {
 	(MenuEntry){.name = "Local", .type = HEADER_TYPE},
-	(MenuEntry){.name = "Save", .data = PROFILE_LOCAL_SAVE},
-	(MenuEntry){.name = "Load", .data = PROFILE_LOCAL_LOAD},
-	(MenuEntry){.name = "Reset", .data = PROFILE_LOCAL_DELETE},
-	(MenuEntry){.name = "Delete", .data = PROFILE_LOCAL_RESET},
+	(MenuEntry){.name = "Save", .dataUint = PROFILE_LOCAL_SAVE},
+	(MenuEntry){.name = "Load", .dataUint = PROFILE_LOCAL_LOAD},
+	(MenuEntry){.name = "Reset", .dataUint = PROFILE_LOCAL_DELETE},
+	(MenuEntry){.name = "Delete", .dataUint = PROFILE_LOCAL_RESET},
 	(MenuEntry){.name = "Global", .type = HEADER_TYPE},
-	(MenuEntry){.name = "Save as global", .data = PROFILE_GLOBAL_SAVE},
-	(MenuEntry){.name = "Load from global", .data = PROFILE_GLOABL_LOAD},
-	(MenuEntry){.name = "Reset global", .data = PROFILE_GLOBAL_RESET}};
+	(MenuEntry){.name = "Save as global", .dataUint = PROFILE_GLOBAL_SAVE},
+	(MenuEntry){.name = "Load from global", .dataUint = PROFILE_GLOABL_LOAD},
+	(MenuEntry){.name = "Reset global", .dataUint = PROFILE_GLOBAL_RESET}};
 static struct Menu menu_profiles = (Menu){
 	.id = MENU_PROFILE_ID, 
 	.parent = MENU_MAIN_ID,

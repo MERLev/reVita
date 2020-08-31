@@ -110,13 +110,13 @@ void onButton_pickTouchPoint(uint32_t btn){
 			}
 			gui_openMenuNext();
 		case SCE_CTRL_RIGHT:
-			switch (gui_getEntry()->data){
+			switch (gui_getEntry()->dataUint){
 				case 0: ra->param.tPoint.x = min(ra->param.tPoint.x + 1, size.b.x); break;
 				case 1: ra->param.tPoint.y = min(ra->param.tPoint.y + 1, size.b.y); break;
 			}
 			break;
 		case SCE_CTRL_LEFT:
-			switch (gui_getEntry()->data){
+			switch (gui_getEntry()->dataUint){
 				case 0: ra->param.tPoint.x = max(ra->param.tPoint.x - 1, size.a.x); break;
 				case 1: ra->param.tPoint.y = max(ra->param.tPoint.y - 1, size.a.y); break;
 			}
@@ -139,7 +139,7 @@ void onButton_pickTouchZone(uint32_t btn){
 			}
 			gui_openMenuNext();
 		case SCE_CTRL_RIGHT:
-			switch (gui_getEntry()->data){
+			switch (gui_getEntry()->dataUint){
 				case 0: ra->param.tPoints.a.x = min(ra->param.tPoints.a.x + 1, size.b.x); break;
 				case 1: ra->param.tPoints.a.y = min(ra->param.tPoints.a.y + 1, size.b.y); break;
 				case 2: ra->param.tPoints.b.x = min(ra->param.tPoints.b.x + 1, size.b.x); break;
@@ -147,7 +147,7 @@ void onButton_pickTouchZone(uint32_t btn){
 			}
 			break;
 		case SCE_CTRL_LEFT:
-			switch (gui_getEntry()->data){
+			switch (gui_getEntry()->dataUint){
 				case 0: ra->param.tPoints.a.x = max(ra->param.tPoints.a.x - 1, size.b.x); break;
 				case 1: ra->param.tPoints.a.y = max(ra->param.tPoints.a.y - 1, size.b.y); break;
 				case 2: ra->param.tPoints.b.x = max(ra->param.tPoints.b.x - 1, size.b.x); break;
@@ -164,7 +164,7 @@ void onDraw_pickTouchPoint(unsigned int menuY){
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);	
 	RemapAction* ra = (RemapAction*)gui_menu->data;
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {	
-		int32_t id = gui_menu->entries[i].data;
+		int32_t id = gui_menu->entries[i].dataUint;
 		int coord = (id == 0) ? ra->param.tPoint.x : ra->param.tPoint.y;
 		gui_setColor(i == gui_menu->idx, 1);
 		renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", gui_menu->entries[i].name, coord);
@@ -177,7 +177,7 @@ void onDraw_pickTouchZone(unsigned int menuY){
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);	
 	RemapAction* ra = (RemapAction*)gui_menu->data;
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {	
-		int32_t id = gui_menu->entries[i].data;
+		int32_t id = gui_menu->entries[i].dataUint;
 		int coord = 0;
 		switch (id){
 			case 0: coord = ra->param.tPoints.a.x; break;
@@ -192,8 +192,8 @@ void onDraw_pickTouchZone(unsigned int menuY){
 
 #define MENU_PICK_TOUCH_POINT_NUM 2
 static struct MenuEntry menu_pick_touch_point_entries[MENU_PICK_TOUCH_POINT_NUM] = {
-	(MenuEntry){.name = "Point x", .data = 0},
-	(MenuEntry){.name = "      y", .data = 1}};
+	(MenuEntry){.name = "Point x", .dataUint = 0},
+	(MenuEntry){.name = "      y", .dataUint = 1}};
 static struct Menu menu_pick_touch_point = (Menu){
 	.id = MENU_PICK_TOUCH_POINT_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
@@ -208,10 +208,10 @@ static struct Menu menu_pick_touch_point = (Menu){
 
 #define MENU_PICK_TOUCH_ZONE_NUM 4
 static struct MenuEntry menu_pick_touch_zone_entries[MENU_PICK_TOUCH_ZONE_NUM] = {
-	(MenuEntry){.name = "Point 1 x", .data = 0},
-	(MenuEntry){.name = "        y", .data = 1},
-	(MenuEntry){.name = "Point 2 x", .data = 2},
-	(MenuEntry){.name = "        y", .data = 3}};
+	(MenuEntry){.name = "Point 1 x", .dataUint = 0},
+	(MenuEntry){.name = "        y", .dataUint = 1},
+	(MenuEntry){.name = "Point 2 x", .dataUint = 2},
+	(MenuEntry){.name = "        y", .dataUint = 3}};
 static struct Menu menu_pick_touch_zone = (Menu){
 	.id = MENU_PICK_TOUCH_ZONE_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
@@ -226,10 +226,10 @@ static struct Menu menu_pick_touch_zone = (Menu){
 
 #define MENU_PICK_TOUCH_SWIPE_NUM 4
 static struct MenuEntry menu_pick_touch_swipe_entries[MENU_PICK_TOUCH_SWIPE_NUM] = {
-	(MenuEntry){.name = "Start Point x", .data = 0},
-	(MenuEntry){.name = "            y", .data = 1},
-	(MenuEntry){.name = "End   Point x", .data = 2},
-	(MenuEntry){.name = "            y", .data = 3}};
+	(MenuEntry){.name = "Start Point x", .dataUint = 0},
+	(MenuEntry){.name = "            y", .dataUint = 1},
+	(MenuEntry){.name = "End   Point x", .dataUint = 2},
+	(MenuEntry){.name = "            y", .dataUint = 3}};
 static struct Menu menu_pick_touch_swipe = (Menu){
 	.id = MENU_PICK_TOUCH_SWIPE_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,

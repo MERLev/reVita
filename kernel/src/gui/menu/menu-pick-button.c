@@ -18,7 +18,7 @@ void onButton_pickButton(uint32_t btn){
 	uint32_t* btnP = (uint32_t *)gui_menu->data;
 	switch (btn) {
 		case SCE_CTRL_SQUARE:
-			btn_toggle(btnP, HW_BUTTONS[gui_getEntry()->data]);
+			btn_toggle(btnP, HW_BUTTONS[gui_getEntry()->dataUint]);
 			break;
 		case SCE_CTRL_CROSS:
 			if (!*btnP) break;
@@ -40,8 +40,8 @@ void onDraw_pickButton(unsigned int menuY){
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET);
 	uint32_t btns = *(uint32_t*)gui_menu->data;
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
-		gui_setColor(i == gui_menu->idx, !btn_has(btns, HW_BUTTONS[gui_menu->entries[i].data]));
-		renderer_drawString(L_1, y += CHA_H, STR_BTN[gui_menu->entries[i].data]);
+		gui_setColor(i == gui_menu->idx, !btn_has(btns, HW_BUTTONS[gui_menu->entries[i].dataUint]));
+		renderer_drawString(L_1, y += CHA_H, STR_BTN[gui_menu->entries[i].dataUint]);
 	}
 }
 
@@ -66,7 +66,7 @@ void menu_initPickButton(){
 	//ToDo fix this not working
 	//Init Button remap menus with proper button names
 	for (int i = 0; i < MENU_PICK_BUTTON_NUM; i++)
-		menu_pick_button_entries[i] = (MenuEntry){.name = (char *)&STR_BTN[i], .data = i};
+		menu_pick_button_entries[i] = (MenuEntry){.name = (char *)&STR_BTN[i], .dataUint = i};
 
 	gui_registerMenu(&menu_pick_button);
 }

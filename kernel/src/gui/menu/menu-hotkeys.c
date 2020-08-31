@@ -6,7 +6,7 @@
 #include "../renderer.h"
 
 void onButton_hotkeys(uint32_t btn){
-	int8_t id = gui_getEntry()->data;
+	int8_t id = gui_getEntry()->dataPE->id;
 	switch (btn) {
 		case SCE_CTRL_CROSS:
 			gui_openMenuSmart(MENU_PICK_BUTTON_ID, 
@@ -22,7 +22,7 @@ void onDraw_hotkeys(unsigned int menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {		
-		int32_t id = gui_menu->entries[i].data;
+		int32_t id = gui_menu->entries[i].dataPE->id;
 		gui_setColor(i == gui_menu->idx, hotkeys_isDef(id));
 		renderer_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
 		char str[10];
@@ -35,14 +35,14 @@ void onDraw_hotkeys(unsigned int menuY){
 
 #define MENU_HOTKEYS_NUM 8
 static struct MenuEntry menu_hotkeys_entries[MENU_HOTKEYS_NUM] = {
-	(MenuEntry){.name = "Menu open", .data = HOTKEY_MENU},
-	(MenuEntry){.name = "Toggle remap rules", .data = HOTKEY_REMAPS_TOOGLE},
-	(MenuEntry){.name = "Soft reset", .data = HOTKEY_RESET_SOFT},
-	(MenuEntry){.name = "Reboot", .data = HOTKEY_RESET_COLD},
-	(MenuEntry){.name = "Power Off", .data = HOTKEY_STANDBY},
-	(MenuEntry){.name = "Suspend", .data = HOTKEY_SUSPEND},
-	(MenuEntry){.name = "Display Off", .data = HOTKEY_DISPLAY_OFF},
-	(MenuEntry){.name = "Kill App", .data = HOTKEY_KILL_APP}};
+	(MenuEntry){.name = "Menu open", .dataPE = &hotkeys[HOTKEY_MENU]},
+	(MenuEntry){.name = "Toggle remap rules", .dataPE = &hotkeys[HOTKEY_REMAPS_TOOGLE]},
+	(MenuEntry){.name = "Soft reset", .dataPE = &hotkeys[HOTKEY_RESET_SOFT]},
+	(MenuEntry){.name = "Reboot", .dataPE = &hotkeys[HOTKEY_RESET_COLD]},
+	(MenuEntry){.name = "Power Off", .dataPE = &hotkeys[HOTKEY_STANDBY]},
+	(MenuEntry){.name = "Suspend", .dataPE = &hotkeys[HOTKEY_SUSPEND]},
+	(MenuEntry){.name = "Display Off", .dataPE = &hotkeys[HOTKEY_DISPLAY_OFF]},
+	(MenuEntry){.name = "Kill App", .dataPE = &hotkeys[HOTKEY_KILL_APP]}};
 static struct Menu menu_hotkeys = (Menu){
 	.id = MENU_HOTKEYS_ID, 
 	.parent = MENU_MAIN_ID,

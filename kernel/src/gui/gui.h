@@ -1,6 +1,7 @@
 #ifndef _GUI_H_
 #define _GUI_H_
 #include "../remap.h"
+#include "../fio/profile.h"
 
 #define VERSION				"2.1.0"
 
@@ -73,13 +74,22 @@ typedef struct Menu{
 	onDrawF onDraw;
 	onDrawFBF onDrawFB;
 	onBuildF onBuild;
-
+	// union {
+	// 	int32_t dataInt;
+	// 	uint32_t dataUint;
+	// 	ProfileEntry* dataPE;
+	// };
 	int32_t data;
 }Menu;
 typedef struct MenuEntry{
 	char* name;
 	int32_t type;
-	int32_t data;
+	union {
+		int32_t dataInt;
+		uint32_t dataUint;
+		ProfileEntry* dataPE;
+	};
+	// int32_t data;
 } MenuEntry;
 
 extern uint8_t gui_opened;
@@ -93,6 +103,7 @@ extern int64_t tickUIOpen;
 extern const char* STR_BTN_S[HW_BUTTONS_NUM];
 extern const char* STR_YN[2];
 
+void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus);
 void gui_drawTouchPointer(uint32_t panel, TouchPoint* tp);
 void gui_generateBtnComboName(char* str, uint32_t btns, int max);
 int gui_calcStartingIndex(int idx, int entriesNum, int screenEntries, int bottomOffset);
