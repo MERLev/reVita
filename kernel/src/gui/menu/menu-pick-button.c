@@ -15,7 +15,7 @@ const char* STR_BTN[HW_BUTTONS_NUM] = {
 };
 
 void onButton_pickButton(uint32_t btn){
-	uint32_t* btnP = (uint32_t *)gui_menu->data;
+	uint32_t* btnP = gui_menu->dataPtr;
 	switch (btn) {
 		case SCE_CTRL_SQUARE:
 			btn_toggle(btnP, HW_BUTTONS[gui_getEntry()->dataUint]);
@@ -38,7 +38,7 @@ void onButton_pickButton(uint32_t btn){
 void onDraw_pickButton(unsigned int menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET);
-	uint32_t btns = *(uint32_t*)gui_menu->data;
+	uint32_t btns = *(uint32_t*)gui_menu->dataPtr;
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
 		gui_setColor(i == gui_menu->idx, !btn_has(btns, HW_BUTTONS[gui_menu->entries[i].dataUint]));
 		renderer_drawString(L_1, y += CHA_H, STR_BTN[gui_menu->entries[i].dataUint]);

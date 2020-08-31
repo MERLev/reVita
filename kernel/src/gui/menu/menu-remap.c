@@ -133,12 +133,12 @@ void onButton_remapTriggerType(uint32_t btn){
 		case SCE_CTRL_CROSS:
 			ui_ruleEdited.trigger.type = gui_getEntry()->dataUint;
 			switch(gui_getEntry()->dataUint){
-				case REMAP_TYPE_BUTTON: gui_openMenuSmart(MENU_PICK_BUTTON_ID, 
-					gui_menu->id, MENU_REMAP_EMU_TYPE_ID, (uint32_t)&ui_ruleEdited.trigger.param.btn); break;
-				case REMAP_TYPE_LEFT_ANALOG: gui_openMenuSmart(MENU_PICK_ANALOG_LEFT_ID,
-					gui_menu->id, MENU_REMAP_EMU_TYPE_ID, (uint32_t)&ui_ruleEdited.trigger.action); break; 
-				case REMAP_TYPE_RIGHT_ANALOG: gui_openMenuSmart(MENU_PICK_ANALOG_RIGHT_ID,
-					gui_menu->id, MENU_REMAP_EMU_TYPE_ID, (uint32_t)&ui_ruleEdited.trigger.action); break;
+				case REMAP_TYPE_BUTTON: gui_openMenuSmartPtr(MENU_PICK_BUTTON_ID, 
+					gui_menu->id, MENU_REMAP_EMU_TYPE_ID, &ui_ruleEdited.trigger.param.btn); break;
+				case REMAP_TYPE_LEFT_ANALOG: gui_openMenuSmartPtr(MENU_PICK_ANALOG_LEFT_ID,
+					gui_menu->id, MENU_REMAP_EMU_TYPE_ID, &ui_ruleEdited.trigger.action); break; 
+				case REMAP_TYPE_RIGHT_ANALOG: gui_openMenuSmartPtr(MENU_PICK_ANALOG_RIGHT_ID,
+					gui_menu->id, MENU_REMAP_EMU_TYPE_ID, &ui_ruleEdited.trigger.action); break;
 				case REMAP_TYPE_FRONT_TOUCH_ZONE: gui_openMenu(MENU_REMAP_TRIGGER_TOUCH_FRONT_ID); break;
 				case REMAP_TYPE_BACK_TOUCH_ZONE: gui_openMenu(MENU_REMAP_TRIGGER_TOUCH_BACK_ID); break;
 				case REMAP_TYPE_GYROSCOPE: gui_openMenu(MENU_REMAP_TRIGGER_GYRO_ID); break;
@@ -152,8 +152,8 @@ void onButton_remapTriggerTouch(uint32_t btn){
 		case SCE_CTRL_CROSS:
 			ui_ruleEdited.trigger.action = gui_getEntry()->dataUint;
 			if (gui_getEntry()->dataUint == REMAP_TOUCH_CUSTOM){
-				gui_openMenuSmart(MENU_PICK_TOUCH_ZONE_ID, gui_menu->id, MENU_REMAP_EMU_TYPE_ID, 
-					(uint32_t)&ui_ruleEdited.trigger);
+				gui_openMenuSmartPtr(MENU_PICK_TOUCH_ZONE_ID, gui_menu->id, MENU_REMAP_EMU_TYPE_ID, 
+					&ui_ruleEdited.trigger);
 				break;
 			}
 			//ToDo Set custom touch zones here
@@ -177,18 +177,18 @@ void onButton_remapEmuType(uint32_t btn){
 			ui_ruleEdited.emu.type = gui_getEntry()->dataUint;
 			switch(gui_getEntry()->dataUint){
 				case REMAP_TYPE_BUTTON: 
-					gui_openMenuSmart(MENU_PICK_BUTTON_ID, 
-						gui_menu->id, MENU_REMAP_ID, (uint32_t)&ui_ruleEdited.emu.param.btn); 
+					gui_openMenuSmartPtr(MENU_PICK_BUTTON_ID, 
+						gui_menu->id, MENU_REMAP_ID, &ui_ruleEdited.emu.param.btn); 
 					break;
 				case REMAP_TYPE_LEFT_ANALOG:
 				case REMAP_TYPE_LEFT_ANALOG_DIGITAL:
-					gui_openMenuSmart(MENU_PICK_ANALOG_LEFT_ID,
-						gui_menu->id, MENU_REMAP_ID, (uint32_t)&ui_ruleEdited.emu.action); 
+					gui_openMenuSmartPtr(MENU_PICK_ANALOG_LEFT_ID,
+						gui_menu->id, MENU_REMAP_ID, &ui_ruleEdited.emu.action); 
 					break;
 				case REMAP_TYPE_RIGHT_ANALOG:
 				case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: 
-					gui_openMenuSmart(MENU_PICK_ANALOG_RIGHT_ID,
-						gui_menu->id, MENU_REMAP_ID, (uint32_t)&ui_ruleEdited.emu.action); 
+					gui_openMenuSmartPtr(MENU_PICK_ANALOG_RIGHT_ID,
+						gui_menu->id, MENU_REMAP_ID, &ui_ruleEdited.emu.action); 
 					break;
 				case REMAP_TYPE_FRONT_TOUCH_POINT: gui_openMenu(MENU_REMAP_EMU_TOUCH_FRONT_ID); break;
 				case REMAP_TYPE_BACK_TOUCH_POINT: gui_openMenu(MENU_REMAP_EMU_TOUCH_BACK_ID); break;
@@ -206,12 +206,10 @@ void onButton_remapEmuTouch(uint32_t btn){
 					gui_getEntry()->dataUint == REMAP_TOUCH_SWIPE_SMART_DPAD || 
 					gui_getEntry()->dataUint == REMAP_TOUCH_SWIPE_SMART_L || 
 					gui_getEntry()->dataUint == REMAP_TOUCH_SWIPE_SMART_R){
-				gui_openMenuSmart(MENU_PICK_TOUCH_POINT_ID, gui_menu->id, MENU_REMAP_ID, 
-					(uint32_t)&ui_ruleEdited.emu);
+				gui_openMenuSmartPtr(MENU_PICK_TOUCH_POINT_ID, gui_menu->id, MENU_REMAP_ID, &ui_ruleEdited.emu);
 				break;
 			} else if (gui_getEntry()->dataUint == REMAP_TOUCH_SWIPE){
-				gui_openMenuSmart(MENU_PICK_TOUCH_SWIPE_ID, gui_menu->id, MENU_REMAP_ID, 
-					(uint32_t)&ui_ruleEdited.emu);
+				gui_openMenuSmartPtr(MENU_PICK_TOUCH_SWIPE_ID, gui_menu->id, MENU_REMAP_ID, &ui_ruleEdited.emu);
 				break;
 			}
 			if (ui_ruleEditedIdx >= 0) 

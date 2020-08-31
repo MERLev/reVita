@@ -39,19 +39,19 @@ void drawTouchSwipe(uint32_t panel, TouchPoints2* tz){
 }
 
 void onDrawFB_pickTouchPoint(){
-	RemapAction* ra = (RemapAction*) gui_menu->data;
+	RemapAction* ra = gui_menu->dataPtr;
 	uint32_t panel = (ra->type == REMAP_TYPE_FRONT_TOUCH_POINT) ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
 	gui_drawTouchPointer(panel, &ra->param.tPoint); 
 }
 
 void onDrawFB_pickTouchZone(){
-	RemapAction* ra = (RemapAction*) gui_menu->data;
+	RemapAction* ra = gui_menu->dataPtr;
 	uint32_t panel = (ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE) ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
 	drawTouchZone(panel, &ra->param.tPoints); 
 }
 
 void onDrawFB_pickTouchSwipe(){
-	RemapAction* ra = (RemapAction*) gui_menu->data;
+	RemapAction* ra = gui_menu->dataPtr;
 	uint32_t panel = (ra->type == REMAP_TYPE_FRONT_TOUCH_POINT) ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
 	drawTouchSwipe(panel, &ra->param.tPoints); 
 }
@@ -79,7 +79,7 @@ void touchPicker(TouchPoint* tp, SceTouchPortType port){
 	}
 }
 void onInput_touchPicker(SceCtrlData *ctrl){
-	RemapAction* ra = (RemapAction*)gui_menu->data;
+	RemapAction* ra = gui_menu->dataPtr;
 	SceTouchPortType port = (ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE) ?
 		SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
 	bool isFront = port == SCE_TOUCH_PORT_FRONT;
@@ -98,7 +98,7 @@ void onInput_touchPicker(SceCtrlData *ctrl){
 }
 
 void onButton_pickTouchPoint(uint32_t btn){
-	RemapAction* ra = (RemapAction*)gui_menu->data;
+	RemapAction* ra = gui_menu->dataPtr;
 	TouchPoints2 size = ra->type == REMAP_TYPE_FRONT_TOUCH_POINT ? T_FRONT_SIZE : T_BACK_SIZE;
 	switch (btn) {
 		case SCE_CTRL_CROSS:
@@ -127,7 +127,7 @@ void onButton_pickTouchPoint(uint32_t btn){
 }
 
 void onButton_pickTouchZone(uint32_t btn){
-	RemapAction* ra = (RemapAction*)gui_menu->data;
+	RemapAction* ra = gui_menu->dataPtr;
 	TouchPoints2 size = ra->type == REMAP_TYPE_FRONT_TOUCH_POINT ? T_FRONT_SIZE : T_BACK_SIZE;
 	switch (btn) {
 		case SCE_CTRL_CROSS:
@@ -162,7 +162,7 @@ void onButton_pickTouchZone(uint32_t btn){
 void onDraw_pickTouchPoint(unsigned int menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);	
-	RemapAction* ra = (RemapAction*)gui_menu->data;
+	RemapAction* ra = gui_menu->dataPtr;
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {	
 		int32_t id = gui_menu->entries[i].dataUint;
 		int coord = (id == 0) ? ra->param.tPoint.x : ra->param.tPoint.y;
@@ -175,7 +175,7 @@ void onDraw_pickTouchPoint(unsigned int menuY){
 void onDraw_pickTouchZone(unsigned int menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);	
-	RemapAction* ra = (RemapAction*)gui_menu->data;
+	RemapAction* ra = gui_menu->dataPtr;
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {	
 		int32_t id = gui_menu->entries[i].dataUint;
 		int coord = 0;

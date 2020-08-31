@@ -38,6 +38,9 @@ const char* STR_BTN_S[HW_BUTTONS_NUM] = {
 const char* STR_YN[2] = {
 	"No", "Yes"
 };
+const char* STR_SWITCH[2] = {
+	"$@$#", "$~$`"
+};
 
 Menu* menus[MENU_ID__NUM];
 Menu* gui_menu;
@@ -111,6 +114,10 @@ void gui_drawStringFRight(int x, int y, const char *format, ...){
 
 	renderer_drawString(UI_WIDTH - (strlen(str) + 2) * CHA_W - x, y, str);
 }
+void gui_drawBoolFRight(int x, int y, bool b){
+	renderer_setColor(b ? 0x00329e15 : theme[COLOR_DANGER]);
+	gui_drawStringFRight(0, y, STR_SWITCH[b]);
+}
 void gui_drawScroll(int8_t up, int8_t down){
 	renderer_setColor(theme[COLOR_HEADER]);
 	if (up)
@@ -139,7 +146,7 @@ void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus){
 	renderer_drawString(x, y, me->name);
 	switch (pe->type){
 		case TYPE_BOOL:
-			gui_drawStringFRight(0, y, "%s", STR_YN[pe->v.b]);
+			gui_drawBoolFRight(0, y, pe->v.b);
 			break;
 		case TYPE_INT32:
 			gui_drawStringFRight(0, y, "%i", pe->v.i);
@@ -149,7 +156,6 @@ void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus){
 			break;
 		default: break;
 	}
-
 }
 void drawHeader(){
 	renderer_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
@@ -358,11 +364,22 @@ void gui_openMenu(enum MENU_ID id){
 	menus[id]->prev = gui_menu->id;
 	open(id);
 }
-void gui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, uint32_t data){
-	menus[id]->data = data;
+void gui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId){
 	menus[id]->next = nextId;
 	menus[id]->prev = prevId;
 	open(id);
+}
+void gui_openMenuSmartU(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, uint32_t dataUint){
+	menus[id]->dataUint = dataUint;
+	gui_openMenuSmart(id, prevId, nextId);
+}
+void gui_openMenuSmartI(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, int32_t dataInt){
+	menus[id]->dataInt = dataInt;
+	gui_openMenuSmart(id, prevId, nextId);
+}
+void gui_openMenuSmartPtr(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, void* dataPtr){
+	menus[id]->dataPtr = dataPtr;
+	gui_openMenuSmart(id, prevId, nextId);
 }
 void gui_openMenuPrev(){
 	open(gui_menu->prev);

@@ -32,7 +32,7 @@ void onDraw_debugButtons(unsigned int menuY){
 	isInternalExtCall = 0;
     int y = menuY;
     int x = L_1;
-	SceCtrlData* ctrlP = (SceCtrlData*)gui_menu->data;
+	SceCtrlData* ctrlP = gui_menu->dataPtr;
 	if (ctrlP != NULL)
 		ctrl = *ctrlP;
 	unsigned int buttons = ctrl.buttons;
@@ -82,7 +82,7 @@ void onDraw_debugButtons(unsigned int menuY){
 }
 
 void onInput_debugButtons(SceCtrlData *ctrl){
-	gui_menu->data = (uint32_t)&ctrl[0];
+	gui_menu->dataPtr = &ctrl[0];
 }
 
 #define MENU_DEBUG_BUTTONS_NUM			4

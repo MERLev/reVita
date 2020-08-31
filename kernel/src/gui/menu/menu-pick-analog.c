@@ -5,7 +5,7 @@
 #include "../renderer.h"
 
 void onButton_pickAnalog(uint32_t btn){
-	enum REMAP_ACTION* actn = (enum REMAP_ACTION*)gui_menu->data;
+	enum REMAP_ACTION* actn = gui_menu->dataPtr;
 	switch (btn) {
 		case SCE_CTRL_CROSS:
 			*actn = gui_getEntry()->dataUint;

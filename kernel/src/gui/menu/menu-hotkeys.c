@@ -9,8 +9,8 @@ void onButton_hotkeys(uint32_t btn){
 	int8_t id = gui_getEntry()->dataPE->id;
 	switch (btn) {
 		case SCE_CTRL_CROSS:
-			gui_openMenuSmart(MENU_PICK_BUTTON_ID, 
-				gui_menu->id, gui_menu->id, (uint32_t)&hotkeys[id].v.u); 
+			gui_openMenuSmartPtr(MENU_PICK_BUTTON_ID, 
+				gui_menu->id, gui_menu->id, &hotkeys[id].v.u); 
 			break;
 		case SCE_CTRL_SQUARE: hotkeys_reset(id); break;
 		case SCE_CTRL_START: hotkeys_resetAll(); break;

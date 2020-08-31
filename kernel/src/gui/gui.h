@@ -74,12 +74,11 @@ typedef struct Menu{
 	onDrawF onDraw;
 	onDrawFBF onDrawFB;
 	onBuildF onBuild;
-	// union {
-	// 	int32_t dataInt;
-	// 	uint32_t dataUint;
-	// 	ProfileEntry* dataPE;
-	// };
-	int32_t data;
+	union {
+		int32_t dataInt;
+		uint32_t dataUint;
+		void* dataPtr;
+	};
 }Menu;
 typedef struct MenuEntry{
 	char* name;
@@ -89,7 +88,6 @@ typedef struct MenuEntry{
 		uint32_t dataUint;
 		ProfileEntry* dataPE;
 	};
-	// int32_t data;
 } MenuEntry;
 
 extern uint8_t gui_opened;
@@ -102,6 +100,7 @@ extern int64_t tickUIOpen;
 
 extern const char* STR_BTN_S[HW_BUTTONS_NUM];
 extern const char* STR_YN[2];
+extern const char* STR_SWITCH[2];
 
 void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus);
 void gui_drawTouchPointer(uint32_t panel, TouchPoint* tp);
@@ -118,8 +117,10 @@ void gui_updateEmulatedTouch(SceTouchPortType panel, EmulatedTouch et);
 
 struct MenuEntry* gui_getEntry();
 void gui_registerMenu(Menu* m);
-void gui_openMenu(enum MENU_ID id);
-void gui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, uint32_t data);
+void gui_openMenu(enum MENU_ID id);void gui_openMenuSmart(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId);
+void gui_openMenuSmartU(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, uint32_t dataUint);
+void gui_openMenuSmartI(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, int32_t dataInt);
+void gui_openMenuSmartPtr(enum MENU_ID id, enum MENU_ID prevId, enum MENU_ID nextId, void* p);
 void gui_openMenuPrev();
 void gui_openMenuNext();
 void gui_openMenuParent();
