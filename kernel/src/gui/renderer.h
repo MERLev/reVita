@@ -13,6 +13,8 @@ void renderer_setFB(const SceDisplayFrameBuf *param);
 void renderer_writeToFB(int64_t timeFromOpene);
 void renderer_cpy();
 
+void renderer_drawChar(char character, int x, int y);
+void renderer_drawCharIcon(char character, int x, int y);
 void renderer_stripped(uint8_t flag);
 void renderer_drawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 void renderer_drawLineThick(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t thickness);

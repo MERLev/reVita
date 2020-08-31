@@ -166,7 +166,7 @@ void setDefHotkeys(){
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_KILL_APP,
 		.type = TYPE_UINT32,
-		.def.u = SCE_CTRL_SELECT + SCE_CTRL_START + SCE_CTRL_L1 + SCE_CTRL_RTRIGGER, 
+		.def.u = SCE_CTRL_SELECT + SCE_CTRL_START + SCE_CTRL_LTRIGGER + SCE_CTRL_RTRIGGER, 
 		.key = "KILL_APP"});
 }
 

@@ -1,6 +1,7 @@
 #ifndef _GUI_H_
 #define _GUI_H_
 #include "../remap.h"
+#include "img/icons-font.h"
 #include "../fio/profile.h"
 
 #define VERSION				"2.1.0"
@@ -83,6 +84,7 @@ typedef struct Menu{
 typedef struct MenuEntry{
 	char* name;
 	int32_t type;
+	ICON_ID icn;
 	union {
 		int32_t dataInt;
 		uint32_t dataUint;

@@ -143,7 +143,12 @@ void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus){
 	}
 	ProfileEntry* pe = me->dataPE;
 	gui_setColor(focus, profile_isDef(pe->id));
-	renderer_drawString(x, y, me->name);
+	if (me->icn == ICON_NULL){
+		renderer_drawString(x, y, me->name);
+	} else {
+		renderer_drawCharIcon(me->icn, x, y);
+		renderer_drawString(x + CHA_W*3, y, me->name);
+	}
 	switch (pe->type){
 		case TYPE_BOOL:
 			gui_drawBoolFRight(0, y, pe->v.b);
@@ -192,8 +197,15 @@ void onDraw_generic(uint32_t menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
+		MenuEntry* me = &gui_menu->entries[i];
 		gui_setColor(i == gui_menu->idx, 1);
-		renderer_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
+		if (me->icn == ICON_NULL){
+			renderer_drawString(L_1, y += CHA_H, me->name);
+		} else {
+			renderer_drawCharIcon(me->icn, L_1, y += CHA_H);
+			renderer_drawString(L_1 + CHA_W*3, y, me->name);
+		}
+		// renderer_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
 	}
 }
 

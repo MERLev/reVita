@@ -24,10 +24,10 @@ void onButton_pickAnalog(uint32_t btn){
 
 #define MENU_PICK_ANALOG_LEFT_NUM 4
 static struct MenuEntry menu_pick_analog_left_entries[MENU_PICK_ANALOG_LEFT_NUM] = {
-	(MenuEntry){.name = "$L Move left", .dataUint = REMAP_ANALOG_LEFT},
-	(MenuEntry){.name = "$R Move right", .dataUint = REMAP_ANALOG_RIGHT},
-	(MenuEntry){.name = "$U Move up", .dataUint = REMAP_ANALOG_UP},
-	(MenuEntry){.name = "$D Move down", .dataUint = REMAP_ANALOG_DOWN}};
+	(MenuEntry){.name = "Move left",	.icn = ICON_LS_LEFT, 	.dataUint = REMAP_ANALOG_LEFT},
+	(MenuEntry){.name = "Move right",	.icn = ICON_LS_RIGHT,	.dataUint = REMAP_ANALOG_RIGHT},
+	(MenuEntry){.name = "Move up", 		.icn = ICON_LS_UP,	 	.dataUint = REMAP_ANALOG_UP},
+	(MenuEntry){.name = "Move down", 	.icn = ICON_LS_DOWN,	.dataUint = REMAP_ANALOG_DOWN}};
 static struct Menu menu_pick_analog_left = (Menu){
 	.id = MENU_PICK_ANALOG_LEFT_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
@@ -38,10 +38,10 @@ static struct Menu menu_pick_analog_left = (Menu){
 	
 #define MENU_PICK_ANALOG_RIGHT_NUM 4
 static struct MenuEntry menu_pick_analog_right_entries[MENU_PICK_ANALOG_RIGHT_NUM] = {
-	(MenuEntry){.name = "$l Move left", .dataUint = REMAP_ANALOG_LEFT},
-	(MenuEntry){.name = "$r Move right", .dataUint = REMAP_ANALOG_RIGHT},
-	(MenuEntry){.name = "$u Move up", .dataUint = REMAP_ANALOG_UP},
-	(MenuEntry){.name = "$d Move down", .dataUint = REMAP_ANALOG_DOWN}};
+	(MenuEntry){.name = "Move left", 	.icn = ICON_RS_LEFT, 	.dataUint = REMAP_ANALOG_LEFT},
+	(MenuEntry){.name = "Move right",	.icn = ICON_RS_RIGHT, 	.dataUint = REMAP_ANALOG_RIGHT},
+	(MenuEntry){.name = "Move up", 		.icn = ICON_RS_UP, 		.dataUint = REMAP_ANALOG_UP},
+	(MenuEntry){.name = "Move down", 	.icn = ICON_RS_DOWN, 	.dataUint = REMAP_ANALOG_DOWN}};
 static struct Menu menu_pick_analog_right = (Menu){
 	.id = MENU_PICK_ANALOG_RIGHT_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,

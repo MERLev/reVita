@@ -23,14 +23,14 @@ void onDraw_touch(unsigned int menuY){
 
 #define MENU_TOUCH_NUM 8
 static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
-	(MenuEntry){.name = "$V PSTV mode", .dataPE = &profile.entries[PR_TO_PSTV_MODE]},
-	(MenuEntry){.name = "$j Swipe duration", .dataPE = &profile.entries[PR_TO_SWIPE_DURATION]},
-	(MenuEntry){.name = "$j Smart Swipe sensivity", .dataPE = &profile.entries[PR_TO_SWIPE_SMART_SENS]},
-	(MenuEntry){.name = "$B Swap touchpads", .dataPE = &profile.entries[PR_TO_SWAP]},
-	(MenuEntry){.name = "Draw Pointer", .type = HEADER_TYPE},
-	(MenuEntry){.name = "$i Touch Point", .dataPE = &profile.entries[PR_TO_DRAW_POINT]},
-	(MenuEntry){.name = "$j Swipe", .dataPE = &profile.entries[PR_TO_DRAW_SWIPE]},
-	(MenuEntry){.name = "$j Smart Swipe", .dataPE = &profile.entries[PR_TO_DRAW_SMART_SWIPE]}};
+	(MenuEntry){.name = "PSTV mode", 			.icn = ICON_PSTV,	.dataPE = &profile.entries[PR_TO_PSTV_MODE]},
+	(MenuEntry){.name = "Swipe duration", 		.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_SWIPE_DURATION]},
+	(MenuEntry){.name = "Smart Swipe sensivity",.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_SWIPE_SMART_SENS]},
+	(MenuEntry){.name = "Swap touchpads", 		.icn = ICON_BT,		.dataPE = &profile.entries[PR_TO_SWAP]},
+	(MenuEntry){.name = "Draw Pointer", 		.type = HEADER_TYPE},
+	(MenuEntry){.name = "Touch Point", 			.icn = ICON_TOUCH,	.dataPE = &profile.entries[PR_TO_DRAW_POINT]},
+	(MenuEntry){.name = "Swipe", 				.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_DRAW_SWIPE]},
+	(MenuEntry){.name = "Smart Swipe", 			.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_DRAW_SMART_SWIPE]}};
 static struct Menu menu_touch = (Menu){
 	.id = MENU_TOUCH_ID, 
 	.parent = MENU_MAIN_ID,

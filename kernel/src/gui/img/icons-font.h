@@ -4,8 +4,8 @@
 #define ICON_W 24
 #define ICON_H 20
 
-enum ICON_ID{
-	NOI_0 = 0,
+typedef enum {
+	ICON_NULL = 0,
 	NOI_1,
 	NOI_2,
 	NOI_3,
@@ -117,7 +117,7 @@ enum ICON_ID{
 	ICON_TURBO_OFF,		// "m"
 	NOI_110,			// "n"
 	ICON_PSV_LEFT,		// "o"
-	ICON_BTNPOWER,		// "p"
+	ICON_BTN_POWER,		// "p"
 	ICON_GY_LEFT,		// "q"
 	ICON_RS_RIGHT,		// "r"
 	ICON_GY_DOWN,		// "s"
@@ -133,7 +133,7 @@ enum ICON_ID{
 	ICON_BTN_R1,		// "}"
 	ICON_OFF_L,			// "~"
 	NOI_127				//
-};
+}ICON_ID;
 static const unsigned char ICON[] = {
 	// 'icon_000', 24x20px
 	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 

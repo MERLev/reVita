@@ -5,6 +5,11 @@
 #include "../gui.h"
 #include "../renderer.h"
 
+char* STR_THEME[THEME__NUM] = {
+	"DARK",
+	"LIGHT"
+};
+
 void onButton_settings(uint32_t btn){
 	int8_t id = gui_getEntry()->dataPE->id;
 	switch (btn) {
@@ -33,7 +38,7 @@ void onDraw_settings(unsigned int menuY){
 			case SETT_THEME:
 				gui_setColor(i == gui_menu->idx, settings_isDef(id));
 				renderer_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
-				gui_drawStringFRight(0, y, "%s", settings[id].key);
+				gui_drawStringFRight(0, y, "%s", STR_THEME[settings[id].v.u]);
 				break;
 			default: 
 				gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i);
