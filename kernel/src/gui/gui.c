@@ -137,7 +137,7 @@ void drawHeader(){
 		renderer_drawString(UI_WIDTH - CHA_W * strlen(titleid) - 10, 2, titleid);
 		if (settings[SETT_REMAP_ENABLED].v.b){
 			renderer_setColor(0x00329e15);
-			renderer_drawStringF(L_0, 3, "$~$'", VERSION);
+			renderer_drawStringF(L_0, 3, "$~$`", VERSION);
 		} else {
 			renderer_setColor(theme[COLOR_DANGER]);
 			renderer_drawStringF(L_0, 3, "$@$#", VERSION);

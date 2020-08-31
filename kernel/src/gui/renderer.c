@@ -176,14 +176,12 @@ void renderer_drawLineThick(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint
 	int32_t wy, wx;
 	renderer_drawLine(x1, y1, x2, y2);
 	if (abs(x1 - x2) > abs(y1 - y2)){
-		// wy = thickness + floorSqrt(thickness) * (((float) abs(y1 - y2)) / abs(x1 - x2));
 		wy = thickness + floorSqrt(thickness * (((float) abs(y1 - y2)) / abs(x1 - x2)));
 		for (int i = 0; i < wy; i++) {
 			renderer_drawLine(x1, y1 - i, x2, y2 - i);
 			renderer_drawLine(x1, y1 + i, x2, y2 + i);
 		}
 	} else {
-		// wx = thickness + floorSqrt(thickness) * (((float) abs(x1 - x2)) / abs(y1 - y2));
 		wx = thickness + floorSqrt(thickness * (((float) abs(x1 - x2)) / abs(y1 - y2)));
 		for (int i = 0; i < wx; i++) {
 			renderer_drawLine(x1 - i, y1, x2 - i, y2);
@@ -289,28 +287,8 @@ void renderer_writeToFB(int64_t tickOpened){
 	}
 }
 
-void renderer_setColor(uint32_t clr){
-	color = clr;
-}
-
-//Drawn character in 2x scaling
-void renderer_drawCharacter(int character, int x, int y){
-    for (int yy = 0; yy < 10; yy++) {
-        int xDisplacement = x;
-        int yDisplacement = (y + (yy<<1)) * uiWidth;
-        uint32_t* screenPos = (uint32_t*)(fb_base + xDisplacement + yDisplacement);
-        uint8_t charPos = font[character * 10 + yy];
-        for (int xx = 7; xx >= 2; xx--) {
-			if (screenPos > (uint32_t*)(fb_base + uiHeight * uiWidth)) break;
-			if ((charPos >> xx) & 1) {
-				*(screenPos) = color;
-				*(screenPos+1) = color;
-				*(screenPos+uiWidth) = color;
-				*(screenPos+uiWidth+1) = color;	
-			}	
-			screenPos += 2;
-        }
-    }
+void renderer_setColor(uint32_t c){
+	color = c;
 }
 
 void renderer_stripped(uint8_t flag){
@@ -324,7 +302,7 @@ void renderer_drawString(int x, int y, const char *str){
 			renderer_drawIcon(str[i+1], x + i * 12, y);
 			i++;
 		} else {
-        	renderer_drawCharacter(str[i], x + i * 12, y);
+			renderer_drawImage(x + i * 12, y, FONT_WIDTH, FONT_HEIGHT, &font[(unsigned char)str[i]*40]);
 		}
 	}
 	if (stripped)
