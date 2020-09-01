@@ -15,17 +15,12 @@ void onButton_settings(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_RIGHT: profile_inc(&settings[id], 1); break;
 		case SCE_CTRL_LEFT: profile_dec(&settings[id], 1); break;
-		case SCE_CTRL_SQUARE:
-			settings_reset(id);
-			if (id == SETT_THEME)
-				theme_load(settings[id].v.u);
-			break;
-		case SCE_CTRL_START: 
-			settings_resetAll(); 
-			theme_load(settings[SETT_THEME].v.u);
-			break;
-		default: onButton_genericEntries(btn);break;
+		case SCE_CTRL_SQUARE: settings_reset(id); break;
+		case SCE_CTRL_START: settings_resetAll(); break;
+		default: onButton_genericEntries(btn); break;
 	}
+	if (id == SETT_THEME || btn == SCE_CTRL_START) 
+		theme_load(settings[id].v.u);
 }
 
 void onDraw_settings(unsigned int menuY){

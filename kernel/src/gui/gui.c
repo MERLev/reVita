@@ -215,6 +215,8 @@ void gui_drawTouchPointer(uint32_t panel, TouchPoint* tp){
 	TouchPoints2 size = (panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE : T_BACK_SIZE;
 	int x = (float)fbWidth / (size.b.x - size.a.x) * (tp->x - size.a.x);
 	int y = (float)fbHeight / (size.b.y - size.a.y) * (tp->y - size.a.y);
+	renderer_setColor(theme[COLOR_TOUCH_SHADOW]);
+	renderer_drawImageDirectlyToFB(x - 10, y - 4, ICN_TOUCH_X, ICN_TOUCH_Y, ICN_TOUCH);
 	renderer_setColor(theme[COLOR_TOUCH]);
 	renderer_drawImageDirectlyToFB(x - 11, y - 5, ICN_TOUCH_X, ICN_TOUCH_Y, ICN_TOUCH);
 }
