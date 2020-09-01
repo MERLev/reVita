@@ -28,6 +28,7 @@ uint32_t uiWidth, uiHeight;
 static const unsigned char UI_CORNER_OFF[UI_CORNER_RADIUS] = {9, 7, 5, 4, 3, 2, 2, 1, 1};
 
 void renderer_drawChar(char character, int x, int y){
+	character = character % ICON_ID__NUM;
 	renderer_drawImage(x, y, FONT_WIDTH, FONT_HEIGHT, &font[character * 40]);
 }
 

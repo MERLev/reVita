@@ -57,7 +57,7 @@ int onInput(SceCtrlData *ctrl, int nBufs, int hookId){
 		return nBufs;	
 
 	//Nullify all inputs when UI open
-	if (gui_opened){
+	if (gui_isOpen){
 		for (int i = 0; i < nBufs; i++){
 			ctrl[i].buttons = 0;
             ctrl[i].lx = ctrl[i].ly = ctrl[i].rx = ctrl[i].ry = 127;
@@ -100,7 +100,7 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
     if (isInternalTouchCall) return nBufs;
 
     //Nullify input calls when UI is open
-	if (gui_opened) {
+	if (gui_isOpen) {
 		pData[0] = pData[nBufs - 1];
 		pData[0].reportNum = 0;
 		return 1;
@@ -236,12 +236,22 @@ int ksceCtrlGetControllerPortInfo_patched(SceCtrlPortInfo* info){
 
 int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplayFrameBuf *pParam, int sync) {
     used_funcs[H_K_DISP_SET_FB] = 1;
-    
+
     if (index && ksceAppMgrIsExclusiveProcessRunning())
         goto DISPLAY_HOOK_RET; // Do not draw over SceShell overlay
 
     if (pParam)  
         gui_draw(pParam);
+
+    if (!head || !pParam)
+        goto DISPLAY_HOOK_RET;
+
+    if (gui_isOpen) {
+        SceCtrlData ctrl;
+        if(ksceCtrlPeekBufferPositive(0, &ctrl, 1) == 1)
+            gui_onInput(&ctrl);
+    }
+
 
 DISPLAY_HOOK_RET:
     return TAI_CONTINUE(int, refs[H_K_DISP_SET_FB], head, index, pParam, sync);
@@ -323,45 +333,29 @@ static int main_thread(SceSize args, void *argp) {
             continue;
         }
 
-        for (int i = 0; i < HOTKEY__NUM; i++){
-            if (hotkeys[i].v.u != 0 && 
-                    btn_has(ctrl.buttons, hotkeys[i].v.u) && 
-                    !btn_has(oldBtns, hotkeys[i].v.u)){
-                switch(i){
-                    case HOTKEY_MENU:
-                        gui_open();
-                        remap_resetBuffers();
-                        break;
-                    case HOTKEY_REMAPS_TOOGLE: FLIP(settings[SETT_REMAP_ENABLED].v.b); break;
-                    case HOTKEY_RESET_SOFT: sysactions_softReset();  break;
-                    case HOTKEY_RESET_COLD: sysactions_coldReset();  break;
-                    case HOTKEY_STANDBY: sysactions_standby();  break;
-                    case HOTKEY_SUSPEND: sysactions_suspend();  break;
-                    case HOTKEY_DISPLAY_OFF: sysactions_displayOff();  break;
-                    case HOTKEY_KILL_APP: sysactions_killCurrentApp();  break;
+        if (!gui_isOpen){
+            for (int i = 0; i < HOTKEY__NUM; i++){
+                if (hotkeys[i].v.u != 0 && 
+                        btn_has(ctrl.buttons, hotkeys[i].v.u) && 
+                        !btn_has(oldBtns, hotkeys[i].v.u)){
+                    switch(i){
+                        case HOTKEY_MENU:
+                            gui_open();
+                            remap_resetBuffers();
+                            break;
+                        case HOTKEY_REMAPS_TOOGLE: FLIP(settings[SETT_REMAP_ENABLED].v.b); break;
+                        case HOTKEY_RESET_SOFT: sysactions_softReset();  break;
+                        case HOTKEY_RESET_COLD: sysactions_coldReset();  break;
+                        case HOTKEY_STANDBY: sysactions_standby();  break;
+                        case HOTKEY_SUSPEND: sysactions_suspend();  break;
+                        case HOTKEY_DISPLAY_OFF: sysactions_displayOff();  break;
+                        case HOTKEY_KILL_APP: sysactions_killCurrentApp();  break;
+                    }
                 }
             }
         }
 
-        // if (!gui_opened && 
-        //         btn_has(ctrl.buttons, settings[SETT_KEYS_MENU].v.u) &&
-        //         !btn_has(oldBtns, settings[SETT_KEYS_MENU].v.u)) {
-        //     gui_open();
-        //     remap_resetBuffers();
-        // }
-
-        // if (!gui_opened && 
-        //         btn_has(ctrl.buttons, settings[SETT_KEYS_REMAPS_TOOGLE].v.u) &&
-        //         !btn_has(oldBtns, settings[SETT_KEYS_REMAPS_TOOGLE].v.u)) {
-        //     FLIP(settings[SETT_REMAP_ENABLED].v.b);
-        // }
-
         oldBtns = ctrl.buttons;
-
-        //In-menu inputs handling
-        if (gui_opened){
-            gui_onInput(&ctrl);
-        }
         
         ksceKernelDelayThread(30 * 1000);
     }

@@ -92,7 +92,7 @@ typedef struct MenuEntry{
 	};
 } MenuEntry;
 
-extern uint8_t gui_opened;
+extern uint8_t gui_isOpen;
 extern uint8_t gui_lines;
 extern struct Menu* gui_menu;
 

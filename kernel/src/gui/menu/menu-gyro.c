@@ -27,13 +27,13 @@ void onDraw_gyro(unsigned int menuY){
 			gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i); 
 			continue;
 		}
-		
-		int32_t id = gui_menu->entries[i].dataPE->id;
-		switch(id){
+
+		ProfileEntry* pe = gui_menu->entries[i].dataPE;
+		switch(pe->id){
 			case PR_GY_DEADBAND:
-				gui_setColor(i == gui_menu->idx, profile_isDef(id));
+				gui_setColor(i == gui_menu->idx, profile_isDef(pe));
 				renderer_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
-				gui_drawStringFRight(0, y, "%s", STR_DEADBAND[profile.entries[id].v.u]);
+				gui_drawStringFRight(0, y, "%s", STR_DEADBAND[pe->v.u]);
 				break;
 			default: gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i); break;
 		}

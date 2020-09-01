@@ -132,7 +132,8 @@ typedef enum {
 	ICON_MENU_SETTINGS,	// "|"
 	ICON_BTN_R1,		// "}"
 	ICON_OFF_L,			// "~"
-	NOI_127				//
+	NOI_127,			//
+	ICON_ID__NUM
 }ICON_ID;
 static const unsigned char ICON[] = {
 	// 'icon_000', 24x20px

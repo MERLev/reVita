@@ -34,13 +34,13 @@ void onDraw_controller(unsigned int menuY){
 	
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {		
-		int32_t id = gui_menu->entries[i].dataPE->id;
-		switch(id){
+		ProfileEntry* pe = gui_menu->entries[i].dataPE;
+		switch(pe->id){
 			case PR_CO_PORT:
-				gui_setColor(i == gui_menu->idx, profile_isDef(id));
+				gui_setColor(i == gui_menu->idx, profile_isDef(pe));
 				renderer_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
 				gui_drawStringFRight(0, y, "%s {%i}", 
-					getControllerName(pi.port[profile.entries[id].v.u]), profile.entries[id].v.u);
+					getControllerName(pi.port[pe->v.u]), pe->v.u);
 				break;
 			default: gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i); break;
 		}

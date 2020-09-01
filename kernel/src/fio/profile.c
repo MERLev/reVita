@@ -530,11 +530,11 @@ void profile_resetGlobal(){
 	writeProfile(&profile_global, NAME_GLOBAL);
 }
 
-bool profile_isDef(enum PROF_ID id){
-	switch(profile.entries[id].type){
-		case TYPE_UINT32: return profile.entries[id].v.u == profile.entries[id].def.u; 
-		case TYPE_INT32:  return profile.entries[id].v.i == profile.entries[id].def.i; 
-		case TYPE_BOOL:   return profile.entries[id].v.b == profile.entries[id].def.b; 
+bool profile_isDef(ProfileEntry* pe){
+	switch(pe->type){
+		case TYPE_UINT32: return pe->v.u == pe->def.u; 
+		case TYPE_INT32:  return pe->v.i == pe->def.i; 
+		case TYPE_BOOL:   return pe->v.b == pe->def.b; 
 		default: return false;
 	}
 }

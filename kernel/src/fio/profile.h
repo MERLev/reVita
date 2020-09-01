@@ -78,7 +78,7 @@ void profile_dec(ProfileEntry* pe, unsigned int val);
 void profile_addRemapRule(struct RemapRule rule);
 void profile_removeRemapRule(uint8_t idx);
 void profile_resetRemapRules();
-bool profile_isDef(enum PROF_ID id);
+bool profile_isDef(ProfileEntry* pe);
 void profile_resetEntry(ProfileEntry* entry);
 void profile_resetAnalog();
 void profile_resetTouch();

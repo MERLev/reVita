@@ -45,14 +45,13 @@ const char* STR_SWITCH[2] = {
 Menu* menus[MENU_ID__NUM];
 Menu* gui_menu;
 
-int64_t tickUIOpen = 0;
 SceUID mem_uid;
-uint8_t gui_opened = 0;
+int64_t tickUIOpen = 0;
+uint8_t gui_isOpen = false;
 uint8_t gui_lines = 10;
-uint8_t new_frame = 1;
 
 struct MenuEntry* gui_getEntry(){
-	return &gui_menu->entries[gui_menu->idx];
+	return &gui_menu->entries[gui_menu->idx % gui_menu->num];
 }
 void gui_generateBtnComboName(char* str, uint32_t btns, int max){
 	int i = -1;
@@ -115,6 +114,7 @@ void gui_drawStringFRight(int x, int y, const char *format, ...){
 	renderer_drawString(UI_WIDTH - (strlen(str) + 2) * CHA_W - x, y, str);
 }
 void gui_drawBoolFRight(int x, int y, bool b){
+	b = b % 2;
 	renderer_setColor(b ? 0x00329e15 : theme[COLOR_DANGER]);
 	gui_drawStringFRight(0, y, STR_SWITCH[b]);
 }
@@ -136,13 +136,16 @@ void gui_drawEditPointer(uint16_t x, uint16_t y){
 	renderer_drawImage(x, y, ICN_ARROW_X, ICN_ARROW_Y, (ticker % 32 < 16) ? ICN_ARROW_LEFT : ICN_ARROW_RIGHT);
 }
 void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus){
+	if (me == NULL) return;
+	focus = focus % 2;
 	if (me->type == HEADER_TYPE){
 		renderer_setColor(theme[COLOR_HEADER]);
 		renderer_drawString(x, y, me->name);
 		return;
 	}
+	if (me->dataPE == NULL) return;
 	ProfileEntry* pe = me->dataPE;
-	gui_setColor(focus, profile_isDef(pe->id));
+	gui_setColor(focus, profile_isDef(pe));
 	if (me->icn == ICON_NULL){
 		renderer_drawString(x, y, me->name);
 	} else {
@@ -167,7 +170,7 @@ void drawHeader(){
 	renderer_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
 	if (gui_menu->id == MENU_MAIN_ID){
 		renderer_drawStringF(L_0, 3, "     remaPSV2 v.%s", VERSION);
-		renderer_drawString(UI_WIDTH - CHA_W * strlen(titleid) - 10, 2, titleid);
+		gui_drawStringFRight(0, 2, titleid);
 		if (settings[SETT_REMAP_ENABLED].v.b){
 			renderer_setColor(0x00329e15);
 			renderer_drawStringF(L_0, 3, "$~$`", VERSION);
@@ -189,7 +192,7 @@ void drawFooter(){
 void drawIndent(){
 	int y = (gui_menu->idx - gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET)) * CHA_H
 		+ HEADER_HEIGHT + CHA_H / 2;
-	renderer_drawRectangle(L_1 - 5, y - 1, UI_WIDTH - 2 * L_1 + 10, CHA_H + 2, theme[COLOR_BG_HEADER]);//BG
+	renderer_drawRectangle(L_1 - 5, y - 1, UI_WIDTH - 2 * L_1 + 4, CHA_H + 2, theme[COLOR_BG_HEADER]);//BG
 	renderer_setColor(theme[COLOR_HEADER]);   
 }
 
@@ -205,7 +208,6 @@ void onDraw_generic(uint32_t menuY){
 			renderer_drawCharIcon(me->icn, L_1, y += CHA_H);
 			renderer_drawString(L_1 + CHA_W*3, y, me->name);
 		}
-		// renderer_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
 	}
 }
 
@@ -253,9 +255,8 @@ void drawDirectlyToFB(){
 }
 
 void gui_draw(const SceDisplayFrameBuf *pParam){
-	new_frame = 1;
 	ticker++;
-	if (gui_opened) {
+	if (gui_isOpen) {
 		renderer_setFB(pParam);
 		drawHeader();
 		drawBody();
@@ -429,12 +430,12 @@ void gui_onInput(SceCtrlData *ctrl){
 void gui_open(const SceDisplayFrameBuf *pParam){
 	gui_menu = menus[MENU_MAIN_ID]; //&menu_main;
 	gui_setIdx(0);
-	gui_opened = 1;
+	gui_isOpen = true;
 	tickUIOpen = ksceKernelGetSystemTimeWide();
 	LOG("tickUIOpen=%lli\n", tickUIOpen);
 }
 void gui_close(){
-	gui_opened = 0;
+	gui_isOpen = false;
 	profile.version = ksceKernelGetSystemTimeWide();
 	log_flush();
 }
