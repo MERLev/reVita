@@ -167,7 +167,8 @@ void onDraw_pickTouchPoint(unsigned int menuY){
 		int32_t id = gui_menu->entries[i].dataUint;
 		int coord = (id == 0) ? ra->param.tPoint.x : ra->param.tPoint.y;
 		gui_setColor(i == gui_menu->idx, 1);
-		renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", gui_menu->entries[i].name, coord);
+		renderer_drawStringF(L_2, y += CHA_H, gui_menu->entries[i].name);
+		gui_drawStringFRight(0, y, "%hu", coord);
 	}
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx) / (gui_menu->num - 1));
 }
@@ -185,7 +186,8 @@ void onDraw_pickTouchZone(unsigned int menuY){
 			case 2: coord = ra->param.tPoints.b.x; break;
 			case 3: coord = ra->param.tPoints.b.y; break;}
 		gui_setColor(i == gui_menu->idx, 1);
-		renderer_drawStringF(L_2, y += CHA_H, "%s: %hu", gui_menu->entries[i].name, coord);
+		renderer_drawStringF(L_2, y += CHA_H, gui_menu->entries[i].name);
+		gui_drawStringFRight(0, y, "%hu", coord);
 	}
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx) / (gui_menu->num - 1));
 }
