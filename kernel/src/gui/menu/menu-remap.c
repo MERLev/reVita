@@ -71,12 +71,18 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 			break;
 		case REMAP_TYPE_SYSACTIONS: strcat(str, "$!");
 			switch (ra->action){
-				case REMAP_SYS_RESET_SOFT:  strcat(str, "$!Soft reset"); break;
-				case REMAP_SYS_RESET_COLD: 	strcat(str, "$!Reboot"); break;
-				case REMAP_SYS_STANDBY:    	strcat(str, "$!Power Off"); break;
-				case REMAP_SYS_SUSPEND:  	strcat(str, "$!Suspend"); break;
-				case REMAP_SYS_DISPLAY_OFF: strcat(str, "$!Display Off"); break;
-				case REMAP_SYS_KILL: 		strcat(str, "$!Kill App"); break;
+				case REMAP_SYS_RESET_SOFT:  strcat(str, "Soft reset"); break;
+				case REMAP_SYS_RESET_COLD: 	strcat(str, "Reboot"); break;
+				case REMAP_SYS_STANDBY:    	strcat(str, "Power Off"); break;
+				case REMAP_SYS_SUSPEND:  	strcat(str, "Suspend"); break;
+				case REMAP_SYS_DISPLAY_OFF: strcat(str, "Display Off"); break;
+				case REMAP_SYS_KILL: 		strcat(str, "Kill App"); break;
+				default: break;
+			}
+			break;
+		case REMAP_TYPE_REMAPSV_ACTIONS: strcat(str, "$c");
+			switch (ra->action){
+				case REMAP_REM_SWAP_TOUCHPADS:  strcat(str, "Swap Touchpads"); break;
 				default: break;
 			}
 			break;
@@ -193,6 +199,7 @@ void onButton_remapEmuType(uint32_t btn){
 				case REMAP_TYPE_FRONT_TOUCH_POINT: gui_openMenu(MENU_REMAP_EMU_TOUCH_FRONT_ID); break;
 				case REMAP_TYPE_BACK_TOUCH_POINT: gui_openMenu(MENU_REMAP_EMU_TOUCH_BACK_ID); break;
 				case REMAP_TYPE_SYSACTIONS: gui_openMenu(MENU_REMAP_EMU_SYSACTIONS_ID); break;
+				case REMAP_TYPE_REMAPSV_ACTIONS: gui_openMenu(MENU_REMAP_EMU_REMAPSV_ID); break;
 			};
 			break;
 		default: onButton_generic(btn);
@@ -349,7 +356,7 @@ static struct Menu menu_remap_trigger_gyro = (Menu){
 	.onButton = onButton_remapTriggerGyro,
 	.entries = menu_remap_trigger_gyro_entries};
 
-#define MENU_REMAP_EMU_TYPE_NUM 8
+#define MENU_REMAP_EMU_TYPE_NUM 9
 static struct MenuEntry menu_remap_emu_type_entries[MENU_REMAP_EMU_TYPE_NUM] = {
 	(MenuEntry){.name = "Buttons", 						.icn = ICON_BTN_CROSS, 	.dataUint = REMAP_TYPE_BUTTON},
 	(MenuEntry){.name = "Analog Stick Left", 			.icn = ICON_LS_UP, 		.dataUint = REMAP_TYPE_LEFT_ANALOG},
@@ -358,7 +365,8 @@ static struct MenuEntry menu_remap_emu_type_entries[MENU_REMAP_EMU_TYPE_NUM] = {
 	(MenuEntry){.name = "Analog Stick Right [DIGITAL]", .icn = ICON_RS_UP,		.dataUint = REMAP_TYPE_RIGHT_ANALOG_DIGITAL},
 	(MenuEntry){.name = "Front Touch", 					.icn = ICON_FT,			.dataUint = REMAP_TYPE_FRONT_TOUCH_POINT},
 	(MenuEntry){.name = "Back Touch", 					.icn = ICON_BT, 		.dataUint = REMAP_TYPE_BACK_TOUCH_POINT},
-	(MenuEntry){.name = "Actions", 						.icn = ICON_DANGER,		.dataUint = REMAP_TYPE_SYSACTIONS}};
+	(MenuEntry){.name = "System Actions", 				.icn = ICON_DANGER,		.dataUint = REMAP_TYPE_SYSACTIONS},
+	(MenuEntry){.name = "remaPSV2 settings", 			.icn = ICON_CONFIG,		.dataUint = REMAP_TYPE_REMAPSV_ACTIONS}};
 static struct Menu menu_remap_emu_type = (Menu){
 	.id = MENU_REMAP_EMU_TYPE_ID, 
 	.parent = MENU_REMAP_ID,
@@ -424,6 +432,16 @@ static struct Menu menu_remap_emu_sysactions = (Menu){
 	.onButton = onButton_remapEmuActions,
 	.entries = menu_remap_emu_sysactions_entries};
 
+#define MENU_REMAP_EMU_REMAPSV_NUM 1
+static struct MenuEntry menu_remap_emu_remapsv_entries[MENU_REMAP_EMU_REMAPSV_NUM] = {
+	(MenuEntry){.name = "Touch : Swap touchpads", 	.dataUint = REMAP_REM_SWAP_TOUCHPADS}};
+static struct Menu menu_remap_emu_remapsv = (Menu){
+	.id = MENU_REMAP_EMU_REMAPSV_ID, 
+	.num = MENU_REMAP_EMU_REMAPSV_NUM, 
+	.name = "$! REMAPSV2 CONFIG OPTIONS",
+	.onButton = onButton_remapEmuActions,
+	.entries = menu_remap_emu_remapsv_entries};
+
 void onBuild_remap(Menu* m){
 	ui_ruleEdited = remap_createRemapRule();
 	m->num = profile.remapsNum + MENU_REMAP_NUM;
@@ -447,4 +465,5 @@ void menu_initRemap(){
 	gui_registerMenu(&menu_remap_emu_touch_front);
 	gui_registerMenu(&menu_remap_emu_touch_back);
 	gui_registerMenu(&menu_remap_emu_sysactions);
+	gui_registerMenu(&menu_remap_emu_remapsv);
 }

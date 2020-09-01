@@ -50,8 +50,8 @@ const char* REMAP_ACTION_TYPE_STR[REMAP_ACTION_TYPE_NUM] = {
     "FRONT_TOUCH_POINT",
     "BACK_TOUCH_POINT",
     "GYROSCOPE",
-    "REMAPSV",
-    "USYSACTIONS"
+    "USYSACTIONS",
+	"REMAPSV2"
 };
 enum REMAP_ACTION_TYPE getActionTypeId(char* n){
 	for (int i = 0; i < REMAP_ACTION_TYPE_NUM; i++)
@@ -87,7 +87,8 @@ const char* REMAP_ACTION_STR[REMAP_ACTION_NUM] = {
 	"SYS_STANDBY",
 	"SYS_SUSPEND",
 	"SYS_DISPLAY_OFF",
-	"SYS_KILL"
+	"SYS_KILL",
+	"REM_SWAP_TOUCHPADS"
 };
 enum REMAP_ACTION getActionId(char* n){
 	for (int i = 0; i < REMAP_ACTION_NUM; i++)

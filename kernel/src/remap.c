@@ -394,6 +394,13 @@ void addEmu(RuleData* rd) {
 				default: break;
 			}
 		break;
+		case REMAP_TYPE_REMAPSV_ACTIONS:
+			if (*rd->status != RS_STARTED) break;
+			switch (emu->action){
+				case REMAP_REM_SWAP_TOUCHPADS: profile_inc(&profile.entries[PR_TO_SWAP], 1);  break;
+				default: break;
+			}
+		break;
 		default: break;
 	}
 }

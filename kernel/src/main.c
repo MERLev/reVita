@@ -252,7 +252,6 @@ int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplay
             gui_onInput(&ctrl);
     }
 
-
 DISPLAY_HOOK_RET:
     return TAI_CONTINUE(int, refs[H_K_DISP_SET_FB], head, index, pParam, sync);
 }
