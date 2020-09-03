@@ -17,7 +17,7 @@
 
 typedef struct BtnInfo{
 	uint32_t btn;
-	uint8_t btnId;
+	// uint8_t btnId;
 	bool isPressed;
 	bool isLongPressed;
 	int64_t tickOnPress;
@@ -31,8 +31,10 @@ static uint32_t ticker;
 static EmulatedTouch etFront, etBack;
 
 const char* STR_BTN_S[HW_BUTTONS_NUM] = {
-	"$X", "$C", "$T", "$S", "$:", "$;", "$[", "$]", 
-	"$^", "$>", "$<", "$v", "${", "$}", "$(", "$)", 
+	"$X", "$C", "$T", "$S", 
+	"$^", "$>", "$<", "$v", 
+	"$:", "$;", 
+	"${", "$}", "$,", "$.", "$(", "$)", 
 	"$+", "$-", "$p", "$P", "$t"
 };
 const char* STR_YN[2] = {
@@ -302,9 +304,9 @@ void onButton_genericEntries(uint32_t btn){
 }
 
 void ctrl_onInput(SceCtrlData *ctrl) {
-	if (ctrl->buttons & HW_BUTTONS[hotkeys[HOTKEY_MENU].v.u])
+	if (btn_has(ctrl->buttons, HW_BUTTONS[hotkeys[HOTKEY_MENU].v.u]))
 		return; //Menu trigger butoons should not trigger any menu actions on menu open
-
+	
 	if (gui_menu->onInput)
 		gui_menu->onInput(ctrl);
 
@@ -443,6 +445,8 @@ void gui_close(){
 }
 
 void gui_init(){
+	memset(&btns, 0, sizeof(btns));
+	
     renderer_init(UI_WIDTH, UI_HEIGHT);
 
 	menu_initMain();

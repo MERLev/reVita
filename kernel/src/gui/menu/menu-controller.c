@@ -34,16 +34,7 @@ void onDraw_controller(unsigned int menuY){
 	
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {		
-		ProfileEntry* pe = gui_menu->entries[i].dataPE;
-		switch(pe->id){
-			case PR_CO_PORT:
-				gui_setColor(i == gui_menu->idx, profile_isDef(pe));
-				renderer_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
-				gui_drawStringFRight(0, y, "%s {%i}", 
-					getControllerName(pi.port[pe->v.u]), pe->v.u);
-				break;
-			default: gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i); break;
-		}
+		gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i);
 	}
 
 	//Ports stats
@@ -59,8 +50,9 @@ void onDraw_controller(unsigned int menuY){
 #define MENU_CONTROLLER_NUM 3
 static struct MenuEntry menu_controllers_entries[MENU_CONTROLLER_NUM] = {
 	(MenuEntry){.name = "Use external",   .dataPE = &profile.entries[PR_CO_ENABLED]},
-	(MenuEntry){.name = "Selected port",  .dataPE = &profile.entries[PR_CO_PORT]},
-	(MenuEntry){.name = "Swap $[$] ${$}", .dataPE = &profile.entries[PR_CO_SWAP_BUTTONS]}};
+	(MenuEntry){.name = "Swap $[$] ${$}", .dataPE = &profile.entries[PR_CO_SWAP_BUTTONS]},
+	// (MenuEntry){.name = "Fix buttons",   .dataPE = &profile.entries[PR_CO_FIX_BUTTONS]},
+	(MenuEntry){.name = "Emulate DS4", .dataPE = &profile.entries[PR_CO_EMULATE_DS4]}};
 static struct Menu menu_controller = (Menu){
 	.id = MENU_CONTROLLER_ID, 
 	.parent = MENU_MAIN_ID,

@@ -35,65 +35,19 @@ static bool   thread_run = true;
 SceUID bufsMemId;
 uint8_t* bufsMemBase;
 SceTouchData* bufsStd[TOUCH_HOOKS_NUM];
-SceCtrlData* bufsScd[CTRL_HOOKS_NUM];
 
 char titleid[32] = "";
 int processid = -1;
 
 bool used_funcs[HOOKS_NUM];
 bool isInternalTouchCall = false;
-bool isInternalExtCall = false;
+bool isInternalCtrlCall = false;
 
 static uint64_t startTick;
 static bool delayedStartDone = false;
 
 SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
 int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
-
-
-int onInput(SceCtrlData *ctrl, int nBufs, int hookId){
-	//Nothing to do here
-	if (nBufs < 1)
-		return nBufs;	
-
-	//Nullify all inputs when UI open
-	if (gui_isOpen){
-		for (int i = 0; i < nBufs; i++){
-			ctrl[i].buttons = 0;
-            ctrl[i].lx = ctrl[i].ly = ctrl[i].rx = ctrl[i].ry = 127;
-        }
-		return nBufs;
-	}
-
-	if (!settings[SETT_REMAP_ENABLED].v.b) return nBufs;
-
-	//Execute remapping
-	int ret = remap_controls(ctrl, nBufs, hookId);
-	return ret;
-}
-
-int onInputNegative(SceCtrlData *ctrl, int nBufs, int hookId){	
-	//Invert for negative logic
-	for (int i = 0; i < nBufs; i++)
-		ctrl[i].buttons = 0xFFFFFFFF - ctrl[i].buttons;
-	
-	//Call as for positive logic
-	int ret = onInput(ctrl, nBufs, hookId);
-	
-	//Invert back for negative logic
-	for (int i = 0; i < ret; i++)
-		ctrl[i].buttons = 0xFFFFFFFF - ctrl[i].buttons;
-	
-	return ret;
-}
-
-int onKernelInput(SceCtrlData *ctrl, int nBufs, int hookId){
-    return onInput(ctrl, nBufs, hookId);
-}
-
-int onKernelInputNegative(SceCtrlData *ctrl, int nBufs, int hookId){
-    return onInputNegative(ctrl, nBufs, hookId);
-}
 
 int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
 	//Disable in menu
@@ -120,64 +74,75 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
     return ret;
 }
 
+int nullButtonsUSpace(SceCtrlData *bufs, SceUInt32 nBufs, bool isPositiveLogic){
+    SceCtrlData scd;
+	memset(&scd, 0, sizeof(scd));
+    scd.buttons = isPositiveLogic ? 0 : 0xFFFFFFFF;
+    scd.lx = scd.ly = scd.rx = scd.ry = 127;
+    for (int i = 0; i < nBufs; i++)
+        ksceKernelMemcpyKernelToUser((uintptr_t)&bufs[i], &scd, sizeof(SceCtrlData));
+    return nBufs;
+}
+
+int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, bool isPositiveLogic, bool isExt){ 
+    int ret = nBufs;
+
+    if (ret < 1 || ret > BUFFERS_NUM) 
+        return ret;
+    if (gui_isOpen) 
+        return nullButtonsUSpace(ctrl, nBufs, isPositiveLogic);
+    if (!settings[SETT_REMAP_ENABLED].v.b) 
+        return ret;
+    if (!isExt && profile.entries[PR_CO_ENABLED].v.b) 
+        return ret;
+
+    used_funcs[hookId] = true;
+
+    SceCtrlData scd;
+    ksceKernelMemcpyUserToKernel(&scd, (uintptr_t)&ctrl[ret-1], sizeof(SceCtrlData));
+    SceCtrlData* remappedBuffers;
+    ret = remap_controls(port, &scd, ret, hookId, &remappedBuffers, isPositiveLogic, isExt);
+    ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], remappedBuffers, ret * sizeof(SceCtrlData)); 
+
+    return ret;
+}
+
 #define DECL_FUNC_HOOK_PATCH_CTRL(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
-		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
-        if (ret < 1 || ret > BUFFERS_NUM) return ret; \
-        if (profile.entries[PR_CO_ENABLED].v.b) return ret; \
-        ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
-		ret = onInput(bufsScd[(index)], ret, (index)); \
-        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], bufsScd[(index)], ret * sizeof(SceCtrlData)); \
-		used_funcs[(index)] = 1; \
-        return ret; \
+		int ret = TAI_CONTINUE(int, refs[(index)], \
+            (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
+        return onInput(port, ctrl, ret, (index), true, false); \
     }
 DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_P, sceCtrlPeekBufferPositive)
 DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_P, sceCtrlReadBufferPositive)
+DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_P_EXT, sceCtrlPeekBufferPositiveExt)
+DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_P_EXT, sceCtrlReadBufferPositiveExt)
 
 #define DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
-		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
-        if (ret < 1 || ret > BUFFERS_NUM) return ret; \
-        if (profile.entries[PR_CO_ENABLED].v.b) return ret; \
-        ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
-		ret = onInputNegative(bufsScd[(index)], ret, (index)); \
-        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], bufsScd[(index)], ret * sizeof(SceCtrlData)); \
-		used_funcs[(index)] = 1; \
-        return ret; \
+		int ret = TAI_CONTINUE(int, refs[(index)], \
+            (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
+        return onInput(port, ctrl, ret, (index), false, false); \
     }
 DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(H_CT_PEEK_N, sceCtrlPeekBufferNegative)
 DECL_FUNC_HOOK_PATCH_CTRL_NEGATIVE(H_CT_READ_N, sceCtrlReadBufferNegative)
 
 #define DECL_FUNC_HOOK_PATCH_CTRL_EXT(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
-		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
-        if (ret < 1 || ret > BUFFERS_NUM) return ret; \
-		if (isInternalExtCall) return ret; \
-        if (profile.entries[PR_CO_ENABLED].v.b && \
-                port != profile.entries[PR_CO_PORT].v.u) return ret; \
-        ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
-		ret = onInput(bufsScd[(index)], ret, (index)); \
-        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], bufsScd[(index)], ret * sizeof(SceCtrlData)); \
-		used_funcs[(index)] = 1; \
-        return ret; \
+		int ret = TAI_CONTINUE(int, refs[(index)], \
+            (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
+        return onInput(port, ctrl, ret, (index), true, true); \
     }
 DECL_FUNC_HOOK_PATCH_CTRL_EXT(H_CT_PEEK_P_2, sceCtrlPeekBufferPositive2)
 DECL_FUNC_HOOK_PATCH_CTRL_EXT(H_CT_READ_P_2, sceCtrlReadBufferPositive2)
-DECL_FUNC_HOOK_PATCH_CTRL_EXT(H_CT_PEEK_P_EXT, sceCtrlPeekBufferPositiveExt)
-DECL_FUNC_HOOK_PATCH_CTRL_EXT(H_CT_READ_P_EXT, sceCtrlReadBufferPositiveExt)
 DECL_FUNC_HOOK_PATCH_CTRL_EXT(H_CT_PEEK_P_EXT2, sceCtrlPeekBufferPositiveExt2)
 DECL_FUNC_HOOK_PATCH_CTRL_EXT(H_CT_READ_P_EXT2, sceCtrlReadBufferPositiveExt2)
 
 #define DECL_FUNC_HOOK_PATCH_CTRL_EXT_NEGATIVE(index, name) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
-		int ret = TAI_CONTINUE(int, refs[(index)], port, ctrl, nBufs); \
-        if (ret < 1 || ret > BUFFERS_NUM) return ret; \
-		if (isInternalExtCall) return ret; \
-        ksceKernelMemcpyUserToKernel(bufsScd[(index)], (uintptr_t)&ctrl[0], ret * sizeof(SceCtrlData)); \
-		ret = onInputNegative(bufsScd[(index)], ret, (index)); \
-        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], bufsScd[(index)], ret * sizeof(SceCtrlData)); \
-		used_funcs[(index)] = 1; \
-        return ret; \
+		int ret = TAI_CONTINUE(int, refs[(index)], \
+            (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
+        return onInput(port, ctrl, ret, (index), false, true); \
     }
 DECL_FUNC_HOOK_PATCH_CTRL_EXT_NEGATIVE(H_CT_PEEK_N_2, sceCtrlPeekBufferNegative2)
 DECL_FUNC_HOOK_PATCH_CTRL_EXT_NEGATIVE(H_CT_READ_N_2, sceCtrlReadBufferNegative2)
@@ -230,7 +195,9 @@ DECL_FUNC_HOOK_PATCH_TOUCH_REGION(H_K_TO_READ_R, ksceTouchReadRegion)
 
 int ksceCtrlGetControllerPortInfo_patched(SceCtrlPortInfo* info){
     int ret = TAI_CONTINUE(int, refs[H_K_CT_PORT_INFO], info);
-    info->port[1] = SCE_CTRL_TYPE_DS4;
+    if (profile.entries[PR_CO_EMULATE_DS4].v.b){
+        info->port[1] = SCE_CTRL_TYPE_DS4;
+    }
 	return ret;
 }
 
@@ -268,6 +235,13 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
     switch (ev) {
         case 1: //Start
         case 5: //Resume
+            if (streq(titleidLocal, "TSTCTRL00") ||
+                streq(titleidLocal, "TSTCTRL20") ||
+                streq(titleidLocal, "TSTCTRLE0") ||
+                streq(titleidLocal, "TSTCTRLE2") ||
+                streq(titleidLocal, "TSTCTRLN0") ||
+                streq(titleidLocal, "TSTCTRLN2"))
+                break;
             if (!strncmp(titleidLocal, "NPXS", 4)){ //If system app
                 SceKernelModuleInfo info;
                 info.size = sizeof(SceKernelModuleInfo);
@@ -321,7 +295,7 @@ static int main_thread(SceSize args, void *argp) {
     while (thread_run) {
         //Activate delayed start
         if (!delayedStartDone 
-            && startTick + settings[3].v.u * 1000000 < ksceKernelGetSystemTimeWide()){
+            && startTick + settings[SETT_DELAY_INIT].v.u * 1000000 < ksceKernelGetSystemTimeWide()){
             remap_setup();
 	        delayedStartDone = true;
         }
@@ -368,6 +342,7 @@ void hook(uint8_t hookId, const char *module, uint32_t library_nid, uint32_t fun
 
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
+    log_init();
     LOG("\n RemaPSV2 started\n");
     snprintf(titleid, sizeof(titleid), HOME);
     settings_init();
@@ -386,30 +361,26 @@ int module_start(SceSize argc, const void *args) {
 	//Allocate memory for buffers
     bufsMemId = ksceKernelAllocMemBlock("remapsv2_bufs_main", 
         SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, 
-        (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM  + sizeof(SceCtrlData) * BUFFERS_NUM * CTRL_HOOKS_NUM + 0xfff) & ~0xfff, 
+        (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM + 0xfff) & ~0xfff, 
         NULL);
     ksceKernelGetMemBlockBase(bufsMemId, (void**)&bufsMemBase);
-    LOG("MEMORY ALLOC main[SceCtrlData] %i : %i\n", (int)bufsMemBase, (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM  + sizeof(SceCtrlData) * BUFFERS_NUM * CTRL_HOOKS_NUM + 0xfff) & ~0xfff);
+    LOG("MEMORY ALLOC main[SceTouchData] %i : %i\n", (int)bufsMemBase, (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM  + sizeof(SceCtrlData) * BUFFERS_NUM * CTRL_HOOKS_NUM + 0xfff) & ~0xfff);
     for (int i = 0; i < TOUCH_HOOKS_NUM; i++)
         bufsStd[i] = (SceTouchData*)(bufsMemBase + sizeof(SceTouchData) * i * BUFFERS_NUM);
-    for (int i = 0; i < CTRL_HOOKS_NUM; i++)
-        bufsScd[i] = (SceCtrlData*)(bufsMemBase + 
-                (sizeof(SceTouchData) * TOUCH_HOOKS_NUM * BUFFERS_NUM+ 
-                sizeof(SceCtrlData) * i * BUFFERS_NUM));
 
     // Hooking functions
     for (int i = 0; i < HOOKS_NUM; i++)
         hooks[i] = 0;
     hook(H_CT_PEEK_P,"SceCtrl", 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
     hook(H_CT_READ_P,"SceCtrl", 0xD197E3C7, 0x67E7AB83, sceCtrlReadBufferPositive_patched);
+	hook(H_CT_PEEK_P_EXT,"SceCtrl", 0xD197E3C7, 0xA59454D3, sceCtrlPeekBufferPositiveExt_patched);
+    hook(H_CT_READ_P_EXT,"SceCtrl", 0xD197E3C7, 0xE2D99296, sceCtrlReadBufferPositiveExt_patched);
 
     hook(H_CT_PEEK_N,"SceCtrl", 0xD197E3C7, 0x104ED1A7, sceCtrlPeekBufferNegative_patched);
     hook(H_CT_READ_N,"SceCtrl", 0xD197E3C7, 0x15F96FB0, sceCtrlReadBufferNegative_patched);
 
     hook(H_CT_PEEK_P_2,"SceCtrl", 0xD197E3C7, 0x15F81E8C, sceCtrlPeekBufferPositive2_patched);
     hook(H_CT_READ_P_2,"SceCtrl", 0xD197E3C7, 0xC4226A3E, sceCtrlReadBufferPositive2_patched);
-	hook(H_CT_PEEK_P_EXT,"SceCtrl", 0xD197E3C7, 0xA59454D3, sceCtrlPeekBufferPositiveExt_patched);
-    hook(H_CT_READ_P_EXT,"SceCtrl", 0xD197E3C7, 0xE2D99296, sceCtrlReadBufferPositiveExt_patched);
     hook(H_CT_PEEK_P_EXT2,"SceCtrl", 0xD197E3C7, 0x860BF292, sceCtrlPeekBufferPositiveExt2_patched);
     hook(H_CT_READ_P_EXT2,"SceCtrl", 0xD197E3C7, 0xA7178860, sceCtrlReadBufferPositiveExt2_patched);
 
@@ -427,7 +398,7 @@ int module_start(SceSize argc, const void *args) {
     hook(H_K_TO_PEEK_R,"SceTouch", TAI_ANY_LIBRARY, 0x9B3F7207, ksceTouchPeekRegion_patched);
     hook(H_K_TO_READ_R,"SceTouch", TAI_ANY_LIBRARY, 0x9A91F624, ksceTouchReadRegion_patched);
 
-	// hook(H_K_CT_PORT_INFO,"SceCtrl", TAI_ANY_LIBRARY, 0xF11D0D30, ksceCtrlGetControllerPortInfo_patched);
+	hook(H_K_CT_PORT_INFO,"SceCtrl", TAI_ANY_LIBRARY, 0xF11D0D30, ksceCtrlGetControllerPortInfo_patched);
 
 	hook(H_K_DISP_SET_FB,"SceDisplay", 0x9FED47AC, 0x16466675, ksceDisplaySetFrameBufInternal_patched);
 				
@@ -480,5 +451,6 @@ int module_stop(SceSize argc, const void *args) {
     remap_destroy();
     userspace_destroy();
     log_flush();
+    log_destroy();
     return SCE_KERNEL_STOP_SUCCESS;
 }

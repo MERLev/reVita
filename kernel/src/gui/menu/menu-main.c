@@ -23,19 +23,19 @@ void onButton_main(uint32_t btn){
 	}
 }
 
-#define MENU_MAIN_NUM 10
+#define MENU_MAIN_NUM 11
 static struct MenuEntry menu_main_entries[MENU_MAIN_NUM] = {
-	(MenuEntry){.name = "Remap rules", 		.dataUint = MENU_REMAP_ID, 		.icn = ICON_BTN_CROSS},
-	(MenuEntry){.name = "Analog sticks", 	.dataUint = MENU_ANALOG_ID, 	.icn = ICON_LS_UP},
-	(MenuEntry){.name = "Touch", 			.dataUint = MENU_TOUCH_ID, 		.icn = ICON_FT},
-	(MenuEntry){.name = "Gyroscope", 		.dataUint = MENU_GYRO_ID, 		.icn = ICON_GY_ROLLLEFT},
-	(MenuEntry){.name = "External gamepads",.dataUint = MENU_CONTROLLER_ID, .icn = ICON_BTN_DS4TOUCH},
-	(MenuEntry){.name = "Show hooks", 		.dataUint = MENU_HOKS_ID, 		.icn = ICON_MENU_BUG},
-	// (MenuEntry){.name = "$b Show buttons", 	.dataUint = MENU_DEBUG_BUTTONS_ID, .icn = ICON_MENU_BUG},
-	(MenuEntry){.name = "Settings", 		.dataUint = MENU_SETT_ID, 		.icn = ICON_MENU_SETTINGS},
-	(MenuEntry){.name = "Hotkeys", 			.dataUint = MENU_HOTKEYS_ID, 	.icn = ICON_CONFIG},
-	(MenuEntry){.name = "Profiles", 		.dataUint = MENU_PROFILE_ID, 	.icn = ICON_MENU_STORAGE},
-	(MenuEntry){.name = "Credits", 			.dataUint = MENU_CREDITS_ID, 	.icn = ICON_MENU_CREDITS}};
+	(MenuEntry){.name = "Remap rules", 		.dataUint = MENU_REMAP_ID, 			.icn = ICON_BTN_CROSS},
+	(MenuEntry){.name = "Analog sticks", 	.dataUint = MENU_ANALOG_ID, 		.icn = ICON_LS_UP},
+	(MenuEntry){.name = "Touch", 			.dataUint = MENU_TOUCH_ID, 			.icn = ICON_FT},
+	(MenuEntry){.name = "Gyroscope", 		.dataUint = MENU_GYRO_ID, 			.icn = ICON_GY_ROLLLEFT},
+	(MenuEntry){.name = "External gamepads",.dataUint = MENU_CONTROLLER_ID, 	.icn = ICON_BTN_DS4TOUCH},
+	(MenuEntry){.name = "Show hooks", 		.dataUint = MENU_HOKS_ID, 			.icn = ICON_MENU_BUG},
+	(MenuEntry){.name = "Show buttons", 	.dataUint = MENU_DEBUG_BUTTONS_ID, 	.icn = ICON_MENU_BUG},
+	(MenuEntry){.name = "Settings", 		.dataUint = MENU_SETT_ID, 			.icn = ICON_MENU_SETTINGS},
+	(MenuEntry){.name = "Hotkeys", 			.dataUint = MENU_HOTKEYS_ID, 		.icn = ICON_CONFIG},
+	(MenuEntry){.name = "Profiles", 		.dataUint = MENU_PROFILE_ID, 		.icn = ICON_MENU_STORAGE},
+	(MenuEntry){.name = "Credits", 			.dataUint = MENU_CREDITS_ID, 		.icn = ICON_MENU_CREDITS}};
 static struct Menu menu_main = (Menu){
 	.id = MENU_MAIN_ID, 
 	.num = MENU_MAIN_NUM, 

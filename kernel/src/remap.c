@@ -23,7 +23,7 @@ enum RULE_STATUS{
 }RULE_STATUS;
 
 //Status of each rule
-enum RULE_STATUS rs[CTRL_HOOKS_NUM][REMAP_NUM];
+enum RULE_STATUS rs[CTRL_HOOKS_NUM][PORTS_NUM][REMAP_NUM];
 
 TouchPoints2 T_FRONT_SIZE;
 TouchPoints2 T_BACK_SIZE;
@@ -36,22 +36,23 @@ static TouchPoints2
 
 const uint32_t HW_BUTTONS[HW_BUTTONS_NUM] = {
 	SCE_CTRL_CROSS, SCE_CTRL_CIRCLE, SCE_CTRL_TRIANGLE, SCE_CTRL_SQUARE,
-	SCE_CTRL_START, SCE_CTRL_SELECT, SCE_CTRL_LTRIGGER, SCE_CTRL_RTRIGGER,
-	SCE_CTRL_UP, SCE_CTRL_RIGHT, SCE_CTRL_LEFT, SCE_CTRL_DOWN, SCE_CTRL_L1,
-	SCE_CTRL_R1, SCE_CTRL_L3, SCE_CTRL_R3, 
-	SCE_CTRL_VOLUP, SCE_CTRL_VOLDOWN, SCE_CTRL_POWER, SCE_CTRL_PSBUTTON,
-	SCE_CTRL_TOUCHPAD
+	SCE_CTRL_UP, SCE_CTRL_RIGHT, SCE_CTRL_LEFT, SCE_CTRL_DOWN,
+	SCE_CTRL_START, SCE_CTRL_SELECT, 
+	SCE_CTRL_L1, SCE_CTRL_R1, SCE_CTRL_L2, SCE_CTRL_R2, SCE_CTRL_L3, SCE_CTRL_R3, 
+	SCE_CTRL_VOLUP, SCE_CTRL_VOLDOWN, SCE_CTRL_POWER, SCE_CTRL_PSBUTTON, SCE_CTRL_TOUCHPAD
 };
 
-//For now let's store buffers on the stack
-static SceCtrlData _remappedBuffers[CTRL_HOOKS_NUM][BUFFERS_NUM];
+SceUID remap_memId;
+uint8_t* remap_memBase;
+
+//For now let's store touch buffers on the stack
 static SceTouchData _remappedBuffersFront[TOUCH_HOOKS_NUM][BUFFERS_NUM];
 static SceTouchData _remappedBuffersBack[TOUCH_HOOKS_NUM][BUFFERS_NUM];
 
-//Circular cache to store remapped keys buffers per each ctrs hook
-static SceCtrlData *remappedBuffers[CTRL_HOOKS_NUM];
-static int remappedBuffersSizes[CTRL_HOOKS_NUM];
-static int remappedBuffersIdxs[CTRL_HOOKS_NUM];
+//Cache to store remapped keys buffers per each ctrs hook and port
+static SceCtrlData *remappedBuffers[CTRL_HOOKS_NUM][PORTS_NUM];
+static int remappedBuffersSizes[CTRL_HOOKS_NUM][PORTS_NUM];
+// static int remappedBuffersIdxs[CTRL_HOOKS_NUM];
 
 //Circular cache to store Touch buffers per each touch hook
 static SceTouchData *remappedBuffersFront[TOUCH_HOOKS_NUM];
@@ -175,20 +176,6 @@ void cleanEmuReports(EmulatedTouch *et){
 			removeEmuReport(et, i);
 		else 
 			i++;
-}
-
-void swapTriggersBumpers(SceCtrlData *ctrl){
-	uint32_t b = 0;
-	for (int j = 0; j < HW_BUTTONS_NUM; j++)
-		if (btn_has(ctrl->buttons, HW_BUTTONS[j]))
-			switch(HW_BUTTONS[j]){
-				case SCE_CTRL_LTRIGGER: btn_add(&b, SCE_CTRL_L1);       break;
-				case SCE_CTRL_L1:       btn_add(&b, SCE_CTRL_LTRIGGER); break;
-				case SCE_CTRL_RTRIGGER: btn_add(&b, SCE_CTRL_R1);       break;
-				case SCE_CTRL_R1:       btn_add(&b, SCE_CTRL_RTRIGGER); break;
-				default:                btn_add(&b, HW_BUTTONS[j]);     break;
-			}
-	ctrl->buttons = b;
 }
 
 // void addEmu(SceCtrlData *ctrl, struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick, bool isFirstTime) {
@@ -424,10 +411,7 @@ void remEmu(RuleData* rd) {
 	}
 }
 
-void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses) {
-	if (profile.entries[PR_CO_SWAP_BUTTONS].v.b)
-		swapTriggersBumpers(ctrl);
-	
+void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses) {	
 	// Gathering real touch data
 	SceTouchData front, back;
 	isInternalTouchCall = true;
@@ -702,24 +686,72 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses) {
 	newEmulatedBackTouchBuffer = true;
 }
 
-int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId) {	
-	int buffIdx = (remappedBuffersIdxs[hookId] + 1) % BUFFERS_NUM;
-	
-	//Storing copy of latest buffer
-	remappedBuffersIdxs[hookId] = buffIdx;
-	remappedBuffersSizes[hookId] = min(remappedBuffersSizes[hookId] + 1, BUFFERS_NUM);
-	remappedBuffers[hookId][buffIdx] = ctrl[nBufs-1];
-	
-	//Applying remap to latest buffer
-	applyRemap(&remappedBuffers[hookId][buffIdx], &rs[hookId][0]);
-	
-	//Limit returned buffers with amount we have cached
-	nBufs = min(nBufs, remappedBuffersSizes[hookId]);
-	
-	//Restoring stored buffers
-	for (int i = 0; i < nBufs; i++)
-		ctrl[i] = remappedBuffers[hookId]
-			[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
+void swapSideButtons(uint32_t* btns){
+	uint32_t oldBtns = *btns;
+	btn_del(btns, SCE_CTRL_L1);
+	btn_del(btns, SCE_CTRL_R1);
+	btn_del(btns, SCE_CTRL_L2);
+	btn_del(btns, SCE_CTRL_R2);
+	if (btn_has(oldBtns, SCE_CTRL_L2)) 
+		btn_add(btns, SCE_CTRL_L1);
+	if (btn_has(oldBtns, SCE_CTRL_R2)) 
+		btn_add(btns, SCE_CTRL_R1);
+	if (btn_has(oldBtns, SCE_CTRL_L1)) 
+		btn_add(btns, SCE_CTRL_L2);
+	if (btn_has(oldBtns, SCE_CTRL_R1)) 
+		btn_add(btns, SCE_CTRL_R2);
+}
+
+void fixSideButtons(uint32_t* btns){
+	uint32_t oldBtns = *btns;
+	btn_del(btns, SCE_CTRL_L2);
+	btn_del(btns, SCE_CTRL_R2);
+	btn_del(btns, SCE_CTRL_L1);
+	btn_del(btns, SCE_CTRL_R1);
+	btn_del(btns, SCE_CTRL_L3);
+	btn_del(btns, SCE_CTRL_R3);
+	if (btn_has(oldBtns, SCE_CTRL_L1)) 
+		btn_add(btns, SCE_CTRL_L2);
+	if (btn_has(oldBtns, SCE_CTRL_R1)) 
+		btn_add(btns, SCE_CTRL_R2);
+}
+
+int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlData** remappedBuffer, bool isPositiveLogic, bool isExt) {	
+	//If buffer full - remove latest entry
+	if (remappedBuffersSizes[hookId][port] >= BUFFERS_NUM){
+		for (int i = 1; i < BUFFERS_NUM; i++)
+			remappedBuffers[hookId][port][i - 1] = remappedBuffers[hookId][port][i];
+		remappedBuffersSizes[hookId][port] --;
+	}
+
+	//Add curr ctrl to buffer
+	int idx = remappedBuffersSizes[hookId][port];
+	remappedBuffersSizes[hookId][port] ++;
+	remappedBuffers[hookId][port][idx] = ctrl[0];
+
+	//Invert for negative logic
+	if (!isPositiveLogic)
+		remappedBuffers[hookId][port][idx].buttons = 0xFFFFFFFF - remappedBuffers[hookId][port][idx].buttons;
+
+	//Swap side buttons for Ext hooks for Vita mode
+	if (!isExt)
+		swapSideButtons(&remappedBuffers[hookId][port][idx].buttons);
+
+	applyRemap(&remappedBuffers[hookId][port][idx], &rs[hookId][port][0]);
+
+	//Swap side buttons for Ext hooks
+	if (!isExt)
+		fixSideButtons(&remappedBuffers[hookId][port][idx].buttons);
+
+	if (profile.entries[PR_CO_SWAP_BUTTONS].v.b)
+		swapSideButtons(&remappedBuffers[hookId][port][idx].buttons);
+
+	//Invert back for negative logic
+	if (!isPositiveLogic)
+		remappedBuffers[hookId][port][idx].buttons = 0xFFFFFFFF - remappedBuffers[hookId][port][idx].buttons;
+
+	nBufs = min(nBufs, remappedBuffersSizes[hookId][port]);
+	*remappedBuffer = &remappedBuffers[hookId][port][remappedBuffersSizes[hookId][port] - nBufs];
 	return nBufs;
 }
 
@@ -910,9 +942,11 @@ int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t ho
 
 void remap_resetBuffers(){
 	for (int i = 0; i < CTRL_HOOKS_NUM; i++){
-		remappedBuffersIdxs[i] = remappedBuffersSizes[i] = 0;
-		for (int j = 0; j < REMAP_NUM; j++)
-			rs[i][j] = RS_NONACTIVE;
+		for (int j = 0; j < PORTS_NUM; j++){
+			remappedBuffersSizes[i][j] = 0;
+			for (int k = 0; k < REMAP_NUM; k++)
+				rs[i][j][k] = RS_NONACTIVE;
+		}
 	}
 	for (int i = 0; i < TOUCH_HOOKS_NUM; i++){
 		remappedBuffersFrontIdxs[i] = 
@@ -1078,8 +1112,20 @@ void remap_setup(){
 }
 
 void remap_init(){
-	for (int i = 0; i < CTRL_HOOKS_NUM; i++) //Allocating mem for stored buffers
-		remappedBuffers[i] = &_remappedBuffers[i][0];
+	//Allocating mem for stored buffers
+	remap_memId = ksceKernelAllocMemBlock("remapsv2_bufs_remap", 
+        SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, 
+        (sizeof(SceCtrlData) * BUFFERS_NUM * CTRL_HOOKS_NUM * PORTS_NUM + 0xfff) & ~0xfff, 
+        NULL);
+    ksceKernelGetMemBlockBase(remap_memId, (void**)&remap_memBase);
+    LOG("MEMORY ALLOC remap[SceCtrlData] %i : %i\n", (int)remap_memBase, 
+		(sizeof(SceCtrlData) * BUFFERS_NUM * CTRL_HOOKS_NUM * PORTS_NUM + 0xfff) & ~0xfff);
+    for (int i = 0; i < CTRL_HOOKS_NUM; i++){
+    	for (int j = 0; j < PORTS_NUM; j++){
+			remappedBuffers[i][j] = (SceCtrlData*)(remap_memBase + sizeof(SceCtrlData) * BUFFERS_NUM * (i * PORTS_NUM + j));
+		}
+	}
+	//Use stack storage for touch buffers
 	for (int i = 0; i < TOUCH_HOOKS_NUM; i++){
 		remappedBuffersFront[i] = (SceTouchData*)&_remappedBuffersFront[i][0];
 		remappedBuffersBack[i] = (SceTouchData*)&_remappedBuffersBack[i][0];
@@ -1097,5 +1143,6 @@ void remap_init(){
 }
 
 void remap_destroy(){
-
+    //Free mem
+	ksceKernelFreeMemBlock(remap_memId);
 }

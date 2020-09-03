@@ -27,14 +27,12 @@ void onDraw_debugButtons(unsigned int menuY){
 		0x80000000
 	};
 	SceCtrlData ctrl;
-	isInternalExtCall = 1;
-	int ret = ksceCtrlPeekBufferPositive(profile.entries[PR_CO_PORT].v.u, &ctrl, 1);
-	isInternalExtCall = 0;
+	int ret = ksceCtrlPeekBufferPositive(0, &ctrl, 1);
     int y = menuY;
     int x = L_1;
-	SceCtrlData* ctrlP = gui_menu->dataPtr;
-	if (ctrlP != NULL)
-		ctrl = *ctrlP;
+	// SceCtrlData* ctrlP = gui_menu->dataPtr;
+	// if (ctrlP != NULL)
+	// 	ctrl = *ctrlP;
 	unsigned int buttons = ctrl.buttons;
 	if (ret < 1){
 		renderer_setColor(theme[COLOR_DANGER]);
@@ -42,7 +40,7 @@ void onDraw_debugButtons(unsigned int menuY){
 		return;
 	}
 	renderer_setColor(theme[COLOR_DEFAULT]);
-	renderer_drawStringF(L_1, y += CHA_H, "Port: {%i}", profile.entries[1]);
+	renderer_drawStringF(L_1, y += CHA_H, "Port: {%i}", 0);
 	y += CHA_H;
 	for(int i = 0; i < 16; i++){
 		if (i == 8){

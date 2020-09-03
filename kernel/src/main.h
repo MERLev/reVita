@@ -37,6 +37,6 @@ extern int processid;
 
 extern bool used_funcs[HOOKS_NUM];
 extern bool isInternalTouchCall;
-extern bool isInternalExtCall;
+extern bool isInternalCtrlCall;
 
 #endif

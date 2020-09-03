@@ -22,6 +22,7 @@ void btn_toggle(uint32_t* btns, uint32_t btn);
 
 char* strclone(char* dst, char* src);
 char* strnclone(char* dst, char* , int num);
+bool streq(char* str1, char* str2);
 
 int floorSqrt(int x);
 #endif

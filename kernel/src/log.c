@@ -1,5 +1,7 @@
-#include "log.h"
+#include <vitasdkkern.h>
+#include <taihen.h>
 #include <psp2kern/io/fcntl.h>
+#include "log.h"
 
 int ksceIoMkdir(const char *, int);
 
@@ -31,10 +33,10 @@ void log_reset(){
 void log_write(const char *buffer, size_t length){
 //#ifndef DEBUG
 	if ((log_buf_ptr + length) >= sizeof(log_buf))
-		return;
+		log_flush();
+	
 
 	memcpy(log_buf + log_buf_ptr, buffer, length);
-
 	log_buf_ptr = log_buf_ptr + length;
 //#endif
 }
@@ -53,4 +55,10 @@ void log_flush(){
 	memset(log_buf, 0, sizeof(log_buf));
 	log_buf_ptr = 0;
 //#endif
+}
+
+void log_init(){
+}
+
+void log_destroy(){
 }

@@ -43,6 +43,10 @@ char* strnclone(char* dst, char* src, int num){
 	return dst;
 }
 
+bool streq(char* str1, char* str2){
+	return strcmp(str1, str2) == 0;
+}
+
 int floorSqrt(int x) { 
     if (x == 0 || x == 1) 
     	return x; 

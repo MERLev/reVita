@@ -140,16 +140,16 @@ const char*  HW_BUTTONS_STR[HW_BUTTONS_NUM] = {
 	"CIRCLE", 
 	"TRIANGLE", 
 	"SQUARE",
-	"START", 
-	"SELECT", 
-	"LTRIGGER", 
-	"RTRIGGER",
 	"UP", 
 	"RIGHT", 
 	"LEFT", 
 	"DOWN", 
+	"START", 
+	"SELECT", 
 	"L1",
 	"R1", 
+	"L2", 
+	"R2",
 	"L3", 
 	"R3", 
 	"VOLUP", 
@@ -258,7 +258,6 @@ void profile_resetGyro() {
 }
 void profile_resetController(){
 	profile_resetEntryById(PR_CO_ENABLED);
-	profile_resetEntryById(PR_CO_PORT);
 	profile_resetEntryById(PR_CO_SWAP_BUTTONS);
 }
 bool generateINIProfile(Profile* p, char* buff){
@@ -681,17 +680,20 @@ void setDefProfile(){
 		.def.u = false,
 		.key = "ENABLED"});
 	setPE((ProfileEntry){
-		.id = PR_CO_PORT,
-		.type = TYPE_UINT32,
-		.def.u = 0,
-		.min.u = 0,
-		.max.u = 4,
-		.key = "PORT"});
-	setPE((ProfileEntry){
 		.id = PR_CO_SWAP_BUTTONS,
 		.type = TYPE_BOOL,
 		.def.u = false,
 		.key = "SWAP_BUTTONS"});
+	setPE((ProfileEntry){
+		.id = PR_CO_FIX_BUTTONS,
+		.type = TYPE_BOOL,
+		.def.u = true,
+		.key = "FIX_BUTTONS"});
+	setPE((ProfileEntry){
+		.id = PR_CO_EMULATE_DS4,
+		.type = TYPE_BOOL,
+		.def.u = false,
+		.key = "EMULATE_DS4"});
 
 	strclone(profile_home.titleid, HOME);
 	memcpy(profile_home.entries, profile.entries, sizeof(ProfileEntry) * PROF__NUM);

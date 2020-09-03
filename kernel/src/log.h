@@ -12,6 +12,9 @@ void log_write(const char *buffer, size_t length);
 void log_assert(const char *name, int flag);
 void log_flush();
 
+void log_init();
+void log_destroy();
+
 #define ASSERT log_assert
 //#ifndef DEBUG
 # define LOG(...) \

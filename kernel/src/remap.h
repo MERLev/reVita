@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #define BUFFERS_NUM             64
+#define PORTS_NUM               5
 #define MULTITOUCH_FRONT_NUM    6
 #define MULTITOUCH_BACK_NUM		4
 
@@ -118,7 +119,8 @@ extern TouchPoints2 T_FRONT_SIZE;
 extern TouchPoints2 T_BACK_SIZE;
 
 struct RemapRule remap_createRemapRule();
-int remap_controls(SceCtrlData *ctrl, int nBufs, int hookId);
+int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlData** remappedBuffers, 
+        bool isPositiveLogic, bool isExt);
 void remap_patchToExt(SceCtrlData *ctrl);
 int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId);
 void remap_resetBuffers();

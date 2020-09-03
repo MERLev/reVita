@@ -4,8 +4,6 @@
 #include "log.h"
 #include <psp2/io/fcntl.h> 
 
-int ksceIoMkdir(const char *, int);
-
 //#ifndef RELEASE
 static unsigned int log_buf_ptr = 0;
 static char log_buf[16 * 1024];
@@ -39,6 +37,7 @@ void log_write(const char *buffer, size_t length){
 	memcpy(log_buf + log_buf_ptr, buffer, length);
 
 	log_buf_ptr = log_buf_ptr + length;
+
 //#endif
 }
 
