@@ -4,33 +4,40 @@
 #include <stdio.h>
 #include <string.h>
 
+#define LOG_PREFIX " |[remaPSV2_k]| "
 #define LOG_PATH "ux0:/log/"
-#define LOG_FILE LOG_PATH "log_remaPSV2k.txt"
+#define LOG_FILE LOG_PATH "remaPSV2k.txt"
 
 void log_reset();
 void log_write(const char *buffer, size_t length);
-void log_assert(const char *name, int flag);
 void log_flush();
 
-void log_init();
-void log_destroy();
-
-#define ASSERT log_assert
-//#ifndef DEBUG
-# define LOG(...) \
+#ifdef LOG_DEBUG
+	#define LOG(...) \
+	do { \
+		char buffer[256]; \
+		snprintf(buffer, sizeof(buffer), ##__VA_ARGS__); \
+		ksceDebugPrintf(LOG_PREFIX); \
+		ksceDebugPrintf(buffer); \
+	} while (0)
+	#define LOGF LOG
+#elif LOG_DISC
+	#define LOG(...) \
 	do { \
 		char buffer[256]; \
 		snprintf(buffer, sizeof(buffer), ##__VA_ARGS__); \
 		log_write(buffer, strlen(buffer)); \
 	} while (0)
-//#else
-//#  define LOG(...) (void)0
-//#endif
-
-#define TEST_CALL(f, ...) ({ \
-	int ret = f(__VA_ARGS__); \
-	LOG(# f " returned 0x%08X\n", ret); \
-	ret; \
-})
+	#define LOGF(...) \
+	do { \
+		char buffer[256]; \
+		snprintf(buffer, sizeof(buffer), ##__VA_ARGS__); \
+		log_write(buffer, strlen(buffer)); \
+		log_flush(); \
+	} while (0)
+#else
+	#define LOG(...) (void)0
+	#define LOGF LOG
+#endif
 
 #endif

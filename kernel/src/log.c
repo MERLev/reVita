@@ -3,22 +3,10 @@
 #include <psp2kern/io/fcntl.h>
 #include "log.h"
 
-int ksceIoMkdir(const char *, int);
-
-//#ifndef RELEASE
 static unsigned int log_buf_ptr = 0;
 static char log_buf[16 * 1024];
-//#endif
-
-void log_assert(const char *name, int flag){
-	if (flag){
-		log_write(name, strlen(name));
-		log_flush();
-	}
-}
 
 void log_reset(){
-//#ifndef RELEASE
 	SceUID fd = ksceIoOpen(LOG_FILE,
 		SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 6);
 	if (fd < 0)
@@ -27,22 +15,18 @@ void log_reset(){
 	ksceIoClose(fd);
 
 	memset(log_buf, 0, sizeof(log_buf));
-//#endif
 }
 
 void log_write(const char *buffer, size_t length){
-//#ifndef DEBUG
 	if ((log_buf_ptr + length) >= sizeof(log_buf))
 		log_flush();
-	
+
 	memcpy(log_buf + log_buf_ptr, buffer, length);
-	
+
 	log_buf_ptr = log_buf_ptr + length;
-//#endif
 }
 
 void log_flush(){
-//#ifndef RELEASE
 	ksceIoMkdir(LOG_PATH, 6);
 
 	SceUID fd = ksceIoOpen(LOG_FILE,
@@ -54,11 +38,4 @@ void log_flush(){
 	ksceIoClose(fd);
 	memset(log_buf, 0, sizeof(log_buf));
 	log_buf_ptr = 0;
-//#endif
-}
-
-void log_init(){
-}
-
-void log_destroy(){
 }

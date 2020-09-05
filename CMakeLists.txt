@@ -8,6 +8,9 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   endif()
 endif()
 
+# add_definitions(-DLOG_DISC)
+add_definitions(-DLOG_DEBUG)
+
 project(remaPSV2)
 add_subdirectory(kernel)
 add_subdirectory(user)

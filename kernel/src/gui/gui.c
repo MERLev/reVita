@@ -436,13 +436,13 @@ void gui_open(const SceDisplayFrameBuf *pParam){
 	gui_setIdx(0);
 	gui_isOpen = true;
 	tickUIOpen = ksceKernelGetSystemTimeWide();
-	LOG("tickUIOpen=%lli\n", tickUIOpen);
+	LOG("gui_open() tickUIOpen=%lli\n", tickUIOpen);
 }
 void gui_close(){
 	gui_isOpen = false;
 	profile.version = ksceKernelGetSystemTimeWide();
 	sync();
-	log_flush();
+	LOGF("gui_close()\n");
 }
 
 void gui_init(){

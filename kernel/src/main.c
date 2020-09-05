@@ -334,9 +334,7 @@ void exportF(const char *module, uint32_t library_nid_360, uint32_t func_nid_360
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
     
-    log_init();
-    LOG("\n RemaPSV2 started\n");
-    ksceDebugPrintf("logg\n");
+    LOG("Plugin started\n");
     snprintf(titleid, sizeof(titleid), HOME);
     settings_init();
     hotkeys_init();
@@ -398,8 +396,6 @@ int module_start(SceSize argc, const void *args) {
     thread_uid = ksceKernelCreateThread("remaPSV2_thread", main_thread, 0x3C, 0x3000, 0, 0x10000, 0);
     ksceKernelStartThread(thread_uid, 0, NULL);
 
-    log_flush();
-
     return SCE_KERNEL_START_SUCCESS;
 }
 
@@ -428,7 +424,5 @@ int module_stop(SceSize argc, const void *args) {
     gui_destroy();
     remap_destroy();
     userspace_destroy();
-    log_flush();
-    log_destroy();
     return SCE_KERNEL_STOP_SUCCESS;
 }

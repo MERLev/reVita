@@ -179,7 +179,7 @@ static int config_thread(SceSize args, void *argp) {
 
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
-	LOG("\nUser plugin started\n"); log_flush();
+	LOGF("Plugin started\n");
 	memset(&profile, 0, sizeof(profile));
 
 	//Send ready to kernel plugin
