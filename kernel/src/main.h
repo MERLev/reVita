@@ -39,4 +39,6 @@ extern bool used_funcs[HOOKS_NUM];
 extern bool isInternalTouchCall;
 extern bool isInternalCtrlCall;
 
+void sync();
+
 #endif

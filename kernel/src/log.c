@@ -35,8 +35,8 @@ void log_write(const char *buffer, size_t length){
 	if ((log_buf_ptr + length) >= sizeof(log_buf))
 		log_flush();
 	
-
 	memcpy(log_buf + log_buf_ptr, buffer, length);
+	
 	log_buf_ptr = log_buf_ptr + length;
 //#endif
 }

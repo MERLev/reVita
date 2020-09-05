@@ -304,7 +304,7 @@ void onButton_genericEntries(uint32_t btn){
 }
 
 void ctrl_onInput(SceCtrlData *ctrl) {
-	if (btn_has(ctrl->buttons, HW_BUTTONS[hotkeys[HOTKEY_MENU].v.u]))
+	if (btn_has(ctrl->buttons, hotkeys[HOTKEY_MENU].v.u))
 		return; //Menu trigger butoons should not trigger any menu actions on menu open
 	
 	if (gui_menu->onInput)
@@ -441,6 +441,7 @@ void gui_open(const SceDisplayFrameBuf *pParam){
 void gui_close(){
 	gui_isOpen = false;
 	profile.version = ksceKernelGetSystemTimeWide();
+	sync();
 	log_flush();
 }
 
