@@ -19,7 +19,7 @@ struct ProfileEntry settings[SETT__NUM];
 
 struct ProfileEntry* findByKey(char* n){
 	for (int i = 0; i < SETT__NUM; i++)
-		if (!strcmp(settings[i].key, n)) 
+		if (streq(settings[i].key, n)) 
 			return &settings[i];
 	return NULL;
 }

@@ -6,14 +6,6 @@
 #include "fio/profile.h"
 #include "sysactions.h"
 
-// void sceAppMgrDestroyOtherAppByPidForDriver();
-
-// void killApp(){
-//     if (strncmp(titleid, HOME, sizeof(titleid)))
-//         return;
-//     sceAppMgrDestroyOtherAppByPidForDriver(SceUID id);
-// }
-
 void sysactions_softReset(){
     kscePowerRequestSoftReset();
 }

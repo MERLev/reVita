@@ -198,6 +198,10 @@ void profile_resetProfile(Profile* p){
 	for (int i = 0; i < PROF__NUM; i++){
 		profile_resetEntry(&p->entries[i]);
 	}
+	p->remapsNum = 0;
+	for (int i = 0; i < REMAP_NUM; i++){
+		p->remaps[i] = remap_createRemapRule();
+	}
 }
 void profile_reset(){
 	profile_resetProfile(&profile);
@@ -482,20 +486,23 @@ ERROR: //Free allocated memory
 }
 
 bool profile_save(char* titleId) {
+    LOG("profile_save('%s')\n", titleid);
 	return writeProfile(&profile, titleId);
 }
 bool profile_load(char* titleId) {
+    LOG("profile_load('%s')\n", titleid);
 	if (strcmp(profile.titleid, HOME) == 0){  //If used home profile previously
 		clone(&profile_home, &profile);       //copy it back to its cache
 	}
 	
-	if (strcmp(titleid, HOME) == 0){ //If home profile requested
-		clone(&profile, &profile_home);		 //Restore it from cache
+	if (strcmp(titleid, HOME) == 0){          //If home profile requested
+		clone(&profile, &profile_home);		  //Restore it from cache
 		return true;
 	}
 
-	if (readProfile(&profile, titleId))      
+	if (readProfile(&profile, titleId)){
 		return true;
+	}
 
 	clone(&profile, &profile_global);        // If no profile for title - use global
 	return false;

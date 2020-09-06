@@ -20,7 +20,7 @@ struct ProfileEntry hotkeys[HOTKEY__NUM];
 
 struct ProfileEntry* hotkeys_findByKey(char* n){
 	for (int i = 0; i < HOTKEY__NUM; i++)
-		if (!strcmp(hotkeys[i].key, n)) 
+		if (streq(hotkeys[i].key, n)) 
 			return &hotkeys[i];
 	return NULL;
 }

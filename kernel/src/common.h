@@ -13,6 +13,9 @@
 
 #define FLIP(B) (B=!B)
 
+#define STREQALL(...) streqall(__VA_ARGS__, NULL)
+#define STREQANY(...) streqany(__VA_ARGS__, NULL)
+
 int32_t clamp(int32_t value, int32_t mini, int32_t maxi);
 int32_t clampSmart(int32_t val, int32_t min, int32_t max);
 bool btn_has(uint32_t btns, uint32_t btn);
@@ -23,6 +26,9 @@ void btn_toggle(uint32_t* btns, uint32_t btn);
 char* strclone(char* dst, char* src);
 char* strnclone(char* dst, char* , int num);
 bool streq(char* str1, char* str2);
+bool streqall(char *first, char* second, ...);
+bool streqany(char *first, ...);
+bool strStartsWith(char* s, char* p);
 
 int floorSqrt(int x);
 #endif

@@ -190,6 +190,19 @@ DISPLAY_HOOK_RET:
     return TAI_CONTINUE(int, refs[H_K_DISP_SET_FB], head, index, pParam, sync);
 }
 
+void changeActiveApp(char* tId, int pid){
+    if (!streq(titleid, tId)) {
+        strnclone(titleid, tId, sizeof(titleid));
+        processid = pid;
+        gui_close();
+        for (int i = 0; i < HOOKS_NUM; i++)
+            used_funcs[i] = false;
+        profile_load(titleid);
+        remap_resetBuffers();
+        delayedStartDone = false;
+    }
+}
+
 int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, int *a5, int a6) {
     used_funcs[H_K_INV_PROC_EV_HANDLER] = 1;
     char titleidLocal[sizeof(titleid)];
@@ -197,54 +210,30 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
     if (ret < 0)
         goto PROCEVENT_EXIT;
     ksceKernelGetProcessTitleId(pid, titleidLocal, sizeof(titleidLocal));
-    if (!strncmp(titleidLocal, "main", sizeof(titleidLocal)))
+    if (streq(titleidLocal, "main"))
         strnclone(titleidLocal, HOME, sizeof(titleidLocal));
     switch (ev) {
         case 1: //Start
         case 5: //Resume
-            // if (streq(titleidLocal, "TSTCTRL00") ||
-            //     streq(titleidLocal, "TSTCTRL20") ||
-            //     streq(titleidLocal, "TSTCTRLE0") ||
-            //     streq(titleidLocal, "TSTCTRLE2") ||
-            //     streq(titleidLocal, "TSTCTRLN0") ||
-            //     streq(titleidLocal, "TSTCTRLN2"))
-            //     break;
-            if (!strncmp(titleidLocal, "NPXS", 4)){ //If system app
+            if (STREQANY(titleidLocal,  // If test app
+                    "TSTCTRL00", "TSTCTRL20", "TSTCTRLE0", "TSTCTRLE2", "TSTCTRLN0", "TSTCTRLN2"))
+                break;                  // Use MAIN profile
+                
+            if (strStartsWith(titleidLocal, "NPXS")){ //If system app
                 SceKernelModuleInfo info;
                 info.size = sizeof(SceKernelModuleInfo);
                 _ksceKernelGetModuleInfo(pid, _ksceKernelGetProcessMainModule(pid), &info);
-                if(strncmp(info.module_name, "ScePspemu", 9) &&
-			        strcmp(titleidLocal, "NPXS10012") && //not PS3Link
-			        strcmp(titleidLocal, "NPXS10013")) //not PS4Link
-                        break; //Use MAIN profile
+                if(!streq(info.module_name, "ScePspemu") &&  // If Not Adrenaline
+			        !STREQALL(titleidLocal, "NPXS10012",     //        PS3Link
+                                            "NPXS10013"))    //        PS4Link
+                        break;                               // Use MAIN profile
             }
-            
-            if (strncmp(titleid, titleidLocal, sizeof(titleid))) {
-                strnclone(titleid, titleidLocal, sizeof(titleid));
-                processid = pid;
-                gui_close();
-                for (int i = 0; i < HOOKS_NUM; i++)
-                    used_funcs[i] = false;
-                profile_load(titleid);
-                remap_resetBuffers();
-                delayedStartDone = false;
-                LOG("\nPROFILE LOAD: %s\n", titleid);
-            }
+            changeActiveApp(titleidLocal, pid);
             break;
         case 3: //Close
         case 4: //Suspend
-            if (!strcmp(titleid, titleidLocal)){ //If current app suspended
-                if (strncmp(titleid, HOME, sizeof(titleid))) {
-                    strnclone(titleid, HOME, sizeof(titleid));
-                    processid = -1;
-                    gui_close();
-                    for (int i = 0; i < HOOKS_NUM; i++)
-                        used_funcs[i] = false;
-                    profile_load(HOME);
-                    remap_resetBuffers();
-                    delayedStartDone = false;
-                    LOG("\nPROFILE LOAD: %s\n", titleid);
-                }
+            if (streq(titleid, titleidLocal)){ //If current app suspended
+                changeActiveApp(HOME, pid);
             }
             break;
         default:

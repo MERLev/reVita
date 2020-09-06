@@ -47,6 +47,45 @@ bool streq(char* str1, char* str2){
 	return strcmp(str1, str2) == 0;
 }
 
+bool strStartsWith(char* s, char* p){
+	return strncmp(s, p, strlen(p)) == 0;
+}
+bool streqall(char *first, char* second, ...){
+    int ret = true;
+	va_list argp;
+	char *p;
+
+	if(first == NULL || second == NULL || !streq(first, second))
+		return false;
+
+	va_start(argp, second);
+
+	while((p = va_arg(argp, char *)) != NULL)
+		ret = ret && streq(first, p);
+
+	va_end(argp);
+
+	return ret;
+}
+
+bool streqany(char *first, ...){
+	va_list argp;
+	char *p;
+
+	if(first == NULL)
+		return false;
+		
+	va_start(argp, first);
+
+	while((p = va_arg(argp, char *)) != NULL)
+	    if (streq(first, p))
+	        return true;
+
+	va_end(argp);
+
+	return false;
+}
+
 int floorSqrt(int x) { 
     if (x == 0 || x == 1) 
     	return x; 
