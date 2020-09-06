@@ -146,6 +146,7 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
         if (profile.entries[PR_TO_SWAP].v.b) port = !port; \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs);\
+        used_funcs[(index)] = true; \
         return onTouch(port, pData, ret, (index)); \
     }
 DECL_FUNC_HOOK_PATCH_TOUCH(H_K_TO_PEEK, ksceTouchPeek)
@@ -155,6 +156,8 @@ DECL_FUNC_HOOK_PATCH_TOUCH(H_K_TO_READ, ksceTouchRead)
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, int region) { \
         if (profile.entries[PR_TO_SWAP].v.b) port = !port; \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
+        if (region != 1) return ret; /* ignore regions other then 1 */\
+        used_funcs[(index)] = true; \
         return onTouch(port, pData, ret, (index)); \
     }
 DECL_FUNC_HOOK_PATCH_TOUCH_REGION(H_K_TO_PEEK_R, ksceTouchPeekRegion)
