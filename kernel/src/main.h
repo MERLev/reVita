@@ -30,14 +30,14 @@ enum H_ID{
 };
 
 #define TOUCH_HOOKS_NUM 			4
-#define CTRL_HOOKS_NUM 				12
+#define CTRL_HOOKS_NUM 				16
 
 extern char titleid[32];
 extern int processid;
 
 extern bool used_funcs[HOOKS_NUM];
 extern bool isInternalTouchCall;
-extern bool isInternalCtrlCall;
+extern volatile bool isInternalCtrlCall;
 
 void sync();
 

@@ -149,7 +149,7 @@ void storeTouchSwipe(EmulatedTouch *et, TouchPoints2 tps){
 }
 
 // Store emulated controllable swipe
-EmulatedTouchEvent* storeTouchSmartSwipe(EmulatedTouch *et, TouchPoint tp){
+EmulatedTouchEvent* storeTouchSmartSwipe(EmulatedTouch *et, TouchPoint tp, int hookId, int port){
 	for (int i = 0; i < et->num; i++)
 		if (et->reports[i].isSmartSwipe == true &&
 				et->reports[i].point.x == tp.x && et->reports[i].point.y == tp.y)
@@ -163,6 +163,8 @@ EmulatedTouchEvent* storeTouchSmartSwipe(EmulatedTouch *et, TouchPoint tp){
 	ete->isSwipe = false;
 	ete->isSmartSwipe = true;
 	ete->isSwipeFinished = false;
+	ete->hookId = hookId;
+	ete->port = port;
 	et->num++;
 	return ete;
 }
@@ -173,10 +175,12 @@ void removeEmuReport(EmulatedTouch *et, int idx){
 	et->num--;
 }
 
-void removeEmuSmartSwipe(EmulatedTouch *etouch, TouchPoint tp){
+void removeEmuSmartSwipe(EmulatedTouch *etouch, TouchPoint tp, int hookId, int port){
 	int i = 0;
 	while (i < etouch->num){
-		if (etouch->reports[i].isSmartSwipe && etouch->reports[i].point.x == tp.x && etouch->reports[i].point.y == tp.y) {
+		if (etouch->reports[i].isSmartSwipe && etouch->reports[i].point.x == tp.x && etouch->reports[i].point.y == tp.y
+				&& etouch->reports[i].hookId == hookId && etouch->reports[i].port == port) {
+			LOG("removeEmuSmartSwipe(), %i, %i\n", hookId, port);  
 			removeEmuReport(etouch, i);
 			break;
 		}
@@ -237,7 +241,7 @@ void addEmu(RuleData* rd) {
 						storeTouchSwipe(&et[port], emu->param.tPoints); 
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_DPAD:  
-					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint);
+					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint, rd->hookId, rd->port);
 					if (btn_has(rd->btns, SCE_CTRL_LEFT)) 
 						ete->swipeEndPoint.x = clamp(
 							ete->swipeEndPoint.x - profile.entries[PR_TO_SWIPE_SMART_SENS].v.u,
@@ -266,7 +270,7 @@ void addEmu(RuleData* rd) {
 					}
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_L:  
-					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint);
+					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint, rd->hookId, rd->port);
 					if (abs(127 - rd->ctrl->lx) > profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)
 						ete->swipeEndPoint.x = clamp(
 							ete->swipeEndPoint.x + 
@@ -283,7 +287,7 @@ void addEmu(RuleData* rd) {
 								rd->analogLeftProp.up = rd->analogLeftProp.down = 0;
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_R:  
-					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint); 
+					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint, rd->hookId, rd->port); 
 					if (abs(127 - rd->ctrl->rx) > profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)
 						ete->swipeEndPoint.x = clamp(
 							ete->swipeEndPoint.x + 
@@ -334,8 +338,9 @@ void remEmu(RuleData* rd) {
 			switch (rd->rr->emu.action){
 				case REMAP_TOUCH_SWIPE_SMART_L:   
 				case REMAP_TOUCH_SWIPE_SMART_R:   
-				case REMAP_TOUCH_SWIPE_SMART_DPAD:   
-					removeEmuSmartSwipe(&et[port], rd->rr->emu.param.tPoint);
+				case REMAP_TOUCH_SWIPE_SMART_DPAD: 
+					LOG("remEmu(), %i, %i\n", rd->btns, (int)rd->status);  
+					removeEmuSmartSwipe(&et[port], rd->rr->emu.param.tPoint, rd->hookId, rd->port);
 					break;
 				default: break;
 			}
@@ -344,7 +349,7 @@ void remEmu(RuleData* rd) {
 	}
 }
 
-void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses) {	
+void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int hookId, int port) {	
 	// Gathering real touch data
 	SceTouchData std[SCE_TOUCH_PORT_MAX_NUM];
 	int retTouch[SCE_TOUCH_PORT_MAX_NUM];
@@ -364,6 +369,8 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses) {
 	rd.btnsProp = ctrl->buttons;
 	rd.btnsEmu = 0;
 	rd.ctrl = ctrl;
+	rd.hookId = hookId;
+	rd.port = port;
 
 	SceMotionState sms;
 	// int ret = _sceMotionGetState(&sms);
@@ -602,7 +609,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses) {
 }
 
 // Swap L1<>L2 R1<>R2
-void swapSideButtons(uint32_t* btns){
+void remap_swapSideButtons(uint32_t* btns){
 	uint32_t oldBtns = *btns;
 	btn_del(btns, SCE_CTRL_L1);
 	btn_del(btns, SCE_CTRL_R1);
@@ -619,7 +626,7 @@ void swapSideButtons(uint32_t* btns){
 }
 
 // Chenge L1 -> L2, R1 -> R2, remove L1 R1 L3 R3
-void fixSideButtons(uint32_t* btns){
+void remap_fixSideButtons(uint32_t* btns){
 	uint32_t oldBtns = *btns;
 	btn_del(btns, SCE_CTRL_L2);
 	btn_del(btns, SCE_CTRL_R2);
@@ -652,16 +659,16 @@ int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlDa
 
 	//Swap side buttons for Ext hooks for Vita mode
 	if (!isExt)
-		swapSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
+		remap_swapSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
 
-	applyRemap(&cacheCtrl[hookId][port].buffers[idx], &rs[hookId][port][0]);
+	applyRemap(&cacheCtrl[hookId][port].buffers[idx], &rs[hookId][port][0], hookId, port);
 
 	//Swap side buttons for Ext hooks
 	if (!isExt)
-		fixSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
+		remap_fixSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
 
 	if (profile.entries[PR_CO_SWAP_BUTTONS].v.b)
-		swapSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
+		remap_swapSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
 
 	//Invert back for negative logic
 	if (!isPositiveLogic)

@@ -30,6 +30,8 @@
 #define TRIGGERS_EXT    1
 #define TRIGGERS_NONEXT 0
 
+#define INTERNAL        666
+
 static tai_hook_ref_t refs[HOOKS_NUM];
 static SceUID         hooks[HOOKS_NUM];
 static SceUID mutex_procevent_uid = -1;
@@ -69,7 +71,6 @@ int nullButtons_kernel(SceCtrlData *bufs, SceUInt32 nBufs, bool isPositiveLogic)
 
 int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpace, int isPositiveLogic, int isExt){ 
     int ret = nBufs;
-
     if (ret < 1 || ret > BUFFERS_NUM) 
         return ret;
     if (gui_isOpen) {
@@ -100,15 +101,17 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpac
 
 #define DECL_FUNC_HOOK_PATCH_CTRL(id, name, space, logic, triggers) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
+        if (nBufs == INTERNAL) \
+            return TAI_CONTINUE(int, refs[(id)], port, ctrl, 1); \
 		int ret = TAI_CONTINUE(int, refs[(id)], \
             (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
         return onInput(port, ctrl, ret, (id), (space), (logic), (triggers)); \
     }
 
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_P,      sceCtrlPeekBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_P,      sceCtrlReadBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_N,      sceCtrlPeekBufferNegative,     SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_N,      sceCtrlReadBufferNegative,     SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_NONEXT)
+// DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_P,      sceCtrlPeekBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
+// DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_P,      sceCtrlReadBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
+// DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_N,      sceCtrlPeekBufferNegative,     SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_NONEXT)
+// DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_N,      sceCtrlReadBufferNegative,     SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_NONEXT)
 DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_P_EXT,  sceCtrlPeekBufferPositiveExt,  SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
 DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_P_EXT,  sceCtrlReadBufferPositiveExt,  SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
 
@@ -119,10 +122,10 @@ DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_N_2,    sceCtrlReadBufferNegative2,    SPACE
 DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_P_EXT2, sceCtrlPeekBufferPositiveExt2, SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
 DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_P_EXT2, sceCtrlReadBufferPositiveExt2, SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
 
-// DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_PEEK_P,    ksceCtrlPeekBufferPositive,    SPACE_KERNEL, LOGIC_POSITIVE, TRIGGERS_NONEXT)
-// DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_READ_P,    ksceCtrlReadBufferPositive,    SPACE_KERNEL, LOGIC_POSITIVE, TRIGGERS_NONEXT)
-// DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_PEEK_N,    ksceCtrlPeekBufferNegative,    SPACE_KERNEL, LOGIC_NEGATIVE, TRIGGERS_NONEXT)
-// DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_READ_N,    ksceCtrlReadBufferNegative,    SPACE_KERNEL, LOGIC_NEGATIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_PEEK_P,    ksceCtrlPeekBufferPositive,    SPACE_KERNEL, LOGIC_POSITIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_READ_P,    ksceCtrlReadBufferPositive,    SPACE_KERNEL, LOGIC_POSITIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_PEEK_N,    ksceCtrlPeekBufferNegative,    SPACE_KERNEL, LOGIC_NEGATIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_READ_N,    ksceCtrlReadBufferNegative,    SPACE_KERNEL, LOGIC_NEGATIVE, TRIGGERS_NONEXT)
 
 int nullTouch_kernel(SceTouchData *pData, SceUInt32 nBufs){
     pData[0] = pData[nBufs - 1];
@@ -138,7 +141,7 @@ int nullTouch_user(SceTouchData *pData, SceUInt32 nBufs){
 
 int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookIdx, int isKernelSpace){
     int ret = nBufs;
-
+    
     if (nBufs < 1 || nBufs > BUFFERS_NUM) 
         return nBufs;
 
@@ -218,7 +221,7 @@ int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplay
 
     if (gui_isOpen) {
         SceCtrlData ctrl;
-        if(ksceCtrlPeekBufferPositive(0, &ctrl, 1) == 1)
+        if(ksceCtrlPeekBufferPositive(0, &ctrl, INTERNAL) == 1)
             gui_onInput(&ctrl);
     }
 
@@ -293,10 +296,12 @@ static int main_thread(SceSize args, void *argp) {
         }
 
         SceCtrlData ctrl;
-        if(ksceCtrlPeekBufferPositive(0, &ctrl, 1) < 1){
+        int ret = ksceCtrlPeekBufferPositive(0, &ctrl, INTERNAL);
+        if(ret != 1){
             ksceKernelDelayThread(30 * 1000);
             continue;
         }
+        remap_swapSideButtons(&ctrl.buttons);
 
         if (!gui_isOpen){
             for (int i = 0; i < HOTKEY__NUM; i++){
@@ -377,10 +382,10 @@ int module_start(SceSize argc, const void *args) {
     // Hooking functions
     for (int i = 0; i < HOOKS_NUM; i++)
         hooks[i] = 0;
-    hookE(H_CT_PEEK_P,     "SceCtrl", 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
-    hookE(H_CT_READ_P,     "SceCtrl", 0xD197E3C7, 0x67E7AB83, sceCtrlReadBufferPositive_patched);
-    hookE(H_CT_PEEK_N,     "SceCtrl", 0xD197E3C7, 0x104ED1A7, sceCtrlPeekBufferNegative_patched);
-    hookE(H_CT_READ_N,     "SceCtrl", 0xD197E3C7, 0x15F96FB0, sceCtrlReadBufferNegative_patched);
+    // hookE(H_CT_PEEK_P,     "SceCtrl", 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
+    // hookE(H_CT_READ_P,     "SceCtrl", 0xD197E3C7, 0x67E7AB83, sceCtrlReadBufferPositive_patched);
+    // hookE(H_CT_PEEK_N,     "SceCtrl", 0xD197E3C7, 0x104ED1A7, sceCtrlPeekBufferNegative_patched);
+    // hookE(H_CT_READ_N,     "SceCtrl", 0xD197E3C7, 0x15F96FB0, sceCtrlReadBufferNegative_patched);
 	hookE(H_CT_PEEK_P_EXT, "SceCtrl", 0xD197E3C7, 0xA59454D3, sceCtrlPeekBufferPositiveExt_patched);
     hookE(H_CT_READ_P_EXT, "SceCtrl", 0xD197E3C7, 0xE2D99296, sceCtrlReadBufferPositiveExt_patched);
 
@@ -391,10 +396,10 @@ int module_start(SceSize argc, const void *args) {
     hookE(H_CT_PEEK_P_EXT2,"SceCtrl", 0xD197E3C7, 0x860BF292, sceCtrlPeekBufferPositiveExt2_patched);
     hookE(H_CT_READ_P_EXT2,"SceCtrl", 0xD197E3C7, 0xA7178860, sceCtrlReadBufferPositiveExt2_patched);
     
-    // hookE(H_K_CT_PEEK_P,   "SceCtrl", 0x7823A5D1, 0xEA1D3A34, ksceCtrlPeekBufferPositive_patched);
-    // hookE(H_K_CT_READ_P,   "SceCtrl", 0x7823A5D1, 0x9B96A1AA, ksceCtrlReadBufferPositive_patched);
-    // hookE(H_K_CT_PEEK_N,   "SceCtrl", 0x7823A5D1, 0x19895843, ksceCtrlPeekBufferNegative_patched);
-    // hookE(H_K_CT_READ_N,   "SceCtrl", 0x7823A5D1, 0x8D4E0DD1, ksceCtrlReadBufferNegative_patched);
+    hookE(H_K_CT_PEEK_P,   "SceCtrl", 0x7823A5D1, 0xEA1D3A34, ksceCtrlPeekBufferPositive_patched);
+    hookE(H_K_CT_READ_P,   "SceCtrl", 0x7823A5D1, 0x9B96A1AA, ksceCtrlReadBufferPositive_patched);
+    hookE(H_K_CT_PEEK_N,   "SceCtrl", 0x7823A5D1, 0x19895843, ksceCtrlPeekBufferNegative_patched);
+    hookE(H_K_CT_READ_N,   "SceCtrl", 0x7823A5D1, 0x8D4E0DD1, ksceCtrlReadBufferNegative_patched);
 
     hookE(H_K_TO_PEEK,     "SceTouch", TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek_patched);
     hookE(H_K_TO_READ,     "SceTouch", TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead_patched);

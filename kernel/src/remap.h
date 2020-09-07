@@ -97,6 +97,8 @@ typedef struct RuleData{
 	uint8_t stickposval;
 	enum RULE_STATUS* status;
 	bool isTurboTick;
+    int hookId;
+    int port;
 }RuleData;
 
 typedef struct EmulatedTouchEvent{
@@ -106,6 +108,8 @@ typedef struct EmulatedTouchEvent{
 	bool isSwipe;
 	bool isSmartSwipe;
 	bool isSwipeFinished;
+    int hookId;
+    int port;
 }EmulatedTouchEvent;
 
 typedef struct EmulatedTouch{
@@ -127,5 +131,7 @@ void remap_resetBuffers();
 void remap_init();
 void remap_destroy();
 void remap_setup();
+void remap_swapSideButtons(uint32_t* btns);
+void remap_fixSideButtons(uint32_t* btns);
 
 #endif
