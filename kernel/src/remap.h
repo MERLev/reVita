@@ -115,14 +115,14 @@ typedef struct EmulatedTouch{
 
 #define HW_BUTTONS_NUM    21 // Supported physical buttons num
 extern const uint32_t HW_BUTTONS[HW_BUTTONS_NUM];
-extern TouchPoints2 T_FRONT_SIZE;
-extern TouchPoints2 T_BACK_SIZE;
+extern TouchPoints2 T_SIZE[SCE_TOUCH_PORT_MAX_NUM];
 
 struct RemapRule remap_createRemapRule();
 int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlData** remappedBuffers, 
         bool isPositiveLogic, bool isExt);
 void remap_patchToExt(SceCtrlData *ctrl);
-int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId);
+int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId, 
+        SceTouchData** remappedBuffers);
 void remap_resetBuffers();
 void remap_init();
 void remap_destroy();

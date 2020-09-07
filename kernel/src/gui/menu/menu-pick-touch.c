@@ -11,7 +11,7 @@
 
 void drawTouchZone(uint32_t panel, TouchPoints2* tz){
 	renderer_setColor(theme[COLOR_TOUCH]);
-	TouchPoints2 size = (panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE : T_BACK_SIZE;
+	TouchPoints2 size = T_SIZE[panel];
 	int ax = (float)fbWidth  / (size.b.x - size.a.x) * max(0, (tz->a.x - size.a.x)),
 		bx = (float)fbWidth  / (size.b.x - size.a.x) * max(0, (tz->b.x - size.a.x)),
 		ay = (float)fbHeight / (size.b.y - size.a.y) * max(0, (tz->a.y - size.a.y)),
@@ -26,7 +26,7 @@ void drawTouchZone(uint32_t panel, TouchPoints2* tz){
 }
 
 void drawTouchSwipe(uint32_t panel, TouchPoints2* tz){
-	TouchPoints2 size = (panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE : T_BACK_SIZE;
+	TouchPoints2 size = T_SIZE[panel];
 	renderer_setColor(theme[COLOR_TOUCH]);
 	renderer_drawLineThick(
 		(float)fbWidth  / (size.b.x - size.a.x) * max(0, (tz->a.x - size.a.x)), 
@@ -57,10 +57,10 @@ void onDrawFB_pickTouchSwipe(){
 }
 
 //Set custom touch point xy using RS
-void analogTouchPicker(TouchPoint* tp, SceCtrlData *ctrl, int isFront, int isLeftAnalog){
+void analogTouchPicker(TouchPoint* tp, SceCtrlData *ctrl, int port, int isLeftAnalog){
 	int shiftX = ((float)((isLeftAnalog ? ctrl->lx : ctrl->rx) - 127)) / 8;
 	int shiftY = ((float)((isLeftAnalog ? ctrl->ly : ctrl->ry) - 127)) / 8;
-	TouchPoints2 size = isFront ? T_FRONT_SIZE : T_BACK_SIZE;
+	TouchPoints2 size = T_SIZE[port];
 	if (abs(shiftX) > 30 / 8)
 		tp->x = clamp(tp->x + shiftX, size.a.x, size.b.x);
 	if (abs(shiftY) > 30 / 8)
@@ -82,24 +82,24 @@ void onInput_touchPicker(SceCtrlData *ctrl){
 	RemapAction* ra = gui_menu->dataPtr;
 	SceTouchPortType port = (ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE) ?
 		SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
-	bool isFront = port == SCE_TOUCH_PORT_FRONT;
 	if ((ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_BACK_TOUCH_POINT) && ra->action != REMAP_TOUCH_SWIPE){
 		touchPicker(&ra->param.tPoint, port);
-		analogTouchPicker(&ra->param.tPoint, ctrl, isFront, true);
-		analogTouchPicker(&ra->param.tPoint, ctrl, isFront, false);
+		analogTouchPicker(&ra->param.tPoint, ctrl, port, true);
+		analogTouchPicker(&ra->param.tPoint, ctrl, port, false);
 	} else if (ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE || ra->type == REMAP_TYPE_BACK_TOUCH_ZONE || 
 			((ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_BACK_TOUCH_POINT) && ra->action == REMAP_TOUCH_SWIPE)){
 		TouchPoint* tpA = &ra->param.tPoints.a;
 		TouchPoint* tpB = &ra->param.tPoints.b;
 		// touchPicker((ui_getEntry()->data < 2) ? tpA : tpB, port);
-		analogTouchPicker(tpA, ctrl, isFront, true);
-		analogTouchPicker(tpB, ctrl, isFront, false);
+		analogTouchPicker(tpA, ctrl, port, true);
+		analogTouchPicker(tpB, ctrl, port, false);
 	}
 }
 
 void onButton_pickTouchPoint(uint32_t btn){
 	RemapAction* ra = gui_menu->dataPtr;
-	TouchPoints2 size = ra->type == REMAP_TYPE_FRONT_TOUCH_POINT ? T_FRONT_SIZE : T_BACK_SIZE;
+	int port = ra->type == REMAP_TYPE_FRONT_TOUCH_POINT ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
+	TouchPoints2 size = T_SIZE[port];
 	switch (btn) {
 		case SCE_CTRL_CROSS:
 			if(gui_menu->next == MENU_REMAP_ID){
@@ -128,7 +128,8 @@ void onButton_pickTouchPoint(uint32_t btn){
 
 void onButton_pickTouchZone(uint32_t btn){
 	RemapAction* ra = gui_menu->dataPtr;
-	TouchPoints2 size = ra->type == REMAP_TYPE_FRONT_TOUCH_POINT ? T_FRONT_SIZE : T_BACK_SIZE;
+	int port = ra->type == REMAP_TYPE_FRONT_TOUCH_POINT ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
+	TouchPoints2 size = T_SIZE[port];
 	switch (btn) {
 		case SCE_CTRL_CROSS:
 			if(gui_menu->next == MENU_REMAP_ID){

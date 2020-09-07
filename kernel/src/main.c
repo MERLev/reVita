@@ -36,10 +36,6 @@ static SceUID mutex_procevent_uid = -1;
 static SceUID thread_uid = -1;
 static bool   thread_run = true;
 
-SceUID bufsMemId;
-uint8_t* bufsMemBase;
-SceTouchData* bufsStd[TOUCH_HOOKS_NUM];
-
 char titleid[32] = "";
 int processid = -1;
 
@@ -53,7 +49,7 @@ static bool delayedStartDone = false;
 SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
 int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
 
-int nullButtonsUSpace(SceCtrlData *bufs, SceUInt32 nBufs, bool isPositiveLogic){
+int nullButtons_user(SceCtrlData *bufs, SceUInt32 nBufs, bool isPositiveLogic){
     SceCtrlData scd;
 	memset(&scd, 0, sizeof(scd));
     scd.buttons = isPositiveLogic ? 0 : 0xFFFFFFFF;
@@ -63,13 +59,25 @@ int nullButtonsUSpace(SceCtrlData *bufs, SceUInt32 nBufs, bool isPositiveLogic){
     return nBufs;
 }
 
+int nullButtons_kernel(SceCtrlData *bufs, SceUInt32 nBufs, bool isPositiveLogic){
+    for (int i = 0; i < nBufs; i++){
+        bufs[i].buttons = isPositiveLogic ? 0 : 0xFFFFFFFF;
+        bufs[i].lx = bufs[i].ly = bufs[i].rx = bufs[i].ry = 127;
+    }
+    return nBufs;
+}
+
 int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpace, int isPositiveLogic, int isExt){ 
     int ret = nBufs;
 
     if (ret < 1 || ret > BUFFERS_NUM) 
         return ret;
-    if (gui_isOpen) 
-        return nullButtonsUSpace(ctrl, nBufs, isPositiveLogic);
+    if (gui_isOpen) {
+        if (isKernelSpace)
+            return nullButtons_kernel(ctrl, nBufs, isPositiveLogic);
+        else
+            return nullButtons_user(ctrl, nBufs, isPositiveLogic);
+    }
     if (!settings[SETT_REMAP_ENABLED].v.b) 
         return ret;
     if (!isExt && profile.entries[PR_CO_ENABLED].v.b) 
@@ -77,12 +85,16 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpac
 
     used_funcs[hookId] = true;
 
-    SceCtrlData scd;
-    ksceKernelMemcpyUserToKernel(&scd, (uintptr_t)&ctrl[ret-1], sizeof(SceCtrlData));
-    SceCtrlData* remappedBuffers;
-    ret = remap_controls(port, &scd, ret, hookId, &remappedBuffers, isPositiveLogic, isExt);
-    ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], remappedBuffers, ret * sizeof(SceCtrlData)); 
-
+    SceCtrlData* remappedBuffers;       // Remapped buffers from cache
+    if (isKernelSpace) {
+        ret = remap_controls(port, &ctrl[ret-1], ret, hookId, &remappedBuffers, isPositiveLogic, isExt);
+        memcpy(&ctrl[0], remappedBuffers, ret * sizeof(SceCtrlData));
+    } else {
+        SceCtrlData scd;                // Last buffer
+        ksceKernelMemcpyUserToKernel(&scd, (uintptr_t)&ctrl[ret-1], sizeof(SceCtrlData));
+        ret = remap_controls(port, &scd, ret, hookId, &remappedBuffers, isPositiveLogic, isExt);
+        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], remappedBuffers, ret * sizeof(SceCtrlData)); 
+    }
     return ret;
 }
 
@@ -112,9 +124,21 @@ DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_P_EXT2, sceCtrlReadBufferPositiveExt2, SPACE
 // DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_PEEK_N,    ksceCtrlPeekBufferNegative,    SPACE_KERNEL, LOGIC_NEGATIVE, TRIGGERS_NONEXT)
 // DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_READ_N,    ksceCtrlReadBufferNegative,    SPACE_KERNEL, LOGIC_NEGATIVE, TRIGGERS_NONEXT)
 
-int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
-    if (profile.entries[PR_TO_PSTV_MODE].v.b) 
-        return nBufs;
+int nullTouch_kernel(SceTouchData *pData, SceUInt32 nBufs){
+    pData[0] = pData[nBufs - 1];
+    pData[0].reportNum = 0;
+    return 1;
+}
+
+int nullTouch_user(SceTouchData *pData, SceUInt32 nBufs){
+    SceUInt32 reportsNum = 0;
+    ksceKernelMemcpyKernelToUser((uintptr_t)&pData[0].reportNum, &reportsNum, sizeof(SceUInt32));
+    return 1;
+}
+
+int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookIdx, int isKernelSpace){
+    int ret = nBufs;
+
     if (nBufs < 1 || nBufs > BUFFERS_NUM) 
         return nBufs;
 
@@ -123,45 +147,54 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 
     //Nullify input calls when UI is open
 	if (gui_isOpen) {
-		pData[0] = pData[nBufs - 1];
-		pData[0].reportNum = 0;
-		return 1;
+        if (isKernelSpace)
+            return nullTouch_kernel(pData, nBufs);
+        else 
+            return nullTouch_user(pData, nBufs);
 	}
     
 	if (!settings[SETT_REMAP_ENABLED].v.b) return nBufs;
 
-    return remap_touch(port, pData, nBufs, hookId - H_K_TO_PEEK);
+    SceTouchData* remappedBuffers; 
+    if (isKernelSpace){
+        ret = remap_touch(port, &pData[nBufs - 1], nBufs, hookIdx, &remappedBuffers);
+        memcpy(&pData[0], remappedBuffers, ret * sizeof(SceTouchData));
+    } else {
+        SceTouchData std;                // Last buffer
+        ksceKernelMemcpyUserToKernel(&std, (uintptr_t)&pData[ret-1], sizeof(SceTouchData));
+        ret = remap_touch(port, &std, nBufs, hookIdx, &remappedBuffers);
+        ksceKernelMemcpyKernelToUser((uintptr_t)&pData[0], remappedBuffers, ret * sizeof(SceTouchData)); 
+    }
+    return ret;
 }
 
 /*export*/ int remaPSV2k_onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
     if (nBufs < 1 || nBufs > BUFFERS_NUM) return nBufs;
 	if (!profile.entries[PR_TO_PSTV_MODE].v.b) return nBufs;	
-    ksceKernelMemcpyUserToKernel(bufsStd[hookId], (uintptr_t)&pData[0], nBufs * sizeof(SceTouchData)); 
-    int ret = onTouch(port, bufsStd[hookId], nBufs, hookId); 
-    ksceKernelMemcpyKernelToUser((uintptr_t)&pData[0], bufsStd[hookId], ret * sizeof(SceTouchData)); 
-    return ret;
+    return onTouch(port, pData, nBufs, hookId, SPACE_USER);
 }
 
-#define DECL_FUNC_HOOK_PATCH_TOUCH(index, name) \
+#define DECL_FUNC_HOOK_PATCH_TOUCH(index, name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
         if (profile.entries[PR_TO_SWAP].v.b) port = !port; \
-		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs);\
+		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
+        if (profile.entries[PR_TO_PSTV_MODE].v.b) return ret; \
         used_funcs[(index)] = true; \
-        return onTouch(port, pData, ret, (index)); \
+        return onTouch(port, pData, ret, (index) - H_K_TO_PEEK, (space)); \
     }
-DECL_FUNC_HOOK_PATCH_TOUCH(H_K_TO_PEEK, ksceTouchPeek)
-DECL_FUNC_HOOK_PATCH_TOUCH(H_K_TO_READ, ksceTouchRead)
-
-#define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(index, name) \
+#define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(index, name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, int region) { \
         if (profile.entries[PR_TO_SWAP].v.b) port = !port; \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
+        if (profile.entries[PR_TO_PSTV_MODE].v.b) return ret; \
         if (region != 1) return ret; /* ignore regions other then 1 */\
         used_funcs[(index)] = true; \
-        return onTouch(port, pData, ret, (index)); \
+        return onTouch(port, pData, ret, (index) - H_K_TO_PEEK, (space)); \
     }
-DECL_FUNC_HOOK_PATCH_TOUCH_REGION(H_K_TO_PEEK_R, ksceTouchPeekRegion)
-DECL_FUNC_HOOK_PATCH_TOUCH_REGION(H_K_TO_READ_R, ksceTouchReadRegion)
+DECL_FUNC_HOOK_PATCH_TOUCH(H_K_TO_PEEK, ksceTouchPeek, SPACE_KERNEL)
+DECL_FUNC_HOOK_PATCH_TOUCH(H_K_TO_READ, ksceTouchRead, SPACE_KERNEL)
+DECL_FUNC_HOOK_PATCH_TOUCH_REGION(H_K_TO_PEEK_R, ksceTouchPeekRegion, SPACE_KERNEL)
+DECL_FUNC_HOOK_PATCH_TOUCH_REGION(H_K_TO_READ_R, ksceTouchReadRegion, SPACE_KERNEL)
 
 int ksceCtrlGetControllerPortInfo_patched(SceCtrlPortInfo* info){
     int ret = TAI_CONTINUE(int, refs[H_K_CT_PORT_INFO], info);
@@ -341,16 +374,6 @@ int module_start(SceSize argc, const void *args) {
 
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
 
-	//Allocate memory for buffers
-    bufsMemId = ksceKernelAllocMemBlock("remapsv2_bufs_main", 
-        SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, 
-        (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM + 0xfff) & ~0xfff, 
-        NULL);
-    ksceKernelGetMemBlockBase(bufsMemId, (void**)&bufsMemBase);
-    LOG("MEMORY ALLOC main[SceTouchData] %i : %i\n", (int)bufsMemBase, (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM  + sizeof(SceCtrlData) * BUFFERS_NUM * CTRL_HOOKS_NUM + 0xfff) & ~0xfff);
-    for (int i = 0; i < TOUCH_HOOKS_NUM; i++)
-        bufsStd[i] = (SceTouchData*)(bufsMemBase + sizeof(SceTouchData) * i * BUFFERS_NUM);
-
     // Hooking functions
     for (int i = 0; i < HOOKS_NUM; i++)
         hooks[i] = 0;
@@ -405,9 +428,6 @@ int module_stop(SceSize argc, const void *args) {
 
     if (mutex_procevent_uid >= 0)
         ksceKernelDeleteMutex(mutex_procevent_uid);
-
-    //Free mem
-	ksceKernelFreeMemBlock(bufsMemId);
 
     settings_destroy();
     hotkeys_destroy();

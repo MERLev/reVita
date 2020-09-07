@@ -13,26 +13,45 @@
 #include "gui/gui.h"
 #include "log.h"
 
-#define TURBO_DELAY			        50*1000
+#define TURBO_DELAY			        (50*1000)
+#define CACHE_CTRL_SIZE (sizeof(SceCtrlData) * BUFFERS_NUM * CTRL_HOOKS_NUM * PORTS_NUM)
+#define CACHE_TOUCH_SIZE (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM * SCE_TOUCH_PORT_MAX_NUM)
+#define MEM_SIZE ((0xfff + CACHE_CTRL_SIZE + CACHE_TOUCH_SIZE) & ~0xfff)
 
 enum RULE_STATUS{
-	RS_NONACTIVE,   //Rule is stopped for some time
-	RS_STARTED,     //Rule just started
-	RS_ACTIVE,      //Rule is active for some time
-	RS_STOPPED      //Rule just stopped
+	RS_NONACTIVE,   // Rule is stopped for some time
+	RS_STARTED,     // Rule just started
+	RS_ACTIVE,      // Rule is active for some time
+	RS_STOPPED      // Rule just stopped
 }RULE_STATUS;
 
-//Status of each rule
+typedef struct TouchCache{
+	SceTouchData *buffers;
+	int num;
+}TouchCache;
+typedef struct CtrlCache{
+	SceCtrlData *buffers;
+	int num;
+}CtrlCache;
+
+// Status of each rule
 enum RULE_STATUS rs[CTRL_HOOKS_NUM][PORTS_NUM][REMAP_NUM];
 
-TouchPoints2 T_FRONT_SIZE;
-TouchPoints2 T_BACK_SIZE;
+TouchPoints2 T_SIZE[SCE_TOUCH_PORT_MAX_NUM];
 static TouchPoint 
-	T_FRONT_L, T_FRONT_R, T_FRONT_TL, T_FRONT_TR, T_FRONT_BL, T_FRONT_BR,
-	T_BACK_L, T_BACK_R, T_BACK_TL, T_BACK_TR, T_BACK_BL, T_BACK_BR;
+	T_L[SCE_TOUCH_PORT_MAX_NUM], 
+	T_R[SCE_TOUCH_PORT_MAX_NUM], 
+	T_TL[SCE_TOUCH_PORT_MAX_NUM], 
+	T_TR[SCE_TOUCH_PORT_MAX_NUM], 
+	T_BL[SCE_TOUCH_PORT_MAX_NUM], 
+	T_BR[SCE_TOUCH_PORT_MAX_NUM];
 static TouchPoints2 
-	TZ_FRONT_L, TZ_FRONT_R, TZ_FRONT_TL, TZ_FRONT_TR, TZ_FRONT_BL, TZ_FRONT_BR,
-	TZ_BACK_L, TZ_BACK_R, TZ_BACK_TL, TZ_BACK_TR, TZ_BACK_BL, TZ_BACK_BR;
+	TZ_L[SCE_TOUCH_PORT_MAX_NUM], 
+	TZ_R[SCE_TOUCH_PORT_MAX_NUM], 
+	TZ_TL[SCE_TOUCH_PORT_MAX_NUM], 
+	TZ_TR[SCE_TOUCH_PORT_MAX_NUM], 
+	TZ_BL[SCE_TOUCH_PORT_MAX_NUM], 
+	TZ_BR[SCE_TOUCH_PORT_MAX_NUM];
 
 const uint32_t HW_BUTTONS[HW_BUTTONS_NUM] = {
 	SCE_CTRL_CROSS, SCE_CTRL_CIRCLE, SCE_CTRL_TRIANGLE, SCE_CTRL_SQUARE,
@@ -45,29 +64,18 @@ const uint32_t HW_BUTTONS[HW_BUTTONS_NUM] = {
 SceUID remap_memId;
 uint8_t* remap_memBase;
 
-//For now let's store touch buffers on the stack
-static SceTouchData _remappedBuffersFront[TOUCH_HOOKS_NUM][BUFFERS_NUM];
-static SceTouchData _remappedBuffersBack[TOUCH_HOOKS_NUM][BUFFERS_NUM];
+// Caches to store remapped buffers per each hook and port
+static struct CtrlCache cacheCtrl[CTRL_HOOKS_NUM][PORTS_NUM];
+static struct TouchCache cacheTouch[TOUCH_HOOKS_NUM][SCE_TOUCH_PORT_MAX_NUM];
 
-//Cache to store remapped keys buffers per each ctrs hook and port
-static SceCtrlData *remappedBuffers[CTRL_HOOKS_NUM][PORTS_NUM];
-static int remappedBuffersSizes[CTRL_HOOKS_NUM][PORTS_NUM];
-// static int remappedBuffersIdxs[CTRL_HOOKS_NUM];
+bool newEmulatedTouchBuffer[TOUCH_HOOKS_NUM][SCE_TOUCH_PORT_MAX_NUM];
 
-//Circular cache to store Touch buffers per each touch hook
-static SceTouchData *remappedBuffersFront[TOUCH_HOOKS_NUM];
-static int remappedBuffersFrontSizes[TOUCH_HOOKS_NUM];
-static int remappedBuffersFrontIdxs[TOUCH_HOOKS_NUM];
-bool newEmulatedFrontTouchBuffer = false;
-static SceTouchData *remappedBuffersBack[TOUCH_HOOKS_NUM];
-static int remappedBuffersBackSizes[TOUCH_HOOKS_NUM];
-static int remappedBuffersBackIdxs[TOUCH_HOOKS_NUM];
-bool newEmulatedBackTouchBuffer = false;
+static EmulatedTouch 
+	et[SCE_TOUCH_PORT_MAX_NUM], 
+	etPrev[SCE_TOUCH_PORT_MAX_NUM];
+static uint8_t etIdCounter[SCE_TOUCH_PORT_MAX_NUM] = {64, 64};
 
-static EmulatedTouch etFront, etBack, prevEtFront, prevEtBack;
-static uint8_t etFrontIdCounter = 64;
-static uint8_t etBackIdCounter = 64;
-
+// Create clean remap rule
 struct RemapRule remap_createRemapRule(){
 	struct RemapRule rr;
 	memset(&rr, 0, sizeof(rr));
@@ -86,6 +94,7 @@ struct RemapRule remap_createRemapRule(){
 	return rr;
 }
 
+// Update rule status
 bool updateStatus(enum RULE_STATUS* status, bool active){
 	switch (*status){
 		case RS_ACTIVE: if (!active) *status = RS_STOPPED; break;
@@ -96,16 +105,20 @@ bool updateStatus(enum RULE_STATUS* status, bool active){
 	return active;
 }
 
+// Is TouchPoint inside zone
 bool inZone(const TouchPoint tp, const TouchPoints2 tz){
 	if (tp.x > min(tz.a.x, tz.b.x) && tp.x <= max(tz.a.x, tz.b.x) &&
 		tp.y > min(tz.a.y, tz.b.y) && tp.y <= max(tz.a.y, tz.b.y))
 		return true;
 	return false;
 }
+
+// Is SceTouchReport inside zone
 bool reportInZone(SceTouchReport* str, const TouchPoints2 tz){
 	return inZone((TouchPoint){str->x, str->y}, tz);
 }
 
+// Store emulated touchpoint
 void storeTouchPoint(EmulatedTouch *et, TouchPoint tp){
 	for (int i = 0; i < et->num; i++)
 		if (et->reports[i].point.x == tp.x && et->reports[i].point.y == tp.y)
@@ -117,6 +130,7 @@ void storeTouchPoint(EmulatedTouch *et, TouchPoint tp){
 	et->num++;
 }
 
+// Store emulated swipe
 void storeTouchSwipe(EmulatedTouch *et, TouchPoints2 tps){
 	for (int i = 0; i < et->num; i++)
 		if (et->reports[i].isSwipe == true &&
@@ -134,6 +148,7 @@ void storeTouchSwipe(EmulatedTouch *et, TouchPoints2 tps){
 	et->num++;
 }
 
+// Store emulated controllable swipe
 EmulatedTouchEvent* storeTouchSmartSwipe(EmulatedTouch *et, TouchPoint tp){
 	for (int i = 0; i < et->num; i++)
 		if (et->reports[i].isSmartSwipe == true &&
@@ -158,11 +173,11 @@ void removeEmuReport(EmulatedTouch *et, int idx){
 	et->num--;
 }
 
-void removeEmuSmartSwipe(EmulatedTouch *et, TouchPoint tp){
+void removeEmuSmartSwipe(EmulatedTouch *etouch, TouchPoint tp){
 	int i = 0;
-	while (i < et->num){
-		if (et->reports[i].isSmartSwipe && et->reports[i].point.x == tp.x && et->reports[i].point.y == tp.y) {
-			removeEmuReport(et, i);
+	while (i < etouch->num){
+		if (etouch->reports[i].isSmartSwipe && etouch->reports[i].point.x == tp.x && etouch->reports[i].point.y == tp.y) {
+			removeEmuReport(etouch, i);
 			break;
 		}
 		i++;
@@ -171,16 +186,16 @@ void removeEmuSmartSwipe(EmulatedTouch *et, TouchPoint tp){
 
 void cleanEmuReports(EmulatedTouch *et){
 	int i = 0;
-	while (i < et->num)
+	while (i < et->num){
 		if ((!et->reports[i].isSwipe && !et->reports[i].isSmartSwipe) || et->reports[i].isSwipeFinished) 
 			removeEmuReport(et, i);
 		else 
 			i++;
+	}
 }
 
-// void addEmu(SceCtrlData *ctrl, struct RemapAction* emu, uint32_t* btn, EmulatedStick* emustick, bool isFirstTime) {
+// Add emulated event from rule
 void addEmu(RuleData* rd) {
-	EmulatedStick* stick = &rd->analogLeftEmu;
 	struct RemapAction* emu = &rd->rr->emu;
 	EmulatedTouchEvent* ete;
 	switch (emu->type){
@@ -190,10 +205,11 @@ void addEmu(RuleData* rd) {
 			break;
 		case REMAP_TYPE_RIGHT_ANALOG: 
 		case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: 
-			stick = &rd->analogRightEmu;
 		case REMAP_TYPE_LEFT_ANALOG: 
 		case REMAP_TYPE_LEFT_ANALOG_DIGITAL: 
 			if (rd->rr->turbo && rd->isTurboTick) break;
+			;EmulatedStick* stick = (emu->type == REMAP_TYPE_LEFT_ANALOG || emu->type == REMAP_TYPE_LEFT_ANALOG_DIGITAL) ?
+				&rd->analogLeftEmu : &rd->analogRightEmu;
 			switch (emu->action){
 				case REMAP_ANALOG_UP:    stick->up    += rd->stickposval; break;
 				case REMAP_ANALOG_DOWN:  stick->down  += rd->stickposval; break;
@@ -203,43 +219,45 @@ void addEmu(RuleData* rd) {
 			}
 			break;
 		case REMAP_TYPE_FRONT_TOUCH_POINT: 
+		case REMAP_TYPE_BACK_TOUCH_POINT:
+			;int port = emu->type == REMAP_TYPE_FRONT_TOUCH_POINT ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
 			if (rd->rr->turbo && rd->isTurboTick && 
 				emu->action != REMAP_TOUCH_SWIPE && emu->action != REMAP_TOUCH_SWIPE_SMART_L && emu->action != REMAP_TOUCH_SWIPE_SMART_R)
 					break;
 			switch (emu->action){
-				case REMAP_TOUCH_ZONE_L:  storeTouchPoint(&etFront, T_FRONT_L);  break;
-				case REMAP_TOUCH_ZONE_R:  storeTouchPoint(&etFront, T_FRONT_R);  break;
-				case REMAP_TOUCH_ZONE_TL: storeTouchPoint(&etFront, T_FRONT_TL); break;
-				case REMAP_TOUCH_ZONE_TR: storeTouchPoint(&etFront, T_FRONT_TR); break;
-				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etFront, T_FRONT_BL); break;
-				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etFront, T_FRONT_BR); break;
-				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etFront, emu->param.tPoint); break;
+				case REMAP_TOUCH_ZONE_L:  storeTouchPoint(&et[port], T_L[port]);  break;
+				case REMAP_TOUCH_ZONE_R:  storeTouchPoint(&et[port], T_R[port]);  break;
+				case REMAP_TOUCH_ZONE_TL: storeTouchPoint(&et[port], T_TL[port]); break;
+				case REMAP_TOUCH_ZONE_TR: storeTouchPoint(&et[port], T_TR[port]); break;
+				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&et[port], T_BL[port]); break;
+				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&et[port], T_BR[port]); break;
+				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&et[port], emu->param.tPoint); break;
 				case REMAP_TOUCH_SWIPE:   
 					if (*rd->status == RS_STARTED || (*rd->status == RS_ACTIVE && rd->rr->turbo && rd->isTurboTick)) 
-						storeTouchSwipe(&etFront, emu->param.tPoints); 
+						storeTouchSwipe(&et[port], emu->param.tPoints); 
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_DPAD:  
-					ete = storeTouchSmartSwipe(&etFront, emu->param.tPoint);
+					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint);
 					if (btn_has(rd->btns, SCE_CTRL_LEFT)) 
 						ete->swipeEndPoint.x = clamp(
 							ete->swipeEndPoint.x - profile.entries[PR_TO_SWIPE_SMART_SENS].v.u,
-							T_FRONT_SIZE.a.x, 
-							T_FRONT_SIZE.b.x);
+							T_SIZE[port].a.x, 
+							T_SIZE[port].b.x);
 					if (btn_has(rd->btns, SCE_CTRL_RIGHT)) 
 						ete->swipeEndPoint.x = clamp(
 							ete->swipeEndPoint.x + profile.entries[PR_TO_SWIPE_SMART_SENS].v.u,
-							T_FRONT_SIZE.a.x, 
-							T_FRONT_SIZE.b.x);
+							T_SIZE[port].a.x, 
+							T_SIZE[port].b.x);
 					if (btn_has(rd->btns, SCE_CTRL_UP)) 
 						ete->swipeEndPoint.y = clamp(
 							ete->swipeEndPoint.y - profile.entries[PR_TO_SWIPE_SMART_SENS].v.u,
-							T_FRONT_SIZE.a.y, 
-							T_FRONT_SIZE.b.y);
+							T_SIZE[port].a.y, 
+							T_SIZE[port].b.y);
 					if (btn_has(rd->btns, SCE_CTRL_DOWN)) 
 						ete->swipeEndPoint.y = clamp(
 							ete->swipeEndPoint.y + profile.entries[PR_TO_SWIPE_SMART_SENS].v.u,
-							T_FRONT_SIZE.a.y, 
-							T_FRONT_SIZE.b.y);
+							T_SIZE[port].a.y, 
+							T_SIZE[port].b.y);
 					if (!rd->rr->propagate){
 						btn_del(&rd->btnsProp, SCE_CTRL_LEFT);
 						btn_del(&rd->btnsProp, SCE_CTRL_RIGHT);
@@ -248,120 +266,36 @@ void addEmu(RuleData* rd) {
 					}
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_L:  
-					ete = storeTouchSmartSwipe(&etFront, emu->param.tPoint);
+					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint);
 					if (abs(127 - rd->ctrl->lx) > profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)
 						ete->swipeEndPoint.x = clamp(
 							ete->swipeEndPoint.x + 
 								((float)(rd->ctrl->lx - 127)) * profile.entries[PR_TO_SWIPE_SMART_SENS].v.u / 127,
-							T_FRONT_SIZE.a.x, 
-							T_FRONT_SIZE.b.x);
+							T_SIZE[port].a.x, 
+							T_SIZE[port].b.x);
 					if (abs(127 - rd->ctrl->ly) > profile.entries[PR_AN_LEFT_DEADZONE_Y].v.u)
 						ete->swipeEndPoint.y = clamp(ete->swipeEndPoint.y + 
 							((float)(rd->ctrl->ly - 127)) * profile.entries[PR_TO_SWIPE_SMART_SENS].v.u / 127,
-							T_FRONT_SIZE.a.y, 
-							T_FRONT_SIZE.b.y);
+							T_SIZE[port].a.y, 
+							T_SIZE[port].b.y);
 					if (!rd->rr->propagate)
 						rd->analogLeftProp.left = rd->analogLeftProp.right = 
 								rd->analogLeftProp.up = rd->analogLeftProp.down = 0;
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_R:  
-					ete = storeTouchSmartSwipe(&etFront, emu->param.tPoint); 
+					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint); 
 					if (abs(127 - rd->ctrl->rx) > profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)
 						ete->swipeEndPoint.x = clamp(
 							ete->swipeEndPoint.x + 
 								((float)(rd->ctrl->rx - 127)) * profile.entries[PR_TO_SWIPE_SMART_SENS].v.u / 127,
-							T_FRONT_SIZE.a.x, 
-							T_FRONT_SIZE.b.x);
+							T_SIZE[port].a.x, 
+							T_SIZE[port].b.x);
 					if (abs(127 - rd->ctrl->ry) > profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)
 						ete->swipeEndPoint.y = clamp(
 							ete->swipeEndPoint.y + 
 								((float)(rd->ctrl->ry - 127)) * profile.entries[PR_TO_SWIPE_SMART_SENS].v.u / 127,
-							T_FRONT_SIZE.a.y, 
-							T_FRONT_SIZE.b.y);
-					if (!rd->rr->propagate)
-						rd->analogRightProp.left = rd->analogRightProp.right = 
-								rd->analogRightProp.up = rd->analogRightProp.down = 0;
-					break;
-				default: break;
-			}
-			break;
-		case REMAP_TYPE_BACK_TOUCH_POINT: 
-			if (rd->rr->turbo && rd->isTurboTick && 
-				emu->action != REMAP_TOUCH_SWIPE && emu->action != REMAP_TOUCH_SWIPE_SMART_L && emu->action != REMAP_TOUCH_SWIPE_SMART_R)
-					break;
-			switch (emu->action){
-				case REMAP_TOUCH_ZONE_L:  storeTouchPoint(&etBack, T_BACK_L);  break;
-				case REMAP_TOUCH_ZONE_R:  storeTouchPoint(&etBack, T_BACK_R);  break;
-				case REMAP_TOUCH_ZONE_TL: storeTouchPoint(&etBack, T_BACK_TL); break;
-				case REMAP_TOUCH_ZONE_TR: storeTouchPoint(&etBack, T_BACK_TR); break;
-				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&etBack, T_BACK_BL); break;
-				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&etBack, T_BACK_BR); break;
-				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&etBack, emu->param.tPoint); break;
-				case REMAP_TOUCH_SWIPE:   
-					if (*rd->status == RS_STARTED || (*rd->status == RS_ACTIVE && rd->rr->turbo && rd->isTurboTick)) 
-						storeTouchSwipe(&etBack, emu->param.tPoints); 
-					break;
-				case REMAP_TOUCH_SWIPE_SMART_DPAD:  
-					ete = storeTouchSmartSwipe(&etBack, emu->param.tPoint);
-					if (btn_has(rd->btns, SCE_CTRL_LEFT)) 
-						ete->swipeEndPoint.x = clamp(
-							ete->swipeEndPoint.x - profile.entries[PR_TO_SWIPE_SMART_SENS].v.u,
-							T_BACK_SIZE.a.x, 
-							T_BACK_SIZE.b.x);
-					if (btn_has(rd->btns, SCE_CTRL_RIGHT)) 
-						ete->swipeEndPoint.x = clamp(
-							ete->swipeEndPoint.x + profile.entries[PR_TO_SWIPE_SMART_SENS].v.u,
-							T_BACK_SIZE.a.x, 
-							T_BACK_SIZE.b.x);
-					if (btn_has(rd->btns, SCE_CTRL_UP)) 
-						ete->swipeEndPoint.y = clamp(
-							ete->swipeEndPoint.y - profile.entries[PR_TO_SWIPE_SMART_SENS].v.u,
-							T_BACK_SIZE.a.y, 
-							T_BACK_SIZE.b.y);
-					if (btn_has(rd->btns, SCE_CTRL_DOWN)) 
-						ete->swipeEndPoint.y = clamp(
-							ete->swipeEndPoint.y + profile.entries[PR_TO_SWIPE_SMART_SENS].v.u,
-							T_BACK_SIZE.a.y, 
-							T_BACK_SIZE.b.y);
-					if (!rd->rr->propagate){
-						btn_del(&rd->btnsProp, SCE_CTRL_LEFT);
-						btn_del(&rd->btnsProp, SCE_CTRL_RIGHT);
-						btn_del(&rd->btnsProp, SCE_CTRL_UP);
-						btn_del(&rd->btnsProp, SCE_CTRL_DOWN);
-					}
-					break;
-				case REMAP_TOUCH_SWIPE_SMART_L:   
-					ete = storeTouchSmartSwipe(&etBack, emu->param.tPoint);
-					if (abs(127 - rd->ctrl->lx) > profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)
-						ete->swipeEndPoint.x = clamp(
-							ete->swipeEndPoint.x + 
-								((float)(rd->ctrl->lx - 127)) * profile.entries[PR_TO_SWIPE_SMART_SENS].v.u / 127,
-							T_BACK_SIZE.a.x, 
-							T_BACK_SIZE.b.x);
-					if (abs(127 - rd->ctrl->ly) > profile.entries[PR_AN_LEFT_DEADZONE_Y].v.u)
-						ete->swipeEndPoint.y = clamp(
-							ete->swipeEndPoint.y + 
-								((float)(rd->ctrl->ly - 127)) * profile.entries[PR_TO_SWIPE_SMART_SENS].v.u / 127,
-							T_BACK_SIZE.a.y, 
-							T_BACK_SIZE.b.y);
-					if (!rd->rr->propagate)
-						rd->analogLeftProp.left = rd->analogLeftProp.right = 
-								rd->analogLeftProp.up = rd->analogLeftProp.down = 0;
-					break;
-				case REMAP_TOUCH_SWIPE_SMART_R:  
-					ete = storeTouchSmartSwipe(&etBack, emu->param.tPoint); 
-					if (abs(127 - rd->ctrl->rx) > profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)
-						ete->swipeEndPoint.x = clamp(
-							ete->swipeEndPoint.x + 
-								((float)(rd->ctrl->rx - 127)) * profile.entries[PR_TO_SWIPE_SMART_SENS].v.u / 127,
-							T_BACK_SIZE.a.x, 
-							T_BACK_SIZE.b.x);
-					if (abs(127 - rd->ctrl->ry) > profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)
-						ete->swipeEndPoint.y = clamp(
-							ete->swipeEndPoint.y + 
-								((float)(rd->ctrl->ry - 127)) * profile.entries[PR_TO_SWIPE_SMART_SENS].v.u / 127,
-							T_BACK_SIZE.a.y, 
-							T_BACK_SIZE.b.y);
+							T_SIZE[port].a.y, 
+							T_SIZE[port].b.y);
 					if (!rd->rr->propagate)
 						rd->analogRightProp.left = rd->analogRightProp.right = 
 								rd->analogRightProp.up = rd->analogRightProp.down = 0;
@@ -393,16 +327,15 @@ void addEmu(RuleData* rd) {
 }
 
 void remEmu(RuleData* rd) {
-	EmulatedTouch* et = &etBack;
 	switch (rd->rr->emu.type){
 		case REMAP_TYPE_FRONT_TOUCH_POINT: 
-			et = &etFront;
 		case REMAP_TYPE_BACK_TOUCH_POINT: 
+			;int port = rd->rr->emu.type == REMAP_TYPE_FRONT_TOUCH_POINT ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
 			switch (rd->rr->emu.action){
 				case REMAP_TOUCH_SWIPE_SMART_L:   
 				case REMAP_TOUCH_SWIPE_SMART_R:   
 				case REMAP_TOUCH_SWIPE_SMART_DPAD:   
-					removeEmuSmartSwipe(et, rd->rr->emu.param.tPoint);
+					removeEmuSmartSwipe(&et[port], rd->rr->emu.param.tPoint);
 					break;
 				default: break;
 			}
@@ -413,16 +346,15 @@ void remEmu(RuleData* rd) {
 
 void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses) {	
 	// Gathering real touch data
-	SceTouchData front, back;
+	SceTouchData std[SCE_TOUCH_PORT_MAX_NUM];
+	int retTouch[SCE_TOUCH_PORT_MAX_NUM];
 	isInternalTouchCall = true;
-	int frontRet;
-	int backRet;
 	if (profile.entries[PR_TO_SWAP].v.b && !profile.entries[PR_TO_PSTV_MODE].v.b){
-		frontRet = ksceTouchPeek(SCE_TOUCH_PORT_BACK, &front, 1);
-		backRet = ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &back, 1);
+		retTouch[SCE_TOUCH_PORT_FRONT] = ksceTouchPeek(SCE_TOUCH_PORT_BACK, &std[SCE_TOUCH_PORT_FRONT], 1);
+		retTouch[SCE_TOUCH_PORT_BACK] = ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &std[SCE_TOUCH_PORT_BACK], 1);
 	} else {
-		frontRet = ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &front, 1);
-		backRet = ksceTouchPeek(SCE_TOUCH_PORT_BACK, &back, 1);
+		retTouch[SCE_TOUCH_PORT_FRONT] = ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &std[SCE_TOUCH_PORT_FRONT], 1);
+		retTouch[SCE_TOUCH_PORT_BACK] = ksceTouchPeek(SCE_TOUCH_PORT_BACK, &std[SCE_TOUCH_PORT_BACK], 1);
 	}
 	isInternalTouchCall = false;
 
@@ -549,42 +481,24 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses) {
 				}
 				break;
 			case REMAP_TYPE_FRONT_TOUCH_ZONE:
-				if (frontRet < 1) break;
-				for (int j = 0; j < front.reportNum; j++) {
-					TouchPoints2 tz = TZ_FRONT_L;
+			case REMAP_TYPE_BACK_TOUCH_ZONE: 
+				;int port = trigger->type == REMAP_TYPE_FRONT_TOUCH_ZONE ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
+				if (retTouch[port] < 1) break;
+				for (int j = 0; j < std[port].reportNum; j++) {
+					TouchPoints2 tz = TZ_L[port];
 					switch (trigger->action){
-						case REMAP_TOUCH_ZONE_L:  tz = TZ_FRONT_L;  break;
-						case REMAP_TOUCH_ZONE_R:  tz = TZ_FRONT_R;  break;
-						case REMAP_TOUCH_ZONE_TL: tz = TZ_FRONT_TL; break;
-						case REMAP_TOUCH_ZONE_TR: tz = TZ_FRONT_TR; break;
-						case REMAP_TOUCH_ZONE_BL: tz = TZ_FRONT_BL; break;
-						case REMAP_TOUCH_ZONE_BR: tz = TZ_FRONT_BR; break;
+						case REMAP_TOUCH_ZONE_L:  tz = TZ_L[port];  break;
+						case REMAP_TOUCH_ZONE_R:  tz = TZ_R[port];  break;
+						case REMAP_TOUCH_ZONE_TL: tz = TZ_TL[port]; break;
+						case REMAP_TOUCH_ZONE_TR: tz = TZ_TR[port]; break;
+						case REMAP_TOUCH_ZONE_BL: tz = TZ_BL[port]; break;
+						case REMAP_TOUCH_ZONE_BR: tz = TZ_BR[port]; break;
 						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.tPoints; break;
 						default: break;
 					}
-					if (updateStatus(rd.status, reportInZone(&front.report[j], tz))) {
+					if (updateStatus(rd.status, reportInZone(&std[port].report[j], tz))) {
 						addEmu(&rd);
 					} 
-					if (*rd.status == RS_STOPPED)
-						remEmu(&rd);
-				}
-				break;
-			case REMAP_TYPE_BACK_TOUCH_ZONE: 
-				if (backRet < 1) break;
-				for (int j = 0; j < back.reportNum; j++) {
-					TouchPoints2 tz = TZ_FRONT_L;
-					switch (trigger->action){
-						case REMAP_TOUCH_ZONE_L:  tz = TZ_BACK_L;  break;
-						case REMAP_TOUCH_ZONE_R:  tz = TZ_BACK_R;  break;
-						case REMAP_TOUCH_ZONE_TL: tz = TZ_BACK_TL; break;
-						case REMAP_TOUCH_ZONE_TR: tz = TZ_BACK_TR; break;
-						case REMAP_TOUCH_ZONE_BL: tz = TZ_BACK_BL; break;
-						case REMAP_TOUCH_ZONE_BR: tz = TZ_BACK_BR; break;
-						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.tPoints; break;
-						default: break;
-					}
-					if (updateStatus(rd.status, reportInZone(&back.report[j], tz)))
-						addEmu(&rd);
 					if (*rd.status == RS_STOPPED)
 						remEmu(&rd);
 				}
@@ -661,11 +575,11 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses) {
 	// 		ctrl->ry = 127;
 	// }
 
-	//Storing emulated HW buttons
+	// Storing emulated HW buttons
 	btn_add(&rd.btnsEmu, rd.btnsProp);
 	ctrl->buttons = rd.btnsEmu;
 
-	//Restoring propagated values for analog sticks
+	// Restoring propagated values for analog sticks
 	rd.analogLeftEmu.left += rd.analogLeftProp.left;
 	rd.analogLeftEmu.right += rd.analogLeftProp.right;
 	rd.analogLeftEmu.up += rd.analogLeftProp.up;
@@ -675,17 +589,19 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses) {
 	rd.analogRightEmu.up += rd.analogRightProp.up;
 	rd.analogRightEmu.down += rd.analogRightProp.down;
 
-	//Storing remap for analog axises
+	// Storing remap for analog axises
 	ctrl->lx = clamp(127  + rd.analogLeftEmu.right- rd.analogLeftEmu.left, 0, 255);
 	ctrl->ly = clamp(127 + rd.analogLeftEmu.down - rd.analogLeftEmu.up, 0, 255);
 	ctrl->rx = clamp(127 + rd.analogRightEmu.right - rd.analogRightEmu.left, 0, 255);
 	ctrl->ry = clamp(127 + rd.analogRightEmu.down - rd.analogRightEmu.up, 0, 255);
 
-	//Telling that new emulated touch buffer is ready to be taken
-	newEmulatedFrontTouchBuffer = true;
-	newEmulatedBackTouchBuffer = true;
+	// Telling that new emulated touch buffer is ready to be taken
+	for (int i = 0; i < TOUCH_HOOKS_NUM; i++)
+		for (int j = 0; j < SCE_TOUCH_PORT_MAX_NUM; j++)
+			newEmulatedTouchBuffer[i][j] = true;
 }
 
+// Swap L1<>L2 R1<>R2
 void swapSideButtons(uint32_t* btns){
 	uint32_t oldBtns = *btns;
 	btn_del(btns, SCE_CTRL_L1);
@@ -702,6 +618,7 @@ void swapSideButtons(uint32_t* btns){
 		btn_add(btns, SCE_CTRL_R2);
 }
 
+// Chenge L1 -> L2, R1 -> R2, remove L1 R1 L3 R3
 void fixSideButtons(uint32_t* btns){
 	uint32_t oldBtns = *btns;
 	btn_del(btns, SCE_CTRL_L2);
@@ -716,60 +633,54 @@ void fixSideButtons(uint32_t* btns){
 		btn_add(btns, SCE_CTRL_R2);
 }
 
-int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlData** remappedBuffer, bool isPositiveLogic, bool isExt) {	
+int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlData** remappedBuffers, bool isPositiveLogic, bool isExt) {	
 	//If buffer full - remove latest entry
-	if (remappedBuffersSizes[hookId][port] >= BUFFERS_NUM){
+	if (cacheCtrl[hookId][port].num >= BUFFERS_NUM){
 		for (int i = 1; i < BUFFERS_NUM; i++)
-			remappedBuffers[hookId][port][i - 1] = remappedBuffers[hookId][port][i];
-		remappedBuffersSizes[hookId][port] --;
+			cacheCtrl[hookId][port].buffers[i - 1] = cacheCtrl[hookId][port].buffers[i];
+		cacheCtrl[hookId][port].num--;
 	}
 
 	//Add curr ctrl to buffer
-	int idx = remappedBuffersSizes[hookId][port];
-	remappedBuffersSizes[hookId][port] ++;
-	remappedBuffers[hookId][port][idx] = ctrl[0];
+	int idx = cacheCtrl[hookId][port].num;
+	cacheCtrl[hookId][port].num++;
+	cacheCtrl[hookId][port].buffers[idx] = ctrl[0];
 
 	//Invert for negative logic
 	if (!isPositiveLogic)
-		remappedBuffers[hookId][port][idx].buttons = 0xFFFFFFFF - remappedBuffers[hookId][port][idx].buttons;
+		cacheCtrl[hookId][port].buffers[idx].buttons = 0xFFFFFFFF - cacheCtrl[hookId][port].buffers[idx].buttons;
 
 	//Swap side buttons for Ext hooks for Vita mode
 	if (!isExt)
-		swapSideButtons(&remappedBuffers[hookId][port][idx].buttons);
+		swapSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
 
-	applyRemap(&remappedBuffers[hookId][port][idx], &rs[hookId][port][0]);
+	applyRemap(&cacheCtrl[hookId][port].buffers[idx], &rs[hookId][port][0]);
 
 	//Swap side buttons for Ext hooks
 	if (!isExt)
-		fixSideButtons(&remappedBuffers[hookId][port][idx].buttons);
+		fixSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
 
 	if (profile.entries[PR_CO_SWAP_BUTTONS].v.b)
-		swapSideButtons(&remappedBuffers[hookId][port][idx].buttons);
+		swapSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
 
 	//Invert back for negative logic
 	if (!isPositiveLogic)
-		remappedBuffers[hookId][port][idx].buttons = 0xFFFFFFFF - remappedBuffers[hookId][port][idx].buttons;
+		cacheCtrl[hookId][port].buffers[idx].buttons = 0xFFFFFFFF - cacheCtrl[hookId][port].buffers[idx].buttons;
 
-	nBufs = min(nBufs, remappedBuffersSizes[hookId][port]);
-	*remappedBuffer = &remappedBuffers[hookId][port][remappedBuffersSizes[hookId][port] - nBufs];
+	//Limit returned buufers num with what we have stored
+	nBufs = min(nBufs, cacheCtrl[hookId][port].num);
+
+	*remappedBuffers = &cacheCtrl[hookId][port].buffers[cacheCtrl[hookId][port].num - nBufs];
 	return nBufs;
 }
 
 //Keep same touch id for continuus touches
-uint8_t generateTouchId(int x, int y, int panel){ 
-	if (panel == SCE_TOUCH_PORT_FRONT){
-		for (int i = 0; i < prevEtFront.num; i++)
-			if (prevEtFront.reports[i].point.x == x && prevEtFront.reports[i].point.y == y)
-				return prevEtFront.reports[i].id;
-		etFrontIdCounter = (etFrontIdCounter + 1) % 127;
-		return etFrontIdCounter;
-	} else {
-		for (int i = 0; i < prevEtBack.num; i++)
-			if (prevEtBack.reports[i].point.x == x && prevEtBack.reports[i].point.y == y)
-				return prevEtBack.reports[i].id;
-		etBackIdCounter = (etBackIdCounter + 1) % 127;
-		return etBackIdCounter;
-	}
+uint8_t generateTouchId(int x, int y, int port){ 
+	for (int i = 0; i < etPrev[port].num; i++)
+		if (etPrev[port].reports[i].point.x == x && etPrev[port].reports[i].point.y == y)
+			return etPrev[port].reports[i].id;
+	etIdCounter[port] = (etIdCounter[port] + 1) % 127;
+	return etIdCounter[port];
 }
 
 void addVirtualTouches(SceTouchData *pData, EmulatedTouch *et, 
@@ -823,265 +734,148 @@ void removeReport(SceTouchData *pData, int idx){
 		pData->report[i - 1] = pData->report[i];
 	pData->reportNum--;
 }
-void updateTouchInfo(SceUInt32 port, SceTouchData *pData){	
-	if (port == SCE_TOUCH_PORT_FRONT) {
-		// Remove non-propagated remapped touches
-		for (int i = 0; i < profile.remapsNum; i++)
-			if (!profile.remaps[i].propagate && !profile.remaps[i].disabled &&
-				profile.remaps[i].trigger.type == REMAP_TYPE_FRONT_TOUCH_ZONE){
-				int j = 0;
-				while (j < pData->reportNum){
-					TouchPoints2 tz = TZ_FRONT_L;
-					switch (profile.remaps[i].trigger.action){
-						case REMAP_TOUCH_ZONE_L:  tz = TZ_FRONT_L;  break;
-						case REMAP_TOUCH_ZONE_R:  tz = TZ_FRONT_R;  break;
-						case REMAP_TOUCH_ZONE_TL: tz = TZ_FRONT_TL; break;
-						case REMAP_TOUCH_ZONE_TR: tz = TZ_FRONT_TR; break;
-						case REMAP_TOUCH_ZONE_BL: tz = TZ_FRONT_BL; break;
-						case REMAP_TOUCH_ZONE_BR: tz = TZ_FRONT_BR; break;
-						case REMAP_TOUCH_CUSTOM:  tz = profile.remaps[i].trigger.param.tPoints; break;
-						default: break;
-					}
-					if (reportInZone(&pData->report[j], tz))
-						removeReport(pData, j);
-					else 
-						j++;
+void updateTouchInfo(SceUInt32 port, int hookId, SceTouchData *pData){	
+	// Remove non-propagated remapped touches
+	for (int i = 0; i < profile.remapsNum; i++){
+		int ratype = (port == SCE_TOUCH_PORT_FRONT) ? REMAP_TYPE_FRONT_TOUCH_ZONE : REMAP_TYPE_BACK_TOUCH_ZONE;
+		if (!profile.remaps[i].propagate && !profile.remaps[i].disabled && profile.remaps[i].trigger.type == ratype){
+			int j = 0;
+			while (j < pData->reportNum){
+				TouchPoints2 tz = TZ_L[port];
+				switch (profile.remaps[i].trigger.action){
+					case REMAP_TOUCH_ZONE_L:  tz = TZ_L[port];  break;
+					case REMAP_TOUCH_ZONE_R:  tz = TZ_R[port];  break;
+					case REMAP_TOUCH_ZONE_TL: tz = TZ_TL[port]; break;
+					case REMAP_TOUCH_ZONE_TR: tz = TZ_TR[port]; break;
+					case REMAP_TOUCH_ZONE_BL: tz = TZ_BL[port]; break;
+					case REMAP_TOUCH_ZONE_BR: tz = TZ_BR[port]; break;
+					case REMAP_TOUCH_CUSTOM:  tz = profile.remaps[i].trigger.param.tPoints; break;
+					default: break;
 				}
+				if (reportInZone(&pData->report[j], tz))
+					removeReport(pData, j);
+				else 
+					j++;
 			}
-
-		if (!newEmulatedFrontTouchBuffer){//New touchbuffer not ready - using previous one
-			addVirtualTouches(pData, &prevEtFront, MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
-			return;
 		}
-		
-		addVirtualTouches(pData, &etFront, MULTITOUCH_FRONT_NUM, SCE_TOUCH_PORT_FRONT);
-		gui_updateEmulatedTouch(SCE_TOUCH_PORT_FRONT, etFront);
-		prevEtFront = etFront;
-		cleanEmuReports(&etFront);
-		newEmulatedFrontTouchBuffer = false;
-	} else {
-		// Remove non-propagated remapped touches
-		for (int i = 0; i < profile.remapsNum; i++)
-			if (!profile.remaps[i].propagate && !profile.remaps[i].disabled &&
-				profile.remaps[i].trigger.type == REMAP_TYPE_BACK_TOUCH_ZONE){
-				int j = 0;
-				while (j < pData->reportNum){
-					TouchPoints2 tz = TZ_BACK_L;
-					switch (profile.remaps[i].trigger.action){
-						case REMAP_TOUCH_ZONE_L:  tz = TZ_BACK_L;  break;
-						case REMAP_TOUCH_ZONE_R:  tz = TZ_BACK_R;  break;
-						case REMAP_TOUCH_ZONE_TL: tz = TZ_BACK_TL; break;
-						case REMAP_TOUCH_ZONE_TR: tz = TZ_BACK_TR; break;
-						case REMAP_TOUCH_ZONE_BL: tz = TZ_BACK_BL; break;
-						case REMAP_TOUCH_ZONE_BR: tz = TZ_BACK_BR; break;
-						case REMAP_TOUCH_CUSTOM:  tz = profile.remaps[i].trigger.param.tPoints; break;
-						default: break;
-					}
-					if (reportInZone(&pData->report[j], tz))
-						removeReport(pData, j);
-					else 
-						j++;
-				}
-			}
-			
-		if (!newEmulatedBackTouchBuffer){//New touchbuffer not ready - using previous one
-			addVirtualTouches(pData, &prevEtBack, MULTITOUCH_BACK_NUM, SCE_TOUCH_PORT_BACK);
-			return;
-		}
-		
-		addVirtualTouches(pData, &etBack, MULTITOUCH_BACK_NUM, SCE_TOUCH_PORT_BACK);
-		gui_updateEmulatedTouch(SCE_TOUCH_PORT_BACK, etBack);
-		prevEtBack = etBack;
-		cleanEmuReports(&etBack);
-		newEmulatedBackTouchBuffer = 0;
 	}
+	if (!newEmulatedTouchBuffer[hookId][port]){//New touchbuffer not ready - using previous one
+		addVirtualTouches(pData, &etPrev[port], MULTITOUCH_FRONT_NUM, port);
+		return;
+	}
+	
+	addVirtualTouches(pData, &et[port], MULTITOUCH_FRONT_NUM, port);
+	gui_updateEmulatedTouch(port, et[port]);
+	etPrev[port] = et[port];
+	cleanEmuReports(&et[port]);
+	newEmulatedTouchBuffer[hookId][port] = false;
 }
 
-int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
-	if (port == SCE_TOUCH_PORT_FRONT){
-		//Get next cache real index
-		int buffIdx = (remappedBuffersFrontIdxs[hookId] + 1) % BUFFERS_NUM;
-
-		//Storing copy of latest buffer
-		remappedBuffersFrontIdxs[hookId] = buffIdx;
-		remappedBuffersFrontSizes[hookId] = min(remappedBuffersFrontSizes[hookId] + 1, BUFFERS_NUM);
-		remappedBuffersFront[hookId][buffIdx] = pData[nBufs-1];
-		
-		//Updating latest buffer with simulated touches
-		updateTouchInfo(port, &remappedBuffersFront[hookId][buffIdx]);
-		
-		//Limit returned buufers num with what we have stored
-		nBufs = min(nBufs, remappedBuffersFrontSizes[hookId]);
-		
-		//Restoring stored buffers
-		for (int i = 0; i < nBufs; i++)
-			pData[i] = remappedBuffersFront[hookId]
-				[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
-	} else {
-		//Real index
-		int buffIdx = (remappedBuffersBackIdxs[hookId] + 1) % BUFFERS_NUM;
-
-		//Storing copy of latest buffer
-		remappedBuffersBackIdxs[hookId] = buffIdx;
-		remappedBuffersBackSizes[hookId] = min(remappedBuffersBackSizes[hookId] + 1, BUFFERS_NUM);
-		remappedBuffersBack[hookId][buffIdx] = pData[nBufs-1];
-		
-		//Updating latest buffer with simulated touches
-		updateTouchInfo(port, &remappedBuffersBack[hookId][buffIdx]);
-		
-		//Limit returned buufers num with what we have stored
-		nBufs = min(nBufs, remappedBuffersBackSizes[hookId]);
-		
-		//Restoring stored buffers
-		for (int i = 0; i < nBufs; i++)
-			pData[i] = remappedBuffersBack[hookId]
-				[(BUFFERS_NUM + buffIdx - nBufs + i + 1) % BUFFERS_NUM];
+int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId, 
+		SceTouchData **remappedBuffers){
+	//If buffer full - remove latest entry
+	if (cacheTouch[hookId][port].num >= BUFFERS_NUM){
+		for (int i = 1; i < BUFFERS_NUM; i++)
+			cacheTouch[hookId][port].buffers[i - 1] = cacheTouch[hookId][port].buffers[i - 1];
+		cacheTouch[hookId][port].num--;
 	}
+	
+	//Add curr buffer to cache
+	int idx = cacheTouch[hookId][port].num;
+	cacheTouch[hookId][port].num++;
+	cacheTouch[hookId][port].buffers[idx] = pData[0];
+	
+	//Updating latest buffer with simulated touches
+	updateTouchInfo(port, hookId, &cacheTouch[hookId][port].buffers[idx]);
+	
+	//Limit returned buufers num with what we have stored
+	nBufs = min(nBufs, cacheTouch[hookId][port].num);
+
+	*remappedBuffers = &cacheTouch[hookId][port].buffers[idx + 1 - nBufs];
 	return nBufs;
 }
 
 void remap_resetBuffers(){
 	for (int i = 0; i < CTRL_HOOKS_NUM; i++){
 		for (int j = 0; j < PORTS_NUM; j++){
-			remappedBuffersSizes[i][j] = 0;
+			cacheCtrl[i][j].num = 0;
 			for (int k = 0; k < REMAP_NUM; k++)
 				rs[i][j][k] = RS_NONACTIVE;
 		}
 	}
 	for (int i = 0; i < TOUCH_HOOKS_NUM; i++){
-		remappedBuffersFrontIdxs[i] = 
-		remappedBuffersBackIdxs[i] = 
-		remappedBuffersFrontSizes[i] = 
-		remappedBuffersBackSizes[i] = 0;
+		for (int j = 0; j < SCE_TOUCH_PORT_MAX_NUM; j++){
+			cacheTouch[i][j].num = 0;
+		}
 	}
-	etBack.num = 0;
-	etFront.num = 0;
+	et[SCE_TOUCH_PORT_BACK].num = 0;
+	et[SCE_TOUCH_PORT_FRONT].num = 0;
 }
 
 void initTouchParams(){
-	//Calculate predefinde touchpoints
-	T_FRONT_L = (TouchPoint){
-		(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 6,
-		(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 2};
-	T_FRONT_R = (TouchPoint){
-		(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) * 5 / 6,
-		(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 2};
-	T_FRONT_TL = (TouchPoint){
-		(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 6, 
-		(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 4};
-	T_FRONT_TR = (TouchPoint){
-		(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) * 5 / 6, 
-		(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 4};
-	T_FRONT_BL = (TouchPoint){
-		(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 6, 
-		(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) * 3 / 4};
-	T_FRONT_BR = (TouchPoint){
-		(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) * 5 / 6, 
-		(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) * 3 / 4};
+	for (int port = 0; port < SCE_TOUCH_PORT_MAX_NUM; port++){
+		//Calculate predefined touchpoints
+		T_L[port] = (TouchPoint){
+			(T_SIZE[port].b.x - T_SIZE[port].a.x) / 6,
+			(T_SIZE[port].b.y - T_SIZE[port].a.y) / 2};
+		T_R[port] = (TouchPoint){
+			(T_SIZE[port].b.x - T_SIZE[port].a.x) * 5 / 6,
+			(T_SIZE[port].b.y - T_SIZE[port].a.y) / 2};
+		T_TL[port] = (TouchPoint){
+			(T_SIZE[port].b.x - T_SIZE[port].a.x) / 6, 
+			(T_SIZE[port].b.y - T_SIZE[port].a.y) / 4};
+		T_TR[port] = (TouchPoint){
+			(T_SIZE[port].b.x - T_SIZE[port].a.x) * 5 / 6, 
+			(T_SIZE[port].b.y - T_SIZE[port].a.y) / 4};
+		T_BL[port] = (TouchPoint){
+			(T_SIZE[port].b.x - T_SIZE[port].a.x) / 6, 
+			(T_SIZE[port].b.y - T_SIZE[port].a.y) * 3 / 4};
+		T_BR[port] = (TouchPoint){
+			(T_SIZE[port].b.x - T_SIZE[port].a.x) * 5 / 6, 
+			(T_SIZE[port].b.y - T_SIZE[port].a.y) * 3 / 4};
 
-	T_BACK_L = (TouchPoint){
-		(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 6, 
-		(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 2};
-	T_BACK_R = (TouchPoint){
-		(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) * 5 / 6, 
-		(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 2};
-	T_BACK_TL = (TouchPoint){
-		(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 6, 
-		(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 4};
-	T_BACK_TR = (TouchPoint){
-		(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) * 5 / 6, 
-		(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 4};
-	T_BACK_BL = (TouchPoint){
-		(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 6, 
-		(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) * 3 / 4};
-	T_BACK_BR = (TouchPoint){
-		(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) * 5 / 6, 
-		(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) * 3 / 4};
-
-	//Calculate predefined touchzones
-	TZ_FRONT_L = (TouchPoints2){
-		(TouchPoint){
-			0, 
-			0}, 
-		(TouchPoint){
-			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 2, 
-			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y)}};
-	TZ_FRONT_R = (TouchPoints2){
-		(TouchPoint){
-			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 2, 
-			0}, 
-		(TouchPoint){
-			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x), 
-			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y)}};
-	TZ_FRONT_TL = (TouchPoints2){
-		(TouchPoint){0, 0}, 
-		(TouchPoint){
-			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 2, 
-			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 2}};
-	TZ_FRONT_TR = (TouchPoints2){
-		(TouchPoint){
-			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 2, 
-			0}, 
-		(TouchPoint){
-			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x), 
-			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 2}};
-	TZ_FRONT_BL = (TouchPoints2){
-		(TouchPoint){
-			0, 
-			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 2}, 
-		(TouchPoint){
-			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 2, 
-			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y)}};
-	TZ_FRONT_BR = (TouchPoints2){
-		(TouchPoint){
-			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x) / 2, 
-			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y) / 2}, 
-		(TouchPoint){
-			(T_FRONT_SIZE.b.x - T_FRONT_SIZE.a.x), 
-			(T_FRONT_SIZE.b.y - T_FRONT_SIZE.a.y)}};
-
-	TZ_BACK_L = (TouchPoints2){
-		(TouchPoint){
-			0, 
-			0}, 
-		(TouchPoint){
-			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 2, 
-			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y)}};
-	TZ_BACK_R = (TouchPoints2){
-		(TouchPoint){
-			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 2, 
-			0}, 
-		(TouchPoint){
-			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x), 
-			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y)}};
-	TZ_BACK_TL = (TouchPoints2){
-		(TouchPoint){
-			0, 
-			0}, 
-		(TouchPoint){
-			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 2, 
-			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 2}};
-	TZ_BACK_TR = (TouchPoints2){
-		(TouchPoint){
-			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 2, 
-			0}, 
-		(TouchPoint){
-			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x), 
-			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 2}};
-	TZ_BACK_BL = (TouchPoints2){
-		(TouchPoint){
-			0, 
-			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 2}, 
-		(TouchPoint){
-			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 2, 
-			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y)}};
-	TZ_BACK_BR = (TouchPoints2){
-		(TouchPoint){
-			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x) / 2, 
-			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y) / 2}, 
-		(TouchPoint){
-			(T_BACK_SIZE.b.x - T_BACK_SIZE.a.x), 
-			(T_BACK_SIZE.b.y - T_BACK_SIZE.a.y)}};
+		//Calculate predefined touchzones
+		TZ_L[port] = (TouchPoints2){
+			(TouchPoint){
+				0, 
+				0}, 
+			(TouchPoint){
+				(T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
+				(T_SIZE[port].b.y - T_SIZE[port].a.y)}};
+		TZ_R[port] = (TouchPoints2){
+			(TouchPoint){
+				(T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
+				0}, 
+			(TouchPoint){
+				(T_SIZE[port].b.x - T_SIZE[port].a.x), 
+				(T_SIZE[port].b.y - T_SIZE[port].a.y)}};
+		TZ_TL[port] = (TouchPoints2){
+			(TouchPoint){0, 0}, 
+			(TouchPoint){
+				(T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
+				(T_SIZE[port].b.y - T_SIZE[port].a.y) / 2}};
+		TZ_TR[port] = (TouchPoints2){
+			(TouchPoint){
+				(T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
+				0}, 
+			(TouchPoint){
+				(T_SIZE[port].b.x - T_SIZE[port].a.x), 
+				(T_SIZE[port].b.y - T_SIZE[port].a.y) / 2}};
+		TZ_BL[port] = (TouchPoints2){
+			(TouchPoint){
+				0, 
+				(T_SIZE[port].b.y - T_SIZE[port].a.y) / 2}, 
+			(TouchPoint){
+				(T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
+				(T_SIZE[port].b.y - T_SIZE[port].a.y)}};
+		TZ_BR[port] = (TouchPoints2){
+			(TouchPoint){
+				(T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
+				(T_SIZE[port].b.y - T_SIZE[port].a.y) / 2}, 
+			(TouchPoint){
+				(T_SIZE[port].b.x - T_SIZE[port].a.x), 
+				(T_SIZE[port].b.y - T_SIZE[port].a.y)}};
+	}
 }
 
 void remap_setup(){
@@ -1095,18 +889,15 @@ void remap_setup(){
 	ksceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
 	
 	// Detecting touch panels size
-	SceTouchPanelInfo pi;	
-	if (ksceTouchGetPanelInfo(SCE_TOUCH_PORT_FRONT, &pi) >= 0){
-		T_FRONT_SIZE.a.x = pi.minAaX;
-		T_FRONT_SIZE.a.y = pi.minAaY;
-		T_FRONT_SIZE.b.x = pi.maxAaX;
-		T_FRONT_SIZE.b.y = pi.maxAaY;
-	}
-	if (ksceTouchGetPanelInfo(SCE_TOUCH_PORT_BACK, &pi) >= 0){
-		T_BACK_SIZE.a.x = pi.minAaX;
-		T_BACK_SIZE.a.y = pi.minAaY;
-		T_BACK_SIZE.b.x = pi.maxAaX;
-		T_BACK_SIZE.b.y = pi.maxAaY;
+	SceTouchPanelInfo pi;
+	
+	for (int port = 0; port < SCE_TOUCH_PORT_MAX_NUM; port++){
+		if (ksceTouchGetPanelInfo(SCE_TOUCH_PORT_FRONT, &pi) >= 0){
+			T_SIZE[port].a.x = pi.minAaX;
+			T_SIZE[port].a.y = pi.minAaY;
+			T_SIZE[port].b.x = pi.maxAaX;
+			T_SIZE[port].b.y = pi.maxAaY;
+		}
 	}
 	initTouchParams();
 }
@@ -1114,28 +905,32 @@ void remap_setup(){
 void remap_init(){
 	//Allocating mem for stored buffers
 	remap_memId = ksceKernelAllocMemBlock("remapsv2_bufs_remap", 
-        SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, 
-        (sizeof(SceCtrlData) * BUFFERS_NUM * CTRL_HOOKS_NUM * PORTS_NUM + 0xfff) & ~0xfff, 
-        NULL);
+        SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, MEM_SIZE, NULL);
     ksceKernelGetMemBlockBase(remap_memId, (void**)&remap_memBase);
-    LOG("MEMORY ALLOC remap[SceCtrlData] %i : %i\n", (int)remap_memBase, 
-		(sizeof(SceCtrlData) * BUFFERS_NUM * CTRL_HOOKS_NUM * PORTS_NUM + 0xfff) & ~0xfff);
+    LOG("MEMORY ALLOC remap cacheCtrl %i\n", CACHE_CTRL_SIZE);
+    LOG("MEMORY ALLOC remap cacheTouch %i\n", CACHE_TOUCH_SIZE);
     for (int i = 0; i < CTRL_HOOKS_NUM; i++){
     	for (int j = 0; j < PORTS_NUM; j++){
-			remappedBuffers[i][j] = (SceCtrlData*)(remap_memBase + sizeof(SceCtrlData) * BUFFERS_NUM * (i * PORTS_NUM + j));
+			cacheCtrl[i][j].buffers = (SceCtrlData*)(remap_memBase + 
+				sizeof(SceCtrlData) * BUFFERS_NUM * (i * PORTS_NUM + j));
 		}
 	}
-	//Use stack storage for touch buffers
 	for (int i = 0; i < TOUCH_HOOKS_NUM; i++){
-		remappedBuffersFront[i] = (SceTouchData*)&_remappedBuffersFront[i][0];
-		remappedBuffersBack[i] = (SceTouchData*)&_remappedBuffersBack[i][0];
+    	for (int j = 0; j < SCE_TOUCH_PORT_MAX_NUM; j++){
+			cacheTouch[i][j].buffers = (SceTouchData*)(remap_memBase + CACHE_CTRL_SIZE + 
+				sizeof(SceTouchData) * BUFFERS_NUM * (i * SCE_TOUCH_PORT_MAX_NUM + j));
+		}
 	}
+	
+	for (int i = 0; i < TOUCH_HOOKS_NUM; i++)
+		for (int j = 0; j < SCE_TOUCH_PORT_MAX_NUM; j++)
+			newEmulatedTouchBuffer[i][j] = false;
 	remap_resetBuffers();
-	T_FRONT_SIZE = (TouchPoints2){
+	T_SIZE[SCE_TOUCH_PORT_FRONT] = (TouchPoints2){
 		(TouchPoint){0, 0},
 		(TouchPoint){1919, 1087}
 	};
-	T_BACK_SIZE  = (TouchPoints2){
+	T_SIZE[SCE_TOUCH_PORT_BACK]  = (TouchPoints2){
 		(TouchPoint){0, 108},
 		(TouchPoint){1919, 889}
 	};

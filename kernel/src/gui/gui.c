@@ -214,7 +214,7 @@ void onDraw_generic(uint32_t menuY){
 }
 
 void gui_drawTouchPointer(uint32_t panel, TouchPoint* tp){
-	TouchPoints2 size = (panel == SCE_TOUCH_PORT_FRONT) ? T_FRONT_SIZE : T_BACK_SIZE;
+	TouchPoints2 size = T_SIZE[panel];
 	int x = (float)fbWidth / (size.b.x - size.a.x) * (tp->x - size.a.x);
 	int y = (float)fbHeight / (size.b.y - size.a.y) * (tp->y - size.a.y);
 	renderer_setColor(theme[COLOR_TOUCH_SHADOW]);
