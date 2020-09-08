@@ -24,8 +24,9 @@ const char* THEME_COLOR_STR[THEME_COLOR__NUM] = {
 	"COLOR_CURSOR_DANGER",
 	"COLOR_BG_HEADER",
 	"COLOR_BG_BODY",
-	"COLOR_TOUCH",
-	"COLOR_SHADOW"
+	"COLOR_TOUCH_FRONT",
+	"COLOR_TOUCH_BOTOM",
+	"COLOR_TOUCH_SHADOW"
 };
 enum THEME_COLOR_ID getThemeColorId(char* n){
 	for (int i = 0; i < THEME_COLOR__NUM; i++)
@@ -123,7 +124,8 @@ void setDefThemeDark(){
 	theme[COLOR_CURSOR_DANGER] = 	0x000000DD;
 	theme[COLOR_BG_HEADER] = 		0x00000000;
 	theme[COLOR_BG_BODY] = 			0x00171717;
-	theme[COLOR_TOUCH] = 			0x0000B0B0;
+	theme[COLOR_TOUCH_FRONT] = 		0x0000B0B0;
+	theme[COLOR_TOUCH_BOTTOM] = 	0x00FF6600;
 	theme[COLOR_TOUCH_SHADOW] = 	0x00000000;
 }
 void setDefThemeLight(){
@@ -137,13 +139,16 @@ void setDefThemeLight(){
 	theme[COLOR_CURSOR_DANGER] = 	0x000000DD;
 	theme[COLOR_BG_HEADER] = 		0x00DDDDDD;
 	theme[COLOR_BG_BODY] = 			0x00FFFFFF;
-	theme[COLOR_TOUCH] = 			0x00FFFFFF;
+	theme[COLOR_TOUCH_FRONT] = 		0x0000B0B0;
+	theme[COLOR_TOUCH_BOTTOM] = 	0x00FF6600;
 	theme[COLOR_TOUCH_SHADOW] = 	0x00000000;
 }
 void theme_init(){//Load theme
+	setDefThemeDark();
 	if (!theme_load(THEME_DARK)){
 		setDefThemeDark();
 	}
+	setDefThemeLight();
 	theme_save(THEME_DARK);
 	if (!theme_load(THEME_LIGHT)){
 		setDefThemeLight();

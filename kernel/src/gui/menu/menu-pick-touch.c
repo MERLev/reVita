@@ -10,7 +10,7 @@
 #include "../renderer.h"
 
 void drawTouchZone(uint32_t panel, TouchPoints2* tz){
-	renderer_setColor(theme[COLOR_TOUCH]);
+	renderer_setColor(panel ? theme[COLOR_TOUCH_BOTTOM] : theme[COLOR_TOUCH_FRONT]);
 	TouchPoints2 size = T_SIZE[panel];
 	int ax = (float)fbWidth  / (size.b.x - size.a.x) * max(0, (tz->a.x - size.a.x)),
 		bx = (float)fbWidth  / (size.b.x - size.a.x) * max(0, (tz->b.x - size.a.x)),
@@ -27,7 +27,7 @@ void drawTouchZone(uint32_t panel, TouchPoints2* tz){
 
 void drawTouchSwipe(uint32_t panel, TouchPoints2* tz){
 	TouchPoints2 size = T_SIZE[panel];
-	renderer_setColor(theme[COLOR_TOUCH]);
+	renderer_setColor(panel ? theme[COLOR_TOUCH_BOTTOM] : theme[COLOR_TOUCH_FRONT]);
 	renderer_drawLineThick(
 		(float)fbWidth  / (size.b.x - size.a.x) * max(0, (tz->a.x - size.a.x)), 
 		(float)fbHeight / (size.b.y - size.a.y) * max(0, (tz->a.y - size.a.y)), 
