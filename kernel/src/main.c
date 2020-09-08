@@ -44,6 +44,7 @@ int processid = -1;
 bool used_funcs[HOOKS_NUM];
 bool isInternalTouchCall = false;
 bool isInternalCtrlCall = false;
+bool ds4vitaRunning;
 
 static uint64_t startTick;
 static bool delayedStartDone = false;
@@ -107,7 +108,6 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpac
             (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
         return onInput(port, ctrl, ret, (id), (space), (logic), (triggers)); \
     }
-
 // DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_P,      sceCtrlPeekBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
 // DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_P,      sceCtrlReadBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
 // DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_N,      sceCtrlPeekBufferNegative,     SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_NONEXT)
@@ -334,14 +334,16 @@ static int main_thread(SceSize args, void *argp) {
 
 //Sync ds4vita config
 void syncDS4Vita(){
+    if (!ds4vitaRunning)
+        return;
     if (profile.entries[PR_CO_EMULATE_DS4].v.b){
         ds4vita_setPort(2);
         ds4vita_setPort0MergeMode(DS4_MERGE_DISABLED);
         LOG("configDS4Vita Port 2, no merge\n");
     } else {
         ds4vita_setPort(1);
-        LOG("configDS4Vita Port 1, merge\n");
         ds4vita_setPort0MergeMode(DS4_MERGE_ENABLED);
+        LOG("configDS4Vita Port 1, merge\n");
     }
 }
 //Sync configurations across other plugins
@@ -374,8 +376,14 @@ int module_start(SceSize argc, const void *args) {
     remap_init();
     userspace_init();
     startTick = ksceKernelGetSystemTimeWide();
-    sync();
 	theme_load(settings[SETT_THEME].v.u);
+
+    //Check if ds4vita module loaded
+    tai_module_info_t info;
+	info.size = sizeof(tai_module_info_t);
+    ds4vitaRunning = taiGetModuleInfoForKernel(KERNEL_PID, "ds4vita", &info) == 0;
+    
+    sync();
 
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
 
