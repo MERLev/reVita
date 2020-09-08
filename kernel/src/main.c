@@ -51,7 +51,6 @@ static bool delayedStartDone = false;
 
 SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
 int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
-
 int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count){
     isInternalCtrlCall = true;
     int ret = ksceCtrlPeekBufferPositive(port, pad_data, count);
@@ -271,7 +270,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
                 info.size = sizeof(SceKernelModuleInfo);
                 _ksceKernelGetModuleInfo(pid, _ksceKernelGetProcessMainModule(pid), &info);
                 if(!streq(info.module_name, "ScePspemu") &&  // If Not Adrenaline
-			        !STREQALL(titleidLocal, "NPXS10012",     //        PS3Link
+			        !STREQANY(titleidLocal, "NPXS10012",     //        PS3Link
                                             "NPXS10013"))    //        PS4Link
                         break;                               // Use MAIN profile
             }
