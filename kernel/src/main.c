@@ -52,6 +52,13 @@ static bool delayedStartDone = false;
 SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
 int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
 
+int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count){
+    isInternalCtrlCall = true;
+    int ret = ksceCtrlPeekBufferPositive(port, pad_data, count);
+    isInternalCtrlCall = false;
+    return ret;
+}
+
 int nullButtons_user(SceCtrlData *bufs, SceUInt32 nBufs, bool isPositiveLogic){
     SceCtrlData scd;
 	memset(&scd, 0, sizeof(scd));
@@ -102,8 +109,8 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpac
 
 #define DECL_FUNC_HOOK_PATCH_CTRL(id, name, space, logic, triggers) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
-        if (nBufs == INTERNAL) \
-            return TAI_CONTINUE(int, refs[(id)], port, ctrl, 1); \
+        if (isInternalCtrlCall) \
+            return TAI_CONTINUE(int, refs[(id)], port, ctrl, nBufs); \
 		int ret = TAI_CONTINUE(int, refs[(id)], \
             (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
         return onInput(port, ctrl, ret, (id), (space), (logic), (triggers)); \
@@ -221,7 +228,8 @@ int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplay
 
     if (gui_isOpen) {
         SceCtrlData ctrl;
-        if(ksceCtrlPeekBufferPositive(0, &ctrl, INTERNAL) == 1)
+        
+        if(ksceCtrlPeekBufferPositive_internal(0, &ctrl, 1) == 1)
             gui_onInput(&ctrl);
     }
 
@@ -296,8 +304,7 @@ static int main_thread(SceSize args, void *argp) {
         }
 
         SceCtrlData ctrl;
-        int ret = ksceCtrlPeekBufferPositive(0, &ctrl, INTERNAL);
-        if(ret != 1){
+        if(ksceCtrlPeekBufferPositive_internal(0, &ctrl, 1) != 1){
             ksceKernelDelayThread(30 * 1000);
             continue;
         }
@@ -326,7 +333,14 @@ static int main_thread(SceSize args, void *argp) {
         }
 
         oldBtns = ctrl.buttons;
-        
+
+        // Check if ds4vita has loaded
+        if (!ds4vitaRunning){
+            tai_module_info_t info;
+            info.size = sizeof(tai_module_info_t);
+            ds4vitaRunning = taiGetModuleInfoForKernel(KERNEL_PID, "ds4vita", &info) == 0;
+        }
+       
         ksceKernelDelayThread(30 * 1000);
     }
     return 0;
@@ -365,8 +379,8 @@ void exportF(const char *module, uint32_t library_nid_360, uint32_t func_nid_360
 
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
-    
     LOG("Plugin started\n");
+
     snprintf(titleid, sizeof(titleid), HOME);
     settings_init();
     hotkeys_init();
@@ -382,6 +396,8 @@ int module_start(SceSize argc, const void *args) {
     tai_module_info_t info;
 	info.size = sizeof(tai_module_info_t);
     ds4vitaRunning = taiGetModuleInfoForKernel(KERNEL_PID, "ds4vita", &info) == 0;
+    if (!ds4vitaRunning)
+        LOG("ds4vita is not running\n");
     
     sync();
 
