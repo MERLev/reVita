@@ -148,8 +148,8 @@ void theme_init(){//Load theme
 	if (!theme_load(THEME_DARK)){
 		setDefThemeDark();
 	}
-	setDefThemeLight();
 	theme_save(THEME_DARK);
+	setDefThemeLight();
 	if (!theme_load(THEME_LIGHT)){
 		setDefThemeLight();
 	}
