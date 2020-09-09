@@ -51,10 +51,18 @@ static bool delayedStartDone = false;
 
 SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
 int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
+
 int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count){
     isInternalCtrlCall = true;
     int ret = ksceCtrlPeekBufferPositive(port, pad_data, count);
     isInternalCtrlCall = false;
+    return ret;
+}
+
+int ksceTouchPeek_internal(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs){
+    isInternalTouchCall = true;
+    int ret = ksceTouchPeek(port, pData, nBufs);
+    isInternalTouchCall = false;
     return ret;
 }
 
@@ -185,17 +193,21 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
 
 #define DECL_FUNC_HOOK_PATCH_TOUCH(index, name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
-        if (profile.entries[PR_TO_SWAP].v.b) port = !port; \
+        if (isInternalTouchCall || profile.entries[PR_TO_PSTV_MODE].v.b) \
+            return TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
+        if (profile.entries[PR_TO_SWAP].v.b) \
+            port = !port; \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
-        if (profile.entries[PR_TO_PSTV_MODE].v.b) return ret; \
         used_funcs[(index)] = true; \
         return onTouch(port, pData, ret, (index) - H_K_TO_PEEK, (space)); \
     }
 #define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(index, name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, int region) { \
-        if (profile.entries[PR_TO_SWAP].v.b) port = !port; \
+        if (isInternalTouchCall || profile.entries[PR_TO_PSTV_MODE].v.b) \
+            return TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
+        if (profile.entries[PR_TO_SWAP].v.b) \
+            port = !port; \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
-        if (profile.entries[PR_TO_PSTV_MODE].v.b) return ret; \
         if (region != 1) return ret; /* ignore regions other then 1 */\
         used_funcs[(index)] = true; \
         return onTouch(port, pData, ret, (index) - H_K_TO_PEEK, (space)); \

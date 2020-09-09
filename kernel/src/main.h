@@ -1,6 +1,7 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 #include <stdbool.h>
+#include <psp2/touch.h>
 
 enum H_ID{
     H_CT_PEEK_P = 0,
@@ -40,5 +41,7 @@ extern bool isInternalTouchCall;
 extern bool isInternalCtrlCall;
 
 void sync();
+int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count);
+int ksceTouchPeek_internal(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs);
 
 #endif

@@ -8,6 +8,7 @@
 #include "../../fio/theme.h"
 #include "../gui.h"
 #include "../renderer.h"
+#include "../../log.h"
 
 void drawTouchZone(uint32_t panel, TouchPoints2* tz){
 	renderer_setColor(panel ? theme[COLOR_TOUCH_BOTTOM] : theme[COLOR_TOUCH_FRONT]);
@@ -56,7 +57,7 @@ void onDrawFB_pickTouchSwipe(){
 	drawTouchSwipe(panel, &ra->param.tPoints); 
 }
 
-//Set custom touch point xy using RS
+//Set custom touch point xy using LS + RS
 void analogTouchPicker(TouchPoint* tp, SceCtrlData *ctrl, int port, int isLeftAnalog){
 	int shiftX = ((float)((isLeftAnalog ? ctrl->lx : ctrl->rx) - 127)) / 8;
 	int shiftY = ((float)((isLeftAnalog ? ctrl->ly : ctrl->ry) - 127)) / 8;

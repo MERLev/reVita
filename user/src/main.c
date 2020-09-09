@@ -117,6 +117,8 @@ int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	return ret;
 }
 int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
+	if (!profile.entries[PR_TO_PSTV_MODE].v.b)
+		return TAI_CONTINUE(int, refs[4], port, pData, nBufs);
 	if (profile.entries[PR_TO_SWAP].v.b)
 		port = !port;
 	int ret = TAI_CONTINUE(int, refs[4], port, pData, nBufs);
@@ -125,6 +127,8 @@ int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	return ret;
 }
 int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
+	if (!profile.entries[PR_TO_PSTV_MODE].v.b)
+		return TAI_CONTINUE(int, refs[5], port, pData, nBufs);
 	if (profile.entries[PR_TO_SWAP].v.b)
 		port = !port;
 	int ret = TAI_CONTINUE(int, refs[5], port, pData, nBufs);
@@ -133,6 +137,8 @@ int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	return ret;
 }
 int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
+	if (!profile.entries[PR_TO_PSTV_MODE].v.b)
+		return TAI_CONTINUE(int, refs[6], port, pData, nBufs);
 	if (profile.entries[PR_TO_SWAP].v.b)
 		port = !port;
 	int ret = TAI_CONTINUE(int, refs[6], port, pData, nBufs);
@@ -141,6 +147,8 @@ int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) 
 	return ret;
 }
 int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
+	if (!profile.entries[PR_TO_PSTV_MODE].v.b)
+		return TAI_CONTINUE(int, refs[7], port, pData, nBufs);
 	if (profile.entries[PR_TO_SWAP].v.b)
 		port = !port;
 	int ret = TAI_CONTINUE(int, refs[7], port, pData, nBufs);

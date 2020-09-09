@@ -353,15 +353,9 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int hookId, int p
 	// Gathering real touch data
 	SceTouchData std[SCE_TOUCH_PORT_MAX_NUM];
 	int retTouch[SCE_TOUCH_PORT_MAX_NUM];
-	isInternalTouchCall = true;
-	if (profile.entries[PR_TO_SWAP].v.b && !profile.entries[PR_TO_PSTV_MODE].v.b){
-		retTouch[SCE_TOUCH_PORT_FRONT] = ksceTouchPeek(SCE_TOUCH_PORT_BACK, &std[SCE_TOUCH_PORT_FRONT], 1);
-		retTouch[SCE_TOUCH_PORT_BACK] = ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &std[SCE_TOUCH_PORT_BACK], 1);
-	} else {
-		retTouch[SCE_TOUCH_PORT_FRONT] = ksceTouchPeek(SCE_TOUCH_PORT_FRONT, &std[SCE_TOUCH_PORT_FRONT], 1);
-		retTouch[SCE_TOUCH_PORT_BACK] = ksceTouchPeek(SCE_TOUCH_PORT_BACK, &std[SCE_TOUCH_PORT_BACK], 1);
-	}
-	isInternalTouchCall = false;
+	retTouch[SCE_TOUCH_PORT_FRONT] = ksceTouchPeek_internal(SCE_TOUCH_PORT_FRONT, &std[SCE_TOUCH_PORT_FRONT], 1);
+	retTouch[SCE_TOUCH_PORT_BACK] = ksceTouchPeek_internal(SCE_TOUCH_PORT_BACK, &std[SCE_TOUCH_PORT_BACK], 1);
+
 
 	RuleData rd;
 	rd.isTurboTick = (ksceKernelGetSystemTimeWide() % TURBO_DELAY) < (TURBO_DELAY / 2);
@@ -899,7 +893,7 @@ void remap_setup(){
 	SceTouchPanelInfo pi;
 	
 	for (int port = 0; port < SCE_TOUCH_PORT_MAX_NUM; port++){
-		if (ksceTouchGetPanelInfo(SCE_TOUCH_PORT_FRONT, &pi) >= 0){
+		if (ksceTouchGetPanelInfo(port, &pi) >= 0){
 			T_SIZE[port].a.x = pi.minAaX;
 			T_SIZE[port].a.y = pi.minAaY;
 			T_SIZE[port].b.x = pi.maxAaX;
