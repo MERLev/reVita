@@ -18,7 +18,7 @@
 #include "sysactions.h"
 #include "log.h"
 #include "userspace.h"
-#include "ds4vita.h"
+#include "ds34vita.h"
 #include "remapsv.h"
 
 #define INVALID_PID    -1
@@ -44,13 +44,17 @@ int processid = -1;
 bool used_funcs[HOOKS_NUM];
 bool isInternalTouchCall = false;
 bool isInternalCtrlCall = false;
-bool ds4vitaRunning;
+bool ds34vitaRunning;
 
 static uint64_t startTick;
 static bool delayedStartDone = false;
 
 SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
 int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
+int (*_ds34vita_getIsExtAll)();
+void (*_ds34vita_setIsExtAll)(int/*bool*/ enabled);
+int (*_ds34vita_getIsPort1Allowed)();
+void (*_ds34vita_setIsPort1Allowed)(int/*bool*/ enabled);
 
 int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count){
     isInternalCtrlCall = true;
@@ -252,11 +256,11 @@ void changeActiveApp(char* tId, int pid){
     if (!streq(titleid, tId)) {
         strnclone(titleid, tId, sizeof(titleid));
         processid = pid;
-        gui_close();
         for (int i = 0; i < HOOKS_NUM; i++)
             used_funcs[i] = false;
         profile_load(titleid);
         remap_resetBuffers();
+        gui_close();
         delayedStartDone = false;
     }
 }
@@ -344,36 +348,35 @@ static int main_thread(SceSize args, void *argp) {
         }
 
         oldBtns = ctrl.buttons;
-
-        // Check if ds4vita has loaded
-        if (!ds4vitaRunning){
-            tai_module_info_t info;
-            info.size = sizeof(tai_module_info_t);
-            ds4vitaRunning = taiGetModuleInfoForKernel(KERNEL_PID, "ds4vita", &info) == 0;
-        }
        
         ksceKernelDelayThread(30 * 1000);
     }
     return 0;
 }
 
-//Sync ds4vita config
-void syncDS4Vita(){
-    if (!ds4vitaRunning)
-        return;
-    if (profile.entries[PR_CO_EMULATE_DS4].v.b){
-        ds4vita_setPort(2);
-        ds4vita_setPort0MergeMode(DS4_MERGE_DISABLED);
-        LOG("configDS4Vita Port 2, no merge\n");
-    } else {
-        ds4vita_setPort(1);
-        ds4vita_setPort0MergeMode(DS4_MERGE_ENABLED);
-        LOG("configDS4Vita Port 1, merge\n");
+// Check if ds34vita running and set appropriate functions
+void initDs34vita(){
+    if (!ds34vitaRunning){
+        LOG("initDs34vita();\n");
+        tai_module_info_t info;
+        info.size = sizeof(tai_module_info_t);
+        ds34vitaRunning = taiGetModuleInfoForKernel(KERNEL_PID, "ds34vita", &info) == 0;
+
     }
+}
+
+//Sync ds4vita config
+void syncDS34Vita(){
+    LOG("syncDS34Vita()\n");
+    initDs34vita();
+    if (!ds34vitaRunning)
+        return;
+    ds34vita_setIsPort1Allowed(!profile.entries[PR_CO_EMULATE_DS4].v.b);
+    LOG("ds34vita_setIsPort1Allowed(%i)", !profile.entries[PR_CO_EMULATE_DS4].v.b);
 }
 //Sync configurations across other plugins
 void sync(){
-    syncDS4Vita();
+    syncDS34Vita();
 }
 
 void hookE(uint8_t hookId, const char *module, uint32_t library_nid, uint32_t func_nid, const void *func) {
@@ -402,15 +405,6 @@ int module_start(SceSize argc, const void *args) {
     userspace_init();
     startTick = ksceKernelGetSystemTimeWide();
 	theme_load(settings[SETT_THEME].v.u);
-
-    //Check if ds4vita module loaded
-    tai_module_info_t info;
-	info.size = sizeof(tai_module_info_t);
-    ds4vitaRunning = taiGetModuleInfoForKernel(KERNEL_PID, "ds4vita", &info) == 0;
-    if (!ds4vitaRunning)
-        LOG("ds4vita is not running\n");
-    
-    sync();
 
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
 

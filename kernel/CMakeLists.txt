@@ -66,8 +66,8 @@ target_link_libraries(${PROJECT_NAME}
   SceIofilemgrForDriver_stub
   SceTouchForDriver_stub
   ScePowerForDriver_stub 
-  ds4vita_stub_weak
   SceDebugForDriver_stub
+  ds34vita_stub_weak
 )
 
 set_target_properties(${PROJECT_NAME}
