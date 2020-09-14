@@ -214,8 +214,8 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
     }
 DECL_FUNC_HOOK_PATCH_TOUCH(H_K_TO_PEEK, ksceTouchPeek, SPACE_KERNEL)
 DECL_FUNC_HOOK_PATCH_TOUCH(H_K_TO_READ, ksceTouchRead, SPACE_KERNEL)
-DECL_FUNC_HOOK_PATCH_TOUCH_REGION(H_K_TO_PEEK_R, ksceTouchPeekRegion, SPACE_KERNEL)
-DECL_FUNC_HOOK_PATCH_TOUCH_REGION(H_K_TO_READ_R, ksceTouchReadRegion, SPACE_KERNEL)
+// DECL_FUNC_HOOK_PATCH_TOUCH_REGION(H_K_TO_PEEK_R, ksceTouchPeekRegion, SPACE_KERNEL)
+// DECL_FUNC_HOOK_PATCH_TOUCH_REGION(H_K_TO_READ_R, ksceTouchReadRegion, SPACE_KERNEL)
 
 int ksceCtrlGetControllerPortInfo_patched(SceCtrlPortInfo* info){
     int ret = TAI_CONTINUE(int, refs[H_K_CT_PORT_INFO], info);
@@ -428,8 +428,8 @@ int module_start(SceSize argc, const void *args) {
 
     hookE(H_K_TO_PEEK,     "SceTouch", TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek_patched);
     hookE(H_K_TO_READ,     "SceTouch", TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead_patched);
-    hookE(H_K_TO_PEEK_R,   "SceTouch", TAI_ANY_LIBRARY, 0x9B3F7207, ksceTouchPeekRegion_patched);
-    hookE(H_K_TO_READ_R,   "SceTouch", TAI_ANY_LIBRARY, 0x9A91F624, ksceTouchReadRegion_patched);
+    // hookE(H_K_TO_PEEK_R,   "SceTouch", TAI_ANY_LIBRARY, 0x9B3F7207, ksceTouchPeekRegion_patched);
+    // hookE(H_K_TO_READ_R,   "SceTouch", TAI_ANY_LIBRARY, 0x9A91F624, ksceTouchReadRegion_patched);
 
 	hookE(H_K_CT_PORT_INFO,        "SceCtrl",       TAI_ANY_LIBRARY, 0xF11D0D30, ksceCtrlGetControllerPortInfo_patched);
 	hookE(H_K_DISP_SET_FB,         "SceDisplay",    0x9FED47AC,      0x16466675, ksceDisplaySetFrameBufInternal_patched);
