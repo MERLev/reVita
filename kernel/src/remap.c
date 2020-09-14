@@ -107,8 +107,8 @@ bool updateStatus(enum RULE_STATUS* status, bool active){
 
 // Is TouchPoint inside zone
 bool inZone(const TouchPoint tp, const TouchPoints2 tz){
-	if (tp.x > min(tz.a.x, tz.b.x) && tp.x <= max(tz.a.x, tz.b.x) &&
-		tp.y > min(tz.a.y, tz.b.y) && tp.y <= max(tz.a.y, tz.b.y))
+	if (tp.x >= min(tz.a.x, tz.b.x) && tp.x <= max(tz.a.x, tz.b.x) &&
+		tp.y >= min(tz.a.y, tz.b.y) && tp.y <= max(tz.a.y, tz.b.y))
 		return true;
 	return false;
 }
@@ -814,68 +814,69 @@ void remap_resetBuffers(){
 }
 
 void initTouchParams(){
+	LOG("initTouchParams()\n");
 	for (int port = 0; port < SCE_TOUCH_PORT_MAX_NUM; port++){
 		//Calculate predefined touchpoints
 		T_L[port] = (TouchPoint){
-			(T_SIZE[port].b.x - T_SIZE[port].a.x) / 6,
-			(T_SIZE[port].b.y - T_SIZE[port].a.y) / 2};
+			T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) * 2 / 6,
+			T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) / 2};
 		T_R[port] = (TouchPoint){
-			(T_SIZE[port].b.x - T_SIZE[port].a.x) * 5 / 6,
-			(T_SIZE[port].b.y - T_SIZE[port].a.y) / 2};
+			T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) * 5 / 6,
+			T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) / 2};
 		T_TL[port] = (TouchPoint){
-			(T_SIZE[port].b.x - T_SIZE[port].a.x) / 6, 
-			(T_SIZE[port].b.y - T_SIZE[port].a.y) / 4};
+			T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) * 2 / 6, 
+			T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) / 4};
 		T_TR[port] = (TouchPoint){
-			(T_SIZE[port].b.x - T_SIZE[port].a.x) * 5 / 6, 
-			(T_SIZE[port].b.y - T_SIZE[port].a.y) / 4};
+			T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) * 4 / 6, 
+			T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) / 4};
 		T_BL[port] = (TouchPoint){
-			(T_SIZE[port].b.x - T_SIZE[port].a.x) / 6, 
-			(T_SIZE[port].b.y - T_SIZE[port].a.y) * 3 / 4};
+			T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) * 2 / 6, 
+			T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) * 3 / 4};
 		T_BR[port] = (TouchPoint){
-			(T_SIZE[port].b.x - T_SIZE[port].a.x) * 5 / 6, 
-			(T_SIZE[port].b.y - T_SIZE[port].a.y) * 3 / 4};
+			T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) * 4 / 6, 
+			T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) * 3 / 4};
 
 		//Calculate predefined touchzones
 		TZ_L[port] = (TouchPoints2){
 			(TouchPoint){
-				0, 
-				0}, 
+				T_SIZE[port].a.x, 
+				T_SIZE[port].a.y}, 
 			(TouchPoint){
-				(T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
-				(T_SIZE[port].b.y - T_SIZE[port].a.y)}};
+				T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
+				T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y)}};
 		TZ_R[port] = (TouchPoints2){
 			(TouchPoint){
-				(T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
-				0}, 
+				T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
+				T_SIZE[port].a.y}, 
 			(TouchPoint){
-				(T_SIZE[port].b.x - T_SIZE[port].a.x), 
-				(T_SIZE[port].b.y - T_SIZE[port].a.y)}};
+				T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x), 
+				T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y)}};
 		TZ_TL[port] = (TouchPoints2){
 			(TouchPoint){0, 0}, 
 			(TouchPoint){
-				(T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
-				(T_SIZE[port].b.y - T_SIZE[port].a.y) / 2}};
+				T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
+				T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) / 2}};
 		TZ_TR[port] = (TouchPoints2){
 			(TouchPoint){
-				(T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
-				0}, 
+				T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
+				T_SIZE[port].a.y}, 
 			(TouchPoint){
-				(T_SIZE[port].b.x - T_SIZE[port].a.x), 
-				(T_SIZE[port].b.y - T_SIZE[port].a.y) / 2}};
+				T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x), 
+				T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) / 2}};
 		TZ_BL[port] = (TouchPoints2){
 			(TouchPoint){
-				0, 
-				(T_SIZE[port].b.y - T_SIZE[port].a.y) / 2}, 
+				T_SIZE[port].a.x, 
+				T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) / 2}, 
 			(TouchPoint){
-				(T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
-				(T_SIZE[port].b.y - T_SIZE[port].a.y)}};
+				T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
+				T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y)}};
 		TZ_BR[port] = (TouchPoints2){
 			(TouchPoint){
-				(T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
-				(T_SIZE[port].b.y - T_SIZE[port].a.y) / 2}, 
+				T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) / 2, 
+				T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) / 2}, 
 			(TouchPoint){
-				(T_SIZE[port].b.x - T_SIZE[port].a.x), 
-				(T_SIZE[port].b.y - T_SIZE[port].a.y)}};
+				T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x), 
+				T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y)}};
 	}
 }
 

@@ -51,10 +51,6 @@ static bool delayedStartDone = false;
 
 SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
 int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
-int (*_ds34vita_getIsExtAll)();
-void (*_ds34vita_setIsExtAll)(int/*bool*/ enabled);
-int (*_ds34vita_getIsPort1Allowed)();
-void (*_ds34vita_setIsPort1Allowed)(int/*bool*/ enabled);
 
 int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count){
     isInternalCtrlCall = true;
