@@ -9,6 +9,8 @@
 #define DELAY_CONFIG_CHECK 1000000
 #define HOOKS_NUM 8
 
+TouchPoints2 TSIZE[SCE_TOUCH_PORT_MAX_NUM];
+
 //Threads
 static SceUID thread_motion_uid = -1;
 static bool   thread_motion_run = true;
@@ -116,12 +118,24 @@ int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 		ret = patchToExt(port, ctrl, ret, false);
 	return ret;
 }
+
+void scaleTouchData(int port, SceTouchData *pData){
+    for (int idx = 0; idx < pData->reportNum; idx++)
+        pData->report[idx].y = 
+			(pData->report[idx].y - TSIZE[!port].a.y) 
+			* (TSIZE[port].b.y - TSIZE[port].a.y) 
+			/ (TSIZE[!port].b.y - TSIZE[!port].a.y) 
+			+ TSIZE[port].a.y;
+}
+
 int sceTouchRead_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	if (!profile.entries[PR_TO_PSTV_MODE].v.b)
 		return TAI_CONTINUE(int, refs[4], port, pData, nBufs);
 	if (profile.entries[PR_TO_SWAP].v.b)
 		port = !port;
 	int ret = TAI_CONTINUE(int, refs[4], port, pData, nBufs);
+	if (profile.entries[PR_TO_SWAP].v.b && ret > 0 && ret < 64) \
+		scaleTouchData(!port, &pData[ret - 1]); \
 	if (ret > 0)
 		return remaPSV2k_onTouch(port, pData, ret, 0);
 	return ret;
@@ -132,6 +146,8 @@ int sceTouchPeek_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
 	if (profile.entries[PR_TO_SWAP].v.b)
 		port = !port;
 	int ret = TAI_CONTINUE(int, refs[5], port, pData, nBufs);
+	if (profile.entries[PR_TO_SWAP].v.b && ret > 0 && ret < 64) \
+		scaleTouchData(!port, &pData[ret - 1]); \
 	if (ret > 0)
 		return remaPSV2k_onTouch(port, pData, ret, 2);
 	return ret;
@@ -142,6 +158,8 @@ int sceTouchRead2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) 
 	if (profile.entries[PR_TO_SWAP].v.b)
 		port = !port;
 	int ret = TAI_CONTINUE(int, refs[6], port, pData, nBufs);
+	if (profile.entries[PR_TO_SWAP].v.b && ret > 0 && ret < 64) \
+		scaleTouchData(!port, &pData[ret - 1]); \
 	if (ret > 0)
 		return remaPSV2k_onTouch(port, pData, ret, 1);
 	return ret;
@@ -152,6 +170,8 @@ int sceTouchPeek2_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) 
 	if (profile.entries[PR_TO_SWAP].v.b)
 		port = !port;
 	int ret = TAI_CONTINUE(int, refs[7], port, pData, nBufs);
+	if (profile.entries[PR_TO_SWAP].v.b && ret > 0 && ret < 64) \
+		scaleTouchData(!port, &pData[ret - 1]); \
 	if (ret > 0)
 		return remaPSV2k_onTouch(port, pData, ret, 3);
 	return ret;
@@ -195,6 +215,15 @@ int module_start(SceSize argc, const void *args) {
 	
 	//Start gyro sampling
 	//sceMotionStartSampling();
+
+	TSIZE[SCE_TOUCH_PORT_FRONT] = (TouchPoints2){
+		(TouchPoint){0, 0},
+		(TouchPoint){1919, 1087}
+	};
+	TSIZE[SCE_TOUCH_PORT_BACK]  = (TouchPoints2){
+		(TouchPoint){0, 108},
+		(TouchPoint){1919, 889}
+	};
 
 	//Start threads
 	thread_config_uid = sceKernelCreateThread("remaPSV2_u_config_thread", config_thread, 64, 0x3000, 0, 0x10000, 0);

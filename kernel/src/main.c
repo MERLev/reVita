@@ -185,6 +185,15 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
     return ret;
 }
 
+void scaleTouchData(int port, SceTouchData *pData){
+    for (int idx = 0; idx < pData->reportNum; idx++)
+        pData->report[idx].y = 
+            (pData->report[idx].y - T_SIZE[!port].a.y) 
+            * (T_SIZE[port].b.y - T_SIZE[port].a.y) 
+            / (T_SIZE[!port].b.y - T_SIZE[!port].a.y) 
+            + T_SIZE[port].a.y;
+}
+
 /*export*/ int remaPSV2k_onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
     if (nBufs < 1 || nBufs > BUFFERS_NUM) return nBufs;
 	if (!profile.entries[PR_TO_PSTV_MODE].v.b) return nBufs;	
@@ -198,20 +207,22 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
         if (profile.entries[PR_TO_SWAP].v.b) \
             port = !port; \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
+        if (profile.entries[PR_TO_SWAP].v.b && ret > 0 && ret < 64) \
+            scaleTouchData(!port, &pData[ret - 1]); \
         used_funcs[(index)] = true; \
         return onTouch(port, pData, ret, (index) - H_K_TO_PEEK, (space)); \
     }
-#define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(index, name, space) \
+/*#define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(index, name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, int region) { \
         if (isInternalTouchCall || profile.entries[PR_TO_PSTV_MODE].v.b) \
             return TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
         if (profile.entries[PR_TO_SWAP].v.b) \
             port = !port; \
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
-        if (region != 1) return ret; /* ignore regions other then 1 */\
+        if (region != 1) return ret; \
         used_funcs[(index)] = true; \
         return onTouch(port, pData, ret, (index) - H_K_TO_PEEK, (space)); \
-    }
+    }*/
 DECL_FUNC_HOOK_PATCH_TOUCH(H_K_TO_PEEK, ksceTouchPeek, SPACE_KERNEL)
 DECL_FUNC_HOOK_PATCH_TOUCH(H_K_TO_READ, ksceTouchRead, SPACE_KERNEL)
 // DECL_FUNC_HOOK_PATCH_TOUCH_REGION(H_K_TO_PEEK_R, ksceTouchPeekRegion, SPACE_KERNEL)
