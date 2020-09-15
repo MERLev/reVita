@@ -196,10 +196,8 @@ static int motion_thread(SceSize args, void *argp) {
 //Thread to keep up-to-date config
 static int config_thread(SceSize args, void *argp) {
     while (thread_config_run) {
-		// if (profile.version != remaPSV2k_getProfileVersion()){
-			remaPSV2k_getProfile(&profile);
-			// sceMotionSetDeadband(profile.entries[PR_GY_DEADBAND].v.b);
-		// }
+		remaPSV2k_getProfile(&profile);
+		// sceMotionSetDeadband(profile.entries[PR_GY_DEADBAND].v.b);
 		sceKernelDelayThread(DELAY_CONFIG_CHECK);
     }
     return 0;

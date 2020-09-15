@@ -285,7 +285,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
         case 1: //Start
         case 5: //Resume
             if (STREQANY(titleidLocal,  // If test app
-                    "TSTCTRL00", "TSTCTRL20", "TSTCTRLE0", "TSTCTRLE2", "TSTCTRLN0", "TSTCTRLN2"))
+                    "TSTCTRL00", "TSTCTRL20", "TSTCTRLE0", "TSTCTRLE2", "TSTCTRLN0", "TSTCTRLN2", "VSDK00019"))
                 break;                  // Use MAIN profile
                 
             if (strStartsWith(titleidLocal, "NPXS")){ //If system app
