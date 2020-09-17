@@ -116,7 +116,7 @@ void gui_drawStringFRight(int x, int y, const char *format, ...);
 void gui_drawScroll(int8_t up, int8_t down);
 void gui_drawFullScroll(int8_t up, int8_t down, float pos);
 void gui_drawEditPointer(uint16_t x, uint16_t y);
-void gui_updateEmulatedTouch(SceTouchPortType panel, EmulatedTouch et);
+void gui_updateEmulatedTouch(SceTouchPortType panel, EmulatedTouch et, SceTouchData pData);
 
 struct MenuEntry* gui_getEntry();
 void gui_registerMenu(Menu* m);

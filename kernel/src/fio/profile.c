@@ -248,6 +248,7 @@ void profile_resetTouch(){
 	profile_resetEntryById(PR_TO_DRAW_POINT);
 	profile_resetEntryById(PR_TO_DRAW_SWIPE);
 	profile_resetEntryById(PR_TO_DRAW_SMART_SWIPE);
+	profile_resetEntryById(PR_TO_DRAW_NATIVE);
 }
 void profile_resetGyro() {
 	profile_resetEntryById(PR_GY_SENSIVITY_X);
@@ -617,6 +618,11 @@ void setDefProfile(){
 		.type = TYPE_BOOL,
 		.def.b = true,
 		.key = "DRAW_POINTER_SMART_SWIPE"});
+	setPE((ProfileEntry){
+		.id = PR_TO_DRAW_NATIVE,
+		.type = TYPE_BOOL,
+		.def.b = false,
+		.key = "DRAW_POINTER_NATIVE"});
 
 	// Gyro
 	setPE((ProfileEntry){

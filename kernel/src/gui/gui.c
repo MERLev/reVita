@@ -28,7 +28,8 @@ BtnInfo btns[HW_BUTTONS_NUM];
 static uint32_t ticker;
 
 //Active emulated touchpoints
-static EmulatedTouch etFront, etBack;
+static EmulatedTouch et[SCE_TOUCH_PORT_MAX_NUM];
+static SceTouchData td[SCE_TOUCH_PORT_MAX_NUM];
 
 const char* STR_BTN_S[HW_BUTTONS_NUM] = {
 	"$X", "$C", "$T", "$S", 
@@ -224,20 +225,27 @@ void gui_drawTouchPointer(uint32_t panel, TouchPoint* tp){
 }
 
 void drawEmulatedPointersForPanel(uint32_t panel){
-	EmulatedTouch* et = &etBack;
-	if (panel == SCE_TOUCH_PORT_FRONT)
-		et = &etFront;
-	for (int i = 0; i < et->num; i++)
+	for (int i = 0; i < et[panel].num; i++){
 		if (et->reports[i].isSwipe){
 			if (profile.entries[PR_TO_DRAW_SWIPE].v.b)
-				gui_drawTouchPointer(panel, &et->reports[i].swipeCurrentPoint);
+				gui_drawTouchPointer(panel, &et[panel].reports[i].swipeCurrentPoint);
 		} else if (et->reports[i].isSmartSwipe){
 			if (profile.entries[PR_TO_DRAW_SMART_SWIPE].v.b)
-				gui_drawTouchPointer(panel, &et->reports[i].swipeEndPoint);
+				gui_drawTouchPointer(panel, &et[panel].reports[i].swipeEndPoint);
 		} else {
 			if (profile.entries[PR_TO_DRAW_POINT].v.b)
-				gui_drawTouchPointer(panel, &et->reports[i].point);
+				gui_drawTouchPointer(panel, &et[panel].reports[i].point);
 		}
+	}
+	if (profile.entries[PR_TO_DRAW_NATIVE].v.b){
+		// LOG("panel %i : %i\n", panel, td[panel].reportNum);
+		for (int i = 0; i < td[panel].reportNum; i++){
+			TouchPoint tp = (TouchPoint){
+				x: td[panel].report[i].x, 
+				y: td[panel].report[i].y};
+			gui_drawTouchPointer(panel, &tp);
+		}
+	}
 }
 
 void drawBody() {
@@ -275,11 +283,9 @@ void gui_draw(const SceDisplayFrameBuf *pParam){
 	}
 }
 
-void gui_updateEmulatedTouch(SceTouchPortType panel, EmulatedTouch et){
-	if (panel == SCE_TOUCH_PORT_FRONT)
-		etFront = et;
-	else 
-		etBack = et;
+void gui_updateEmulatedTouch(SceTouchPortType panel, EmulatedTouch etouch, SceTouchData pData){
+	et[panel] = etouch;
+	td[panel] = pData;
 }
 
 void onButton_null(uint32_t btn){

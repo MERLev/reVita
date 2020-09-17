@@ -21,7 +21,7 @@ void onDraw_touch(unsigned int menuY){
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx) / (gui_menu->num - 1));
 }
 
-#define MENU_TOUCH_NUM 7
+#define MENU_TOUCH_NUM 8
 static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
 	(MenuEntry){.name = "Swipe duration", 		.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_SWIPE_DURATION]},
 	(MenuEntry){.name = "Smart Swipe sensivity",.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_SWIPE_SMART_SENS]},
@@ -29,7 +29,8 @@ static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
 	(MenuEntry){.name = "Draw Pointer", 		.type = HEADER_TYPE},
 	(MenuEntry){.name = "Touch Point", 			.icn = ICON_TOUCH,	.dataPE = &profile.entries[PR_TO_DRAW_POINT]},
 	(MenuEntry){.name = "Swipe", 				.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_DRAW_SWIPE]},
-	(MenuEntry){.name = "Smart Swipe", 			.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_DRAW_SMART_SWIPE]}};
+	(MenuEntry){.name = "Smart Swipe", 			.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_DRAW_SMART_SWIPE]},
+	(MenuEntry){.name = "Native", 				.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_DRAW_NATIVE]}};
 static struct Menu menu_touch = (Menu){
 	.id = MENU_TOUCH_ID, 
 	.parent = MENU_MAIN_ID,

@@ -764,14 +764,15 @@ void updateTouchInfo(SceUInt32 port, int hookId, SceTouchData *pData){
 
 	if (profile.entries[PR_TO_SWAP].v.b)
 		port = !port;
-
+	
+	gui_updateEmulatedTouch(port, et[port], *pData);
+	
 	if (!newEmulatedTouchBuffer[hookId][port]){//New touchbuffer not ready - using previous one
 		addVirtualTouches(pData, &etPrev[port], MULTITOUCH_FRONT_NUM, port);
 		return;
 	}
 	
 	addVirtualTouches(pData, &et[port], MULTITOUCH_FRONT_NUM, port);
-	gui_updateEmulatedTouch(port, et[port]);
 	etPrev[port] = et[port];
 	cleanEmuReports(&et[port]);
 	newEmulatedTouchBuffer[hookId][port] = false;
