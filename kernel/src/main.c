@@ -30,7 +30,7 @@
 #define TRIGGERS_EXT    1
 #define TRIGGERS_NONEXT 0
 
-#define INTERNAL        666
+#define INTERNAL        (666*666)
 
 static tai_hook_ref_t refs[HOOKS_NUM];
 static SceUID         hooks[HOOKS_NUM];
@@ -60,9 +60,8 @@ int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int cou
 }
 
 int ksceTouchPeek_internal(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs){
-    isInternalTouchCall = true;
+    pData->status = INTERNAL;
     int ret = ksceTouchPeek(port, pData, nBufs);
-    isInternalTouchCall = false;
     return ret;
 }
 
@@ -196,7 +195,7 @@ void scaleTouchData(int port, SceTouchData *pData){
 
 #define DECL_FUNC_HOOK_PATCH_TOUCH(index, name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
-        if (isInternalTouchCall) \
+        if (pData->status == INTERNAL) \
             return TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
         if (profile.entries[PR_TO_SWAP].v.b) \
             port = !port; \
