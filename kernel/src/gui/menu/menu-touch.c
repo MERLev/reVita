@@ -21,9 +21,8 @@ void onDraw_touch(unsigned int menuY){
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx) / (gui_menu->num - 1));
 }
 
-#define MENU_TOUCH_NUM 8
+#define MENU_TOUCH_NUM 7
 static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
-	(MenuEntry){.name = "PSTV mode", 			.icn = ICON_PSTV,	.dataPE = &profile.entries[PR_TO_PSTV_MODE]},
 	(MenuEntry){.name = "Swipe duration", 		.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_SWIPE_DURATION]},
 	(MenuEntry){.name = "Smart Swipe sensivity",.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_SWIPE_SMART_SENS]},
 	(MenuEntry){.name = "Swap touchpads", 		.icn = ICON_BT,		.dataPE = &profile.entries[PR_TO_SWAP]},

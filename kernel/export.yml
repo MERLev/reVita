@@ -14,4 +14,3 @@ remaPSV2:
         - remaPSV2k_getProfileVersion
         - remaPSV2k_getProfile
         - remaPSV2k_setSceMotionState
-        - remaPSV2k_onTouch

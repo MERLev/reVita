@@ -242,7 +242,6 @@ void profile_resetAnalog(){
 	profile_resetEntryById(PR_AN_RIGHT_DEADZONE_Y);
 }
 void profile_resetTouch(){
-	profile_resetEntryById(PR_TO_PSTV_MODE);
 	profile_resetEntryById(PR_TO_SWAP);
 	profile_resetEntryById(PR_TO_SWIPE_DURATION);
 	profile_resetEntryById(PR_TO_SWIPE_SMART_SENS);
@@ -584,11 +583,6 @@ void setDefProfile(){
 		.key = "RIGHT_DEADZONE_Y"});
 
 	// Touch
-	setPE((ProfileEntry){
-		.id = PR_TO_PSTV_MODE,
-		.type = TYPE_BOOL,
-		.def.b = false,
-		.key = "PSTV_MODE"});
 	setPE((ProfileEntry){
 		.id = PR_TO_SWAP,
 		.type = TYPE_BOOL,

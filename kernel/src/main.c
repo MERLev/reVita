@@ -194,15 +194,9 @@ void scaleTouchData(int port, SceTouchData *pData){
             + T_SIZE[port].a.y;
 }
 
-/*export*/ int remaPSV2k_onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
-    if (nBufs < 1 || nBufs > BUFFERS_NUM) return nBufs;
-	if (!profile.entries[PR_TO_PSTV_MODE].v.b) return nBufs;	
-    return onTouch(port, pData, nBufs, hookId, SPACE_USER);
-}
-
 #define DECL_FUNC_HOOK_PATCH_TOUCH(index, name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
-        if (isInternalTouchCall || profile.entries[PR_TO_PSTV_MODE].v.b) \
+        if (isInternalTouchCall) \
             return TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
         if (profile.entries[PR_TO_SWAP].v.b) \
             port = !port; \
@@ -214,7 +208,7 @@ void scaleTouchData(int port, SceTouchData *pData){
     }
 /*#define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(index, name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, int region) { \
-        if (isInternalTouchCall || profile.entries[PR_TO_PSTV_MODE].v.b) \
+        if (isInternalTouchCall) \
             return TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
         if (profile.entries[PR_TO_SWAP].v.b) \
             port = !port; \
@@ -415,6 +409,12 @@ int module_start(SceSize argc, const void *args) {
 
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
 
+	// PS TV uses SceTouchDummy instead of SceTouch
+    tai_module_info_t modInfo;
+	modInfo.size = sizeof(modInfo);
+	int ret = taiGetModuleInfoForKernel(KERNEL_PID, "SceTouch", &modInfo);
+	char* sceTouchModuleName = (ret >= 0) ? "SceTouch" : "SceTouchDummy";
+
     // Hooking functions
     for (int i = 0; i < HOOKS_NUM; i++)
         hooks[i] = 0;
@@ -437,10 +437,10 @@ int module_start(SceSize argc, const void *args) {
     hookE(H_K_CT_PEEK_N,   "SceCtrl", 0x7823A5D1, 0x19895843, ksceCtrlPeekBufferNegative_patched);
     hookE(H_K_CT_READ_N,   "SceCtrl", 0x7823A5D1, 0x8D4E0DD1, ksceCtrlReadBufferNegative_patched);
 
-    hookE(H_K_TO_PEEK,     "SceTouch", TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek_patched);
-    hookE(H_K_TO_READ,     "SceTouch", TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead_patched);
-    // hookE(H_K_TO_PEEK_R,   "SceTouch", TAI_ANY_LIBRARY, 0x9B3F7207, ksceTouchPeekRegion_patched);
-    // hookE(H_K_TO_READ_R,   "SceTouch", TAI_ANY_LIBRARY, 0x9A91F624, ksceTouchReadRegion_patched);
+    hookE(H_K_TO_PEEK, sceTouchModuleName, TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek_patched);
+    hookE(H_K_TO_READ, sceTouchModuleName, TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead_patched);
+    // hookE(H_K_TO_PEEK_R, sceTouchModuleName, TAI_ANY_LIBRARY, 0x9B3F7207, ksceTouchPeekRegion_patched);
+    // hookE(H_K_TO_READ_R, sceTouchModuleName, TAI_ANY_LIBRARY, 0x9A91F624, ksceTouchReadRegion_patched);
 
 	hookE(H_K_CT_PORT_INFO,        "SceCtrl",       TAI_ANY_LIBRARY, 0xF11D0D30, ksceCtrlGetControllerPortInfo_patched);
 	hookE(H_K_DISP_SET_FB,         "SceDisplay",    0x9FED47AC,      0x16466675, ksceDisplaySetFrameBufInternal_patched);

@@ -357,7 +357,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int hookId, int p
 	ksceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
 	retTouch[SCE_TOUCH_PORT_FRONT] = ksceTouchPeek_internal(SCE_TOUCH_PORT_FRONT, &std[SCE_TOUCH_PORT_FRONT], 1);
 	retTouch[SCE_TOUCH_PORT_BACK] = ksceTouchPeek_internal(SCE_TOUCH_PORT_BACK, &std[SCE_TOUCH_PORT_BACK], 1);
-
+	
 	RuleData rd;
 	rd.isTurboTick = (ksceKernelGetSystemTimeWide() % TURBO_DELAY) < (TURBO_DELAY / 2);
 	rd.btns = ctrl->buttons;
