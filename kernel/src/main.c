@@ -8,6 +8,7 @@
 
 #include "vitasdkext.h"
 #include "main.h"
+#include "adrenaline.h"
 #include "gui/gui.h"
 #include "remap.h"
 #include "fio/profile.h"
@@ -40,6 +41,7 @@ static bool   thread_run = true;
 
 char titleid[32] = "";
 int processid = -1;
+bool isPspemu = false;
 
 bool used_funcs[HOOKS_NUM];
 bool ds34vitaRunning;
@@ -60,6 +62,31 @@ int ksceTouchPeek_internal(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs)
     pData->status = INTERNAL;
     int ret = ksceTouchPeek(port, pData, nBufs);
     return ret;
+}
+
+void changeActiveApp(char* tId, int pid){
+    if (!streq(titleid, tId)) {
+        strnclone(titleid, tId, sizeof(titleid));
+        processid = pid;
+        for (int i = 0; i < HOOKS_NUM; i++)
+            used_funcs[i] = false;
+        profile_load(titleid);
+        remap_resetBuffers();
+        gui_close();
+        delayedStartDone = false;
+    }
+}
+
+static void updatePspemuTitle() {
+    SceAdrenaline adrenaline;
+    // Taken from @Electry's TrackPlugX https://github.com/Electry/TrackPlugX/blob/dev/plugin/main.c
+    if (ksceKernelMemcpyUserToKernelForPid(processid, &adrenaline, (uintptr_t)0x73CDE000, sizeof(adrenaline)) != 0)
+        return;
+    char *id = (char*)&adrenaline.titleid;
+    if (streq(id, ""))
+        id = "XMB";
+    if (isPspemu && !streq(titleid, id))
+        changeActiveApp(id, processid);
 }
 
 int nullButtons_user(SceCtrlData *bufs, SceUInt32 nBufs, bool isPositiveLogic){
@@ -246,19 +273,6 @@ DISPLAY_HOOK_RET:
     return TAI_CONTINUE(int, refs[H_K_DISP_SET_FB], head, index, pParam, sync);
 }
 
-void changeActiveApp(char* tId, int pid){
-    if (!streq(titleid, tId)) {
-        strnclone(titleid, tId, sizeof(titleid));
-        processid = pid;
-        for (int i = 0; i < HOOKS_NUM; i++)
-            used_funcs[i] = false;
-        profile_load(titleid);
-        remap_resetBuffers();
-        gui_close();
-        delayedStartDone = false;
-    }
-}
-
 int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, int *a5, int a6) {
     used_funcs[H_K_INV_PROC_EV_HANDLER] = 1;
     char titleidLocal[sizeof(titleid)];
@@ -274,21 +288,21 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             if (STREQANY(titleidLocal,  // If test app
                     "TSTCTRL00", "TSTCTRL20", "TSTCTRLE0", "TSTCTRLE2", "TSTCTRLN0", "TSTCTRLN2", "VSDK00019"))
                 break;                  // Use MAIN profile
-                
-            if (strStartsWith(titleidLocal, "NPXS")){ //If system app
-                SceKernelModuleInfo info;
-                info.size = sizeof(SceKernelModuleInfo);
-                _ksceKernelGetModuleInfo(pid, _ksceKernelGetProcessMainModule(pid), &info);
-                if(!streq(info.module_name, "ScePspemu") &&  // If Not Adrenaline
-			        !STREQANY(titleidLocal, "NPXS10012",     //        PS3Link
-                                            "NPXS10013"))    //        PS4Link
-                        break;                               // Use MAIN profile
+            if (strStartsWith(titleidLocal, "NPXS") && !STREQANY(titleidLocal, 
+                    "NPXS10012",     // PS3Link
+                    "NPXS10013"))    // PS4Link)
+                break;               // Use MAIN profile
+            if (streq(titleidLocal, "PSPEMUCFW")){
+                isPspemu = true;
+                processid = pid;
+                break;
             }
             changeActiveApp(titleidLocal, pid);
             break;
         case 3: //Close
         case 4: //Suspend
-            if (streq(titleid, titleidLocal)){ //If current app suspended
+            if (!streq(titleid, HOME)){ //If current app suspended
+                isPspemu = false;
                 changeActiveApp(HOME, pid);
             }
             break;
@@ -305,6 +319,10 @@ PROCEVENT_EXIT:
 static int main_thread(SceSize args, void *argp) {
     uint32_t oldBtns = 0;
     while (thread_run) {
+        // Update PSM title
+        if (isPspemu) 
+            updatePspemuTitle();
+
         //Activate delayed start
         if (!delayedStartDone 
             && startTick + settings[SETT_DELAY_INIT].v.u * 1000000 < ksceKernelGetSystemTimeWide()){
