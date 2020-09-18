@@ -36,6 +36,8 @@
 static tai_hook_ref_t refs[HOOKS_NUM];
 static SceUID         hooks[HOOKS_NUM];
 static SceUID mutex_procevent_uid = -1;
+static SceUID mutexCtrlHook[CTRL_HOOKS_NUM][5];
+static SceUID mutexTouchHook[TOUCH_HOOKS_NUM][2];
 static SceUID thread_uid = -1;
 static bool   thread_run = true;
 
@@ -124,6 +126,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpac
 
     used_funcs[hookId] = true;
 
+    ksceKernelLockMutex(mutexCtrlHook[hookId][port], 1, NULL);
     SceCtrlData* remappedBuffers;       // Remapped buffers from cache
     if (isKernelSpace) {
         ret = remap_controls(port, &ctrl[ret-1], ret, hookId, &remappedBuffers, isPositiveLogic, isExt);
@@ -134,6 +137,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpac
         ret = remap_controls(port, &scd, ret, hookId, &remappedBuffers, isPositiveLogic, isExt);
         ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], remappedBuffers, ret * sizeof(SceCtrlData)); 
     }
+    ksceKernelUnlockMutex(mutexCtrlHook[hookId][port], 1);
     return ret;
 }
 
@@ -192,6 +196,7 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
     
 	if (!settings[SETT_REMAP_ENABLED].v.b) return nBufs;
 
+    ksceKernelLockMutex(mutexTouchHook[hookIdx][port], 1, NULL);
     SceTouchData* remappedBuffers; 
     if (isKernelSpace){
         ret = remap_touch(port, &pData[nBufs - 1], nBufs, hookIdx, &remappedBuffers);
@@ -202,6 +207,7 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
         ret = remap_touch(port, &std, nBufs, hookIdx, &remappedBuffers);
         ksceKernelMemcpyKernelToUser((uintptr_t)&pData[0], remappedBuffers, ret * sizeof(SceTouchData)); 
     }
+    ksceKernelUnlockMutex(mutexTouchHook[hookIdx][port], 1);
     return ret;
 }
 
@@ -419,6 +425,19 @@ int module_start(SceSize argc, const void *args) {
 	theme_load(settings[SETT_THEME].v.u);
 
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
+    char fname[128];
+    for (int i = 0; i < CTRL_HOOKS_NUM; i++){
+        for (int j = 0; j < 5; j++){
+	        sprintf(fname, "remaPSV2_mutex_ctrl_%i_%i", i, j);
+            mutexCtrlHook[i][j] = ksceKernelCreateMutex(&fname[0], 0, 0, NULL);
+        }
+    }
+    for (int i = 0; i < TOUCH_HOOKS_NUM; i++){
+        for (int j = 0; j < 2; j++){
+	        sprintf(fname, "remaPSV2_mutex_touch_%i_%i", i, j);
+            mutexTouchHook[i][j] = ksceKernelCreateMutex(&fname[0], 0, 0, NULL);
+        }
+    }
 
 	// PS TV uses SceTouchDummy instead of SceTouch
     tai_module_info_t modInfo;
@@ -480,6 +499,14 @@ int module_stop(SceSize argc, const void *args) {
 
     if (mutex_procevent_uid >= 0)
         ksceKernelDeleteMutex(mutex_procevent_uid);
+    for (int i = 0; i < CTRL_HOOKS_NUM; i++)
+        for (int j = 0; j < 5; j++)
+            if (mutexCtrlHook[i][j] >= 0)
+                ksceKernelDeleteMutex(mutexCtrlHook[i][j]);
+    for (int i = 0; i < TOUCH_HOOKS_NUM; i++)
+        for (int j = 0; j < 2; j++)
+            if (mutexTouchHook[i][j] >= 0)
+                ksceKernelDeleteMutex(mutexTouchHook[i][j]);
 
     settings_destroy();
     hotkeys_destroy();

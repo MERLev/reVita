@@ -786,6 +786,12 @@ void updateTouchInfo(SceUInt32 port, int hookId, SceTouchData *pData){
 
 int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId, 
 		SceTouchData **remappedBuffers){
+				// If buffer for timestamp is already remapped
+	if (pData->timeStamp == cacheTouch[hookId][port].buffers[cacheTouch[hookId][port].num - 1].timeStamp){
+		*remappedBuffers = &cacheTouch[hookId][port].buffers[cacheTouch[hookId][port].num - nBufs];
+		return nBufs;
+	}
+
 	//If buffer full - remove latest entry
 	if (cacheTouch[hookId][port].num >= BUFFERS_NUM){
 		for (int i = 1; i < BUFFERS_NUM; i++)
