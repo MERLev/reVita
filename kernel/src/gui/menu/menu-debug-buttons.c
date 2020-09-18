@@ -27,7 +27,7 @@ void onDraw_debugButtons(unsigned int menuY){
 		0x80000000
 	};
 	SceCtrlData ctrl;
-	int ret = ksceCtrlPeekBufferPositive(0, &ctrl, 1);
+	int ret = ksceCtrlPeekBufferPositive_internal(0, &ctrl, 1);
     int y = menuY;
     int x = L_1;
 	// SceCtrlData* ctrlP = gui_menu->dataPtr;

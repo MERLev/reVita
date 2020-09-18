@@ -42,8 +42,6 @@ char titleid[32] = "";
 int processid = -1;
 
 bool used_funcs[HOOKS_NUM];
-bool isInternalTouchCall = false;
-bool isInternalCtrlCall = false;
 bool ds34vitaRunning;
 
 static uint64_t startTick;
@@ -53,9 +51,8 @@ SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
 int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
 
 int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count){
-    isInternalCtrlCall = true;
+    pad_data->timeStamp = INTERNAL;
     int ret = ksceCtrlPeekBufferPositive(port, pad_data, count);
-    isInternalCtrlCall = false;
     return ret;
 }
 
@@ -115,11 +112,11 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpac
 
 #define DECL_FUNC_HOOK_PATCH_CTRL(id, name, space, logic, triggers) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
-        if (isInternalCtrlCall) \
+        if ((space) == SPACE_KERNEL && ctrl->timeStamp == INTERNAL) \
             return TAI_CONTINUE(int, refs[(id)], port, ctrl, nBufs); \
 		int ret = TAI_CONTINUE(int, refs[(id)], \
             (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
-        return onInput(port, ctrl, ret, (id), (space), (logic), (triggers)); \
+        return onInput(port, ctrl, ret, (id), (space), (logic), (triggers));\
     }
 // DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_P,      sceCtrlPeekBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
 // DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_P,      sceCtrlReadBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
@@ -157,9 +154,6 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
     
     if (nBufs < 1 || nBufs > BUFFERS_NUM) 
         return nBufs;
-
-	//Disable in menu
-    if (isInternalTouchCall) return nBufs;
 
     //Nullify input calls when UI is open
 	if (gui_isOpen) {

@@ -70,10 +70,8 @@ void analogTouchPicker(TouchPoint* tp, SceCtrlData *ctrl, int port, int isLeftAn
 //Set custom touch point xy using touch
 void touchPicker(TouchPoint* tp, SceTouchPortType port){
 	SceTouchData std;
-	isInternalTouchCall = true;
 	//ToDo why reportsNum is always 0 ???
-	int ret = ksceTouchPeek(port, &std, 1);
-	isInternalTouchCall = false;
+	int ret = ksceTouchPeek_internal(port, &std, 1);
 	if (ret && std.reportNum > 0){
 		tp->x = std.report[0].x;
 		tp->y =std.report[0].y;

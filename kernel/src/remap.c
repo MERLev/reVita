@@ -635,7 +635,13 @@ void remap_fixSideButtons(uint32_t* btns){
 		btn_add(btns, SCE_CTRL_R2);
 }
 
-int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlData** remappedBuffers, bool isPositiveLogic, bool isExt) {	
+int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlData** remappedBuffers, bool isPositiveLogic, bool isExt) {
+	// If buffer for timestamp is already remapped
+	if (ctrl->timeStamp == cacheCtrl[hookId][port].buffers[cacheCtrl[hookId][port].num - 1].timeStamp){
+		*remappedBuffers = &cacheCtrl[hookId][port].buffers[cacheCtrl[hookId][port].num - nBufs];
+		return nBufs;
+	}
+
 	//If buffer full - remove latest entry
 	if (cacheCtrl[hookId][port].num >= BUFFERS_NUM){
 		for (int i = 1; i < BUFFERS_NUM; i++)
@@ -766,7 +772,7 @@ void updateTouchInfo(SceUInt32 port, int hookId, SceTouchData *pData){
 		port = !port;
 	
 	gui_updateEmulatedTouch(port, et[port], *pData);
-	
+
 	if (!newEmulatedTouchBuffer[hookId][port]){//New touchbuffer not ready - using previous one
 		addVirtualTouches(pData, &etPrev[port], MULTITOUCH_FRONT_NUM, port);
 		return;
