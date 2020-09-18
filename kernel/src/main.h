@@ -35,6 +35,8 @@ enum H_ID{
 
 extern char titleid[32];
 extern int processid;
+extern bool isPspemu;
+extern bool isPSTV;
 
 extern bool used_funcs[HOOKS_NUM];
 
