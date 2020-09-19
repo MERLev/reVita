@@ -38,8 +38,7 @@ void onDraw_pickButton(unsigned int menuY){
 	}
 }
 
-#define MENU_PICK_BUTTON_NUM 21
-static struct MenuEntry menu_pick_button_entries[MENU_PICK_BUTTON_NUM] = {
+static struct MenuEntry menu_pick_button_entries[] = {
 	(MenuEntry){.name = "Cross", 	.icn = ICON_BTN_CROSS, 		.dataUint = SCE_CTRL_CROSS},
 	(MenuEntry){.name = "Circle", 	.icn = ICON_BTN_CIRCLE, 	.dataUint = SCE_CTRL_CIRCLE},
 	(MenuEntry){.name = "Triangle", .icn = ICON_BTN_TRIANGLE, 	.dataUint = SCE_CTRL_TRIANGLE},
@@ -64,11 +63,11 @@ static struct MenuEntry menu_pick_button_entries[MENU_PICK_BUTTON_NUM] = {
 static struct Menu menu_pick_button = (Menu){
 	.id = MENU_PICK_BUTTON_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
-	.num = MENU_PICK_BUTTON_NUM, 
 	.name = "SELECT BUTTONS", 
 	.footer = "$SSELECT $XCONTINUE", 
 	.onButton = onButton_pickButton,
 	.onDraw = onDraw_pickButton,
+	.num = SIZE(menu_pick_button_entries), 
 	.entries = menu_pick_button_entries};
 
 void menu_initPickButton(){

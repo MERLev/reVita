@@ -21,8 +21,7 @@ void onDraw_analog(unsigned int menuY){
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx) / (gui_menu->num-1));
 }
 
-#define MENU_ANALOG_NUM 5
-static struct MenuEntry menu_analog_entries[MENU_ANALOG_NUM] = {
+static struct MenuEntry menu_analog_entries[] = {
 	(MenuEntry){.name = "Deadzone", .type = HEADER_TYPE},
 	(MenuEntry){.name = "Left  Analog - X Axis", .icn = ICON_LS_UP,  .dataPE = &profile.entries[PR_AN_LEFT_DEADZONE_X]},
 	(MenuEntry){.name = "Left  Analog - Y Axis", .icn = ICON_LS_LEFT,.dataPE = &profile.entries[PR_AN_LEFT_DEADZONE_Y]},
@@ -31,11 +30,11 @@ static struct MenuEntry menu_analog_entries[MENU_ANALOG_NUM] = {
 static struct Menu menu_analog = (Menu){
 	.id = MENU_ANALOG_ID, 
 	.parent = MENU_MAIN_ID,
-	.num = MENU_ANALOG_NUM, 
 	.name = "$u ANALOG STICKS", 
 	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_analog,
 	.onDraw = onDraw_analog,
+	.num = SIZE(menu_analog_entries), 
 	.entries = menu_analog_entries};
 
 void menu_initAnalog(){

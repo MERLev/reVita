@@ -41,8 +41,7 @@ void onDraw_gyro(unsigned int menuY){
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx)/(gui_menu->num-1));
 }
 
-#define MENU_GYRO_NUM 11
-static struct MenuEntry menu_gyro_entries[MENU_GYRO_NUM] = {
+static struct MenuEntry menu_gyro_entries[] = {
 	(MenuEntry){.name = "Sensivity", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$q X AXIS", .dataPE = &profile.entries[PR_GY_SENSIVITY_X]},
 	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_SENSIVITY_Y]},
@@ -57,11 +56,11 @@ static struct MenuEntry menu_gyro_entries[MENU_GYRO_NUM] = {
 static struct Menu menu_gyro = (Menu){
 	.id = MENU_GYRO_ID, 
 	.parent = MENU_MAIN_ID,
-	.num = MENU_GYRO_NUM, 
 	.name = "$Q GYROSCOPE", 
 	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_gyro,
 	.onDraw = onDraw_gyro,
+	.num = SIZE(menu_gyro_entries), 
 	.entries = menu_gyro_entries};
 
 void menu_initGyro(){

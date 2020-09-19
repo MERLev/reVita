@@ -33,8 +33,7 @@ void onDraw_hotkeys(unsigned int menuY){
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx) / (gui_menu->num-1));
 }
 
-#define MENU_HOTKEYS_NUM 8
-static struct MenuEntry menu_hotkeys_entries[MENU_HOTKEYS_NUM] = {
+static struct MenuEntry menu_hotkeys_entries[] = {
 	(MenuEntry){.name = "Menu open", .dataPE = &hotkeys[HOTKEY_MENU]},
 	(MenuEntry){.name = "Toggle remap rules", .dataPE = &hotkeys[HOTKEY_REMAPS_TOOGLE]},
 	(MenuEntry){.name = "Soft reset", .dataPE = &hotkeys[HOTKEY_RESET_SOFT]},
@@ -46,11 +45,11 @@ static struct MenuEntry menu_hotkeys_entries[MENU_HOTKEYS_NUM] = {
 static struct Menu menu_hotkeys = (Menu){
 	.id = MENU_HOTKEYS_ID, 
 	.parent = MENU_MAIN_ID,
-	.num = MENU_HOTKEYS_NUM, 
 	.name = "$c HOTKEYS", 
 	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_hotkeys,
 	.onDraw = onDraw_hotkeys,
+	.num = SIZE(menu_hotkeys_entries), 
 	.entries = menu_hotkeys_entries};
 
 void menu_initHotkeys(){

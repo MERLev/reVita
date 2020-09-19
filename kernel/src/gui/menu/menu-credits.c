@@ -16,8 +16,7 @@ void onDraw_credits(unsigned int menuY){
 			((float)gui_menu->idx)/(gui_menu->num - (gui_lines - 1) - 1));
 }
 
-#define MENU_CREDITS_NUM			16
-static struct MenuEntry menu_credits_entries[MENU_CREDITS_NUM] = {
+static struct MenuEntry menu_credits_entries[] = {
 	(MenuEntry){.name = "                     updated by Mer1e "},
 	(MenuEntry){.name = "               with the help of S1ngy "},
 	(MenuEntry){.name = "       original author Rinnegatamante "},
@@ -38,10 +37,10 @@ static struct MenuEntry menu_credits_entries[MENU_CREDITS_NUM] = {
 static struct Menu menu_credits = (Menu){
 	.id = MENU_CREDITS_ID, 
 	.parent = MENU_MAIN_ID,
-	.num = MENU_CREDITS_NUM, 
 	.name = "$? CREDITS", 
 	.noIndent = true,
 	.onDraw = onDraw_credits,
+	.num = SIZE(menu_credits_entries), 
 	.entries = menu_credits_entries};
 
 void menu_initCredits(){

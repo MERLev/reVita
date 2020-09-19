@@ -51,8 +51,7 @@ void onDraw_profiles(unsigned int menuY){
 	}
 }
 
-#define MENU_PROFILE_NUM 9
-static struct MenuEntry menu_profiles_entries[MENU_PROFILE_NUM] = {
+static struct MenuEntry menu_profiles_entries[] = {
 	(MenuEntry){.name = "Local", .type = HEADER_TYPE},
 	(MenuEntry){.name = "Save", .dataUint = PROFILE_LOCAL_SAVE},
 	(MenuEntry){.name = "Load", .dataUint = PROFILE_LOCAL_LOAD},
@@ -65,10 +64,10 @@ static struct MenuEntry menu_profiles_entries[MENU_PROFILE_NUM] = {
 static struct Menu menu_profiles = (Menu){
 	.id = MENU_PROFILE_ID, 
 	.parent = MENU_MAIN_ID,
-	.num = MENU_PROFILE_NUM, 
 	.name = "$/ PROFILES", 
 	.onButton = onButton_profiles,
 	.onDraw = onDraw_profiles,
+	.num = SIZE(menu_profiles_entries), 
 	.entries = menu_profiles_entries};
 
 void menu_initProfile(){

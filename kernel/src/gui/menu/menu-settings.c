@@ -43,8 +43,7 @@ void onDraw_settings(unsigned int menuY){
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx) / (gui_menu->num-1));
 }
 
-#define MENU_SETTINGS_NUM 4
-static struct MenuEntry menu_settings_entries[MENU_SETTINGS_NUM] = {
+static struct MenuEntry menu_settings_entries[] = {
 	(MenuEntry){.name = "Remap rules enabled", .dataPE = &settings[SETT_REMAP_ENABLED]},
 	(MenuEntry){.name = "Save profile on close", .dataPE = &settings[SETT_AUTOSAVE]},
 	(MenuEntry){.name = "Startup delay", .dataPE = &settings[SETT_DELAY_INIT]},
@@ -52,11 +51,11 @@ static struct MenuEntry menu_settings_entries[MENU_SETTINGS_NUM] = {
 static struct Menu menu_settings = (Menu){
 	.id = MENU_SETT_ID, 
 	.parent = MENU_MAIN_ID,
-	.num = MENU_SETTINGS_NUM, 
 	.name = "$| SETTINGS", 
 	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_settings,
 	.onDraw = onDraw_settings,
+	.num = SIZE(menu_settings_entries), 
 	.entries = menu_settings_entries};
 
 void menu_initSettings(){

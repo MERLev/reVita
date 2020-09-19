@@ -47,8 +47,7 @@ void onDraw_controller(unsigned int menuY){
 	}
 }
 
-#define MENU_CONTROLLER_NUM 3
-static struct MenuEntry menu_controllers_entries[MENU_CONTROLLER_NUM] = {
+static struct MenuEntry menu_controllers_entries[] = {
 	(MenuEntry){.name = "Use external",   .dataPE = &profile.entries[PR_CO_ENABLED]},
 	(MenuEntry){.name = "Swap $[$] ${$}", .dataPE = &profile.entries[PR_CO_SWAP_BUTTONS]},
 	// (MenuEntry){.name = "Fix buttons",   .dataPE = &profile.entries[PR_CO_FIX_BUTTONS]},
@@ -56,11 +55,11 @@ static struct MenuEntry menu_controllers_entries[MENU_CONTROLLER_NUM] = {
 static struct Menu menu_controller = (Menu){
 	.id = MENU_CONTROLLER_ID, 
 	.parent = MENU_MAIN_ID,
-	.num = MENU_CONTROLLER_NUM, 
 	.name = "$t CONTROLLER", 
 	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_controller,
 	.onDraw = onDraw_controller,
+	.num = SIZE(menu_controllers_entries), 
 	.entries = menu_controllers_entries};
 
 void menu_initController(){

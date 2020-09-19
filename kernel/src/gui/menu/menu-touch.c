@@ -21,8 +21,7 @@ void onDraw_touch(unsigned int menuY){
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx) / (gui_menu->num - 1));
 }
 
-#define MENU_TOUCH_NUM 8
-static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
+static struct MenuEntry menu_touch_entries[] = {
 	(MenuEntry){.name = "Swipe duration", 		.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_SWIPE_DURATION]},
 	(MenuEntry){.name = "Smart Swipe sensivity",.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_SWIPE_SMART_SENS]},
 	(MenuEntry){.name = "Swap touchpads", 		.icn = ICON_BT,		.dataPE = &profile.entries[PR_TO_SWAP]},
@@ -34,11 +33,11 @@ static struct MenuEntry menu_touch_entries[MENU_TOUCH_NUM] = {
 static struct Menu menu_touch = (Menu){
 	.id = MENU_TOUCH_ID, 
 	.parent = MENU_MAIN_ID,
-	.num = MENU_TOUCH_NUM, 
 	.name = "$F TOUCH", 
 	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_touch,
 	.onDraw = onDraw_touch,
+	.num = SIZE(menu_touch_entries), 
 	.entries = menu_touch_entries};
 
 void menu_initTouch(){

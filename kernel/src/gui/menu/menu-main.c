@@ -1,5 +1,6 @@
 #include <vitasdkkern.h>
 #include "../../main.h"
+#include "../../common.h"
 #include "../../fio/settings.h"
 #include "../gui.h"
 
@@ -23,8 +24,7 @@ void onButton_main(uint32_t btn){
 	}
 }
 
-#define MENU_MAIN_NUM 11
-static struct MenuEntry menu_main_entries[MENU_MAIN_NUM] = {
+static struct MenuEntry menu_main_entries[] = {
 	(MenuEntry){.name = "Remap rules", 		.dataUint = MENU_REMAP_ID, 			.icn = ICON_BTN_CROSS},
 	(MenuEntry){.name = "Analog sticks", 	.dataUint = MENU_ANALOG_ID, 		.icn = ICON_LS_UP},
 	(MenuEntry){.name = "Touch", 			.dataUint = MENU_TOUCH_ID, 			.icn = ICON_FT},
@@ -38,10 +38,10 @@ static struct MenuEntry menu_main_entries[MENU_MAIN_NUM] = {
 	(MenuEntry){.name = "Credits", 			.dataUint = MENU_CREDITS_ID, 		.icn = ICON_MENU_CREDITS}};
 static struct Menu menu_main = (Menu){
 	.id = MENU_MAIN_ID, 
-	.num = MENU_MAIN_NUM, 
 	.name = "$P MAIN MENU",
 	.footer = "$;TOGGLE REMAPS                by Mer1e",
 	.onButton = onButton_main,
+	.num = SIZE(menu_main_entries), 
 	.entries = menu_main_entries};
 
 void menu_initMain(){

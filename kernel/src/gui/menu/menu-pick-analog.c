@@ -1,5 +1,6 @@
 #include <vitasdkkern.h>
 #include "../../main.h"
+#include "../../common.h"
 #include "../../fio/settings.h"
 #include "../gui.h"
 #include "../renderer.h"
@@ -22,8 +23,7 @@ void onButton_pickAnalog(uint32_t btn){
 	}
 }
 
-#define MENU_PICK_ANALOG_LEFT_NUM 4
-static struct MenuEntry menu_pick_analog_left_entries[MENU_PICK_ANALOG_LEFT_NUM] = {
+static struct MenuEntry menu_pick_analog_left_entries[] = {
 	(MenuEntry){.name = "Move left",	.icn = ICON_LS_LEFT, 	.dataUint = REMAP_ANALOG_LEFT},
 	(MenuEntry){.name = "Move right",	.icn = ICON_LS_RIGHT,	.dataUint = REMAP_ANALOG_RIGHT},
 	(MenuEntry){.name = "Move up", 		.icn = ICON_LS_UP,	 	.dataUint = REMAP_ANALOG_UP},
@@ -31,13 +31,12 @@ static struct MenuEntry menu_pick_analog_left_entries[MENU_PICK_ANALOG_LEFT_NUM]
 static struct Menu menu_pick_analog_left = (Menu){
 	.id = MENU_PICK_ANALOG_LEFT_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
-	.num = MENU_PICK_ANALOG_LEFT_NUM, 
 	.name = "$L SELECT ANALOG STICK DIRECTION", 
 	.onButton = onButton_pickAnalog,
+	.num = SIZE(menu_pick_analog_left_entries), 
 	.entries = menu_pick_analog_left_entries};
 	
-#define MENU_PICK_ANALOG_RIGHT_NUM 4
-static struct MenuEntry menu_pick_analog_right_entries[MENU_PICK_ANALOG_RIGHT_NUM] = {
+static struct MenuEntry menu_pick_analog_right_entries[] = {
 	(MenuEntry){.name = "Move left", 	.icn = ICON_RS_LEFT, 	.dataUint = REMAP_ANALOG_LEFT},
 	(MenuEntry){.name = "Move right",	.icn = ICON_RS_RIGHT, 	.dataUint = REMAP_ANALOG_RIGHT},
 	(MenuEntry){.name = "Move up", 		.icn = ICON_RS_UP, 		.dataUint = REMAP_ANALOG_UP},
@@ -45,9 +44,9 @@ static struct MenuEntry menu_pick_analog_right_entries[MENU_PICK_ANALOG_RIGHT_NU
 static struct Menu menu_pick_analog_right = (Menu){
 	.id = MENU_PICK_ANALOG_RIGHT_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
-	.num = MENU_PICK_ANALOG_RIGHT_NUM, 
 	.name = "$l SELECT ANALOG STICK DIRECTION", 
 	.onButton = onButton_pickAnalog,
+	.num = SIZE(menu_pick_analog_right_entries), 
 	.entries = menu_pick_analog_right_entries};
 
 void menu_initPickAnalog(){

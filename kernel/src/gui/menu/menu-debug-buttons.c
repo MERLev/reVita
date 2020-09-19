@@ -88,11 +88,11 @@ static struct MenuEntry menu_debug_buttons_entries[MENU_DEBUG_BUTTONS_NUM];
 static struct Menu menu_debug_buttons = (Menu){
 	.id = MENU_DEBUG_BUTTONS_ID, 
 	.parent = MENU_MAIN_ID,
-	.num = MENU_DEBUG_BUTTONS_NUM, 
 	.name = "$b BUTTONS INFO", 
 	.noIndent = true,
 	.onDraw = onDraw_debugButtons,
 	.onInput = onInput_debugButtons,
+	.num = MENU_DEBUG_BUTTONS_NUM, 
 	.entries = menu_debug_buttons_entries};
 
 void menu_initDebugButtons(){

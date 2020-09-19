@@ -318,14 +318,17 @@ void addEmu(RuleData* rd) {
 				case REMAP_SYS_KILL: sysactions_killCurrentApp();  break;
 				default: break;
 			}
-		break;
+			break;
 		case REMAP_TYPE_REMAPSV_ACTIONS:
 			if (*rd->status != RS_STARTED) break;
 			switch (emu->action){
 				case REMAP_REM_SWAP_TOUCHPADS: profile_inc(&profile.entries[PR_TO_SWAP], 1);  break;
 				default: break;
 			}
-		break;
+			break;
+		case REMAP_TYPE_DISABLED:
+			// Do nothing
+			break;
 		default: break;
 	}
 }

@@ -18,8 +18,7 @@ void onDraw_hooks(unsigned int menuY){
 			((float)gui_menu->idx)/(gui_menu->num - (gui_lines - 1) - 1));
 }
 
-#define MENU_HOKS_NUM 20
-static struct MenuEntry menu_hooks_entries[MENU_HOKS_NUM] = {
+static struct MenuEntry menu_hooks_entries[] = {
 	(MenuEntry){.name = "sceCtrlPeekBufferPositive", 	.dataUint = H_CT_PEEK_P},
 	(MenuEntry){.name = "sceCtrlReadBufferPositive", 	.dataUint = H_CT_READ_P},
 	(MenuEntry){.name = "sceCtrlPeekBufferNegative", 	.dataUint = H_CT_PEEK_N},
@@ -44,10 +43,10 @@ static struct MenuEntry menu_hooks_entries[MENU_HOKS_NUM] = {
 static struct Menu menu_hooks = (Menu){
 	.id = MENU_HOKS_ID, 
 	.parent = MENU_MAIN_ID,
-	.num = MENU_HOKS_NUM, 
 	.name = "$b HOOKS", 
 	.noIndent = true,
 	.onDraw = onDraw_hooks,
+	.num = SIZE(menu_hooks_entries), 
 	.entries = menu_hooks_entries};
 
 void menu_initDebugHooks(){

@@ -51,7 +51,8 @@ const char* REMAP_ACTION_TYPE_STR[REMAP_ACTION_TYPE_NUM] = {
     "BACK_TOUCH_POINT",
     "GYROSCOPE",
     "USYSACTIONS",
-	"REMAPSV2"
+	"REMAPSV2",
+	"DISABLED"
 };
 enum REMAP_ACTION_TYPE getActionTypeId(char* n){
 	for (int i = 0; i < REMAP_ACTION_TYPE_NUM; i++)

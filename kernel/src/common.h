@@ -10,6 +10,7 @@
 #define CLEAR(x,y) x &= ~(1<< y)
 #define READ(x,y) ((0u == (x & (1<<y)))?0u:1u)
 #define TOGGLE(x,y) (x ^= (1<<y))
+#define SIZE(x)  (sizeof(x) / sizeof((x)[0]))
 
 #define FLIP(B) (B=!B)
 

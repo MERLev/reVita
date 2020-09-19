@@ -192,24 +192,22 @@ void onDraw_pickTouchZone(unsigned int menuY){
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx) / (gui_menu->num - 1));
 }
 
-#define MENU_PICK_TOUCH_POINT_NUM 2
-static struct MenuEntry menu_pick_touch_point_entries[MENU_PICK_TOUCH_POINT_NUM] = {
+static struct MenuEntry menu_pick_touch_point_entries[] = {
 	(MenuEntry){.name = "Point x", .dataUint = 0},
 	(MenuEntry){.name = "      y", .dataUint = 1}};
 static struct Menu menu_pick_touch_point = (Menu){
 	.id = MENU_PICK_TOUCH_POINT_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
-	.num = MENU_PICK_TOUCH_POINT_NUM, 
 	.name = "$i SELECT TOUCH POINT", 
 	.footer = "$U$uCHANGE", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchPoint,
 	.onDraw = onDraw_pickTouchPoint,
 	.onDrawFB = onDrawFB_pickTouchPoint,
+	.num = SIZE(menu_pick_touch_point_entries), 
 	.entries = menu_pick_touch_point_entries};
 
-#define MENU_PICK_TOUCH_ZONE_NUM 4
-static struct MenuEntry menu_pick_touch_zone_entries[MENU_PICK_TOUCH_ZONE_NUM] = {
+static struct MenuEntry menu_pick_touch_zone_entries[] = {
 	(MenuEntry){.name = "Point 1 x", .dataUint = 0},
 	(MenuEntry){.name = "        y", .dataUint = 1},
 	(MenuEntry){.name = "Point 2 x", .dataUint = 2},
@@ -217,17 +215,16 @@ static struct MenuEntry menu_pick_touch_zone_entries[MENU_PICK_TOUCH_ZONE_NUM] =
 static struct Menu menu_pick_touch_zone = (Menu){
 	.id = MENU_PICK_TOUCH_ZONE_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
-	.num = MENU_PICK_TOUCH_ZONE_NUM, 
 	.name = "$i SELECT TOUCH ZONE", 
 	.footer = "$UPOINT1 $uPOINT2", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchZone,
 	.onDraw = onDraw_pickTouchZone,
 	.onDrawFB = onDrawFB_pickTouchZone,
+	.num = SIZE(menu_pick_touch_zone_entries), 
 	.entries = menu_pick_touch_zone_entries};
 
-#define MENU_PICK_TOUCH_SWIPE_NUM 4
-static struct MenuEntry menu_pick_touch_swipe_entries[MENU_PICK_TOUCH_SWIPE_NUM] = {
+static struct MenuEntry menu_pick_touch_swipe_entries[] = {
 	(MenuEntry){.name = "Start Point x", .dataUint = 0},
 	(MenuEntry){.name = "            y", .dataUint = 1},
 	(MenuEntry){.name = "End   Point x", .dataUint = 2},
@@ -235,13 +232,13 @@ static struct MenuEntry menu_pick_touch_swipe_entries[MENU_PICK_TOUCH_SWIPE_NUM]
 static struct Menu menu_pick_touch_swipe = (Menu){
 	.id = MENU_PICK_TOUCH_SWIPE_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
-	.num = MENU_PICK_TOUCH_SWIPE_NUM, 
 	.name = "$j SELECT SWIPE POINTS", 
 	.footer = "$USTART $uEND", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchZone,
 	.onDraw = onDraw_pickTouchZone,
 	.onDrawFB = onDrawFB_pickTouchSwipe,
+	.num = SIZE(menu_pick_touch_swipe_entries), 
 	.entries = menu_pick_touch_swipe_entries};
 
 void menu_initPickTouch(){
