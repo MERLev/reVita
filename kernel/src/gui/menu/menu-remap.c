@@ -50,6 +50,8 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 				case REMAP_TOUCH_ZONE_TR:          strcat(str, "$i$4"); break;
 				case REMAP_TOUCH_ZONE_BL:          strcat(str, "$i$5"); break;
 				case REMAP_TOUCH_ZONE_BR:          strcat(str, "$i$6"); break;
+				case REMAP_TOUCH_ZONE_CENTER:      strcat(str, "$i$7"); break;
+				case REMAP_TOUCH_ZONE_FULL:        strcat(str, "$i$8"); break;
 				case REMAP_TOUCH_CUSTOM:           strcat(str, "$i"); break;
 				case REMAP_TOUCH_SWIPE:            strcat(str, "$j"); break;
 				case REMAP_TOUCH_SWIPE_SMART_DPAD: strcat(str, "$j$x"); break;
@@ -312,13 +314,15 @@ static struct Menu menu_remap_trigger_type = (Menu){
 	.entries = menu_remap_trigger_type_entries};
 
 static struct MenuEntry menu_remap_trigger_front_touch_entries[] = {
-	(MenuEntry){.name = "Left Zone", 		.icn = ICON_L, 	.dataUint = REMAP_TOUCH_ZONE_L},
-	(MenuEntry){.name = "Right Zone", 		.icn = ICON_R, 	.dataUint = REMAP_TOUCH_ZONE_R},
-	(MenuEntry){.name = "Top Left Zone", 	.icn = ICON_TL, .dataUint = REMAP_TOUCH_ZONE_TL},
-	(MenuEntry){.name = "Top Right Zone", 	.icn = ICON_TR, .dataUint = REMAP_TOUCH_ZONE_TR},
-	(MenuEntry){.name = "Bottom Left Zone", .icn = ICON_BL, .dataUint = REMAP_TOUCH_ZONE_BL},
-	(MenuEntry){.name = "Bottom Right Zone",.icn = ICON_BR, .dataUint = REMAP_TOUCH_ZONE_BR},
-	(MenuEntry){.name = "Custom Zone", 		.icn = ICON_FT, .dataUint = REMAP_TOUCH_CUSTOM}};
+	(MenuEntry){.name = "Whole touchpad",.icn = ICON_FULL, 	.dataUint = REMAP_TOUCH_ZONE_FULL},
+	(MenuEntry){.name = "Center Zone", 		.icn = ICON_CENTER, .dataUint = REMAP_TOUCH_ZONE_CENTER},
+	(MenuEntry){.name = "Left Zone", 		.icn = ICON_L, 		.dataUint = REMAP_TOUCH_ZONE_L},
+	(MenuEntry){.name = "Right Zone", 		.icn = ICON_R, 		.dataUint = REMAP_TOUCH_ZONE_R},
+	(MenuEntry){.name = "Top Left Zone", 	.icn = ICON_TL, 	.dataUint = REMAP_TOUCH_ZONE_TL},
+	(MenuEntry){.name = "Top Right Zone", 	.icn = ICON_TR, 	.dataUint = REMAP_TOUCH_ZONE_TR},
+	(MenuEntry){.name = "Bottom Left Zone", .icn = ICON_BL, 	.dataUint = REMAP_TOUCH_ZONE_BL},
+	(MenuEntry){.name = "Bottom Right Zone",.icn = ICON_BR, 	.dataUint = REMAP_TOUCH_ZONE_BR},
+	(MenuEntry){.name = "Custom Zone", 		.icn = ICON_FT, 	.dataUint = REMAP_TOUCH_CUSTOM}};
 static struct Menu menu_remap_trigger_front_touch = (Menu){
 	.id = MENU_REMAP_TRIGGER_TOUCH_FRONT_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
@@ -328,13 +332,15 @@ static struct Menu menu_remap_trigger_front_touch = (Menu){
 	.entries = menu_remap_trigger_front_touch_entries};
 
 static struct MenuEntry menu_remap_trigger_back_touch_entries[] = {
-	(MenuEntry){.name = "Left Zone", 		.icn = ICON_L, 	.dataUint = REMAP_TOUCH_ZONE_L},
-	(MenuEntry){.name = "Right Zone", 		.icn = ICON_R, 	.dataUint = REMAP_TOUCH_ZONE_R},
-	(MenuEntry){.name = "Top Left Zone", 	.icn = ICON_TL, .dataUint = REMAP_TOUCH_ZONE_TL},
-	(MenuEntry){.name = "Top Right Zone", 	.icn = ICON_TR, .dataUint = REMAP_TOUCH_ZONE_TR},
-	(MenuEntry){.name = "Bottom Left Zone", .icn = ICON_BL, .dataUint = REMAP_TOUCH_ZONE_BL},
-	(MenuEntry){.name = "Bottom Right Zone",.icn = ICON_BR, .dataUint = REMAP_TOUCH_ZONE_BR},
-	(MenuEntry){.name = "Custom Zone", 		.icn = ICON_BT, .dataUint = REMAP_TOUCH_CUSTOM}};
+	(MenuEntry){.name = "Whole touchpad",	.icn = ICON_FULL, 	.dataUint = REMAP_TOUCH_ZONE_FULL},
+	(MenuEntry){.name = "Center Zone", 		.icn = ICON_CENTER, .dataUint = REMAP_TOUCH_ZONE_CENTER},
+	(MenuEntry){.name = "Left Zone", 		.icn = ICON_L, 		.dataUint = REMAP_TOUCH_ZONE_L},
+	(MenuEntry){.name = "Right Zone", 		.icn = ICON_R, 		.dataUint = REMAP_TOUCH_ZONE_R},
+	(MenuEntry){.name = "Top Left Zone", 	.icn = ICON_TL, 	.dataUint = REMAP_TOUCH_ZONE_TL},
+	(MenuEntry){.name = "Top Right Zone", 	.icn = ICON_TR, 	.dataUint = REMAP_TOUCH_ZONE_TR},
+	(MenuEntry){.name = "Bottom Left Zone", .icn = ICON_BL, 	.dataUint = REMAP_TOUCH_ZONE_BL},
+	(MenuEntry){.name = "Bottom Right Zone",.icn = ICON_BR, 	.dataUint = REMAP_TOUCH_ZONE_BR},
+	(MenuEntry){.name = "Custom Zone", 		.icn = ICON_BT, 	.dataUint = REMAP_TOUCH_CUSTOM}};
 static struct Menu menu_remap_trigger_back_touch = (Menu){
 	.id = MENU_REMAP_TRIGGER_TOUCH_BACK_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
@@ -378,6 +384,7 @@ static struct Menu menu_remap_emu_type = (Menu){
 	.entries = menu_remap_emu_type_entries};
 
 static struct MenuEntry menu_remap_emu_touch_front_entries[] = {
+	(MenuEntry){.name = "Center Touch", 			.icn = ICON_CENTER, .dataUint = REMAP_TOUCH_ZONE_CENTER},
 	(MenuEntry){.name = "Left Touch", 				.icn = ICON_L, 		.dataUint = REMAP_TOUCH_ZONE_L},
 	(MenuEntry){.name = "Right Touch", 				.icn = ICON_R, 		.dataUint = REMAP_TOUCH_ZONE_R},
 	(MenuEntry){.name = "Top Left Touch", 			.icn = ICON_TL, 	.dataUint = REMAP_TOUCH_ZONE_TL},
@@ -398,6 +405,7 @@ static struct Menu menu_remap_emu_touch_front = (Menu){
 	.entries = menu_remap_emu_touch_front_entries};
 
 static struct MenuEntry menu_remap_emu_touch_back_entries[] = {
+	(MenuEntry){.name = "Center Touch", 			.icn = ICON_CENTER, .dataUint = REMAP_TOUCH_ZONE_CENTER},
 	(MenuEntry){.name = "Left Touch", 				.icn = ICON_L, 		.dataUint = REMAP_TOUCH_ZONE_L},
 	(MenuEntry){.name = "Right Touch", 				.icn = ICON_R, 		.dataUint = REMAP_TOUCH_ZONE_R},
 	(MenuEntry){.name = "Top Left Touch", 			.icn = ICON_TL, 	.dataUint = REMAP_TOUCH_ZONE_TL},

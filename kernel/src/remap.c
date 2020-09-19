@@ -36,9 +36,10 @@ typedef struct CtrlCache{
 
 // Status of each rule
 enum RULE_STATUS rs[CTRL_HOOKS_NUM][PORTS_NUM][REMAP_NUM];
-
 TouchPoints2 T_SIZE[SCE_TOUCH_PORT_MAX_NUM];
+
 static TouchPoint 
+	T_CENTER[SCE_TOUCH_PORT_MAX_NUM], 
 	T_L[SCE_TOUCH_PORT_MAX_NUM], 
 	T_R[SCE_TOUCH_PORT_MAX_NUM], 
 	T_TL[SCE_TOUCH_PORT_MAX_NUM], 
@@ -46,6 +47,7 @@ static TouchPoint
 	T_BL[SCE_TOUCH_PORT_MAX_NUM], 
 	T_BR[SCE_TOUCH_PORT_MAX_NUM];
 static TouchPoints2 
+	TZ_CENTER[SCE_TOUCH_PORT_MAX_NUM], 
 	TZ_L[SCE_TOUCH_PORT_MAX_NUM], 
 	TZ_R[SCE_TOUCH_PORT_MAX_NUM], 
 	TZ_TL[SCE_TOUCH_PORT_MAX_NUM], 
@@ -225,17 +227,18 @@ void addEmu(RuleData* rd) {
 		case REMAP_TYPE_FRONT_TOUCH_POINT: 
 		case REMAP_TYPE_BACK_TOUCH_POINT:
 			;int port = emu->type == REMAP_TYPE_FRONT_TOUCH_POINT ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
-			if (rd->rr->turbo && rd->isTurboTick && 
-				emu->action != REMAP_TOUCH_SWIPE && emu->action != REMAP_TOUCH_SWIPE_SMART_L && emu->action != REMAP_TOUCH_SWIPE_SMART_R)
-					break;
+			if (rd->rr->turbo && rd->isTurboTick && emu->action != REMAP_TOUCH_SWIPE 
+					&& emu->action != REMAP_TOUCH_SWIPE_SMART_L && emu->action != REMAP_TOUCH_SWIPE_SMART_R)
+				break;
 			switch (emu->action){
-				case REMAP_TOUCH_ZONE_L:  storeTouchPoint(&et[port], T_L[port]);  break;
-				case REMAP_TOUCH_ZONE_R:  storeTouchPoint(&et[port], T_R[port]);  break;
-				case REMAP_TOUCH_ZONE_TL: storeTouchPoint(&et[port], T_TL[port]); break;
-				case REMAP_TOUCH_ZONE_TR: storeTouchPoint(&et[port], T_TR[port]); break;
-				case REMAP_TOUCH_ZONE_BL: storeTouchPoint(&et[port], T_BL[port]); break;
-				case REMAP_TOUCH_ZONE_BR: storeTouchPoint(&et[port], T_BR[port]); break;
-				case REMAP_TOUCH_CUSTOM:  storeTouchPoint(&et[port], emu->param.tPoint); break;
+				case REMAP_TOUCH_ZONE_CENTER:	storeTouchPoint(&et[port], T_CENTER[port]);  break;
+				case REMAP_TOUCH_ZONE_L:  		storeTouchPoint(&et[port], T_L[port]);  break;
+				case REMAP_TOUCH_ZONE_R:  		storeTouchPoint(&et[port], T_R[port]);  break;
+				case REMAP_TOUCH_ZONE_TL: 		storeTouchPoint(&et[port], T_TL[port]); break;
+				case REMAP_TOUCH_ZONE_TR: 		storeTouchPoint(&et[port], T_TR[port]); break;
+				case REMAP_TOUCH_ZONE_BL: 		storeTouchPoint(&et[port], T_BL[port]); break;
+				case REMAP_TOUCH_ZONE_BR: 		storeTouchPoint(&et[port], T_BR[port]); break;
+				case REMAP_TOUCH_CUSTOM:  		storeTouchPoint(&et[port], emu->param.tPoint); break;
 				case REMAP_TOUCH_SWIPE:   
 					if (*rd->status == RS_STARTED || (*rd->status == RS_ACTIVE && rd->rr->turbo && rd->isTurboTick)) 
 						storeTouchSwipe(&et[port], emu->param.tPoints); 
@@ -492,13 +495,15 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int hookId, int p
 				for (int j = 0; j < std[port].reportNum; j++) {
 					TouchPoints2 tz = TZ_L[port];
 					switch (trigger->action){
-						case REMAP_TOUCH_ZONE_L:  tz = TZ_L[port];  break;
-						case REMAP_TOUCH_ZONE_R:  tz = TZ_R[port];  break;
-						case REMAP_TOUCH_ZONE_TL: tz = TZ_TL[port]; break;
-						case REMAP_TOUCH_ZONE_TR: tz = TZ_TR[port]; break;
-						case REMAP_TOUCH_ZONE_BL: tz = TZ_BL[port]; break;
-						case REMAP_TOUCH_ZONE_BR: tz = TZ_BR[port]; break;
-						case REMAP_TOUCH_CUSTOM:  tz = trigger->param.tPoints; break;
+						case REMAP_TOUCH_ZONE_FULL:  	tz = T_SIZE[port];  break;
+						case REMAP_TOUCH_ZONE_CENTER:  	tz = TZ_CENTER[port];  break;
+						case REMAP_TOUCH_ZONE_L:  		tz = TZ_L[port];  break;
+						case REMAP_TOUCH_ZONE_R:  		tz = TZ_R[port];  break;
+						case REMAP_TOUCH_ZONE_TL: 		tz = TZ_TL[port]; break;
+						case REMAP_TOUCH_ZONE_TR: 		tz = TZ_TR[port]; break;
+						case REMAP_TOUCH_ZONE_BL: 		tz = TZ_BL[port]; break;
+						case REMAP_TOUCH_ZONE_BR: 		tz = TZ_BR[port]; break;
+						case REMAP_TOUCH_CUSTOM:  		tz = trigger->param.tPoints; break;
 						default: break;
 					}
 					if (updateStatus(rd.status, reportInZone(&std[port].report[j], tz))) {
@@ -754,13 +759,15 @@ void updateTouchInfo(SceUInt32 port, int hookId, SceTouchData *pData){
 			while (j < pData->reportNum){
 				TouchPoints2 tz = TZ_L[port];
 				switch (profile.remaps[i].trigger.action){
-					case REMAP_TOUCH_ZONE_L:  tz = TZ_L[port];  break;
-					case REMAP_TOUCH_ZONE_R:  tz = TZ_R[port];  break;
-					case REMAP_TOUCH_ZONE_TL: tz = TZ_TL[port]; break;
-					case REMAP_TOUCH_ZONE_TR: tz = TZ_TR[port]; break;
-					case REMAP_TOUCH_ZONE_BL: tz = TZ_BL[port]; break;
-					case REMAP_TOUCH_ZONE_BR: tz = TZ_BR[port]; break;
-					case REMAP_TOUCH_CUSTOM:  tz = profile.remaps[i].trigger.param.tPoints; break;
+					case REMAP_TOUCH_ZONE_FULL:  	tz = T_SIZE[port];  break;
+					case REMAP_TOUCH_ZONE_CENTER:  	tz = TZ_CENTER[port];  break;
+					case REMAP_TOUCH_ZONE_L:  		tz = TZ_L[port];  break;
+					case REMAP_TOUCH_ZONE_R:  		tz = TZ_R[port];  break;
+					case REMAP_TOUCH_ZONE_TL: 		tz = TZ_TL[port]; break;
+					case REMAP_TOUCH_ZONE_TR: 		tz = TZ_TR[port]; break;
+					case REMAP_TOUCH_ZONE_BL: 		tz = TZ_BL[port]; break;
+					case REMAP_TOUCH_ZONE_BR: 		tz = TZ_BR[port]; break;
+					case REMAP_TOUCH_CUSTOM:  		tz = profile.remaps[i].trigger.param.tPoints; break;
 					default: break;
 				}
 				if (reportInZone(&pData->report[j], tz))
@@ -838,6 +845,9 @@ void initTouchParams(){
 	LOG("initTouchParams()\n");
 	for (int port = 0; port < SCE_TOUCH_PORT_MAX_NUM; port++){
 		//Calculate predefined touchpoints
+		T_CENTER[port] = (TouchPoint){
+			T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) / 2,
+			T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) / 2};
 		T_L[port] = (TouchPoint){
 			T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) * 2 / 6,
 			T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) / 2};
@@ -858,6 +868,13 @@ void initTouchParams(){
 			T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) * 3 / 4};
 
 		//Calculate predefined touchzones
+		TZ_CENTER[port] = (TouchPoints2){
+			(TouchPoint){
+				T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) / 4, 
+				T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) / 4}, 
+			(TouchPoint){
+				T_SIZE[port].a.x + (T_SIZE[port].b.x - T_SIZE[port].a.x) * 3 / 4, 
+				T_SIZE[port].a.y + (T_SIZE[port].b.y - T_SIZE[port].a.y) * 3 / 4}};
 		TZ_L[port] = (TouchPoints2){
 			(TouchPoint){
 				T_SIZE[port].a.x, 
