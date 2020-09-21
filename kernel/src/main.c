@@ -2,12 +2,14 @@
 #include <taihen.h>
 #include <stdio.h>
 #include <string.h>
+#include <psp2/appmgr.h> 
 #include <psp2/motion.h> 
 #include <psp2/touch.h>
 #include <psp2kern/kernel/sysmem.h> 
 
 #include "vitasdkext.h"
 #include "main.h"
+#include "motion-kernel.h"
 #include "adrenaline.h"
 #include "gui/gui.h"
 #include "remap.h"
@@ -45,6 +47,7 @@ static bool   thread_run = true;
 
 char titleid[32] = "";
 int processid = -1;
+SceUID shellPid = -1;
 bool isPspemu = false;
 bool isPSTV = false;
 
@@ -56,6 +59,17 @@ static bool delayedStartDone = false;
 
 SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
 int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
+int (*_ksceCtrlPeekBufferPositiveExt2)(int port, SceCtrlData *ctrl, int nBufs);
+int (*_sceCtrlPeekBufferPositiveExt2)(int port, SceCtrlData *ctrl, int nBufs);
+int (*_ksceAppMgrLoadExec)(const char *appPath, char *const argv[], const SceAppMgrExecOptParam *optParam);
+
+int ksceAppMgrLoadExec(const char *appPath, char *const argv[], const SceAppMgrExecOptParam *optParam){
+    return _ksceAppMgrLoadExec(appPath, argv, optParam);
+}
+
+int ksceKernelGetModuleInfo(SceUID pid, SceUID modid, SceKernelModuleInfo *info){
+    return _ksceKernelGetModuleInfo(pid, modid, info);
+}
 
 int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count){
     pad_data->timeStamp = INTERNAL;
@@ -67,6 +81,10 @@ int ksceTouchPeek_internal(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs)
     pData->status = INTERNAL;
     int ret = ksceTouchPeek(port, pData, nBufs);
     return ret;
+}
+
+int ksceCtrlPeekBufferPositiveExt2_internal(int port, SceCtrlData *ctrl, int nBufs){
+    return _ksceCtrlPeekBufferPositiveExt2(port, ctrl, nBufs);
 }
 
 void changeActiveApp(char* tId, int pid){
@@ -369,7 +387,7 @@ static int main_thread(SceSize args, void *argp) {
         }
 
         oldBtns = ctrl.buttons;
-       
+
         ksceKernelDelayThread(30 * 1000);
     }
     return 0;
@@ -416,17 +434,6 @@ void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
     LOG("Plugin started\n");
 
-    snprintf(titleid, sizeof(titleid), HOME);
-    settings_init();
-    hotkeys_init();
-    theme_init();
-    profile_init();
-    gui_init();
-    remap_init();
-    userspace_init();
-    startTick = ksceKernelGetSystemTimeWide();
-	theme_load(settings[SETT_THEME].v.u);
-
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
     char fname[128];
     for (int i = 0; i < CTRL_HOOKS_NUM; i++){
@@ -448,6 +455,29 @@ int module_start(SceSize argc, const void *args) {
 	int ret = taiGetModuleInfoForKernel(KERNEL_PID, "SceTouch", &modInfo);
     isPSTV = ret < 0;
 	char* sceTouchModuleName = (!isPSTV) ? "SceTouch" : "SceTouchDummy";
+
+    taiGetModuleInfoForKernel(KERNEL_PID, "SceCtrl", &modInfo);
+    ret = module_get_offset(KERNEL_PID, modInfo.modid, 0, 0x3EF8 | 1, (uintptr_t*)&_ksceCtrlPeekBufferPositiveExt2);
+    ret = module_get_offset(KERNEL_PID, modInfo.modid, 0, 0x67D0 | 1, (uintptr_t*)&_sceCtrlPeekBufferPositiveExt2);
+    LOG("export ctrl: %i\n", ret);
+    taiGetModuleInfoForKernel(KERNEL_PID, "SceAppMgr", &modInfo);
+    ret = module_get_offset(KERNEL_PID, modInfo.modid, 0, 0x3259c | 1, (uintptr_t*)&_ksceAppMgrLoadExec);
+    LOG("export appmgr: %i\n", ret);
+
+    exportF("SceKernelModulemgr", 0xC445FA63, 0x20A27FA9, 0x92C9FFC2, 0x679F5144, &_ksceKernelGetProcessMainModule);
+    exportF("SceKernelModulemgr", 0xC445FA63, 0xD269F915, 0x92C9FFC2, 0xDAA90093, &_ksceKernelGetModuleInfo);
+
+    snprintf(titleid, sizeof(titleid), HOME);
+    motion_init();
+    settings_init();
+    hotkeys_init();
+    theme_init();
+    profile_init();
+    gui_init();
+    remap_init();
+    userspace_init();
+    startTick = ksceKernelGetSystemTimeWide();
+	theme_load(settings[SETT_THEME].v.u);
 
     // Hooking functions
     for (int i = 0; i < HOOKS_NUM; i++)
@@ -482,9 +512,7 @@ int module_start(SceSize argc, const void *args) {
 	hookE(H_K_DISP_SET_FB,         "SceDisplay",    0x9FED47AC,      0x16466675, ksceDisplaySetFrameBufInternal_patched);
 	hookI(H_K_INV_PROC_EV_HANDLER, "SceProcessmgr", 0x887F19D0,      0x414CC813, ksceKernelInvokeProcEventHandler_patched);
 
-    exportF("SceKernelModulemgr", 0xC445FA63, 0x20A27FA9, 0x92C9FFC2, 0x679F5144, &_ksceKernelGetProcessMainModule);
-    exportF("SceKernelModulemgr", 0xC445FA63, 0xD269F915, 0x92C9FFC2, 0xDAA90093, &_ksceKernelGetModuleInfo);
-
+    
     thread_uid = ksceKernelCreateThread("remaPSV2_thread", main_thread, 0x3C, 0x3000, 0, 0x10000, 0);
     ksceKernelStartThread(thread_uid, 0, NULL);
 
@@ -514,6 +542,7 @@ int module_stop(SceSize argc, const void *args) {
             if (mutexTouchHook[i][j] >= 0)
                 ksceKernelDeleteMutex(mutexTouchHook[i][j]);
 
+    motion_destroy();
     settings_destroy();
     hotkeys_destroy();
     theme_destroy();

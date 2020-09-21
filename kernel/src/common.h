@@ -13,6 +13,7 @@
 #define SIZE(x)  (sizeof(x) / sizeof((x)[0]))
 
 #define FLIP(B) (B=!B)
+#define STRUCTS(type, name) type name = (type){size: sizeof(type)}
 
 #define STREQALL(...) streqall(__VA_ARGS__, NULL)
 #define STREQANY(...) streqany(__VA_ARGS__, NULL)

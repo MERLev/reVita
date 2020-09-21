@@ -2,6 +2,7 @@
 #define _MAIN_H_
 #include <stdbool.h>
 #include <psp2/touch.h>
+#include <psp2/appmgr.h>
 
 enum H_ID{
     H_CT_PEEK_P = 0,
@@ -35,6 +36,7 @@ enum H_ID{
 
 extern char titleid[32];
 extern int processid;
+extern SceUID shellPid;
 extern bool isPspemu;
 extern bool isPSTV;
 
@@ -43,5 +45,8 @@ extern bool used_funcs[HOOKS_NUM];
 void sync();
 int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count);
 int ksceTouchPeek_internal(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs);
+int ksceCtrlPeekBufferPositiveExt2_internal(int port, SceCtrlData *ctrl, int nBufs);
+int ksceAppMgrLoadExec(const char *appPath, char *const argv[], const SceAppMgrExecOptParam *optParam);
+int ksceKernelGetModuleInfo(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
 
 #endif

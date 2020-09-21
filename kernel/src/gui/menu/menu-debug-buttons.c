@@ -7,6 +7,8 @@
 #include "../gui.h"
 #include "../renderer.h"
 
+static int port = 0;
+static SceCtrlData scdPrev;
 void onDraw_debugButtons(unsigned int menuY){
 	uint32_t arr[16] = {
 		0x00010000,
@@ -27,20 +29,21 @@ void onDraw_debugButtons(unsigned int menuY){
 		0x80000000
 	};
 	SceCtrlData ctrl;
-	int ret = ksceCtrlPeekBufferPositive_internal(0, &ctrl, 1);
+	int ret = ksceCtrlPeekBufferPositiveExt2_internal(port, &ctrl, 1);
     int y = menuY;
     int x = L_1;
 	// SceCtrlData* ctrlP = gui_menu->dataPtr;
 	// if (ctrlP != NULL)
 	// 	ctrl = *ctrlP;
 	unsigned int buttons = ctrl.buttons;
+	renderer_setColor(theme[COLOR_HEADER]);
+	renderer_drawStringF(L_1, y += CHA_H, "             Port: [%i]", port);
+	y += CHA_H;
 	if (ret < 1){
 		renderer_setColor(theme[COLOR_DANGER]);
 		renderer_drawString(L_1, y += CHA_H, "ERROR READING INPUT");
 		return;
 	}
-	renderer_setColor(theme[COLOR_DEFAULT]);
-	renderer_drawStringF(L_1, y += CHA_H, "Port: {%i}", 0);
 	y += CHA_H;
 	for(int i = 0; i < 16; i++){
 		if (i == 8){
@@ -79,8 +82,19 @@ void onDraw_debugButtons(unsigned int menuY){
 		ctrl.lx, ctrl.ly, ctrl.rx, ctrl.ry);
 }
 
+bool isBtnClicked(unsigned int data, unsigned int dataPrev, unsigned int btn){
+	return btn_has(data, btn) && !btn_has(dataPrev, btn);
+}
+
 void onInput_debugButtons(SceCtrlData *ctrl){
 	gui_menu->dataPtr = &ctrl[0];
+	if (isBtnClicked(ctrl->buttons, scdPrev.buttons, SCE_CTRL_SQUARE | SCE_CTRL_DOWN))
+		gui_openMenuPrev();
+	if (isBtnClicked(ctrl->buttons, scdPrev.buttons, SCE_CTRL_SQUARE | SCE_CTRL_LEFT))
+		port = clamp(port - 1, 0, 4);
+	if (isBtnClicked(ctrl->buttons, scdPrev.buttons, SCE_CTRL_SQUARE | SCE_CTRL_RIGHT))
+		port = clamp(port + 1, 0, 4);
+	scdPrev = ctrl[0];
 }
 
 #define MENU_DEBUG_BUTTONS_NUM			4
@@ -89,9 +103,11 @@ static struct Menu menu_debug_buttons = (Menu){
 	.id = MENU_DEBUG_BUTTONS_ID, 
 	.parent = MENU_MAIN_ID,
 	.name = "$b BUTTONS INFO", 
+	.footer = "$S+$<$> CHANGE PORT          $S+$v BACK",
 	.noIndent = true,
 	.onDraw = onDraw_debugButtons,
 	.onInput = onInput_debugButtons,
+	.onButton = onButton_null,
 	.num = MENU_DEBUG_BUTTONS_NUM, 
 	.entries = menu_debug_buttons_entries};
 

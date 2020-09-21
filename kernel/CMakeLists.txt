@@ -27,6 +27,7 @@ add_executable(${PROJECT_NAME}
   src/remap.c
   src/sysactions.c
   src/userspace.c
+  src/motion-kernel.c
   src/fio/ini.c
   src/fio/fio.c
   src/fio/profile.c
@@ -68,6 +69,7 @@ target_link_libraries(${PROJECT_NAME}
   SceTouchForDriver_stub
   ScePowerForDriver_stub 
   SceDebugForDriver_stub
+  SceSysrootForDriver_stub.a
   ds34vita_stub_weak
 )
 

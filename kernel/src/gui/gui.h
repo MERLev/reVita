@@ -132,6 +132,7 @@ void gui_prevEntry();
 void gui_setIdx(int i);
 
 void gui_onInput(SceCtrlData *ctrl);
+void onButton_null(uint32_t btn);
 void gui_draw(const SceDisplayFrameBuf *pParam);
 void gui_open();
 void gui_close();

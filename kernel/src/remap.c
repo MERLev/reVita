@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "vitasdkext.h"
+#include "motion-kernel.h"
 #include "main.h"
 #include "userspace.h"
 #include "remap.h"
@@ -374,7 +375,8 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int hookId, int p
 	rd.port = port;
 
 	SceMotionState sms;
-	// int ret = _sceMotionGetState(&sms);
+	// int gyroRet = ksceMotionStartSampling();
+	// int gyroRet = ksceMotionGetState(&sms);
 	int gyroRet = -1;
 
 	//Set sticks def values

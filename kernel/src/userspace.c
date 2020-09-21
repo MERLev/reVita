@@ -49,7 +49,7 @@ int ret;
     }
 }
 
-int _sceMotionGetState(SceMotionState *pData){
+int __sceMotionGetState(SceMotionState *pData){
     if (!userPluginLoaded)
         return 0;
 
