@@ -309,7 +309,7 @@ void onButton_genericEntries(uint32_t btn){
 	}
 }
 
-void ctrl_onInput(SceCtrlData *ctrl) {
+void gui_onInput(SceCtrlData *ctrl) {
 	if (btn_has(ctrl->buttons, hotkeys[HOTKEY_MENU].v.u))
 		return; //Menu trigger butoons should not trigger any menu actions on menu open
 	
@@ -431,10 +431,6 @@ void gui_prevEntry(){
 				break;
 			}
 	}
-}
-
-void gui_onInput(SceCtrlData *ctrl){
-	ctrl_onInput(ctrl);
 }
 
 void gui_open(const SceDisplayFrameBuf *pParam){

@@ -59,8 +59,12 @@ static bool delayedStartDone = false;
 
 SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
 int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
+int (*_ksceCtrlPeekBufferPositive2)(int port, SceCtrlData *ctrl, int nBufs);
+int (*_ksceCtrlPeekBufferPositiveExt)(int port, SceCtrlData *ctrl, int nBufs);
 int (*_ksceCtrlPeekBufferPositiveExt2)(int port, SceCtrlData *ctrl, int nBufs);
-int (*_sceCtrlPeekBufferPositiveExt2)(int port, SceCtrlData *ctrl, int nBufs);
+int (*_ksceCtrlReadBufferPositive2)(int port, SceCtrlData *ctrl, int nBufs);
+int (*_ksceCtrlReadBufferPositiveExt)(int port, SceCtrlData *ctrl, int nBufs);
+int (*_ksceCtrlReadBufferPositiveExt2)(int port, SceCtrlData *ctrl, int nBufs);
 int (*_ksceAppMgrLoadExec)(const char *appPath, char *const argv[], const SceAppMgrExecOptParam *optParam);
 
 int ksceAppMgrLoadExec(const char *appPath, char *const argv[], const SceAppMgrExecOptParam *optParam){
@@ -83,6 +87,12 @@ int ksceTouchPeek_internal(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs)
     return ret;
 }
 
+int ksceCtrlPeekBufferPositive2_internal(int port, SceCtrlData *ctrl, int nBufs){
+    return _ksceCtrlPeekBufferPositive2(port, ctrl, nBufs);
+}
+int ksceCtrlPeekBufferPositiveExt_internal(int port, SceCtrlData *ctrl, int nBufs){
+    return _ksceCtrlPeekBufferPositiveExt(port, ctrl, nBufs);
+}
 int ksceCtrlPeekBufferPositiveExt2_internal(int port, SceCtrlData *ctrl, int nBufs){
     return _ksceCtrlPeekBufferPositiveExt2(port, ctrl, nBufs);
 }
@@ -141,8 +151,6 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpac
             return nullButtons_user(ctrl, nBufs, isPositiveLogic);
     }
     if (!settings[SETT_REMAP_ENABLED].v.b) 
-        return ret;
-    if (!isExt && profile.entries[PR_CO_ENABLED].v.b) 
         return ret;
 
     used_funcs[hookId] = true;
@@ -292,7 +300,7 @@ int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplay
     if (gui_isOpen) {
         SceCtrlData ctrl;
         
-        if(ksceCtrlPeekBufferPositive_internal(0, &ctrl, 1) == 1)
+        if(ksceCtrlPeekBufferPositive2_internal(0, &ctrl, 1) == 1)
             gui_onInput(&ctrl);
     }
 
@@ -343,9 +351,21 @@ PROCEVENT_EXIT:
     return TAI_CONTINUE(int, refs[H_K_INV_PROC_EV_HANDLER], pid, ev, a3, a4, a5, a6);
 }
 
+// Always return SceShell pid to read all buttons
+SceUID ksceKernelGetProcessId_patched(void){
+    int ret = TAI_CONTINUE(SceUID, refs[H_K_PROC_GET]);
+    if (profile.entries[PR_CO_PATCH_SYS].v.b && shellPid > 0)
+        return shellPid;
+    return ret;
+}
+
 static int main_thread(SceSize args, void *argp) {
     uint32_t oldBtns = 0;
     while (thread_run) {
+        //
+        if (shellPid < 0)
+            shellPid = ksceKernelSysrootGetShellPid();
+
         // Update PSM title
         if (isPspemu) 
             updatePspemuTitle();
@@ -457,8 +477,9 @@ int module_start(SceSize argc, const void *args) {
 	char* sceTouchModuleName = (!isPSTV) ? "SceTouch" : "SceTouchDummy";
 
     taiGetModuleInfoForKernel(KERNEL_PID, "SceCtrl", &modInfo);
-    ret = module_get_offset(KERNEL_PID, modInfo.modid, 0, 0x3EF8 | 1, (uintptr_t*)&_ksceCtrlPeekBufferPositiveExt2);
-    ret = module_get_offset(KERNEL_PID, modInfo.modid, 0, 0x67D0 | 1, (uintptr_t*)&_sceCtrlPeekBufferPositiveExt2);
+    ret = module_get_offset(KERNEL_PID, modInfo.modid, 0, 0x3EF8 | 1, (uintptr_t*)&_ksceCtrlPeekBufferPositive2);
+    ret = module_get_offset(KERNEL_PID, modInfo.modid, 0, 0x3928 | 1, (uintptr_t*)&_ksceCtrlPeekBufferPositiveExt);
+    ret = module_get_offset(KERNEL_PID, modInfo.modid, 0, 0x4B48 | 1, (uintptr_t*)&_ksceCtrlPeekBufferPositiveExt2);
     LOG("export ctrl: %i\n", ret);
     taiGetModuleInfoForKernel(KERNEL_PID, "SceAppMgr", &modInfo);
     ret = module_get_offset(KERNEL_PID, modInfo.modid, 0, 0x3259c | 1, (uintptr_t*)&_ksceAppMgrLoadExec);
@@ -468,7 +489,7 @@ int module_start(SceSize argc, const void *args) {
     exportF("SceKernelModulemgr", 0xC445FA63, 0xD269F915, 0x92C9FFC2, 0xDAA90093, &_ksceKernelGetModuleInfo);
 
     snprintf(titleid, sizeof(titleid), HOME);
-    motion_init();
+    // motion_init();
     settings_init();
     hotkeys_init();
     theme_init();
@@ -511,11 +532,12 @@ int module_start(SceSize argc, const void *args) {
 	hookE(H_K_CT_PORT_INFO,        "SceCtrl",       TAI_ANY_LIBRARY, 0xF11D0D30, ksceCtrlGetControllerPortInfo_patched);
 	hookE(H_K_DISP_SET_FB,         "SceDisplay",    0x9FED47AC,      0x16466675, ksceDisplaySetFrameBufInternal_patched);
 	hookI(H_K_INV_PROC_EV_HANDLER, "SceProcessmgr", 0x887F19D0,      0x414CC813, ksceKernelInvokeProcEventHandler_patched);
+	hookI(H_K_PROC_GET,            "SceCtrl",       0xE2C40624,      0x9DCB4B7A, ksceKernelGetProcessId_patched);
 
-    
     thread_uid = ksceKernelCreateThread("remaPSV2_thread", main_thread, 0x3C, 0x3000, 0, 0x10000, 0);
     ksceKernelStartThread(thread_uid, 0, NULL);
 
+    shellPid = ksceKernelSysrootGetShellPid();
     return SCE_KERNEL_START_SUCCESS;
 }
 
@@ -542,7 +564,7 @@ int module_stop(SceSize argc, const void *args) {
             if (mutexTouchHook[i][j] >= 0)
                 ksceKernelDeleteMutex(mutexTouchHook[i][j]);
 
-    motion_destroy();
+    // motion_destroy();
     settings_destroy();
     hotkeys_destroy();
     theme_destroy();

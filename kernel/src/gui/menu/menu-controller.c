@@ -48,10 +48,10 @@ void onDraw_controller(unsigned int menuY){
 }
 
 static struct MenuEntry menu_controllers_entries[] = {
-	(MenuEntry){.name = "Use external",   .dataPE = &profile.entries[PR_CO_ENABLED]},
-	(MenuEntry){.name = "Swap $[$] ${$}", .dataPE = &profile.entries[PR_CO_SWAP_BUTTONS]},
-	// (MenuEntry){.name = "Fix buttons",   .dataPE = &profile.entries[PR_CO_FIX_BUTTONS]},
-	(MenuEntry){.name = "Emulate DS4", .dataPE = &profile.entries[PR_CO_EMULATE_DS4]}};
+	(MenuEntry){.name = "Force support for $,$.$($) ",   .dataPE = &profile.entries[PR_CO_PATCH_EXT]},
+	(MenuEntry){.name = "Force support for $P$p$+$- ",   .dataPE = &profile.entries[PR_CO_PATCH_SYS]},
+	(MenuEntry){.name = "Swap $[$]<>${$}", .dataPE = &profile.entries[PR_CO_SWAP_BUTTONS]},
+	(MenuEntry){.name = "Vita as virtual DS4", .dataPE = &profile.entries[PR_CO_EMULATE_DS4]}};
 static struct Menu menu_controller = (Menu){
 	.id = MENU_CONTROLLER_ID, 
 	.parent = MENU_MAIN_ID,

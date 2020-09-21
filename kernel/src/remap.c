@@ -652,40 +652,48 @@ int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlDa
 		return nBufs;
 	}
 
-	//If buffer full - remove latest entry
+	// If buffer full - remove latest entry
 	if (cacheCtrl[hookId][port].num >= BUFFERS_NUM){
 		for (int i = 1; i < BUFFERS_NUM; i++)
 			cacheCtrl[hookId][port].buffers[i - 1] = cacheCtrl[hookId][port].buffers[i];
 		cacheCtrl[hookId][port].num--;
 	}
 
-	//Add curr ctrl to buffer
+	// Add curr ctrl to buffer
 	int idx = cacheCtrl[hookId][port].num;
 	cacheCtrl[hookId][port].num++;
 	cacheCtrl[hookId][port].buffers[idx] = ctrl[0];
 
-	//Invert for negative logic
+	// Invert for negative logic
 	if (!isPositiveLogic)
 		cacheCtrl[hookId][port].buffers[idx].buttons = 0xFFFFFFFF - cacheCtrl[hookId][port].buffers[idx].buttons;
 
-	//Swap side buttons for Ext hooks for Vita mode
+	// Swap side buttons for Ext hooks for Vita mode
 	if (!isExt)
 		remap_swapSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
 
+	// Patch for more buttons
+    if (profile.entries[PR_CO_PATCH_EXT].v.b){
+    	SceCtrlData scd_ext;
+        ksceCtrlPeekBufferPositiveExt2_internal(port, &scd_ext, 1);
+		cacheCtrl[hookId][port].buffers[idx].buttons |= scd_ext.buttons;
+    }
+
+	// Apply remap
 	applyRemap(&cacheCtrl[hookId][port].buffers[idx], &rs[hookId][port][0], hookId, port);
 
-	//Swap side buttons for Ext hooks
+	// Swap side buttons for Ext hooks
 	if (!isExt)
 		remap_fixSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
 
 	if (profile.entries[PR_CO_SWAP_BUTTONS].v.b)
 		remap_swapSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
 
-	//Invert back for negative logic
+	// Invert back for negative logic
 	if (!isPositiveLogic)
 		cacheCtrl[hookId][port].buffers[idx].buttons = 0xFFFFFFFF - cacheCtrl[hookId][port].buffers[idx].buttons;
 
-	//Limit returned buufers num with what we have stored
+	// Limit returned buufers num with what we have stored
 	nBufs = min(nBufs, cacheCtrl[hookId][port].num);
 
 	*remappedBuffers = &cacheCtrl[hookId][port].buffers[cacheCtrl[hookId][port].num - nBufs];

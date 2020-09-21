@@ -28,6 +28,7 @@ enum H_ID{
     H_K_CT_PORT_INFO,
     H_K_DISP_SET_FB,
     H_K_INV_PROC_EV_HANDLER,
+    H_K_PROC_GET,
     HOOKS_NUM
 };
 
@@ -45,8 +46,10 @@ extern bool used_funcs[HOOKS_NUM];
 void sync();
 int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count);
 int ksceTouchPeek_internal(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs);
-int ksceCtrlPeekBufferPositiveExt2_internal(int port, SceCtrlData *ctrl, int nBufs);
 int ksceAppMgrLoadExec(const char *appPath, char *const argv[], const SceAppMgrExecOptParam *optParam);
 int ksceKernelGetModuleInfo(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
+int ksceCtrlPeekBufferPositive2_internal(int port, SceCtrlData *ctrl, int nBufs);
+int ksceCtrlPeekBufferPositiveExt_internal(int port, SceCtrlData *ctrl, int nBufs);
+int ksceCtrlPeekBufferPositiveExt2_internal(int port, SceCtrlData *ctrl, int nBufs);
 
 #endif

@@ -90,28 +90,28 @@ int patchToExt(int port, SceCtrlData *ctrl, int nBufs, bool positive){
 
 int sceCtrlPeekBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[0], port, ctrl, nBufs);
-	if (!profile.entries[PR_CO_ENABLED].v.b) return ret;
+	if (!profile.entries[PR_CO_PATCH_EXT].v.b) return ret;
 	if (ret > 0)
 		ret = patchToExt(port, ctrl, ret, true);
 	return ret;
 }
 int sceCtrlReadBufferPositive_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[1], port, ctrl, nBufs);
-	if (!profile.entries[PR_CO_ENABLED].v.b) return ret;
+	if (!profile.entries[PR_CO_PATCH_EXT].v.b) return ret;
 	if (ret > 0)
 		ret = patchToExt(port, ctrl, ret, true);
 	return ret;
 }
 int sceCtrlPeekBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[2], port, ctrl, nBufs);
-	if (!profile.entries[PR_CO_ENABLED].v.b) return ret;
+	if (!profile.entries[PR_CO_PATCH_EXT].v.b) return ret;
 	if (ret > 0)
 		ret = patchToExt(port, ctrl, ret, false);
 	return ret;
 }
 int sceCtrlReadBufferNegative_patched(int port, SceCtrlData *ctrl, int nBufs) {
 	int ret = TAI_CONTINUE(int, refs[3], port, ctrl, nBufs);
-	if (!profile.entries[PR_CO_ENABLED].v.b) return ret;
+	if (!profile.entries[PR_CO_PATCH_EXT].v.b) return ret;
 	if (ret > 0)
 		ret = patchToExt(port, ctrl, ret, false);
 	return ret;

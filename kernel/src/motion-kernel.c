@@ -16,8 +16,6 @@ static SceUID thread_uid = -1;
 static bool   isNotReady = true;
 SceUID modid;
 
-SceUID ksceKernelSysrootGetShellPid();
-
 int (*_sceMotionGetState)(SceMotionState *motionState);
 int (*_sceMotionGetSensorState)(SceMotionSensorState *sensorState, int numRecords);
 int (*_sceMotionGetBasicOrientation)(SceFVector3 *basicOrientation);
