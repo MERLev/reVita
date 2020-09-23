@@ -14,7 +14,7 @@
 #define BUFFER_SIZE_HOTKEYS (200 * sizeof(char)+ 0xfff) & ~0xfff
 #define PATH "ux0:/data/remaPSV2"
 #define NAME_SETTINGS "HOTKEYS"
-#define EXT_INI "INI"
+#define EXT "INI"
 
 struct ProfileEntry hotkeys[HOTKEY__NUM];
 
@@ -85,7 +85,7 @@ bool hotkeys_load(){
     if (ksceKernelGetMemBlockBase(buff_uid, (void**)&buff) != 0)
 		goto ERROR;
 	//Read file to buffer
-	if (!fio_readFile(buff, BUFFER_SIZE_HOTKEYS, PATH, NAME_SETTINGS, EXT_INI))
+	if (!fio_readFile(buff, BUFFER_SIZE_HOTKEYS, PATH, NAME_SETTINGS, EXT))
 		goto ERROR;
 
 	// Parse INI
@@ -113,7 +113,7 @@ bool hotkeys_save(){
 		goto ERROR;
 	
 	//Write to file
-	ret = fio_writeFile(buff, strlen(buff), PATH, NAME_SETTINGS, EXT_INI);
+	ret = fio_writeFile(buff, strlen(buff), PATH, NAME_SETTINGS, EXT);
 
 ERROR: //Free allocated memory
 	ksceKernelFreeMemBlock(buff_uid);

@@ -14,6 +14,10 @@ void onButton_hotkeys(uint32_t btn){
 			break;
 		case SCE_CTRL_SQUARE: hotkeys_reset(id); break;
 		case SCE_CTRL_START: hotkeys_resetAll(); break;
+		case SCE_CTRL_CIRCLE: 
+			hotkeys_save(); 
+			gui_openMenuPrev();
+			break;
 		default: onButton_generic(btn);break;
 	}
 }
