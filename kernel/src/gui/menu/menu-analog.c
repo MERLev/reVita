@@ -22,11 +22,12 @@ void onDraw_analog(unsigned int menuY){
 }
 
 static struct MenuEntry menu_analog_entries[] = {
+	(MenuEntry){.name = "Analog wide mode", .icn = ICON_LS_UP,  .dataPE = &profile.entries[PR_AN_MODE_WIDE]},
 	(MenuEntry){.name = "Deadzone", .type = HEADER_TYPE},
-	(MenuEntry){.name = "Left  Analog - X Axis", .icn = ICON_LS_UP,  .dataPE = &profile.entries[PR_AN_LEFT_DEADZONE_X]},
-	(MenuEntry){.name = "Left  Analog - Y Axis", .icn = ICON_LS_LEFT,.dataPE = &profile.entries[PR_AN_LEFT_DEADZONE_Y]},
-	(MenuEntry){.name = "Right Analog - X Axis", .icn = ICON_RS_UP,  .dataPE = &profile.entries[PR_AN_RIGHT_DEADZONE_X]},
-	(MenuEntry){.name = "Right Analog - Y Axis", .icn = ICON_RS_LEFT,.dataPE = &profile.entries[PR_AN_RIGHT_DEADZONE_Y]}};
+	(MenuEntry){.name = "Left  Analog - X Axis", .icn = ICON_LS_LEFT,  .dataPE = &profile.entries[PR_AN_LEFT_DEADZONE_X]},
+	(MenuEntry){.name = "Left  Analog - Y Axis", .icn = ICON_LS_UP,.dataPE = &profile.entries[PR_AN_LEFT_DEADZONE_Y]},
+	(MenuEntry){.name = "Right Analog - X Axis", .icn = ICON_RS_LEFT,  .dataPE = &profile.entries[PR_AN_RIGHT_DEADZONE_X]},
+	(MenuEntry){.name = "Right Analog - Y Axis", .icn = ICON_RS_UP,.dataPE = &profile.entries[PR_AN_RIGHT_DEADZONE_Y]}};
 static struct Menu menu_analog = (Menu){
 	.id = MENU_ANALOG_ID, 
 	.parent = MENU_MAIN_ID,

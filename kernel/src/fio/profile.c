@@ -560,6 +560,11 @@ void setDefProfile(){
 	profile.version = ksceKernelGetSystemTimeWide();
 	// Analog
 	setPE((ProfileEntry){
+		.id = PR_AN_MODE_WIDE,
+		.type = TYPE_BOOL,
+		.def.u = 1,
+		.key = "ANALOG_MODE_WIDE"});
+	setPE((ProfileEntry){
 		.id = PR_AN_LEFT_DEADZONE_X,
 		.type = TYPE_UINT32,
 		.def.u = 30,

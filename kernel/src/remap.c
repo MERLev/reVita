@@ -930,9 +930,14 @@ void initTouchParams(){
 
 void remap_setup(){
     //ksceKernelGetSystemTimeLow
-
 	// Enabling analogs sampling 
-	ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+	if (profile.entries[PR_AN_MODE_WIDE].v.b){
+		ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+		ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+	} else {
+		ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
+		ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
+	}
 	ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
 	
 	// Enabling both touch panels sampling
