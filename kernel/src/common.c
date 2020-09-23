@@ -2,6 +2,28 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define HBASE 16
+
+char* ullx(uint64_t val){
+    static char buf[HBASE + 2] = { [0 ... HBASE + 1] = 0 };
+    char* out = &buf[HBASE + 1];
+    uint64_t hval = val;
+
+    do {
+        *out = "0123456789ABCDEF"[hval % HBASE];
+        --out;
+        hval /= HBASE;
+    } while(hval);
+
+    while (out != &buf[2]){
+        *out = '0';
+        out--;
+    }
+    *out-- = 'x', *out = '0';
+
+    return out;
+}
+
 int32_t clamp(int32_t value, int32_t mini, int32_t maxi) {
 	if (value < mini) return mini; 
 	if (value > maxi) return maxi;

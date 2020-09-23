@@ -13,11 +13,15 @@
 #define SIZE(x)  (sizeof(x) / sizeof((x)[0]))
 
 #define FLIP(B) (B=!B)
-#define STRUCTS(type, name) type name = (type){size: sizeof(type)}
+#define STRUCTS(type, name) \
+    type name;\
+    memset(&name, 0, sizeof(type));\
+    name.size = sizeof(type);\
 
 #define STREQALL(...) streqall(__VA_ARGS__, NULL)
 #define STREQANY(...) streqany(__VA_ARGS__, NULL)
 
+char* ullx(uint64_t val);
 int32_t clamp(int32_t value, int32_t mini, int32_t maxi);
 int32_t clampSmart(int32_t val, int32_t min, int32_t max);
 bool btn_has(uint32_t btns, uint32_t btn);

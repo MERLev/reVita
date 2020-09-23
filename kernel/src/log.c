@@ -3,6 +3,7 @@
 #include <psp2kern/io/fcntl.h>
 #include "log.h"
 
+int prefixFlag = 1;
 static unsigned int log_buf_ptr = 0;
 static char log_buf[16 * 1024];
 

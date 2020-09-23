@@ -10,7 +10,6 @@
 #include "vitasdkext.h"
 #include "main.h"
 #include "motion-kernel.h"
-#include "adrenaline.h"
 #include "gui/gui.h"
 #include "remap.h"
 #include "fio/profile.h"
@@ -47,7 +46,7 @@ static bool   thread_run = true;
 
 char titleid[32] = "";
 int processid = -1;
-SceUID shellPid = -1;
+static SceUID shellPid = -1;
 bool isPspemu = false;
 bool isPSTV = false;
 
@@ -56,24 +55,6 @@ bool ds34vitaRunning;
 
 static uint64_t startTick;
 static bool delayedStartDone = false;
-
-SceUID (*_ksceKernelGetProcessMainModule)(SceUID pid);
-int (*_ksceKernelGetModuleInfo)(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
-int (*_ksceCtrlPeekBufferPositive2)(int port, SceCtrlData *ctrl, int nBufs);
-int (*_ksceCtrlPeekBufferPositiveExt)(int port, SceCtrlData *ctrl, int nBufs);
-int (*_ksceCtrlPeekBufferPositiveExt2)(int port, SceCtrlData *ctrl, int nBufs);
-int (*_ksceCtrlReadBufferPositive2)(int port, SceCtrlData *ctrl, int nBufs);
-int (*_ksceCtrlReadBufferPositiveExt)(int port, SceCtrlData *ctrl, int nBufs);
-int (*_ksceCtrlReadBufferPositiveExt2)(int port, SceCtrlData *ctrl, int nBufs);
-int (*_ksceAppMgrLoadExec)(const char *appPath, char *const argv[], const SceAppMgrExecOptParam *optParam);
-
-int ksceAppMgrLoadExec(const char *appPath, char *const argv[], const SceAppMgrExecOptParam *optParam){
-    return _ksceAppMgrLoadExec(appPath, argv, optParam);
-}
-
-int ksceKernelGetModuleInfo(SceUID pid, SceUID modid, SceKernelModuleInfo *info){
-    return _ksceKernelGetModuleInfo(pid, modid, info);
-}
 
 int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count){
     pad_data->timeStamp = INTERNAL;
@@ -85,16 +66,6 @@ int ksceTouchPeek_internal(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs)
     pData->status = INTERNAL;
     int ret = ksceTouchPeek(port, pData, nBufs);
     return ret;
-}
-
-int ksceCtrlPeekBufferPositive2_internal(int port, SceCtrlData *ctrl, int nBufs){
-    return _ksceCtrlPeekBufferPositive2(port, ctrl, nBufs);
-}
-int ksceCtrlPeekBufferPositiveExt_internal(int port, SceCtrlData *ctrl, int nBufs){
-    return _ksceCtrlPeekBufferPositiveExt(port, ctrl, nBufs);
-}
-int ksceCtrlPeekBufferPositiveExt2_internal(int port, SceCtrlData *ctrl, int nBufs){
-    return _ksceCtrlPeekBufferPositiveExt2(port, ctrl, nBufs);
 }
 
 void changeActiveApp(char* tId, int pid){
@@ -170,32 +141,32 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpac
     return ret;
 }
 
-#define DECL_FUNC_HOOK_PATCH_CTRL(id, name, space, logic, triggers) \
+#define DECL_FUNC_HOOK_PATCH_CTRL(name, space, logic, triggers) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
         if ((space) == SPACE_KERNEL && ctrl->timeStamp == INTERNAL) \
-            return TAI_CONTINUE(int, refs[(id)], port, ctrl, nBufs); \
-		int ret = TAI_CONTINUE(int, refs[(id)], \
+            return TAI_CONTINUE(int, refs[name##_id], port, ctrl, nBufs); \
+		int ret = TAI_CONTINUE(int, refs[name##_id], \
             (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
-        return onInput(port, ctrl, ret, (id), (space), (logic), (triggers));\
+        return onInput(port, ctrl, ret, name##_id, (space), (logic), (triggers));\
     }
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_P,      sceCtrlPeekBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_P,      sceCtrlReadBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_N,      sceCtrlPeekBufferNegative,     SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_N,      sceCtrlReadBufferNegative,     SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_P_EXT,  sceCtrlPeekBufferPositiveExt,  SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_P_EXT,  sceCtrlReadBufferPositiveExt,  SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlPeekBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlReadBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlPeekBufferNegative,     SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlReadBufferNegative,     SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlPeekBufferPositiveExt,  SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlReadBufferPositiveExt,  SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
 
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_P_2,    sceCtrlPeekBufferPositive2,    SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_P_2,    sceCtrlReadBufferPositive2,    SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_N_2,    sceCtrlPeekBufferNegative2,    SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_EXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_N_2,    sceCtrlReadBufferNegative2,    SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_EXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_PEEK_P_EXT2, sceCtrlPeekBufferPositiveExt2, SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_CT_READ_P_EXT2, sceCtrlReadBufferPositiveExt2, SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
+DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlPeekBufferPositive2,    SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
+DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlReadBufferPositive2,    SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
+DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlPeekBufferNegative2,    SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_EXT)
+DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlReadBufferNegative2,    SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_EXT)
+DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlPeekBufferPositiveExt2, SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
+DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlReadBufferPositiveExt2, SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
 
-DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_PEEK_P,    ksceCtrlPeekBufferPositive,    SPACE_KERNEL, LOGIC_POSITIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_READ_P,    ksceCtrlReadBufferPositive,    SPACE_KERNEL, LOGIC_POSITIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_PEEK_N,    ksceCtrlPeekBufferNegative,    SPACE_KERNEL, LOGIC_NEGATIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(H_K_CT_READ_N,    ksceCtrlReadBufferNegative,    SPACE_KERNEL, LOGIC_NEGATIVE, TRIGGERS_NONEXT)
+// DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlPeekBufferPositive,    SPACE_KERNEL, LOGIC_POSITIVE, TRIGGERS_NONEXT)
+// DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlReadBufferPositive,    SPACE_KERNEL, LOGIC_POSITIVE, TRIGGERS_NONEXT)
+// DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlPeekBufferNegative,    SPACE_KERNEL, LOGIC_NEGATIVE, TRIGGERS_NONEXT)
+// DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlReadBufferNegative,    SPACE_KERNEL, LOGIC_NEGATIVE, TRIGGERS_NONEXT)
 
 int nullTouch_kernel(SceTouchData *pData, SceUInt32 nBufs){
     pData[0] = pData[nBufs - 1];
@@ -249,17 +220,17 @@ void scaleTouchData(int port, SceTouchData *pData){
             + T_SIZE[port].a.y;
 }
 
-#define DECL_FUNC_HOOK_PATCH_TOUCH(index, name, space) \
+#define DECL_FUNC_HOOK_PATCH_TOUCH(name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
         if (pData->status == INTERNAL) \
-            return TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
+            return TAI_CONTINUE(int, refs[name##_id], port, pData, nBufs); \
         if (profile.entries[PR_TO_SWAP].v.b) \
             port = !port; \
-		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs); \
+		int ret = TAI_CONTINUE(int, refs[name##_id], port, pData, nBufs); \
         if (profile.entries[PR_TO_SWAP].v.b && ret > 0 && ret < 64) \
             scaleTouchData(!port, &pData[ret - 1]); \
-        used_funcs[(index)] = true; \
-        return onTouch(port, pData, ret, (index) - H_K_TO_PEEK, (space)); \
+        used_funcs[name##_id] = true; \
+        return onTouch(port, pData, ret, name##_id - ksceTouchPeek_id, (space)); \
     }
 /*#define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(index, name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, int region) { \
@@ -270,15 +241,15 @@ void scaleTouchData(int port, SceTouchData *pData){
 		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
         if (region != 1) return ret; \
         used_funcs[(index)] = true; \
-        return onTouch(port, pData, ret, (index) - H_K_TO_PEEK, (space)); \
+        return onTouch(port, pData, ret, (index) - ksceTouchPeek_id, (space)); \
     }*/
-DECL_FUNC_HOOK_PATCH_TOUCH(H_K_TO_PEEK, ksceTouchPeek, SPACE_KERNEL)
-DECL_FUNC_HOOK_PATCH_TOUCH(H_K_TO_READ, ksceTouchRead, SPACE_KERNEL)
-// DECL_FUNC_HOOK_PATCH_TOUCH_REGION(H_K_TO_PEEK_R, ksceTouchPeekRegion, SPACE_KERNEL)
-// DECL_FUNC_HOOK_PATCH_TOUCH_REGION(H_K_TO_READ_R, ksceTouchReadRegion, SPACE_KERNEL)
+DECL_FUNC_HOOK_PATCH_TOUCH(ksceTouchPeek, SPACE_KERNEL)
+DECL_FUNC_HOOK_PATCH_TOUCH(ksceTouchRead, SPACE_KERNEL)
+// DECL_FUNC_HOOK_PATCH_TOUCH_REGION(ksceTouchPeekRegion, SPACE_KERNEL)
+// DECL_FUNC_HOOK_PATCH_TOUCH_REGION(ksceTouchReadRegion, SPACE_KERNEL)
 
 int ksceCtrlGetControllerPortInfo_patched(SceCtrlPortInfo* info){
-    int ret = TAI_CONTINUE(int, refs[H_K_CT_PORT_INFO], info);
+    int ret = TAI_CONTINUE(int, refs[ksceCtrlGetControllerPortInfo_id], info);
     if (profile.entries[PR_CO_EMULATE_DS4].v.b){
         info->port[1] = SCE_CTRL_TYPE_DS4;
     }
@@ -286,7 +257,7 @@ int ksceCtrlGetControllerPortInfo_patched(SceCtrlPortInfo* info){
 }
 
 int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplayFrameBuf *pParam, int sync) {
-    used_funcs[H_K_DISP_SET_FB] = 1;
+    used_funcs[ksceDisplaySetFrameBufInternal_id] = 1;
 
     if (index && ksceAppMgrIsExclusiveProcessRunning())
         goto DISPLAY_HOOK_RET; // Do not draw over SceShell overlay
@@ -300,16 +271,16 @@ int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplay
     if (gui_isOpen) {
         SceCtrlData ctrl;
         
-        if(ksceCtrlPeekBufferPositive2_internal(0, &ctrl, 1) == 1)
+        if(ksceCtrlPeekBufferPositiveExt2(0, &ctrl, 1) == 1)
             gui_onInput(&ctrl);
     }
 
 DISPLAY_HOOK_RET:
-    return TAI_CONTINUE(int, refs[H_K_DISP_SET_FB], head, index, pParam, sync);
+    return TAI_CONTINUE(int, refs[ksceDisplaySetFrameBufInternal_id], head, index, pParam, sync);
 }
 
 int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, int *a5, int a6) {
-    used_funcs[H_K_INV_PROC_EV_HANDLER] = 1;
+    used_funcs[ksceKernelInvokeProcEventHandler_id] = 1;
     char titleidLocal[sizeof(titleid)];
     int ret = ksceKernelLockMutex(mutex_procevent_uid, 1, NULL);
     if (ret < 0)
@@ -348,12 +319,12 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
     ksceKernelUnlockMutex(mutex_procevent_uid, 1);
 
 PROCEVENT_EXIT:
-    return TAI_CONTINUE(int, refs[H_K_INV_PROC_EV_HANDLER], pid, ev, a3, a4, a5, a6);
+    return TAI_CONTINUE(int, refs[ksceKernelInvokeProcEventHandler_id], pid, ev, a3, a4, a5, a6);
 }
 
 // Always return SceShell pid to read all buttons
 SceUID ksceKernelGetProcessId_patched(void){
-    int ret = TAI_CONTINUE(SceUID, refs[H_K_PROC_GET]);
+    int ret = TAI_CONTINUE(SceUID, refs[ksceKernelGetProcessId_id]);
     if (profile.entries[PR_CO_PATCH_SYS].v.b && shellPid > 0)
         return shellPid;
     return ret;
@@ -363,8 +334,10 @@ static int main_thread(SceSize args, void *argp) {
     uint32_t oldBtns = 0;
     while (thread_run) {
         //
-        if (shellPid < 0)
+        if (shellPid < 0){
             shellPid = ksceKernelSysrootGetShellPid();
+            ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
+        }
 
         // Update PSM title
         if (isPspemu) 
@@ -378,7 +351,7 @@ static int main_thread(SceSize args, void *argp) {
         }
 
         SceCtrlData ctrl;
-        if(ksceCtrlPeekBufferPositive_internal(0, &ctrl, 1) != 1){
+        if(ksceCtrlPeekBufferPositive2(0, &ctrl, 1) != 1){
             ksceKernelDelayThread(30 * 1000);
             continue;
         }
@@ -438,22 +411,23 @@ void sync(){
     syncDS34Vita();
 }
 
-void hookE(uint8_t hookId, const char *module, uint32_t library_nid, uint32_t func_nid, const void *func) {
-    hooks[hookId] = taiHookFunctionExportForKernel(KERNEL_PID, &refs[hookId], module, library_nid, func_nid, func);
-}
-void hookI(uint8_t hookId, const char *module, uint32_t library_nid, uint32_t func_nid, const void *func) {
-    hooks[hookId] = taiHookFunctionImportForKernel(KERNEL_PID, &refs[hookId], module, library_nid, func_nid, func);
-}
-void exportF(const char *module, uint32_t library_nid_360, uint32_t func_nid_360, 
-        uint32_t library_nid_365, uint32_t func_nid_365, const void *func){
-    if (module_get_export_func(KERNEL_PID, module, library_nid_360, func_nid_360, (uintptr_t*)func) < 0) // 3.60
-        module_get_export_func(KERNEL_PID, module, library_nid_365, func_nid_365, (uintptr_t*)func);     // 3.65
-}
+#define HOOK_EXPORT(module, libnid, funcnid, name) \
+    hooks[name##_id] = taiHookFunctionExportForKernel(\
+            KERNEL_PID, &refs[name##_id], #module, libnid, funcnid, name##_patched);\
+    if (hooks[name##_id] < 0)\
+        LOG("ERROR: Hook export "#module">"#name" : %08X", hooks[name##_id]);
+
+#define HOOK_IMPORT(module, libnid, funcnid, name) \
+    hooks[name##_id] = taiHookFunctionImportForKernel(\
+            KERNEL_PID, &refs[name##_id], #module, libnid, funcnid, name##_patched);\
+    if (hooks[name##_id] < 0)\
+        LOG("ERROR: Hook export "#module">"#name" : %08X", hooks[name##_id]);
 
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
     LOG("Plugin started\n");
 
+    // Create mutexes for ctrl and touch hooks
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
     char fname[128];
     for (int i = 0; i < CTRL_HOOKS_NUM; i++){
@@ -469,26 +443,17 @@ int module_start(SceSize argc, const void *args) {
         }
     }
 
+    // Import all needed functions
+    vitasdkext_init();
+
 	// PS TV uses SceTouchDummy instead of SceTouch
-    tai_module_info_t modInfo;
-	modInfo.size = sizeof(modInfo);
-	int ret = taiGetModuleInfoForKernel(KERNEL_PID, "SceTouch", &modInfo);
-    isPSTV = ret < 0;
-	char* sceTouchModuleName = (!isPSTV) ? "SceTouch" : "SceTouchDummy";
+    STRUCTS(tai_module_info_t, modInfo);
+	isPSTV = taiGetModuleInfoForKernel(KERNEL_PID, "SceTouch", &modInfo) < 0;
 
-    taiGetModuleInfoForKernel(KERNEL_PID, "SceCtrl", &modInfo);
-    ret = module_get_offset(KERNEL_PID, modInfo.modid, 0, 0x3EF8 | 1, (uintptr_t*)&_ksceCtrlPeekBufferPositive2);
-    ret = module_get_offset(KERNEL_PID, modInfo.modid, 0, 0x3928 | 1, (uintptr_t*)&_ksceCtrlPeekBufferPositiveExt);
-    ret = module_get_offset(KERNEL_PID, modInfo.modid, 0, 0x4B48 | 1, (uintptr_t*)&_ksceCtrlPeekBufferPositiveExt2);
-    LOG("export ctrl: %i\n", ret);
-    taiGetModuleInfoForKernel(KERNEL_PID, "SceAppMgr", &modInfo);
-    ret = module_get_offset(KERNEL_PID, modInfo.modid, 0, 0x3259c | 1, (uintptr_t*)&_ksceAppMgrLoadExec);
-    LOG("export appmgr: %i\n", ret);
-
-    exportF("SceKernelModulemgr", 0xC445FA63, 0x20A27FA9, 0x92C9FFC2, 0x679F5144, &_ksceKernelGetProcessMainModule);
-    exportF("SceKernelModulemgr", 0xC445FA63, 0xD269F915, 0x92C9FFC2, 0xDAA90093, &_ksceKernelGetModuleInfo);
-
+    // Set home profile titleId
     snprintf(titleid, sizeof(titleid), HOME);
+
+    // Init all components
     // motion_init();
     settings_init();
     hotkeys_init();
@@ -501,43 +466,49 @@ int module_start(SceSize argc, const void *args) {
 	theme_load(settings[SETT_THEME].v.u);
 
     // Hooking functions
-    for (int i = 0; i < HOOKS_NUM; i++)
-        hooks[i] = 0;
-    if (isPSTV){
-        hookE(H_CT_PEEK_P,     "SceCtrl", 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive_patched);
-        hookE(H_CT_READ_P,     "SceCtrl", 0xD197E3C7, 0x67E7AB83, sceCtrlReadBufferPositive_patched);
-        hookE(H_CT_PEEK_N,     "SceCtrl", 0xD197E3C7, 0x104ED1A7, sceCtrlPeekBufferNegative_patched);
-        hookE(H_CT_READ_N,     "SceCtrl", 0xD197E3C7, 0x15F96FB0, sceCtrlReadBufferNegative_patched);
+    memset(hooks, 0, sizeof(hooks));
+    // if (isPSTV){
+        HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive);
+        HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x67E7AB83, sceCtrlReadBufferPositive);
+        HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x104ED1A7, sceCtrlPeekBufferNegative);
+        HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x15F96FB0, sceCtrlReadBufferNegative);
+    // } else {
+        // HOOK_EXPORT(SceCtrl, 0x7823A5D1, 0xEA1D3A34, ksceCtrlPeekBufferPositive);
+        // HOOK_EXPORT(SceCtrl, 0x7823A5D1, 0x9B96A1AA, ksceCtrlReadBufferPositive);
+        // HOOK_EXPORT(SceCtrl, 0x7823A5D1, 0x19895843, ksceCtrlPeekBufferNegative);
+        // HOOK_EXPORT(SceCtrl, 0x7823A5D1, 0x8D4E0DD1, ksceCtrlReadBufferNegative);
+    // }
+	HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0xA59454D3, sceCtrlPeekBufferPositiveExt);
+    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0xE2D99296, sceCtrlReadBufferPositiveExt);
+
+    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x15F81E8C, sceCtrlPeekBufferPositive2);
+    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0xC4226A3E, sceCtrlReadBufferPositive2);
+    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x81A89660, sceCtrlPeekBufferNegative2);
+    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x27A0C5FB, sceCtrlReadBufferNegative2);
+    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x860BF292, sceCtrlPeekBufferPositiveExt2);
+    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0xA7178860, sceCtrlReadBufferPositiveExt2);
+
+    if (!isPSTV) {
+        HOOK_EXPORT(SceTouch, TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek);
+        HOOK_EXPORT(SceTouch, TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead);
+        // HOOK_EXPORT(SceTouch, TAI_ANY_LIBRARY, 0x9B3F7207, ksceTouchPeekRegion);
+        // HOOK_EXPORT(SceTouch, TAI_ANY_LIBRARY, 0x9A91F624, ksceTouchReadRegion);
     } else {
-        hookE(H_K_CT_PEEK_P,   "SceCtrl", 0x7823A5D1, 0xEA1D3A34, ksceCtrlPeekBufferPositive_patched);
-        hookE(H_K_CT_READ_P,   "SceCtrl", 0x7823A5D1, 0x9B96A1AA, ksceCtrlReadBufferPositive_patched);
-        hookE(H_K_CT_PEEK_N,   "SceCtrl", 0x7823A5D1, 0x19895843, ksceCtrlPeekBufferNegative_patched);
-        hookE(H_K_CT_READ_N,   "SceCtrl", 0x7823A5D1, 0x8D4E0DD1, ksceCtrlReadBufferNegative_patched);
+        HOOK_EXPORT(SceTouchDummy, TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek);
+        HOOK_EXPORT(SceTouchDummy, TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead);
+        // HOOK_EXPORT(SceTouchDummy, TAI_ANY_LIBRARY, 0x9B3F7207, ksceTouchPeekRegion);
+        // HOOK_EXPORT(SceTouchDummy, TAI_ANY_LIBRARY, 0x9A91F624, ksceTouchReadRegion);
     }
-	hookE(H_CT_PEEK_P_EXT, "SceCtrl", 0xD197E3C7, 0xA59454D3, sceCtrlPeekBufferPositiveExt_patched);
-    hookE(H_CT_READ_P_EXT, "SceCtrl", 0xD197E3C7, 0xE2D99296, sceCtrlReadBufferPositiveExt_patched);
 
-    hookE(H_CT_PEEK_P_2,   "SceCtrl", 0xD197E3C7, 0x15F81E8C, sceCtrlPeekBufferPositive2_patched);
-    hookE(H_CT_READ_P_2,   "SceCtrl", 0xD197E3C7, 0xC4226A3E, sceCtrlReadBufferPositive2_patched);
-    hookE(H_CT_PEEK_N_2,   "SceCtrl", 0xD197E3C7, 0x81A89660, sceCtrlPeekBufferNegative2_patched);
-    hookE(H_CT_READ_N_2,   "SceCtrl", 0xD197E3C7, 0x27A0C5FB, sceCtrlReadBufferNegative2_patched);
-    hookE(H_CT_PEEK_P_EXT2,"SceCtrl", 0xD197E3C7, 0x860BF292, sceCtrlPeekBufferPositiveExt2_patched);
-    hookE(H_CT_READ_P_EXT2,"SceCtrl", 0xD197E3C7, 0xA7178860, sceCtrlReadBufferPositiveExt2_patched);
+	HOOK_EXPORT(SceCtrl,       TAI_ANY_LIBRARY, 0xF11D0D30, ksceCtrlGetControllerPortInfo);
+	HOOK_EXPORT(SceDisplay,    0x9FED47AC,      0x16466675, ksceDisplaySetFrameBufInternal);
+	HOOK_IMPORT(SceProcessmgr, 0x887F19D0,      0x414CC813, ksceKernelInvokeProcEventHandler);
+	HOOK_IMPORT(SceCtrl,       0xE2C40624,      0x9DCB4B7A, ksceKernelGetProcessId);
 
-    hookE(H_K_TO_PEEK, sceTouchModuleName, TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek_patched);
-    hookE(H_K_TO_READ, sceTouchModuleName, TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead_patched);
-    // hookE(H_K_TO_PEEK_R, sceTouchModuleName, TAI_ANY_LIBRARY, 0x9B3F7207, ksceTouchPeekRegion_patched);
-    // hookE(H_K_TO_READ_R, sceTouchModuleName, TAI_ANY_LIBRARY, 0x9A91F624, ksceTouchReadRegion_patched);
-
-	hookE(H_K_CT_PORT_INFO,        "SceCtrl",       TAI_ANY_LIBRARY, 0xF11D0D30, ksceCtrlGetControllerPortInfo_patched);
-	hookE(H_K_DISP_SET_FB,         "SceDisplay",    0x9FED47AC,      0x16466675, ksceDisplaySetFrameBufInternal_patched);
-	hookI(H_K_INV_PROC_EV_HANDLER, "SceProcessmgr", 0x887F19D0,      0x414CC813, ksceKernelInvokeProcEventHandler_patched);
-	hookI(H_K_PROC_GET,            "SceCtrl",       0xE2C40624,      0x9DCB4B7A, ksceKernelGetProcessId_patched);
-
+    // Create threads
     thread_uid = ksceKernelCreateThread("remaPSV2_thread", main_thread, 0x3C, 0x3000, 0, 0x10000, 0);
     ksceKernelStartThread(thread_uid, 0, NULL);
 
-    shellPid = ksceKernelSysrootGetShellPid();
     return SCE_KERNEL_START_SUCCESS;
 }
 
@@ -564,6 +535,7 @@ int module_stop(SceSize argc, const void *args) {
             if (mutexTouchHook[i][j] >= 0)
                 ksceKernelDeleteMutex(mutexTouchHook[i][j]);
 
+    vitasdkext_destroy();
     // motion_destroy();
     settings_destroy();
     hotkeys_destroy();

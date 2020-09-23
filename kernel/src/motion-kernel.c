@@ -15,6 +15,7 @@ bool initDone = false;
 static SceUID thread_uid = -1;
 static bool   isNotReady = true;
 SceUID modid;
+static SceUID shellPid;
 
 int (*_sceMotionGetState)(SceMotionState *motionState);
 int (*_sceMotionGetSensorState)(SceMotionSensorState *sensorState, int numRecords);
@@ -48,6 +49,7 @@ SceUID mallocForUser(void ** base, int size){
 
 int ksceMotionGetState(SceMotionState *motionState){
     if (isNotReady) return -1;
+
     uint32_t state;
     ENTER_SYSCALL(state);
 
@@ -131,40 +133,40 @@ int ksceMotionStopSampling(void){
     return ksceMotionStopSampling();
 }
 
-void importByOffset(size_t offset, uintptr_t *addr){
-    int ret = module_get_offset(shellPid, modid, 0, offset | 1, addr);
-    if (ret < 0)
-        LOG("error exporting offset: %08X\n", ret);
-}
+#define IMPORT_OFFSET(offset, name)\
+    int name##_ret = module_get_offset(shellPid, modid, 0, offset | 1, (uintptr_t*)&_##name);\
+    if (name##_ret < 0)\
+        LOG("ERROR: Get Offset for "#name": %08X\n", name##_ret);
+
 static int threadInitMotion(SceSize args, void *argp) {
     while (isNotReady) {
-        LOG("thread\n");
-        STRUCTS(tai_module_info_t, modInfo);
-        int ret = taiGetModuleInfoForKernel(shellPid, "SceDriverUser", &modInfo);
-        if (ret == 0){
-            modid = ksceKernelKernelUidForUserUid(shellPid, modInfo.modid);
-            STRUCTS(SceKernelModuleInfo, sceinfo);
-            ret = ksceKernelGetModuleInfo(shellPid, modid, &sceinfo);
+        shellPid = ksceKernelSysrootGetShellPid();
+        if (shellPid > 0){
+            STRUCTS(tai_module_info_t, modInfo);
+            int ret = taiGetModuleInfoForKernel(shellPid, "SceDriverUser", &modInfo);
             if (ret == 0){
-                // ret = module_get_offset(shellPid, modid, 0, 0x8180 | 1, (uintptr_t*)&_sceMotionStartSampling);
-                // LOG("module_get_offset():%08X\n", ret);
-                importByOffset(0x5e10, (uintptr_t*)&_sceMotionGetState);
-                importByOffset(0x7548, (uintptr_t*)&_sceMotionGetSensorState);
-                importByOffset(0x5d80, (uintptr_t*)&_sceMotionGetBasicOrientation);
-                importByOffset(0x7f70, (uintptr_t*)&_sceMotionRotateYaw);
-                importByOffset(0x7fa8, (uintptr_t*)&_sceMotionGetTiltCorrection);
-                importByOffset(0x7fb4, (uintptr_t*)&_sceMotionSetTiltCorrection);
-                importByOffset(0x7fd4, (uintptr_t*)&_sceMotionGetDeadband);
-                importByOffset(0x7fe0, (uintptr_t*)&_sceMotionSetDeadband);
-                importByOffset(0x802c, (uintptr_t*)&_sceMotionSetAngleThreshold);
-                importByOffset(0x810c, (uintptr_t*)&_sceMotionGetAngleThreshold);
-                importByOffset(0x7f08, (uintptr_t*)&_sceMotionReset);
-                importByOffset(0x8134, (uintptr_t*)&_sceMotionMagnetometerOn);
-                importByOffset(0x811c, (uintptr_t*)&_sceMotionMagnetometerOff);
-                importByOffset(0x814c, (uintptr_t*)&_sceMotionGetMagnetometerState);
-                importByOffset(0x8180, (uintptr_t*)&_sceMotionStartSampling);
-                importByOffset(0x81ec, (uintptr_t*)&_sceMotionStopSampling);
-                isNotReady = false;
+                modid = ksceKernelKernelUidForUserUid(shellPid, modInfo.modid);
+                STRUCTS(SceKernelModuleInfo, sceinfo);
+                ret = ksceKernelGetModuleInfo(shellPid, modid, &sceinfo);
+                if (ret == 0){
+                    IMPORT_OFFSET(0x5e10, sceMotionGetState);
+                    IMPORT_OFFSET(0x7548, sceMotionGetSensorState);
+                    IMPORT_OFFSET(0x5d80, sceMotionGetBasicOrientation);
+                    IMPORT_OFFSET(0x7f70, sceMotionRotateYaw);
+                    IMPORT_OFFSET(0x7fa8, sceMotionGetTiltCorrection);
+                    IMPORT_OFFSET(0x7fb4, sceMotionSetTiltCorrection);
+                    IMPORT_OFFSET(0x7fd4, sceMotionGetDeadband);
+                    IMPORT_OFFSET(0x7fe0, sceMotionSetDeadband);
+                    IMPORT_OFFSET(0x802c, sceMotionSetAngleThreshold);
+                    IMPORT_OFFSET(0x810c, sceMotionGetAngleThreshold);
+                    IMPORT_OFFSET(0x7f08, sceMotionReset);
+                    IMPORT_OFFSET(0x8134, sceMotionMagnetometerOn);
+                    IMPORT_OFFSET(0x811c, sceMotionMagnetometerOff);
+                    IMPORT_OFFSET(0x814c, sceMotionGetMagnetometerState);
+                    IMPORT_OFFSET(0x8180, sceMotionStartSampling);
+                    IMPORT_OFFSET(0x81ec, sceMotionStopSampling);
+                    isNotReady = false;
+                }
             }
         }
         

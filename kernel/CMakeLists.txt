@@ -23,6 +23,7 @@ link_directories(
 
 add_executable(${PROJECT_NAME}
   src/main.c
+  src/vitasdkext.c
   src/common.c
   src/remap.c
   src/sysactions.c

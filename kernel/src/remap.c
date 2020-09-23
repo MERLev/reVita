@@ -675,7 +675,7 @@ int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlDa
 	// Patch for more buttons
     if (profile.entries[PR_CO_PATCH_EXT].v.b){
     	SceCtrlData scd_ext;
-        ksceCtrlPeekBufferPositiveExt2_internal(port, &scd_ext, 1);
+        ksceCtrlPeekBufferPositive2(port, &scd_ext, 1);
 		cacheCtrl[hookId][port].buffers[idx].buttons |= scd_ext.buttons;
     }
 
@@ -933,6 +933,7 @@ void remap_setup(){
 
 	// Enabling analogs sampling 
 	ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+	ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
 	
 	// Enabling both touch panels sampling
 	ksceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);

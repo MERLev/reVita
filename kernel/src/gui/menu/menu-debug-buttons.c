@@ -1,4 +1,5 @@
 #include <vitasdkkern.h>
+#include <stdio.h>
 #include "../../main.h"
 #include "../../vitasdkext.h"
 #include "../../common.h"
@@ -7,79 +8,51 @@
 #include "../gui.h"
 #include "../renderer.h"
 
+const char* getBtnName(uint32_t btn){
+	static char str[3];
+	for (int i = 0; i < HW_BUTTONS_NUM; i++)
+		if (HW_BUTTONS[i] == btn)
+			return STR_BTN_S[i];
+	for (int i = 0; i < 32; i++)
+		if (1 << i == btn)
+			sprintf(str, "%i", i);
+	return &str[0];
+}
+
 static int port = 0;
 static SceCtrlData scdPrev;
 void onDraw_debugButtons(unsigned int menuY){
-	uint32_t arr[16] = {
-		0x00010000,
-		0x00020000,
-		0x00040000,
-		0x00080000,
-		0x00100000,
-		0x00200000,
-		0x00400000,
-		0x00800000,
-		0x01000000,
-		0x02000000,
-		0x04000000,
-		0x08000000,
-		0x10000000,
-		0x20000000,
-		0x40000000,
-		0x80000000
-	};
 	SceCtrlData ctrl;
-	int ret = ksceCtrlPeekBufferPositiveExt2_internal(port, &ctrl, 1);
+	int ret = ksceCtrlPeekBufferPositiveExt2(port, &ctrl, 1);
     int y = menuY;
     int x = L_1;
-	// SceCtrlData* ctrlP = gui_menu->dataPtr;
-	// if (ctrlP != NULL)
-	// 	ctrl = *ctrlP;
 	unsigned int buttons = ctrl.buttons;
 	renderer_setColor(theme[COLOR_HEADER]);
 	renderer_drawStringF(L_1, y += CHA_H, "             Port: [%i]", port);
-	y += CHA_H;
 	if (ret < 1){
 		renderer_setColor(theme[COLOR_DANGER]);
 		renderer_drawString(L_1, y += CHA_H, "ERROR READING INPUT");
 		return;
 	}
-	y += CHA_H;
-	for(int i = 0; i < 16; i++){
-		if (i == 8){
+	for (int i = 0; i < 32; i++){
+		if (i % 8 == 0){
 			y += CHA_H;
 			x = L_1;
 		}
-		gui_setColor(0, !btn_has(buttons, HW_BUTTONS[i]));
-		renderer_drawString(x += CHA_W*4, y, STR_BTN_S[i]);
-	}
-    x = L_1;
-	y+= CHA_H;
-	for(int i = 0; i < 16; i++){
-		if (i == 8){
-			y += CHA_H;
-			x = L_1;
-		}
-		gui_setColor(0, !btn_has(buttons, arr[i]));
-		switch (arr[i]){
-			case SCE_CTRL_PSBUTTON: renderer_drawString(x += CHA_W*4, y, "$P");break;
-			case SCE_CTRL_POWER: renderer_drawStringF(x += CHA_W*4, y, "$p");break;
-			case SCE_CTRL_VOLUP: renderer_drawStringF(x += CHA_W*4, y, "$+");break;
-			case SCE_CTRL_VOLDOWN: renderer_drawStringF(x += CHA_W*4, y, "$-");break;
-			case SCE_CTRL_TOUCHPAD: renderer_drawStringF(x += CHA_W*4, y, "$t");break;
-			default: renderer_drawStringF(x += CHA_W*4, y, "%i", i + 16); break;
-		}
+		gui_setColor(0, !btn_has(buttons, 1 << i));
+		renderer_drawString(x += CHA_W*4, y, getBtnName(1 << i));
 	}
 	renderer_setColor(theme[COLOR_DEFAULT]);
-	renderer_drawStringF(L_1, y += CHA_H, "LT: %i, RT: %i, reserved0 : [%i, %i, %i, %i]", 
-		ctrl.lt, ctrl.rt,
+	renderer_drawStringF(L_1, y += CHA_H, "$[: %i, $]: %i", 
+		ctrl.lt, ctrl.rt);
+	renderer_drawStringF(L_1, y += CHA_H, "$U: [%i, %i], $u[%i, %i]", 
+		ctrl.lx, ctrl.ly, ctrl.rx, ctrl.ry);
+	renderer_drawStringF(L_1, y += CHA_H, "reserved0 : [%i, %i, %i, %i]", 
 		ctrl.reserved0[0], ctrl.reserved0[1], ctrl.reserved0[2], ctrl.reserved0[3]);
 	renderer_drawStringF(L_1, y += CHA_H, "reserved1 : [%i, %i, %i, %i, %i,", 
 		ctrl.reserved1[0], ctrl.reserved1[1], ctrl.reserved1[2], ctrl.reserved1[3], ctrl.reserved1[4]);
 	renderer_drawStringF(L_1, y += CHA_H, "             %i, %i, %i, %i, %i]", 
 		ctrl.reserved1[5], ctrl.reserved1[6], ctrl.reserved1[7], ctrl.reserved1[8], ctrl.reserved1[9]);
-	renderer_drawStringF(L_1, y += CHA_H, "Analogs : [%i, %i] [%i, %i]", 
-		ctrl.lx, ctrl.ly, ctrl.rx, ctrl.ry);
 }
 
 bool isBtnClicked(unsigned int data, unsigned int dataPrev, unsigned int btn){
