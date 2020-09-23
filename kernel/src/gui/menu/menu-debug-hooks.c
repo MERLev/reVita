@@ -6,7 +6,7 @@
 #include "../gui.h"
 #include "../renderer.h"
 
-void onDraw_hooks(unsigned int menuY){
+void onDraw_hooks(uint menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, gui_lines - 1);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {

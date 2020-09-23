@@ -21,12 +21,12 @@ const char* getBtnName(uint32_t btn){
 
 static int port = 0;
 static SceCtrlData scdPrev;
-void onDraw_debugButtons(unsigned int menuY){
+void onDraw_debugButtons(uint menuY){
 	SceCtrlData ctrl;
 	int ret = ksceCtrlPeekBufferPositiveExt2(port, &ctrl, 1);
     int y = menuY;
     int x = L_1;
-	unsigned int buttons = ctrl.buttons;
+	uint buttons = ctrl.buttons;
 	renderer_setColor(theme[COLOR_HEADER]);
 	renderer_drawStringF(L_1, y += CHA_H, "             Port: [%i]", port);
 	if (ret < 1){
@@ -55,7 +55,7 @@ void onDraw_debugButtons(unsigned int menuY){
 		ctrl.reserved1[5], ctrl.reserved1[6], ctrl.reserved1[7], ctrl.reserved1[8], ctrl.reserved1[9]);
 }
 
-bool isBtnClicked(unsigned int data, unsigned int dataPrev, unsigned int btn){
+bool isBtnClicked(uint data, uint dataPrev, uint btn){
 	return btn_has(data, btn) && !btn_has(dataPrev, btn);
 }
 

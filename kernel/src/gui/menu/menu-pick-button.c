@@ -26,7 +26,7 @@ void onButton_pickButton(uint32_t btn){
 	}
 }
 
-void onDraw_pickButton(unsigned int menuY){
+void onDraw_pickButton(uint menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET);
 	uint32_t btns = *(uint32_t*)gui_menu->dataPtr;

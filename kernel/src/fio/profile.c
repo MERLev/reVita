@@ -9,7 +9,7 @@
 #include "../common.h"
 #include "../log.h"
 
-#define PATH "ux0:/data/remaPSV2"
+#define PATH "ux0:/data/remaPSV2/Profile/"
 #define NAME_GLOBAL "GLOBAL"
 #define NAME_HOME "HOME"
 #define EXT "bin"
@@ -172,7 +172,7 @@ Profile profile;
 Profile profile_global;
 Profile profile_home;
 
-void profile_inc(ProfileEntry* pe, unsigned int val){
+void profile_inc(ProfileEntry* pe, uint val){
 	switch(pe->type){
 		case TYPE_UINT32: pe->v.u = 
 			pe->min.u + (pe->v.u - pe->min.u + val) % (pe->max.u - pe->min.u + 1); break;
@@ -181,7 +181,7 @@ void profile_inc(ProfileEntry* pe, unsigned int val){
 		case TYPE_BOOL: FLIP(pe->v.b); break;
 	}
 }
-void profile_dec(ProfileEntry* pe, unsigned int val){
+void profile_dec(ProfileEntry* pe, uint val){
 	switch(pe->type){
 		case TYPE_UINT32: pe->v.u = 
 			pe->min.u + (pe->v.u - pe->min.u - val + pe->max.u - pe->min.u + 1) % (pe->max.u - pe->min.u + 1); break;

@@ -159,7 +159,7 @@ void onButton_pickTouchZone(uint32_t btn){
 	}
 }
 
-void onDraw_pickTouchPoint(unsigned int menuY){
+void onDraw_pickTouchPoint(uint menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);	
 	RemapAction* ra = gui_menu->dataPtr;
@@ -173,7 +173,7 @@ void onDraw_pickTouchPoint(unsigned int menuY){
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx) / (gui_menu->num - 1));
 }
 
-void onDraw_pickTouchZone(unsigned int menuY){
+void onDraw_pickTouchZone(uint menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);	
 	RemapAction* ra = gui_menu->dataPtr;

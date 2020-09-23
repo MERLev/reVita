@@ -40,7 +40,7 @@ void ini_addListInt(struct INI* ini, int val){
 void ini_addListStr(struct INI* ini, const char* val){
 	ini_append(ini, "%s,", val);
 }
-void ini_addBGR(struct INI* ini, const char* name, unsigned int val){
+void ini_addBGR(struct INI* ini, const char* name, uint val){
     ini_append(ini, "\n%s=#%02X%02X%02X", name, 
             val & 0xFF, (val >> 8) & 0xFF, (val >> 16) & 0xFF);
 }

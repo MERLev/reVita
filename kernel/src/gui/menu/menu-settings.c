@@ -23,7 +23,7 @@ void onButton_settings(uint32_t btn){
 		theme_load(settings[id].v.u);
 }
 
-void onDraw_settings(unsigned int menuY){
+void onDraw_settings(uint menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {		

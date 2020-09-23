@@ -1,6 +1,7 @@
 #ifndef _PROFILE_H_
 #define _PROFILE_H_
 
+#include "sys/types.h"
 #include "../remap.h"
 
 #define HOME "HOME"
@@ -44,7 +45,7 @@ enum PROFILE_ENTRY_TYPE{
 };
 
 typedef union ProfileEntryVal{
-	unsigned int u;
+	uint u;
 	int i;
 	bool b;
 }ProfileEntryVal;
@@ -75,8 +76,8 @@ extern Profile profile;
 extern Profile profile_global;
 extern Profile profile_home;
 
-void profile_inc(ProfileEntry* pe, unsigned int val);
-void profile_dec(ProfileEntry* pe, unsigned int val);
+void profile_inc(ProfileEntry* pe, uint val);
+void profile_dec(ProfileEntry* pe, uint val);
 
 void profile_addRemapRule(struct RemapRule rule);
 void profile_removeRemapRule(uint8_t idx);

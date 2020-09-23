@@ -32,7 +32,7 @@ void onButton_profiles(uint32_t btn){
 	}
 }
 
-void onDraw_profiles(unsigned int menuY){
+void onDraw_profiles(uint menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {

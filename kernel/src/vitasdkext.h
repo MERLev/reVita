@@ -1,6 +1,7 @@
 #ifndef _VITASDKEXT_H_
 #define _VITASDKEXT_H_
 
+#include <sys/types.h>
 #include <psp2/touch.h>
 #include <psp2/appmgr.h> 
 
@@ -8,8 +9,8 @@
 typedef struct {
 	int savestate_mode;
 	int num;
-	unsigned int sp;
-	unsigned int ra;
+	uint sp;
+	uint ra;
 
 	int pops_mode;
 	int draw_psp_screen_in_pops;

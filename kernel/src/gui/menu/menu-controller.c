@@ -22,7 +22,7 @@ void onButton_controller(uint32_t btn){
 	}
 }
 
-void onDraw_controller(unsigned int menuY){
+void onDraw_controller(uint menuY){
     int y = menuY;
 	SceCtrlPortInfo pi;
 	int res = ksceCtrlGetControllerPortInfo(&pi);
