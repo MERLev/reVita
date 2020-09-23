@@ -83,7 +83,7 @@ void changeActiveApp(char* tId, int pid){
 
 static void updatePspemuTitle() {
     SceAdrenaline adrenaline;
-    // Taken from @Electry's TrackPlugX https://github.com/Electry/TrackPlugX/blob/dev/plugin/main.c
+    // Credits to @Electry's TrackPlugX https://github.com/Electry/TrackPlugX/blob/dev/plugin/main.c
     if (ksceKernelMemcpyUserToKernelForPid(processid, &adrenaline, (uintptr_t)0x73CDE000, sizeof(adrenaline)) != 0)
         return;
     char *id = (char*)&adrenaline.titleid;
@@ -279,25 +279,31 @@ DISPLAY_HOOK_RET:
     return TAI_CONTINUE(int, refs[ksceDisplaySetFrameBufInternal_id], head, index, pParam, sync);
 }
 
+bool isAppAllowed(char* titleId){
+    if (STREQANY(titleId,  // If test app
+            "TSTCTRL00", "TSTCTRL20", "TSTCTRLE0", "TSTCTRLE2", "TSTCTRLN0", "TSTCTRLN2", "VSDK00019"))
+        return false;                  // Use MAIN profile
+    if (strStartsWith(titleId, "NPXS") && !STREQANY(titleId, 
+            "NPXS10012",     // PS3Link
+            "NPXS10013"))    // PS4Link)
+        return false;               // Use MAIN profile
+    return true;
+}
+
 int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, int *a5, int a6) {
     used_funcs[ksceKernelInvokeProcEventHandler_id] = 1;
     char titleidLocal[sizeof(titleid)];
+    ksceKernelGetProcessTitleId(pid, titleidLocal, sizeof(titleidLocal));
+    if (!isAppAllowed(titleidLocal))
+        goto PROCEVENT_EXIT;
     int ret = ksceKernelLockMutex(mutex_procevent_uid, 1, NULL);
     if (ret < 0)
         goto PROCEVENT_EXIT;
-    ksceKernelGetProcessTitleId(pid, titleidLocal, sizeof(titleidLocal));
     if (streq(titleidLocal, "main"))
         strnclone(titleidLocal, HOME, sizeof(titleidLocal));
     switch (ev) {
         case 1: //Start
         case 5: //Resume
-            if (STREQANY(titleidLocal,  // If test app
-                    "TSTCTRL00", "TSTCTRL20", "TSTCTRLE0", "TSTCTRLE2", "TSTCTRLN0", "TSTCTRLN2", "VSDK00019"))
-                break;                  // Use MAIN profile
-            if (strStartsWith(titleidLocal, "NPXS") && !STREQANY(titleidLocal, 
-                    "NPXS10012",     // PS3Link
-                    "NPXS10013"))    // PS4Link)
-                break;               // Use MAIN profile
             if (streq(titleidLocal, "PSPEMUCFW")){
                 isPspemu = true;
                 processid = pid;
@@ -307,7 +313,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             break;
         case 3: //Close
         case 4: //Suspend
-            if (!streq(titleid, HOME)){ //If current app suspended
+            if (!streq(titleid, HOME)){
                 isPspemu = false;
                 changeActiveApp(HOME, pid);
             }
@@ -454,7 +460,7 @@ int module_start(SceSize argc, const void *args) {
     snprintf(titleid, sizeof(titleid), HOME);
 
     // Init all components
-    // motion_init();
+    motion_init();
     settings_init();
     hotkeys_init();
     theme_init();
@@ -536,7 +542,7 @@ int module_stop(SceSize argc, const void *args) {
                 ksceKernelDeleteMutex(mutexTouchHook[i][j]);
 
     vitasdkext_destroy();
-    // motion_destroy();
+    motion_destroy();
     settings_destroy();
     hotkeys_destroy();
     theme_destroy();
