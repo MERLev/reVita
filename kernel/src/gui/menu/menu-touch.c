@@ -29,7 +29,7 @@ static struct MenuEntry menu_touch_entries[] = {
 	(MenuEntry){.name = "Touch Point", 			.icn = ICON_TOUCH,	.dataPE = &profile.entries[PR_TO_DRAW_POINT]},
 	(MenuEntry){.name = "Swipe", 				.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_DRAW_SWIPE]},
 	(MenuEntry){.name = "Smart Swipe", 			.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_DRAW_SMART_SWIPE]},
-	(MenuEntry){.name = "Native", 				.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_DRAW_NATIVE]}};
+	(MenuEntry){.name = "Native", 				.icn = ICON_TOUCH,	.dataPE = &profile.entries[PR_TO_DRAW_NATIVE]}};
 static struct Menu menu_touch = (Menu){
 	.id = MENU_TOUCH_ID, 
 	.parent = MENU_MAIN_ID,

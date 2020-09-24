@@ -114,6 +114,7 @@ enum REMAP_KEY{
 	REMAP_KEY_EMU_TOUCH_POINT,
 	REMAP_KEY_EMU_TOUCH_SWIPE,
 	REMAP_KEY_EMU_TOUCH_SWIPE_SMART,
+	REMAP_KEY_EMU_REMAPSV_ACTION,
 	REMAP_KEY__NUM
 };
 const char* REMAP_KEY_STR[REMAP_KEY__NUM] = {
@@ -129,7 +130,8 @@ const char* REMAP_KEY_STR[REMAP_KEY__NUM] = {
 	"EMU_BUTTONS",
 	"EMU_TOUCH_POINT",
 	"EMU_TOUCH_SWIPE",
-	"EMU_TOUCH_SWIPE_SMART"
+	"EMU_TOUCH_SWIPE_SMART",
+	"EMU_REMAPSV_ACTION"
 };
 enum REMAP_KEY getRemapKeyId(char* n){
 	for (int i = 0; i < REMAP_KEY__NUM; i++)
@@ -321,30 +323,41 @@ bool generateINIProfile(Profile* p, char* buff){
 
 		//Emu
 		ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_EMU_ACTION_TYPE], REMAP_ACTION_TYPE_STR[r->emu.type]);
-		if (r->emu.type == REMAP_TYPE_BUTTON) {
-			ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_BUTTONS]);
-			for (int btnId = 0; btnId < HW_BUTTONS_NUM; btnId++)
-				if (btn_has(r->emu.param.btn, HW_BUTTONS[btnId]))
-					ini_addListStr(ini, HW_BUTTONS_STR[btnId]);
-		} else {
-			ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_EMU_ACTION], REMAP_ACTION_STR[r->emu.action]);
-			if (r->emu.action == REMAP_TOUCH_CUSTOM){
-				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_POINT]);
-				ini_addListInt(ini, r->emu.param.tPoint.x);
-				ini_addListInt(ini, r->emu.param.tPoint.y);
-			} else if (r->emu.action == REMAP_TOUCH_SWIPE_SMART_L || 
-					r->emu.action == REMAP_TOUCH_SWIPE_SMART_R || 
-					r->emu.action == REMAP_TOUCH_SWIPE_SMART_DPAD){
-				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_SWIPE_SMART]);
-				ini_addListInt(ini, r->emu.param.tPoint.x);
-				ini_addListInt(ini, r->emu.param.tPoint.y);
-			} else if (r->emu.action == REMAP_TOUCH_SWIPE){
-				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_SWIPE]);
-				ini_addListInt(ini, r->emu.param.tPoints.a.x);
-				ini_addListInt(ini, r->emu.param.tPoints.a.y);
-				ini_addListInt(ini, r->emu.param.tPoints.b.x);
-				ini_addListInt(ini, r->emu.param.tPoints.b.y);
-			}
+		switch (r->emu.type){
+			case REMAP_TYPE_BUTTON:
+				ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_BUTTONS]);
+				for (int btnId = 0; btnId < HW_BUTTONS_NUM; btnId++)
+					if (btn_has(r->emu.param.btn, HW_BUTTONS[btnId]))
+						ini_addListStr(ini, HW_BUTTONS_STR[btnId]);
+				break;
+			case REMAP_TYPE_REMAPSV_ACTIONS:
+				ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_EMU_REMAPSV_ACTION], profile.entries[r->emu.action].key);
+				break;
+			default: 
+				ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_EMU_ACTION], REMAP_ACTION_STR[r->emu.action]);
+				switch(r->emu.action){
+					case REMAP_TOUCH_CUSTOM:
+						ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_POINT]);
+						ini_addListInt(ini, r->emu.param.tPoint.x);
+						ini_addListInt(ini, r->emu.param.tPoint.y);
+						break;
+					case REMAP_TOUCH_SWIPE:
+						ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_SWIPE]);
+						ini_addListInt(ini, r->emu.param.tPoints.a.x);
+						ini_addListInt(ini, r->emu.param.tPoints.a.y);
+						ini_addListInt(ini, r->emu.param.tPoints.b.x);
+						ini_addListInt(ini, r->emu.param.tPoints.b.y);
+						break;
+					case REMAP_TOUCH_SWIPE_SMART_L:
+					case REMAP_TOUCH_SWIPE_SMART_R:
+					case REMAP_TOUCH_SWIPE_SMART_DPAD:
+						ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_TOUCH_SWIPE_SMART]);
+						ini_addListInt(ini, r->emu.param.tPoint.x);
+						ini_addListInt(ini, r->emu.param.tPoint.y);
+						break;
+					default: break;
+				}
+				break;
 		}
 	}
 	return true;
@@ -430,6 +443,14 @@ bool parseINIProfile(Profile* p, char* buff){
 						rr->emu.param.tPoints.a.y = parseInt(ini_nextListVal(ini));
 						rr->emu.param.tPoints.b.x = parseInt(ini_nextListVal(ini));
 						rr->emu.param.tPoints.b.y = parseInt(ini_nextListVal(ini));
+						break;
+					case REMAP_KEY_EMU_REMAPSV_ACTION:
+						for (int profId = 0; profId < PROF__NUM; profId++){
+							if (streq(ini->val, profile.entries[profId].key)){
+								rr->emu.action = profId;
+								break;
+							}
+						}
 						break;
 					default: break;
 				}

@@ -325,10 +325,8 @@ void addEmu(RuleData* rd) {
 			break;
 		case REMAP_TYPE_REMAPSV_ACTIONS:
 			if (*rd->status != RS_STARTED) break;
-			switch (emu->action){
-				case REMAP_REM_SWAP_TOUCHPADS: profile_inc(&profile.entries[PR_TO_SWAP], 1);  break;
-				default: break;
-			}
+			LOG("profile_inc(&profile.entries[%i], 1)\n", emu->action);
+			profile_inc(&profile.entries[emu->action], 1);
 			break;
 		case REMAP_TYPE_DISABLED:
 			// Do nothing

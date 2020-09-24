@@ -96,6 +96,7 @@ typedef struct MenuEntry{
 extern uint8_t gui_isOpen;
 extern uint8_t gui_lines;
 extern struct Menu* gui_menu;
+extern Menu* menus[MENU_ID__NUM];
 
 extern struct RemapRule ui_ruleEdited; //Rule currently edited
 extern int ui_ruleEditedIdx;

@@ -82,11 +82,17 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 				default: break;
 			}
 			break;
-		case REMAP_TYPE_REMAPSV_ACTIONS: strcat(str, "$c");
-			switch (ra->action){
-				case REMAP_REM_SWAP_TOUCHPADS:  strcat(str, "Swap Touchpads"); break;
-				default: break;
+		case REMAP_TYPE_REMAPSV_ACTIONS: strcat(str, "$c ");
+			// strcat(str, profile.entries[ra->action].key);
+			for(int i = 0; i < menus[MENU_REMAP_EMU_REMAPSV_ID]->num; i++){
+				if (menus[MENU_REMAP_EMU_REMAPSV_ID]->entries[i].dataUint == ra->action){
+					strcat(str, menus[MENU_REMAP_EMU_REMAPSV_ID]->entries[i].name);
+				}
 			}
+			// switch (ra->action){
+			// 	case REMAP_REM_SWAP_TOUCHPADS:  strcat(str, "Swap Touchpads"); break;
+			// 	default: break;
+			// }
 			break;
 		case REMAP_TYPE_DISABLED: strcat(str, "$%");
 			break;
@@ -261,7 +267,7 @@ void onDraw_remap(uint menuY){
 		} else {
 			struct RemapRule* rr = &profile.remaps[gui_menu->entries[i].dataUint];
 			gui_setColorExt(i == gui_menu->idx, true, !rr->propagate || rr->disabled);
-			char str[20] = "";
+			char str[40] = "";
 			generateRemapActionName(str, &rr->trigger);
 			int len = strlen(str) * CHA_W;
 			renderer_drawString(L_1, y += CHA_H, str);
@@ -440,7 +446,16 @@ static struct Menu menu_remap_emu_sysactions = (Menu){
 	.entries = menu_remap_emu_sysactions_entries};
 
 static struct MenuEntry menu_remap_emu_remapsv_entries[] = {
-	(MenuEntry){.name = "Touch : Swap touchpads", 	.dataUint = REMAP_REM_SWAP_TOUCHPADS}};
+	(MenuEntry){.name = "Toggle analogs Wide mode", 	.icn = ICON_LS_UP,			.dataUint = PR_AN_MODE_WIDE},
+	(MenuEntry){.name = "Draw emulated Touch Pointer", 	.icn = ICON_TOUCH,			.dataUint = PR_TO_DRAW_POINT},
+	(MenuEntry){.name = "Draw emulated Touch Swipe", 	.icn = ICON_SWIPE,			.dataUint = PR_TO_DRAW_SWIPE},
+	(MenuEntry){.name = "Draw emulated Smart Swipe", 	.icn = ICON_SWIPE,			.dataUint = PR_TO_DRAW_SMART_SWIPE},
+	(MenuEntry){.name = "Draw native Touch", 			.icn = ICON_TOUCH,			.dataUint = PR_TO_DRAW_NATIVE},
+	(MenuEntry){.name = "Swap touchpads", 				.icn = ICON_BT,				.dataUint = PR_TO_SWAP},
+	(MenuEntry){.name = "Force support for $,$.$($)",  	.icn = ICON_BTN_DS4TOUCH,	.dataUint = PR_CO_PATCH_EXT},
+	(MenuEntry){.name = "Force support for $P$p$+$-",  	.icn = ICON_BTN_DS4TOUCH,	.dataUint = PR_CO_PATCH_SYS},
+	(MenuEntry){.name = "Swap $[$]<>${$}", 				.icn = ICON_BTN_DS4TOUCH,	.dataUint = PR_CO_SWAP_BUTTONS},
+	(MenuEntry){.name = "Vita as virtual DS4", 			.icn = ICON_BTN_DS4TOUCH,	.dataUint = PR_CO_EMULATE_DS4}};
 static struct Menu menu_remap_emu_remapsv = (Menu){
 	.id = MENU_REMAP_EMU_REMAPSV_ID, 
 	.name = "$! REMAPSV2 CONFIG OPTIONS",
