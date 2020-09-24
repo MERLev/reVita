@@ -346,7 +346,6 @@ void remEmu(RuleData* rd) {
 				case REMAP_TOUCH_SWIPE_SMART_L:   
 				case REMAP_TOUCH_SWIPE_SMART_R:   
 				case REMAP_TOUCH_SWIPE_SMART_DPAD: 
-					LOG("remEmu(), %i, %i\n", rd->btns, (int)rd->status);  
 					removeEmuSmartSwipe(&et[port], rd->rr->emu.param.tPoint, rd->hookId, rd->port);
 					break;
 				default: break;
@@ -492,23 +491,23 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int hookId, int p
 				break;
 			case REMAP_TYPE_FRONT_TOUCH_ZONE:
 			case REMAP_TYPE_BACK_TOUCH_ZONE: 
-				;int port = trigger->type == REMAP_TYPE_FRONT_TOUCH_ZONE ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
-				if (retTouch[port] < 1) break;
-				for (int j = 0; j < std[port].reportNum; j++) {
-					TouchPoints2 tz = TZ_L[port];
+				;int tport = trigger->type == REMAP_TYPE_FRONT_TOUCH_ZONE ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
+				if (retTouch[tport] < 1) break;
+				for (int j = 0; j < std[tport].reportNum; j++) {
+					TouchPoints2 tz = TZ_L[tport];
 					switch (trigger->action){
-						case REMAP_TOUCH_ZONE_FULL:  	tz = T_SIZE[port];  break;
-						case REMAP_TOUCH_ZONE_CENTER:  	tz = TZ_CENTER[port];  break;
-						case REMAP_TOUCH_ZONE_L:  		tz = TZ_L[port];  break;
-						case REMAP_TOUCH_ZONE_R:  		tz = TZ_R[port];  break;
-						case REMAP_TOUCH_ZONE_TL: 		tz = TZ_TL[port]; break;
-						case REMAP_TOUCH_ZONE_TR: 		tz = TZ_TR[port]; break;
-						case REMAP_TOUCH_ZONE_BL: 		tz = TZ_BL[port]; break;
-						case REMAP_TOUCH_ZONE_BR: 		tz = TZ_BR[port]; break;
+						case REMAP_TOUCH_ZONE_FULL:  	tz = T_SIZE[tport];  break;
+						case REMAP_TOUCH_ZONE_CENTER:  	tz = TZ_CENTER[tport];  break;
+						case REMAP_TOUCH_ZONE_L:  		tz = TZ_L[tport];  break;
+						case REMAP_TOUCH_ZONE_R:  		tz = TZ_R[tport];  break;
+						case REMAP_TOUCH_ZONE_TL: 		tz = TZ_TL[tport]; break;
+						case REMAP_TOUCH_ZONE_TR: 		tz = TZ_TR[tport]; break;
+						case REMAP_TOUCH_ZONE_BL: 		tz = TZ_BL[tport]; break;
+						case REMAP_TOUCH_ZONE_BR: 		tz = TZ_BR[tport]; break;
 						case REMAP_TOUCH_CUSTOM:  		tz = trigger->param.tPoints; break;
 						default: break;
 					}
-					if (updateStatus(rd.status, reportInZone(&std[port].report[j], tz))) {
+					if (updateStatus(rd.status, reportInZone(&std[tport].report[j], tz))) {
 						addEmu(&rd);
 					} 
 					if (*rd.status == RS_STOPPED)
@@ -815,7 +814,7 @@ int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t ho
 	//If buffer full - remove latest entry
 	if (cacheTouch[hookId][port].num >= BUFFERS_NUM){
 		for (int i = 1; i < BUFFERS_NUM; i++)
-			cacheTouch[hookId][port].buffers[i - 1] = cacheTouch[hookId][port].buffers[i - 1];
+			cacheTouch[hookId][port].buffers[i - 1] = cacheTouch[hookId][port].buffers[i];
 		cacheTouch[hookId][port].num--;
 	}
 	

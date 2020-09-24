@@ -64,8 +64,6 @@ bool parseINISettings(char* buff){
 	while(ini_nextEntry(ini)){
 		ProfileEntry* e = findByKey(ini->name);
 		if (e == NULL) continue;
-		if (e->id < 0)
-			continue;
 		switch(e->id){
 			case SETT_THEME: 
 				e->v.u = theme_findIdByKey(ini->val);

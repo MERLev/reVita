@@ -132,7 +132,7 @@ bool parseBool(char* c){
     return !strcmp(c, TRUE_STR) ? true : false;
 }
 void addNumber(int* val, uint8_t number, uint8_t pos){
-    uint8_t alignedPos = pos % 2 ? pos - 1 : pos + 1;
+    uint8_t alignedPos = (pos % 2) ? pos - 1 : pos + 1;
     *val += number << ((alignedPos) * 4);
 }
 int parseBGR(char* c){

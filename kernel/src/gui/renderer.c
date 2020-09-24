@@ -112,16 +112,15 @@ void renderer_drawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2) {
 }
 
 void renderer_drawLineThick(int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t thickness){
-	int32_t wy, wx;
 	renderer_drawLine(x1, y1, x2, y2);
 	if (abs(x1 - x2) > abs(y1 - y2)){
-		wy = thickness + floorSqrt(thickness * (((float) abs(y1 - y2)) / abs(x1 - x2)));
+		int wy = thickness + floorSqrt(thickness * (((float) abs(y1 - y2)) / abs(x1 - x2)));
 		for (int i = 0; i < wy; i++) {
 			renderer_drawLine(x1, y1 - i, x2, y2 - i);
 			renderer_drawLine(x1, y1 + i, x2, y2 + i);
 		}
 	} else {
-		wx = thickness + floorSqrt(thickness * (((float) abs(x1 - x2)) / abs(y1 - y2)));
+		int wx = thickness + floorSqrt(thickness * (((float) abs(x1 - x2)) / abs(y1 - y2)));
 		for (int i = 0; i < wx; i++) {
 			renderer_drawLine(x1 - i, y1, x2 - i, y2);
 			renderer_drawLine(x1 + i, y1, x2 + i, y2);
@@ -216,7 +215,7 @@ void renderer_writeToFB(int64_t tickOpened){
 		uint32_t off = 0;
 		if (i < UI_CORNER_RADIUS){
 			off = UI_CORNER_OFF[i];
-		} else if (i > uiHeight - UI_CORNER_RADIUS - 1) {
+		} else if (i > uiHeight - UI_CORNER_RADIUS) {
 			off = UI_CORNER_OFF[uiHeight - i];
 		}
 		ksceKernelMemcpyKernelToUser(

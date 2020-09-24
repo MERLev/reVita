@@ -227,7 +227,7 @@ void profile_addRemapRule(struct RemapRule ui_ruleEdited){
 }
 
 void profile_removeRemapRule(uint8_t idx){
-	if (idx < 0 || idx >= profile.remapsNum)
+	if (idx >= profile.remapsNum)
 		return;
 	for (int i = idx; i < profile.remapsNum - 1; i++)
 		profile.remaps[i] = profile.remaps[i + 1];
@@ -305,9 +305,9 @@ bool generateINIProfile(Profile* p, char* buff){
 		ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_TRIGGER_ACTION_TYPE], REMAP_ACTION_TYPE_STR[r->trigger.type]);
 		if (r->trigger.type == REMAP_TYPE_BUTTON){
 			ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_TRIGGER_BUTTONS]);
-			for (int i = 0; i < HW_BUTTONS_NUM; i++)
-				if (btn_has(r->trigger.param.btn, HW_BUTTONS[i]))
-					ini_addListStr(ini, HW_BUTTONS_STR[i]);
+			for (int btnId = 0; btnId < HW_BUTTONS_NUM; btnId++)
+				if (btn_has(r->trigger.param.btn, HW_BUTTONS[btnId]))
+					ini_addListStr(ini, HW_BUTTONS_STR[btnId]);
 		} else {
 			ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_TRIGGER_ACTION], REMAP_ACTION_STR[r->trigger.action]);
 			if (r->trigger.action == REMAP_TOUCH_CUSTOM){
@@ -323,9 +323,9 @@ bool generateINIProfile(Profile* p, char* buff){
 		ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_EMU_ACTION_TYPE], REMAP_ACTION_TYPE_STR[r->emu.type]);
 		if (r->emu.type == REMAP_TYPE_BUTTON) {
 			ini_addList(ini, REMAP_KEY_STR[REMAP_KEY_EMU_BUTTONS]);
-			for (int i = 0; i < HW_BUTTONS_NUM; i++)
-				if (btn_has(r->emu.param.btn, HW_BUTTONS[i]))
-					ini_addListStr(ini, HW_BUTTONS_STR[i]);
+			for (int btnId = 0; btnId < HW_BUTTONS_NUM; btnId++)
+				if (btn_has(r->emu.param.btn, HW_BUTTONS[btnId]))
+					ini_addListStr(ini, HW_BUTTONS_STR[btnId]);
 		} else {
 			ini_addStr(ini, REMAP_KEY_STR[REMAP_KEY_EMU_ACTION], REMAP_ACTION_STR[r->emu.action]);
 			if (r->emu.action == REMAP_TOUCH_CUSTOM){
@@ -355,7 +355,7 @@ bool parseINIProfile(Profile* p, char* buff){
 	INI_READER _ini = ini_read(buff);
 	INI_READER* ini = &_ini;
 	while(ini_nextEntry(ini)){
-		uint32_t id = 0;
+		int32_t id = 0;
 		int ruleId = 0;
 		switch(getSectionId(ini->section)){
 			case SECTION_PROFILE:

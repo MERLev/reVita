@@ -43,7 +43,10 @@ SceUID mallocForUser(void ** base, int size){
     SceUID memId = ksceKernelAllocMemBlock("remapsv2_user_mem", SCE_KERNEL_MEMBLOCK_TYPE_USER_RW, 
         ((0xfff + size) & ~0xfff), &opts);
     int retMemBase = ksceKernelGetMemBlockBase(memId, base);
-    LOG("memalloc id: %i, rturned: %i, addr: %08X\n", memId, retMemBase, (uint)base);
+    if (retMemBase < 0){
+        LOG("memalloc id: %i, rturned: %i, addr: %08X\n", memId, retMemBase, (uint)base);
+        return retMemBase;
+    }
     return memId;
 }
 
