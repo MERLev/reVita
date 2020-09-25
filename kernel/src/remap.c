@@ -489,7 +489,12 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int hookId, int p
 			case REMAP_TYPE_FRONT_TOUCH_ZONE:
 			case REMAP_TYPE_BACK_TOUCH_ZONE: 
 				;int tport = trigger->type == REMAP_TYPE_FRONT_TOUCH_ZONE ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
-				if (retTouch[tport] < 1) break;
+				if (retTouch[tport] < 1 || retTouch[tport] > 64) 
+					break;
+				if (rr->emu.action == REMAP_TOUCH_SWIPE_SMART_DPAD || 
+						rr->emu.action == REMAP_TOUCH_SWIPE_SMART_L ||
+						rr->emu.action == REMAP_TOUCH_SWIPE_SMART_R)
+					break;	// Disable touch -> Smart swipe
 				for (int j = 0; j < std[tport].reportNum; j++) {
 					TouchPoints2 tz = TZ_L[tport];
 					switch (trigger->action){
