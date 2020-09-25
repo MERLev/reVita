@@ -371,10 +371,9 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int hookId, int p
 	rd.hookId = hookId;
 	rd.port = port;
 
-	SceMotionState sms;
+	// SceMotionState sms;
 	// int gyroRet = ksceMotionStartSampling();
 	// int gyroRet = ksceMotionGetState(&sms);
-	int gyroRet = -1;
 
 	//Set sticks def values
 	rd.analogLeftEmu = rd.analogRightEmu = rd.analogLeftProp = rd.analogRightProp = (EmulatedStick){0, 0, 0, 0};
@@ -512,60 +511,60 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int hookId, int p
 						remEmu(&rd);
 				}
 				break;
-			case REMAP_TYPE_GYROSCOPE: 
-				if (gyroRet != 0) break;
-				switch (trigger->action){
-					case REMAP_GYRO_UP:  
-						if (updateStatus(rd.status, sms.angularVelocity.x > 0)){
-							rd.stickposval = clamp(sms.angularVelocity.x * profile.entries[PR_GY_SENSIVITY_Y].v.u, -127, 127);
-							addEmu(&rd);
-						} 
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
-						break;
-					case REMAP_GYRO_DOWN:
-						if (updateStatus(rd.status, sms.angularVelocity.x < 0)){
-							rd.stickposval = clamp(- sms.angularVelocity.x * profile.entries[PR_GY_SENSIVITY_Y].v.u, -127, 127);
-							addEmu(&rd);
-						}
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
-						break;
-					case REMAP_GYRO_LEFT:
-						if (updateStatus(rd.status, sms.angularVelocity.y > 0)){
-							rd.stickposval = clamp(sms.angularVelocity.y * profile.entries[PR_GY_SENSIVITY_X].v.u, -127, 127);
-							addEmu(&rd);
-						}
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
-						break;
-					case REMAP_GYRO_RIGHT:
-						if (updateStatus(rd.status, sms.angularVelocity.y < 0)){
-							rd.stickposval = clamp(- sms.angularVelocity.y * profile.entries[PR_GY_SENSIVITY_X].v.u, -127, 127);
-							addEmu(&rd);
-						}
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
-						break;
-					case REMAP_GYRO_ROLL_LEFT:
-						if (updateStatus(rd.status, sms.angularVelocity.z < 0)){
-							rd.stickposval = clamp(sms.deviceQuat.z * profile.entries[PR_GY_SENSIVITY_Z].v.u * 4, -127, 127);
-							addEmu(&rd);
-						}
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
-						break;
-					case REMAP_GYRO_ROLL_RIGHT:
-						if (updateStatus(rd.status, sms.angularVelocity.z > 0)){
-							rd.stickposval = clamp(- sms.deviceQuat.z * profile.entries[PR_GY_SENSIVITY_Z].v.u * 4, -127, 127);
-							addEmu(&rd);
-						}
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
-						break;
-					default: break;
-				}
-				break;
+			// case REMAP_TYPE_GYROSCOPE: 
+			// 	if (gyroRet != 0) break;
+			// 	switch (trigger->action){
+			// 		case REMAP_GYRO_UP:  
+			// 			if (updateStatus(rd.status, sms.angularVelocity.x > 0)){
+			// 				rd.stickposval = clamp(sms.angularVelocity.x * profile.entries[PR_GY_SENSIVITY_Y].v.u, -127, 127);
+			// 				addEmu(&rd);
+			// 			} 
+			// 			if (*rd.status == RS_STOPPED)
+			// 				remEmu(&rd);
+			// 			break;
+			// 		case REMAP_GYRO_DOWN:
+			// 			if (updateStatus(rd.status, sms.angularVelocity.x < 0)){
+			// 				rd.stickposval = clamp(- sms.angularVelocity.x * profile.entries[PR_GY_SENSIVITY_Y].v.u, -127, 127);
+			// 				addEmu(&rd);
+			// 			}
+			// 			if (*rd.status == RS_STOPPED)
+			// 				remEmu(&rd);
+			// 			break;
+			// 		case REMAP_GYRO_LEFT:
+			// 			if (updateStatus(rd.status, sms.angularVelocity.y > 0)){
+			// 				rd.stickposval = clamp(sms.angularVelocity.y * profile.entries[PR_GY_SENSIVITY_X].v.u, -127, 127);
+			// 				addEmu(&rd);
+			// 			}
+			// 			if (*rd.status == RS_STOPPED)
+			// 				remEmu(&rd);
+			// 			break;
+			// 		case REMAP_GYRO_RIGHT:
+			// 			if (updateStatus(rd.status, sms.angularVelocity.y < 0)){
+			// 				rd.stickposval = clamp(- sms.angularVelocity.y * profile.entries[PR_GY_SENSIVITY_X].v.u, -127, 127);
+			// 				addEmu(&rd);
+			// 			}
+			// 			if (*rd.status == RS_STOPPED)
+			// 				remEmu(&rd);
+			// 			break;
+			// 		case REMAP_GYRO_ROLL_LEFT:
+			// 			if (updateStatus(rd.status, sms.angularVelocity.z < 0)){
+			// 				rd.stickposval = clamp(sms.deviceQuat.z * profile.entries[PR_GY_SENSIVITY_Z].v.u * 4, -127, 127);
+			// 				addEmu(&rd);
+			// 			}
+			// 			if (*rd.status == RS_STOPPED)
+			// 				remEmu(&rd);
+			// 			break;
+			// 		case REMAP_GYRO_ROLL_RIGHT:
+			// 			if (updateStatus(rd.status, sms.angularVelocity.z > 0)){
+			// 				rd.stickposval = clamp(- sms.deviceQuat.z * profile.entries[PR_GY_SENSIVITY_Z].v.u * 4, -127, 127);
+			// 				addEmu(&rd);
+			// 			}
+			// 			if (*rd.status == RS_STOPPED)
+			// 				remEmu(&rd);
+			// 			break;
+			// 		default: break;
+			// 	}
+			// 	break;
 			default: break;
 		}
 	}
@@ -643,6 +642,11 @@ void remap_fixSideButtons(uint32_t* btns){
 }
 
 int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlData** remappedBuffers, bool isPositiveLogic, bool isExt) {
+	// ToDo remove per-hook buffers alltogether
+	if(profile.entries[PR_CO_PATCH_SYS].v.b){
+		hookId = 0;
+	}
+
 	// If buffer for timestamp is already remapped
 	if (ctrl->timeStamp == cacheCtrl[hookId][port].buffers[cacheCtrl[hookId][port].num - 1].timeStamp){
 		*remappedBuffers = &cacheCtrl[hookId][port].buffers[cacheCtrl[hookId][port].num - nBufs];
