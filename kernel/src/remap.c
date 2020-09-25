@@ -495,6 +495,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int hookId, int p
 						rr->emu.action == REMAP_TOUCH_SWIPE_SMART_L ||
 						rr->emu.action == REMAP_TOUCH_SWIPE_SMART_R)
 					break;	// Disable touch -> Smart swipe
+				bool found = false;
 				for (int j = 0; j < std[tport].reportNum; j++) {
 					TouchPoints2 tz = TZ_L[tport];
 					switch (trigger->action){
@@ -509,12 +510,15 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int hookId, int p
 						case REMAP_TOUCH_CUSTOM:  		tz = trigger->param.tPoints; break;
 						default: break;
 					}
-					if (updateStatus(rd.status, reportInZone(&std[tport].report[j], tz))) {
-						addEmu(&rd);
-					} 
-					if (*rd.status == RS_STOPPED)
-						remEmu(&rd);
+					if (reportInZone(&std[tport].report[j], tz)){
+						found = true;
+					}
 				}
+				if (updateStatus(rd.status, found)) {
+					addEmu(&rd);
+				} 
+				if (*rd.status == RS_STOPPED)
+					remEmu(&rd);
 				break;
 			// case REMAP_TYPE_GYROSCOPE: 
 			// 	if (gyroRet != 0) break;
