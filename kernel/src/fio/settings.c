@@ -157,7 +157,7 @@ void setDefSettings(){
 	set((ProfileEntry){
 		.id = SETT_DELAY_INIT,
 		.type = TYPE_UINT32,
-		.def.u = 10, 
+		.def.u = 2, 
 		.min.u = 0,
 		.max.u = 60,
 		.key = "DELAY_INIT"});

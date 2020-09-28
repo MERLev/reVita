@@ -43,7 +43,7 @@ void onDraw_gyro(uint menuY){
 
 static struct MenuEntry menu_gyro_entries[] = {
 	(MenuEntry){.name = "Sensivity", .type = HEADER_TYPE},
-	(MenuEntry){.name = "$q X AXIS", .dataPE = &profile.entries[PR_GY_SENSIVITY_X]},
+	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_SENSIVITY_X]},
 	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_SENSIVITY_Y]},
 	(MenuEntry){.name = "$E Z Axis", .dataPE = &profile.entries[PR_GY_SENSIVITY_Z]},
 	(MenuEntry){.name = "Deadzone", .type = HEADER_TYPE},

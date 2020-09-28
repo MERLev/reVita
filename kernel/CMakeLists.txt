@@ -63,14 +63,14 @@ target_link_libraries(${PROJECT_NAME}
   SceThreadmgrForDriver_stub
   SceSysmemForDriver_stub
   SceSysmemForKernel_stub
+  SceSysrootForDriver_stub.a
   SceSysrootForKernel_stub
   SceAppMgrForDriver_stub
-  SceCtrlForDriver_stub
   SceIofilemgrForDriver_stub
+  SceCtrlForDriver_stub
   SceTouchForDriver_stub
   ScePowerForDriver_stub 
   SceDebugForDriver_stub
-  SceSysrootForDriver_stub.a
   ds34vita_stub_weak
 )
 
@@ -85,9 +85,9 @@ vita_create_self(remaPSV2.skprx ${PROJECT_NAME}
 )
 add_dependencies(remaPSV2.skprx ${PROJECT_NAME})
  
-vita_create_stubs(stubs ${PROJECT_NAME} export.yml KERNEL)
+# vita_create_stubs(stubs ${PROJECT_NAME} export.yml KERNEL)
 
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stubs/
-  DESTINATION lib
-  FILES_MATCHING PATTERN "*.a"
-)
+# install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stubs/
+#   DESTINATION lib
+#   FILES_MATCHING PATTERN "*.a"
+# )

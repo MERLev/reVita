@@ -657,7 +657,7 @@ int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlDa
 	}
 
 	// If buffer for timestamp is already remapped
-	if (ctrl->timeStamp == cacheCtrl[hookId][port].buffers[cacheCtrl[hookId][port].num - 1].timeStamp){
+	if (cacheCtrl[hookId][port].num > 0 && ctrl->timeStamp == cacheCtrl[hookId][port].buffers[cacheCtrl[hookId][port].num - 1].timeStamp){
 		*remappedBuffers = &cacheCtrl[hookId][port].buffers[cacheCtrl[hookId][port].num - nBufs];
 		return nBufs;
 	}
@@ -674,11 +674,11 @@ int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlDa
 	cacheCtrl[hookId][port].num++;
 	cacheCtrl[hookId][port].buffers[idx] = ctrl[0];
 
-	// Invert for negative logic
+	// // Invert for negative logic
 	if (!isPositiveLogic)
 		cacheCtrl[hookId][port].buffers[idx].buttons = 0xFFFFFFFF - cacheCtrl[hookId][port].buffers[idx].buttons;
 
-	// Swap side buttons for Ext hooks for Vita mode
+	// // Swap side buttons for Ext hooks for Vita mode
 	if (!isExt)
 		remap_swapSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
 
@@ -689,7 +689,7 @@ int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlDa
 		cacheCtrl[hookId][port].buffers[idx].buttons |= scd_ext.buttons;
     }
 
-	// Apply remap
+	// // Apply remap
 	applyRemap(&cacheCtrl[hookId][port].buffers[idx], &rs[hookId][port][0], hookId, port);
 
 	// Swap side buttons for Ext hooks

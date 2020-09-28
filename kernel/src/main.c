@@ -78,6 +78,7 @@ void changeActiveApp(char* tId, int pid){
         remap_resetBuffers();
         gui_close();
         delayedStartDone = false;
+        startTick = ksceKernelGetSystemTimeWide();
     }
 }
 
@@ -126,7 +127,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpac
 
     used_funcs[hookId] = true;
 
-    ksceKernelLockMutex(mutexCtrlHook[hookId][port], 1, NULL);
+    ksceKernelLockMutex(mutexCtrlHook[0][port], 1, NULL);
     SceCtrlData* remappedBuffers;       // Remapped buffers from cache
     if (isKernelSpace) {
         ret = remap_controls(port, &ctrl[ret-1], ret, hookId, &remappedBuffers, isPositiveLogic, isExt);
@@ -134,16 +135,19 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpac
     } else {
         SceCtrlData scd;                // Last buffer
         ksceKernelMemcpyUserToKernel(&scd, (uintptr_t)&ctrl[ret-1], sizeof(SceCtrlData));
+        LOG(":%i | %s\n", nBufs, ullx(scd.timeStamp));
         ret = remap_controls(port, &scd, ret, hookId, &remappedBuffers, isPositiveLogic, isExt);
-        ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], remappedBuffers, ret * sizeof(SceCtrlData)); 
+        // if (ret > 0 && ret < 64)
+        //     ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], remappedBuffers, ret * sizeof(SceCtrlData)); 
     }
-    ksceKernelUnlockMutex(mutexCtrlHook[hookId][port], 1);
+    ksceKernelUnlockMutex(mutexCtrlHook[0][port], 1);
     return ret;
 }
 
 #define DECL_FUNC_HOOK_PATCH_CTRL(name, space, logic, triggers) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
-        if ((space) == SPACE_KERNEL && ctrl->timeStamp == INTERNAL) \
+        LOG(#name"_patched(%i, ..., %i)\n", port, nBufs);\
+        if (((space) == SPACE_KERNEL && ctrl->timeStamp == INTERNAL)  || shellPid <= 0 || !delayedStartDone) \
             return TAI_CONTINUE(int, refs[name##_id], port, ctrl, nBufs); \
 		int ret = TAI_CONTINUE(int, refs[name##_id], \
             (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
@@ -222,7 +226,7 @@ void scaleTouchData(int port, SceTouchData *pData){
 
 #define DECL_FUNC_HOOK_PATCH_TOUCH(name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
-        if (pData->status == INTERNAL) \
+        if (pData->status == INTERNAL || shellPid <= 0 || !delayedStartDone) \
             return TAI_CONTINUE(int, refs[name##_id], port, pData, nBufs); \
         if (profile.entries[PR_TO_SWAP].v.b) \
             port = !port; \
@@ -331,7 +335,9 @@ PROCEVENT_EXIT:
 // Always return SceShell pid to read all buttons
 SceUID ksceKernelGetProcessId_patched(void){
     int ret = TAI_CONTINUE(SceUID, refs[ksceKernelGetProcessId_id]);
-    if (profile.entries[PR_CO_PATCH_SYS].v.b && shellPid > 0)
+    // if (profile.entries[PR_CO_PATCH_SYS].v.b && shellPid > 0 && !streq(titleid, "XMB"))
+    if (profile.entries[PR_CO_PATCH_SYS].v.b && shellPid > 0 && delayedStartDone)
+    // if (profile.entries[PR_CO_PATCH_SYS].v.b && shellPid > 0)
         return shellPid;
     return ret;
 }
@@ -343,6 +349,7 @@ static int main_thread(SceSize args, void *argp) {
         if (shellPid < 0){
             shellPid = ksceKernelSysrootGetShellPid();
             ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
+            remap_resetBuffers();
         }
 
         // Update PSM title
@@ -468,6 +475,7 @@ int module_start(SceSize argc, const void *args) {
     gui_init();
     remap_init();
     userspace_init();
+
     startTick = ksceKernelGetSystemTimeWide();
 	theme_load(settings[SETT_THEME].v.u);
 
