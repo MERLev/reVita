@@ -125,8 +125,11 @@ extern const uint32_t HW_BUTTONS[HW_BUTTONS_NUM];
 extern TouchPoints2 T_SIZE[SCE_TOUCH_PORT_MAX_NUM];
 
 struct RemapRule remap_createRemapRule();
-int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlData** remappedBuffers, 
-        bool isPositiveLogic, bool isExt);
+
+int remap_ctrl_getBufferNum(int port);
+void remap_ctrl_updateBuffers(int port, SceCtrlData *ctrl, bool isPositiveLogic, bool isExt);
+int remap_ctrl_readBuffer(int port, SceCtrlData *ctrl, int buffIdx, bool isPositiveLogic, bool isExt);
+
 void remap_patchToExt(SceCtrlData *ctrl);
 int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId, 
         SceTouchData** remappedBuffers);

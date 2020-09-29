@@ -19,26 +19,22 @@ void onDraw_hooks(uint menuY){
 }
 
 static struct MenuEntry menu_hooks_entries[] = {
-	(MenuEntry){.name = "sceCtrlPeekBufferPositive", 	.dataUint = sceCtrlPeekBufferPositive_id},
-	(MenuEntry){.name = "sceCtrlReadBufferPositive", 	.dataUint = sceCtrlReadBufferPositive_id},
-	(MenuEntry){.name = "sceCtrlPeekBufferNegative", 	.dataUint = sceCtrlPeekBufferNegative_id},
-	(MenuEntry){.name = "sceCtrlReadBufferNegative", 	.dataUint = sceCtrlReadBufferNegative_id},
-	(MenuEntry){.name = "sceCtrlPeekBufferPositive2", 	.dataUint = sceCtrlPeekBufferPositive2_id},
-	(MenuEntry){.name = "sceCtrlReadBufferPositive2", 	.dataUint = sceCtrlReadBufferPositive2_id},
-	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt", .dataUint = sceCtrlPeekBufferPositiveExt_id},
-	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt", .dataUint = sceCtrlReadBufferPositiveExt_id},
-	(MenuEntry){.name = "sceCtrlPeekBufferPositiveExt2",.dataUint = sceCtrlPeekBufferPositiveExt2_id},
-	(MenuEntry){.name = "sceCtrlReadBufferPositiveExt2",.dataUint = sceCtrlReadBufferPositiveExt2_id},
-	(MenuEntry){.name = "sceCtrlPeekBufferNegative2", 	.dataUint = sceCtrlPeekBufferNegative2_id},
-	(MenuEntry){.name = "sceCtrlReadBufferNegative2", 	.dataUint = sceCtrlReadBufferNegative2_id},    
-	(MenuEntry){.name = "ksceCtrlPeekBufferPositive", 	.dataUint = ksceCtrlPeekBufferPositive_id},
-    (MenuEntry){.name = "ksceCtrlReadBufferPositive", 	.dataUint = ksceCtrlReadBufferPositive_id},
-    (MenuEntry){.name = "ksceCtrlPeekBufferNegative", 	.dataUint = ksceCtrlPeekBufferNegative_id},
-    (MenuEntry){.name = "ksceCtrlReadBufferNegative", 	.dataUint = ksceCtrlReadBufferNegative_id},
-	(MenuEntry){.name = "ksceTouchPeek", 				.dataUint = ksceTouchPeek_id},
-	(MenuEntry){.name = "ksceTouchRead", 				.dataUint = ksceTouchRead_id},
-	(MenuEntry){.name = "ksceTouchPeekRegion", 			.dataUint = ksceTouchPeekRegion_id},
-	(MenuEntry){.name = "ksceTouchReadRegion", 			.dataUint = ksceTouchReadRegion_id}
+	(MenuEntry){.name = "ksceCtrlPeekBufferPositive", 		.dataUint = ksceCtrlPeekBufferPositive_id},
+    (MenuEntry){.name = "ksceCtrlReadBufferPositive", 		.dataUint = ksceCtrlReadBufferPositive_id},
+    (MenuEntry){.name = "ksceCtrlPeekBufferNegative", 		.dataUint = ksceCtrlPeekBufferNegative_id},
+    (MenuEntry){.name = "ksceCtrlReadBufferNegative", 		.dataUint = ksceCtrlReadBufferNegative_id},
+	(MenuEntry){.name = "ksceCtrlPeekBufferPositive2", 		.dataUint = ksceCtrlPeekBufferPositive2_id},
+	(MenuEntry){.name = "ksceCtrlReadBufferPositive2", 		.dataUint = ksceCtrlReadBufferPositive2_id},
+	(MenuEntry){.name = "ksceCtrlPeekBufferPositiveExt", 	.dataUint = ksceCtrlPeekBufferPositiveExt_id},
+	(MenuEntry){.name = "ksceCtrlReadBufferPositiveExt", 	.dataUint = ksceCtrlReadBufferPositiveExt_id},
+	(MenuEntry){.name = "ksceCtrlPeekBufferPositiveExt2",	.dataUint = ksceCtrlPeekBufferPositiveExt2_id},
+	(MenuEntry){.name = "ksceCtrlReadBufferPositiveExt2",	.dataUint = ksceCtrlReadBufferPositiveExt2_id},
+	(MenuEntry){.name = "ksceCtrlPeekBufferNegative2", 		.dataUint = ksceCtrlPeekBufferNegative2_id},
+	(MenuEntry){.name = "ksceCtrlReadBufferNegative2", 		.dataUint = ksceCtrlReadBufferNegative2_id},  
+	(MenuEntry){.name = "ksceTouchPeek", 					.dataUint = ksceTouchPeek_id},
+	(MenuEntry){.name = "ksceTouchRead", 					.dataUint = ksceTouchRead_id},
+	(MenuEntry){.name = "ksceTouchPeekRegion", 				.dataUint = ksceTouchPeekRegion_id},
+	(MenuEntry){.name = "ksceTouchReadRegion", 				.dataUint = ksceTouchReadRegion_id}
 };
 static struct Menu menu_hooks = (Menu){
 	.id = MENU_HOKS_ID, 

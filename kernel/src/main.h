@@ -21,6 +21,14 @@ enum H_ID{
     ksceCtrlReadBufferPositive_id,
     ksceCtrlPeekBufferNegative_id,
     ksceCtrlReadBufferNegative_id,
+    ksceCtrlPeekBufferPositive2_id,
+    ksceCtrlReadBufferPositive2_id,
+    ksceCtrlPeekBufferPositiveExt_id,
+    ksceCtrlReadBufferPositiveExt_id,
+    ksceCtrlPeekBufferPositiveExt2_id,
+    ksceCtrlReadBufferPositiveExt2_id,
+    ksceCtrlPeekBufferNegative2_id,
+    ksceCtrlReadBufferNegative2_id,
     ksceTouchPeek_id,
     ksceTouchRead_id,
     ksceTouchPeekRegion_id,
@@ -44,6 +52,7 @@ extern bool used_funcs[HOOKS_NUM];
 
 void sync();
 int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count);
+int ksceCtrlPeekBufferPositive2_internal(int port, SceCtrlData *pad_data, int count);
 int ksceTouchPeek_internal(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs);
 
 #endif

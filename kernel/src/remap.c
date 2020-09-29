@@ -650,16 +650,17 @@ void remap_fixSideButtons(uint32_t* btns){
 		btn_add(btns, SCE_CTRL_R2);
 }
 
-int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlData** remappedBuffers, bool isPositiveLogic, bool isExt) {
-	// ToDo remove per-hook buffers alltogether
-	if(profile.entries[PR_CO_PATCH_SYS].v.b){
-		hookId = 0;
-	}
+int remap_ctrl_getBufferNum(int port){
+	return cacheCtrl[0][port].num;
+}
+
+void remap_ctrl_updateBuffers(int port, SceCtrlData *ctrl, bool isPositiveLogic, bool isExt) {
+
+	int hookId = 0; // ToDo remove per-hook buffers alltogether
 
 	// If buffer for timestamp is already remapped
 	if (cacheCtrl[hookId][port].num > 0 && ctrl->timeStamp == cacheCtrl[hookId][port].buffers[cacheCtrl[hookId][port].num - 1].timeStamp){
-		*remappedBuffers = &cacheCtrl[hookId][port].buffers[cacheCtrl[hookId][port].num - nBufs];
-		return nBufs;
+		return;
 	}
 
 	// If buffer full - remove latest entry
@@ -674,40 +675,48 @@ int remap_controls(int port, SceCtrlData *ctrl, int nBufs, int hookId, SceCtrlDa
 	cacheCtrl[hookId][port].num++;
 	cacheCtrl[hookId][port].buffers[idx] = ctrl[0];
 
-	// // Invert for negative logic
+	// Invert for negative logic
 	if (!isPositiveLogic)
 		cacheCtrl[hookId][port].buffers[idx].buttons = 0xFFFFFFFF - cacheCtrl[hookId][port].buffers[idx].buttons;
 
-	// // Swap side buttons for Ext hooks for Vita mode
+	// Swap side buttons for non-Ext hooks for Vita mode
 	if (!isExt)
 		remap_swapSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
 
 	// Patch for more buttons
     if (profile.entries[PR_CO_PATCH_EXT].v.b){
     	SceCtrlData scd_ext;
-        ksceCtrlPeekBufferPositive2(port, &scd_ext, 1);
+        ksceCtrlPeekBufferPositive2_internal(port, &scd_ext, 1);
 		cacheCtrl[hookId][port].buffers[idx].buttons |= scd_ext.buttons;
     }
 
-	// // Apply remap
+	// Apply remap
 	applyRemap(&cacheCtrl[hookId][port].buffers[idx], &rs[hookId][port][0], hookId, port);
+}
+
+int remap_ctrl_readBuffer(int port, SceCtrlData *ctrl, int buffIdx, bool isPositiveLogic, bool isExt){
+	int hookId = 0;
+	// ToDo remove per-hook buffers alltogether
+
+	// Not enoghf buffers cached
+	if (buffIdx >= cacheCtrl[hookId][port].num)
+		return false;
+
+	// Read buffer from cache
+	*ctrl = cacheCtrl[hookId][port].buffers[cacheCtrl[hookId][port].num - buffIdx];
 
 	// Swap side buttons for Ext hooks
 	if (!isExt)
-		remap_fixSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
+		remap_fixSideButtons(&ctrl->buttons);
 
 	if (profile.entries[PR_CO_SWAP_BUTTONS].v.b)
-		remap_swapSideButtons(&cacheCtrl[hookId][port].buffers[idx].buttons);
+		remap_swapSideButtons(&ctrl->buttons);
 
 	// Invert back for negative logic
 	if (!isPositiveLogic)
-		cacheCtrl[hookId][port].buffers[idx].buttons = 0xFFFFFFFF - cacheCtrl[hookId][port].buffers[idx].buttons;
+		ctrl->buttons = 0xFFFFFFFF - ctrl->buttons;
 
-	// Limit returned buufers num with what we have stored
-	nBufs = min(nBufs, cacheCtrl[hookId][port].num);
-
-	*remappedBuffers = &cacheCtrl[hookId][port].buffers[cacheCtrl[hookId][port].num - nBufs];
-	return nBufs;
+	return true;
 }
 
 //Keep same touch id for continuus touches

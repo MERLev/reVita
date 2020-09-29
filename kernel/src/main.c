@@ -38,7 +38,7 @@ static tai_hook_ref_t refs[HOOKS_NUM];
 static SceUID         hooks[HOOKS_NUM];
 
 static SceUID mutex_procevent_uid = -1;
-static SceUID mutexCtrlHook[CTRL_HOOKS_NUM][5];
+static SceUID mutexCtrlHook[5];
 static SceUID mutexTouchHook[TOUCH_HOOKS_NUM][2];
 
 static SceUID thread_uid = -1;
@@ -59,6 +59,12 @@ static bool delayedStartDone = false;
 int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count){
     pad_data->timeStamp = INTERNAL;
     int ret = ksceCtrlPeekBufferPositive(port, pad_data, count);
+    return ret;
+}
+
+int ksceCtrlPeekBufferPositive2_internal(int port, SceCtrlData *pad_data, int count){
+    pad_data->timeStamp = INTERNAL;
+    int ret = ksceCtrlPeekBufferPositive2(port, pad_data, count);
     return ret;
 }
 
@@ -112,7 +118,7 @@ int nullButtons_kernel(SceCtrlData *bufs, SceUInt32 nBufs, bool isPositiveLogic)
     return nBufs;
 }
 
-int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpace, int isPositiveLogic, int isExt){ 
+int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPositiveLogic, int isExt){ 
     int ret = nBufs;
     if (ret < 1 || ret > BUFFERS_NUM) 
         return ret;
@@ -125,52 +131,57 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int hookId, int isKernelSpac
     if (!settings[SETT_REMAP_ENABLED].v.b) 
         return ret;
 
-    used_funcs[hookId] = true;
-
-    ksceKernelLockMutex(mutexCtrlHook[0][port], 1, NULL);
-    SceCtrlData* remappedBuffers;       // Remapped buffers from cache
+    ksceKernelLockMutex(mutexCtrlHook[port], 1, NULL);
     if (isKernelSpace) {
-        ret = remap_controls(port, &ctrl[ret-1], ret, hookId, &remappedBuffers, isPositiveLogic, isExt);
-        memcpy(&ctrl[0], remappedBuffers, ret * sizeof(SceCtrlData));
+        // Update internal cache with latest buffers
+        remap_ctrl_updateBuffers(port, &ctrl[ret-1], isPositiveLogic, isExt);
+
+        // Replace returned buffers with those from internal cache
+        ret = min(ret, remap_ctrl_getBufferNum(port));
+        for (int i = 0; i < ret; i++){
+            remap_ctrl_readBuffer(port, &ctrl[i], ret - i, isPositiveLogic, isExt);
+        }
     } else {
-        SceCtrlData scd;                // Last buffer
+        // Update internal cache with latest buffers
+        SceCtrlData scd;
         ksceKernelMemcpyUserToKernel(&scd, (uintptr_t)&ctrl[ret-1], sizeof(SceCtrlData));
-        LOG(":%i | %s\n", nBufs, ullx(scd.timeStamp));
-        ret = remap_controls(port, &scd, ret, hookId, &remappedBuffers, isPositiveLogic, isExt);
-        // if (ret > 0 && ret < 64)
-        //     ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[0], remappedBuffers, ret * sizeof(SceCtrlData)); 
+        remap_ctrl_updateBuffers(port, &scd, isPositiveLogic, isExt);
+
+        // Replace returned buffers with those from internal cache
+        ret = min(ret, remap_ctrl_getBufferNum(port));
+        for (int i = 0; i < ret; i++){
+            ksceKernelMemcpyUserToKernel(&scd, (uintptr_t)&ctrl[i], sizeof(SceCtrlData));
+            remap_ctrl_readBuffer(port, &scd, ret - i, isPositiveLogic, isExt);
+            ksceKernelMemcpyKernelToUser((uintptr_t)&ctrl[i], &scd, sizeof(SceCtrlData)); 
+        }
     }
-    ksceKernelUnlockMutex(mutexCtrlHook[0][port], 1);
+    ksceKernelUnlockMutex(mutexCtrlHook[port], 1);
     return ret;
 }
 
 #define DECL_FUNC_HOOK_PATCH_CTRL(name, space, logic, triggers) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
-        LOG(#name"_patched(%i, ..., %i)\n", port, nBufs);\
         if (((space) == SPACE_KERNEL && ctrl->timeStamp == INTERNAL)  || shellPid <= 0 || !delayedStartDone) \
             return TAI_CONTINUE(int, refs[name##_id], port, ctrl, nBufs); \
 		int ret = TAI_CONTINUE(int, refs[name##_id], \
             (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
-        return onInput(port, ctrl, ret, name##_id, (space), (logic), (triggers));\
+        used_funcs[name##_id] = true; \
+        return onInput(port, ctrl, ret, (space), (logic), (triggers));\
     }
-DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlPeekBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlReadBufferPositive,     SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlPeekBufferNegative,     SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlReadBufferNegative,     SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlPeekBufferPositiveExt,  SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
-DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlReadBufferPositiveExt,  SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
 
-DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlPeekBufferPositive2,    SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
-DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlReadBufferPositive2,    SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
-DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlPeekBufferNegative2,    SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_EXT)
-DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlReadBufferNegative2,    SPACE_USER,   LOGIC_NEGATIVE, TRIGGERS_EXT)
-DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlPeekBufferPositiveExt2, SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
-DECL_FUNC_HOOK_PATCH_CTRL(sceCtrlReadBufferPositiveExt2, SPACE_USER,   LOGIC_POSITIVE, TRIGGERS_EXT)
+DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlPeekBufferPositive,     SPACE_KERNEL,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlReadBufferPositive,     SPACE_KERNEL,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlPeekBufferNegative,     SPACE_KERNEL,   LOGIC_NEGATIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlReadBufferNegative,     SPACE_KERNEL,   LOGIC_NEGATIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlPeekBufferPositiveExt,  SPACE_KERNEL,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlReadBufferPositiveExt,  SPACE_KERNEL,   LOGIC_POSITIVE, TRIGGERS_NONEXT)
 
-// DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlPeekBufferPositive,    SPACE_KERNEL, LOGIC_POSITIVE, TRIGGERS_NONEXT)
-// DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlReadBufferPositive,    SPACE_KERNEL, LOGIC_POSITIVE, TRIGGERS_NONEXT)
-// DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlPeekBufferNegative,    SPACE_KERNEL, LOGIC_NEGATIVE, TRIGGERS_NONEXT)
-// DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlReadBufferNegative,    SPACE_KERNEL, LOGIC_NEGATIVE, TRIGGERS_NONEXT)
+DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlPeekBufferPositive2,    SPACE_KERNEL,   LOGIC_POSITIVE, TRIGGERS_EXT)
+DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlReadBufferPositive2,    SPACE_KERNEL,   LOGIC_POSITIVE, TRIGGERS_EXT)
+DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlPeekBufferNegative2,    SPACE_KERNEL,   LOGIC_NEGATIVE, TRIGGERS_EXT)
+DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlReadBufferNegative2,    SPACE_KERNEL,   LOGIC_NEGATIVE, TRIGGERS_EXT)
+DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlPeekBufferPositiveExt2, SPACE_KERNEL,   LOGIC_POSITIVE, TRIGGERS_EXT)
+DECL_FUNC_HOOK_PATCH_CTRL(ksceCtrlReadBufferPositiveExt2, SPACE_KERNEL,   LOGIC_POSITIVE, TRIGGERS_EXT)
 
 int nullTouch_kernel(SceTouchData *pData, SceUInt32 nBufs){
     pData[0] = pData[nBufs - 1];
@@ -275,7 +286,7 @@ int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplay
     if (gui_isOpen) {
         SceCtrlData ctrl;
         
-        if(ksceCtrlPeekBufferPositiveExt2(0, &ctrl, 1) == 1)
+        if(ksceCtrlPeekBufferPositive2_internal(0, &ctrl, 1) == 1)
             gui_onInput(&ctrl);
     }
 
@@ -364,7 +375,7 @@ static int main_thread(SceSize args, void *argp) {
         }
 
         SceCtrlData ctrl;
-        if(ksceCtrlPeekBufferPositive2(0, &ctrl, 1) != 1){
+        if(ksceCtrlPeekBufferPositive2_internal(0, &ctrl, 1) != 1){
             ksceKernelDelayThread(30 * 1000);
             continue;
         }
@@ -434,7 +445,13 @@ void sync(){
     hooks[name##_id] = taiHookFunctionImportForKernel(\
             KERNEL_PID, &refs[name##_id], #module, libnid, funcnid, name##_patched);\
     if (hooks[name##_id] < 0)\
-        LOG("ERROR: Hook export "#module">"#name" : %08X", hooks[name##_id]);
+        LOG("ERROR: Hook import "#module">"#name" : %08X", hooks[name##_id]);
+
+#define HOOK_OFFSET(modid, offset, name) \
+    hooks[name##_id] = taiHookFunctionOffsetForKernel(\
+            KERNEL_PID, &refs[name##_id], (modid), 0, (offset) | 1, 1, name##_patched);\
+    if (hooks[name##_id] < 0)\
+        LOG("ERROR: Hook offset "#name" : %08X", hooks[name##_id]);
 
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
@@ -443,11 +460,9 @@ int module_start(SceSize argc, const void *args) {
     // Create mutexes for ctrl and touch hooks
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
     char fname[128];
-    for (int i = 0; i < CTRL_HOOKS_NUM; i++){
-        for (int j = 0; j < 5; j++){
-	        sprintf(fname, "remaPSV2_mutex_ctrl_%i_%i", i, j);
-            mutexCtrlHook[i][j] = ksceKernelCreateMutex(&fname[0], 0, 0, NULL);
-        }
+    for (int j = 0; j < 5; j++){
+        sprintf(fname, "remaPSV2_mutex_ctrl_%i", j);
+        mutexCtrlHook[j] = ksceKernelCreateMutex(&fname[0], 0, 0, NULL);
     }
     for (int i = 0; i < TOUCH_HOOKS_NUM; i++){
         for (int j = 0; j < 2; j++){
@@ -481,26 +496,25 @@ int module_start(SceSize argc, const void *args) {
 
     // Hooking functions
     memset(hooks, 0, sizeof(hooks));
-    // if (isPSTV){
-        HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0xA9C3CED6, sceCtrlPeekBufferPositive);
-        HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x67E7AB83, sceCtrlReadBufferPositive);
-        HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x104ED1A7, sceCtrlPeekBufferNegative);
-        HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x15F96FB0, sceCtrlReadBufferNegative);
-    // } else {
-        // HOOK_EXPORT(SceCtrl, 0x7823A5D1, 0xEA1D3A34, ksceCtrlPeekBufferPositive);
-        // HOOK_EXPORT(SceCtrl, 0x7823A5D1, 0x9B96A1AA, ksceCtrlReadBufferPositive);
-        // HOOK_EXPORT(SceCtrl, 0x7823A5D1, 0x19895843, ksceCtrlPeekBufferNegative);
-        // HOOK_EXPORT(SceCtrl, 0x7823A5D1, 0x8D4E0DD1, ksceCtrlReadBufferNegative);
-    // }
-	HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0xA59454D3, sceCtrlPeekBufferPositiveExt);
-    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0xE2D99296, sceCtrlReadBufferPositiveExt);
 
-    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x15F81E8C, sceCtrlPeekBufferPositive2);
-    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0xC4226A3E, sceCtrlReadBufferPositive2);
-    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x81A89660, sceCtrlPeekBufferNegative2);
-    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x27A0C5FB, sceCtrlReadBufferNegative2);
-    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0x860BF292, sceCtrlPeekBufferPositiveExt2);
-    HOOK_EXPORT(SceCtrl, 0xD197E3C7, 0xA7178860, sceCtrlReadBufferPositiveExt2);
+	if (taiGetModuleInfoForKernel(KERNEL_PID, "SceCtrl", &modInfo) < 0) {
+		LOG("Error finding SceBt module\n");
+		return SCE_KERNEL_START_FAILED;
+	}
+
+    HOOK_EXPORT(SceCtrl, TAI_ANY_LIBRARY, 0xEA1D3A34, ksceCtrlPeekBufferPositive);
+    HOOK_EXPORT(SceCtrl, TAI_ANY_LIBRARY, 0x9B96A1AA, ksceCtrlReadBufferPositive);
+    HOOK_EXPORT(SceCtrl, TAI_ANY_LIBRARY, 0x19895843, ksceCtrlPeekBufferNegative);
+    HOOK_EXPORT(SceCtrl, TAI_ANY_LIBRARY, 0x8D4E0DD1, ksceCtrlReadBufferNegative);
+	HOOK_OFFSET(modInfo.modid, 0x3928, ksceCtrlPeekBufferPositiveExt);
+    HOOK_OFFSET(modInfo.modid, 0x3BCC, ksceCtrlReadBufferPositiveExt);
+
+    HOOK_OFFSET(modInfo.modid, 0x3EF8, ksceCtrlPeekBufferPositive2);
+    HOOK_OFFSET(modInfo.modid, 0x449C, ksceCtrlReadBufferPositive2);
+    HOOK_OFFSET(modInfo.modid, 0x41C8, ksceCtrlPeekBufferNegative2);
+    HOOK_OFFSET(modInfo.modid, 0x47F0, ksceCtrlReadBufferNegative2);
+    HOOK_OFFSET(modInfo.modid, 0x4B48, ksceCtrlPeekBufferPositiveExt2);
+    HOOK_OFFSET(modInfo.modid, 0x4E14, ksceCtrlReadBufferPositiveExt2);
 
     if (!isPSTV) {
         HOOK_EXPORT(SceTouch, TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek);
@@ -540,10 +554,9 @@ int module_stop(SceSize argc, const void *args) {
 
     if (mutex_procevent_uid >= 0)
         ksceKernelDeleteMutex(mutex_procevent_uid);
-    for (int i = 0; i < CTRL_HOOKS_NUM; i++)
-        for (int j = 0; j < 5; j++)
-            if (mutexCtrlHook[i][j] >= 0)
-                ksceKernelDeleteMutex(mutexCtrlHook[i][j]);
+    for (int j = 0; j < 5; j++)
+        if (mutexCtrlHook[j] >= 0)
+            ksceKernelDeleteMutex(mutexCtrlHook[j]);
     for (int i = 0; i < TOUCH_HOOKS_NUM; i++)
         for (int j = 0; j < 2; j++)
             if (mutexTouchHook[i][j] >= 0)

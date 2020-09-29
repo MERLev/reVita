@@ -23,7 +23,7 @@ static int port = 0;
 static SceCtrlData scdPrev;
 void onDraw_debugButtons(uint menuY){
 	SceCtrlData ctrl;
-	int ret = ksceCtrlPeekBufferPositiveExt2(port, &ctrl, 1);
+	int ret = ksceCtrlPeekBufferPositive2_internal(port, &ctrl, 1);
     int y = menuY;
     int x = L_1;
 	uint buttons = ctrl.buttons;
