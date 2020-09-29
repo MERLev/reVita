@@ -346,9 +346,7 @@ PROCEVENT_EXIT:
 // Always return SceShell pid to read all buttons
 SceUID ksceKernelGetProcessId_patched(void){
     int ret = TAI_CONTINUE(SceUID, refs[ksceKernelGetProcessId_id]);
-    // if (profile.entries[PR_CO_PATCH_SYS].v.b && shellPid > 0 && !streq(titleid, "XMB"))
-    if (profile.entries[PR_CO_PATCH_SYS].v.b && shellPid > 0 && delayedStartDone)
-    // if (profile.entries[PR_CO_PATCH_SYS].v.b && shellPid > 0)
+    if (shellPid > 0 && delayedStartDone)
         return shellPid;
     return ret;
 }

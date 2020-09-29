@@ -100,7 +100,6 @@ typedef struct RuleData{
 	uint8_t stickposval;
 	enum RULE_STATUS* status;
 	bool isTurboTick;
-    int hookId;
     int port;
 }RuleData;
 
@@ -111,7 +110,6 @@ typedef struct EmulatedTouchEvent{
 	bool isSwipe;
 	bool isSmartSwipe;
 	bool isSwipeFinished;
-    int hookId;
     int port;
 }EmulatedTouchEvent;
 

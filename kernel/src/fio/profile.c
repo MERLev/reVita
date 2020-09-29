@@ -267,7 +267,6 @@ void profile_resetGyro() {
 }
 void profile_resetController(){
 	profile_resetEntryById(PR_CO_PATCH_EXT);
-	profile_resetEntryById(PR_CO_PATCH_SYS);
 	profile_resetEntryById(PR_CO_SWAP_BUTTONS);
 	profile_resetEntryById(PR_CO_EMULATE_DS4);
 }
@@ -717,11 +716,6 @@ void setDefProfile(){
 		.type = TYPE_BOOL,
 		.def.u = false,
 		.key = "PATCH_EXT"});
-	setPE((ProfileEntry){
-		.id = PR_CO_PATCH_SYS,
-		.type = TYPE_BOOL,
-		.def.u = false,
-		.key = "PATCH_SYS"});
 	setPE((ProfileEntry){
 		.id = PR_CO_SWAP_BUTTONS,
 		.type = TYPE_BOOL,
