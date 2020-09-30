@@ -70,6 +70,7 @@ target_link_libraries(${PROJECT_NAME}
   SceCtrlForDriver_stub
   SceTouchForDriver_stub
   ScePowerForDriver_stub 
+	SceRegMgrForDriver_stub 
   SceDebugForDriver_stub
   ds34vita_stub_weak
 )

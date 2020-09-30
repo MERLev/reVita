@@ -37,6 +37,7 @@ enum H_ID{
     ksceDisplaySetFrameBufInternal_id,
     ksceKernelInvokeProcEventHandler_id,
     ksceKernelGetProcessId_id,
+    ksceRegMgrSetKeyInt_id,
     HOOKS_NUM
 };
 
@@ -47,6 +48,7 @@ extern char titleid[32];
 extern int processid;
 extern bool isPspemu;
 extern bool isPSTV;
+extern bool isPSTVTouchEmulation;
 
 extern bool used_funcs[HOOKS_NUM];
 

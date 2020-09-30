@@ -237,8 +237,7 @@ void drawEmulatedPointersForPanel(uint32_t panel){
 				gui_drawTouchPointer(panel, &et[panel].reports[i].point);
 		}
 	}
-	if (profile.entries[PR_TO_DRAW_NATIVE].v.b){
-		// LOG("panel %i : %i\n", panel, td[panel].reportNum);
+	if (profile.entries[PR_TO_DRAW_NATIVE].v.b && !isPSTVTouchEmulation){
 		for (int i = 0; i < td[panel].reportNum; i++){
 			TouchPoint tp = (TouchPoint){
 				x: td[panel].report[i].x, 

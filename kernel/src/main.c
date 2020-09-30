@@ -6,6 +6,7 @@
 #include <psp2/motion.h> 
 #include <psp2/touch.h>
 #include <psp2kern/kernel/sysmem.h> 
+#include <psp2kern/registrymgr.h> 
 
 #include "vitasdkext.h"
 #include "main.h"
@@ -49,6 +50,7 @@ int processid = -1;
 static SceUID shellPid = -1;
 bool isPspemu = false;
 bool isPSTV = false;
+bool isPSTVTouchEmulation = false;
 
 bool used_funcs[HOOKS_NUM];
 bool ds34vitaRunning;
@@ -351,6 +353,13 @@ SceUID ksceKernelGetProcessId_patched(void){
     return ret;
 }
 
+int ksceRegMgrSetKeyInt_patched(char *category, char *name, int buf){
+	int ret = TAI_CONTINUE(int, refs[ksceRegMgrSetKeyInt_id], category, name, buf);
+	if (streq(category, "/CONFIG/SHELL") && streq(name, "touch_emulation"))
+		isPSTVTouchEmulation = buf;
+	return ret;
+}
+
 static int main_thread(SceSize args, void *argp) {
     uint32_t oldBtns = 0;
     while (thread_run) {
@@ -489,6 +498,7 @@ int module_start(SceSize argc, const void *args) {
     remap_init();
     userspace_init();
 
+	ksceRegMgrGetKeyInt("/CONFIG/SHELL", "touch_emulation", (int *)&isPSTVTouchEmulation);
     startTick = ksceKernelGetSystemTimeWide();
 	theme_load(settings[SETT_THEME].v.u);
 
@@ -527,9 +537,10 @@ int module_start(SceSize argc, const void *args) {
     }
 
 	HOOK_EXPORT(SceCtrl,       TAI_ANY_LIBRARY, 0xF11D0D30, ksceCtrlGetControllerPortInfo);
+	HOOK_IMPORT(SceCtrl,       0xE2C40624,      0x9DCB4B7A, ksceKernelGetProcessId);
 	HOOK_EXPORT(SceDisplay,    0x9FED47AC,      0x16466675, ksceDisplaySetFrameBufInternal);
 	HOOK_IMPORT(SceProcessmgr, 0x887F19D0,      0x414CC813, ksceKernelInvokeProcEventHandler);
-	HOOK_IMPORT(SceCtrl,       0xE2C40624,      0x9DCB4B7A, ksceKernelGetProcessId);
+	HOOK_EXPORT(SceRegistryMgr, 0xB2223AEB, 0xD72EA399, ksceRegMgrSetKeyInt);
 
     // Create threads
     thread_uid = ksceKernelCreateThread("remaPSV2_thread", main_thread, 0x3C, 0x3000, 0, 0x10000, 0);
