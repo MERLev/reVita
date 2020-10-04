@@ -301,8 +301,10 @@ void onButton_generic(uint32_t btn){
 
 void onButton_genericEntries(uint32_t btn){
 	switch (btn) {
-		case SCE_CTRL_RIGHT: profile_inc(gui_getEntry()->dataPE, 1); break;
 		case SCE_CTRL_LEFT: profile_dec(gui_getEntry()->dataPE, 1); break;
+		case SCE_CTRL_RIGHT: profile_inc(gui_getEntry()->dataPE, 1); break;
+		case SCE_CTRL_L1: profile_dec(gui_getEntry()->dataPE, 10); break;
+		case SCE_CTRL_R1: profile_inc(gui_getEntry()->dataPE, 10); break;
 		case SCE_CTRL_SQUARE: profile_resetEntry(gui_getEntry()->dataPE); break;
 		default: onButton_generic(btn); break;
 	}
