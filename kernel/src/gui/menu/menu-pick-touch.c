@@ -148,10 +148,10 @@ void onButton_pickTouchZone(uint32_t btn){
 			break;
 		case SCE_CTRL_LEFT:
 			switch (gui_getEntry()->dataUint){
-				case 0: ra->param.tPoints.a.x = max(ra->param.tPoints.a.x - 1, size.b.x); break;
-				case 1: ra->param.tPoints.a.y = max(ra->param.tPoints.a.y - 1, size.b.y); break;
-				case 2: ra->param.tPoints.b.x = max(ra->param.tPoints.b.x - 1, size.b.x); break;
-				case 3: ra->param.tPoints.b.y = max(ra->param.tPoints.b.y - 1, size.b.y); break;
+				case 0: ra->param.tPoints.a.x = max(ra->param.tPoints.a.x - 1, size.a.x); break;
+				case 1: ra->param.tPoints.a.y = max(ra->param.tPoints.a.y - 1, size.a.y); break;
+				case 2: ra->param.tPoints.b.x = max(ra->param.tPoints.b.x - 1, size.a.x); break;
+				case 3: ra->param.tPoints.b.y = max(ra->param.tPoints.b.y - 1, size.a.y); break;
 			}
 			break;
 		case SCE_CTRL_CIRCLE: gui_openMenuPrev();
