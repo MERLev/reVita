@@ -363,7 +363,7 @@ int ksceRegMgrSetKeyInt_patched(char *category, char *name, int buf){
 static int main_thread(SceSize args, void *argp) {
     uint32_t oldBtns = 0;
     while (thread_run) {
-        //
+        // Set shell pid
         if (shellPid < 0){
             shellPid = ksceKernelSysrootGetShellPid();
             ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
@@ -386,7 +386,6 @@ static int main_thread(SceSize args, void *argp) {
             ksceKernelDelayThread(30 * 1000);
             continue;
         }
-        remap_swapSideButtons(&ctrl.buttons);
 
         if (!gui_isOpen){
             for (int i = 0; i < HOTKEY__NUM; i++){
@@ -395,6 +394,8 @@ static int main_thread(SceSize args, void *argp) {
                         !btn_has(oldBtns, hotkeys[i].v.u)){
                     switch(i){
                         case HOTKEY_MENU:
+                            if (!delayedStartDone)
+                                break;
                             gui_open();
                             remap_resetBuffers();
                             break;
