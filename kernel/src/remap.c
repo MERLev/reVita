@@ -632,7 +632,7 @@ void remap_swapSideButtons(uint32_t* btns){
 		btn_add(btns, SCE_CTRL_R2);
 }
 
-// Chenge L1 -> L2, R1 -> R2, remove L1 R1 L3 R3
+// Change L1 -> L2, R1 -> R2, remove L1 R1 L3 R3
 void remap_fixSideButtons(uint32_t* btns){
 	uint32_t oldBtns = *btns;
 	btn_del(btns, SCE_CTRL_L2);
@@ -680,8 +680,9 @@ void remap_ctrl_updateBuffers(int port, SceCtrlData *ctrl, bool isPositiveLogic,
 	// Patch for more buttons
     if (profile.entries[PR_CO_PATCH_EXT].v.b){
     	SceCtrlData scd_ext;
-        ksceCtrlPeekBufferPositive2_internal(port, &scd_ext, 1);
-		cacheCtrl[port].buffers[idx].buttons |= scd_ext.buttons;
+        if (ksceCtrlPeekBufferPositive2_internal(port, &scd_ext, 1) > 0){
+			cacheCtrl[port].buffers[idx].buttons |= scd_ext.buttons;
+		}
     }
 
 	// Apply remap
