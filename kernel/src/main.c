@@ -85,7 +85,7 @@ void changeActiveApp(char* tId, int pid){
         profile_load(titleid);
         remap_resetBuffers();
         gui_close();
-        delayedStartDone = false;
+        // delayedStartDone = false;
         startTick = ksceKernelGetSystemTimeWide();
     }
 }
@@ -320,6 +320,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
         strnclone(titleidLocal, HOME, sizeof(titleidLocal));
     switch (ev) {
         case 1: //Start
+            delayedStartDone = false;
         case 5: //Resume
             if (streq(titleidLocal, "PSPEMUCFW")){
                 isPspemu = true;
