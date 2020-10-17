@@ -226,10 +226,10 @@ void gui_drawTouchPointer(uint32_t panel, TouchPoint* tp){
 
 void drawEmulatedPointersForPanel(uint32_t panel){
 	for (int i = 0; i < et[panel].num; i++){
-		if (et->reports[i].isSwipe){
+		if (et[panel].reports[i].isSwipe){
 			if (profile.entries[PR_TO_DRAW_SWIPE].v.b)
 				gui_drawTouchPointer(panel, &et[panel].reports[i].swipeCurrentPoint);
-		} else if (et->reports[i].isSmartSwipe){
+		} else if (et[panel].reports[i].isSmartSwipe){
 			if (profile.entries[PR_TO_DRAW_SMART_SWIPE].v.b)
 				gui_drawTouchPointer(panel, &et[panel].reports[i].swipeEndPoint);
 		} else {
