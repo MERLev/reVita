@@ -616,35 +616,39 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 }
 
 // Swap L1<>L2 R1<>R2
-void remap_swapSideButtons(uint32_t* btns){
-	uint32_t oldBtns = *btns;
-	btn_del(btns, SCE_CTRL_L1);
-	btn_del(btns, SCE_CTRL_R1);
-	btn_del(btns, SCE_CTRL_L2);
-	btn_del(btns, SCE_CTRL_R2);
+void remap_swapSideButtons(SceCtrlData *ctrl){
+	uint32_t oldBtns = *&ctrl->buttons;
+	btn_del(&ctrl->buttons, SCE_CTRL_L1);
+	btn_del(&ctrl->buttons, SCE_CTRL_R1);
+	btn_del(&ctrl->buttons, SCE_CTRL_L2);
+	btn_del(&ctrl->buttons, SCE_CTRL_R2);
 	if (btn_has(oldBtns, SCE_CTRL_L2)) 
-		btn_add(btns, SCE_CTRL_L1);
+		btn_add(&ctrl->buttons, SCE_CTRL_L1);
 	if (btn_has(oldBtns, SCE_CTRL_R2)) 
-		btn_add(btns, SCE_CTRL_R1);
+		btn_add(&ctrl->buttons, SCE_CTRL_R1);
 	if (btn_has(oldBtns, SCE_CTRL_L1)) 
-		btn_add(btns, SCE_CTRL_L2);
+		btn_add(&ctrl->buttons, SCE_CTRL_L2);
 	if (btn_has(oldBtns, SCE_CTRL_R1)) 
-		btn_add(btns, SCE_CTRL_R2);
+		btn_add(&ctrl->buttons, SCE_CTRL_R2);
+	ctrl->lt = btn_has(oldBtns, SCE_CTRL_L1) ? 255 : 0;
+	ctrl->rt = btn_has(oldBtns, SCE_CTRL_R1) ? 255 : 0;
 }
 
 // Change L1 -> L2, R1 -> R2, remove L1 R1 L3 R3
-void remap_fixSideButtons(uint32_t* btns){
-	uint32_t oldBtns = *btns;
-	btn_del(btns, SCE_CTRL_L2);
-	btn_del(btns, SCE_CTRL_R2);
-	btn_del(btns, SCE_CTRL_L1);
-	btn_del(btns, SCE_CTRL_R1);
-	btn_del(btns, SCE_CTRL_L3);
-	btn_del(btns, SCE_CTRL_R3);
+void remap_fixSideButtons(SceCtrlData *ctrl){
+	uint32_t oldBtns = *&ctrl->buttons;
+	btn_del(&ctrl->buttons, SCE_CTRL_L2);
+	btn_del(&ctrl->buttons, SCE_CTRL_R2);
+	btn_del(&ctrl->buttons, SCE_CTRL_L1);
+	btn_del(&ctrl->buttons, SCE_CTRL_R1);
+	btn_del(&ctrl->buttons, SCE_CTRL_L3);
+	btn_del(&ctrl->buttons, SCE_CTRL_R3);
 	if (btn_has(oldBtns, SCE_CTRL_L1)) 
-		btn_add(btns, SCE_CTRL_L2);
+		btn_add(&ctrl->buttons, SCE_CTRL_L2);
 	if (btn_has(oldBtns, SCE_CTRL_R1)) 
-		btn_add(btns, SCE_CTRL_R2);
+		btn_add(&ctrl->buttons, SCE_CTRL_R2);
+	ctrl->lt = 0;
+	ctrl->rt = 0;
 }
 
 int remap_ctrl_getBufferNum(int port){
@@ -675,7 +679,7 @@ void remap_ctrl_updateBuffers(int port, SceCtrlData *ctrl, bool isPositiveLogic,
 
 	// Swap side buttons for non-Ext hooks for Vita mode
 	if (!isExt)
-		remap_swapSideButtons(&cacheCtrl[port].buffers[idx].buttons);
+		remap_swapSideButtons(&cacheCtrl[port].buffers[idx]);
 
 	// Patch for more buttons
     if (profile.entries[PR_CO_PATCH_EXT].v.b){
@@ -690,19 +694,20 @@ void remap_ctrl_updateBuffers(int port, SceCtrlData *ctrl, bool isPositiveLogic,
 }
 
 int remap_ctrl_readBuffer(int port, SceCtrlData *ctrl, int buffIdx, bool isPositiveLogic, bool isExt){
-	// Not enoghf buffers cached
+	// Not enough buffers cached
 	if (buffIdx >= cacheCtrl[port].num)
 		return false;
 
 	// Read buffer from cache
 	*ctrl = cacheCtrl[port].buffers[cacheCtrl[port].num - buffIdx];
 
-	// Swap side buttons for Ext hooks
-	if (!isExt)
-		remap_fixSideButtons(&ctrl->buttons);
-
+	// Swap L1<>LT R1<>RT
 	if (profile.entries[PR_CO_SWAP_BUTTONS].v.b)
-		remap_swapSideButtons(&ctrl->buttons);
+		remap_swapSideButtons(ctrl);
+		
+	// Remove ext buttons for non-ext calls
+	if (!isExt)
+		remap_fixSideButtons(ctrl);
 
 	// Invert back for negative logic
 	if (!isPositiveLogic)

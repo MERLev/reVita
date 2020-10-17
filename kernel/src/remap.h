@@ -135,7 +135,7 @@ void remap_resetBuffers();
 void remap_init();
 void remap_destroy();
 void remap_setup();
-void remap_swapSideButtons(uint32_t* btns);
-void remap_fixSideButtons(uint32_t* btns);
+void remap_swapSideButtons(SceCtrlData *ctrl);
+void remap_fixSideButtons(SceCtrlData *ctrl);
 
 #endif
