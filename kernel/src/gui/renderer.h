@@ -9,6 +9,9 @@ extern uint32_t fbWidth, fbHeight, fbPitch;
 void renderer_init();
 void renderer_destroy();
 
+int renderer_allocVirtualFB();
+int renderer_freeVirtualFB();
+
 void renderer_setFB(const SceDisplayFrameBuf *param);
 void renderer_writeToFB(int64_t timeFromOpene);
 void renderer_cpy();

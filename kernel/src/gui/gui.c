@@ -435,6 +435,10 @@ void gui_prevEntry(){
 }
 
 void gui_open(const SceDisplayFrameBuf *pParam){
+	if (renderer_allocVirtualFB() < 0){
+		LOG("memory allocation for menu failed\n");
+		return;
+	}
 	gui_menu = menus[MENU_MAIN_ID]; //&menu_main;
 	gui_setIdx(0);
 	gui_isOpen = true;
@@ -442,6 +446,7 @@ void gui_open(const SceDisplayFrameBuf *pParam){
 	LOG("gui_open() tickUIOpen=%lli\n", tickUIOpen);
 }
 void gui_close(){
+	renderer_freeVirtualFB();
 	gui_isOpen = false;
 	profile.version = ksceKernelGetSystemTimeWide();
 	sync();
