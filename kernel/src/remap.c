@@ -682,7 +682,7 @@ void remap_ctrl_updateBuffers(int port, SceCtrlData *ctrl, bool isPositiveLogic,
 		remap_swapSideButtons(&cacheCtrl[port].buffers[idx]);
 
 	// Patch for more buttons
-    if (profile.entries[PR_CO_PATCH_EXT].v.b){
+    if (!isExt){
     	SceCtrlData scd_ext;
         if (ksceCtrlPeekBufferPositive2_internal(port, &scd_ext, 1) > 0){
 			cacheCtrl[port].buffers[idx].buttons |= scd_ext.buttons;

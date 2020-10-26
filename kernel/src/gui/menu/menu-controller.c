@@ -48,7 +48,6 @@ void onDraw_controller(uint menuY){
 }
 
 static struct MenuEntry menu_controllers_entries[] = {
-	(MenuEntry){.name = "Force support for $,$.$($) ",  .dataPE = &profile.entries[PR_CO_PATCH_EXT]},
 	(MenuEntry){.name = "Swap $[$]<>${$}", 				.dataPE = &profile.entries[PR_CO_SWAP_BUTTONS]},
 	(MenuEntry){.name = "Vita as virtual DS4", 			.dataPE = &profile.entries[PR_CO_EMULATE_DS4]}};
 static struct Menu menu_controller = (Menu){

@@ -452,7 +452,6 @@ static struct MenuEntry menu_remap_emu_remapsv_entries[] = {
 	(MenuEntry){.name = "Draw emulated Smart Swipe", 	.icn = ICON_SWIPE,			.dataUint = PR_TO_DRAW_SMART_SWIPE},
 	(MenuEntry){.name = "Draw native Touch", 			.icn = ICON_TOUCH,			.dataUint = PR_TO_DRAW_NATIVE},
 	(MenuEntry){.name = "Swap touchpads", 				.icn = ICON_BT,				.dataUint = PR_TO_SWAP},
-	(MenuEntry){.name = "Force support for $,$.$($)",  	.icn = ICON_BTN_DS4TOUCH,	.dataUint = PR_CO_PATCH_EXT},
 	(MenuEntry){.name = "Swap $[$]<>${$}", 				.icn = ICON_BTN_DS4TOUCH,	.dataUint = PR_CO_SWAP_BUTTONS},
 	(MenuEntry){.name = "Vita as virtual DS4", 			.icn = ICON_BTN_DS4TOUCH,	.dataUint = PR_CO_EMULATE_DS4}};
 static struct Menu menu_remap_emu_remapsv = (Menu){

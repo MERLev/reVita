@@ -266,7 +266,6 @@ void profile_resetGyro() {
 	profile_resetEntryById(PR_GY_WHEEL);
 }
 void profile_resetController(){
-	profile_resetEntryById(PR_CO_PATCH_EXT);
 	profile_resetEntryById(PR_CO_SWAP_BUTTONS);
 	profile_resetEntryById(PR_CO_EMULATE_DS4);
 }
@@ -711,11 +710,6 @@ void setDefProfile(){
 		.key = "WHEEL"});
 
 	// External controllers
-	setPE((ProfileEntry){
-		.id = PR_CO_PATCH_EXT,
-		.type = TYPE_BOOL,
-		.def.u = false,
-		.key = "PATCH_EXT"});
 	setPE((ProfileEntry){
 		.id = PR_CO_SWAP_BUTTONS,
 		.type = TYPE_BOOL,
