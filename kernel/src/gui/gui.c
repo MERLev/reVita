@@ -52,6 +52,7 @@ SceUID mem_uid;
 int64_t tickUIOpen = 0;
 uint8_t gui_isOpen = false;
 uint8_t gui_lines = 10;
+static SceUID mutex_gui_uid = -1;
 
 struct MenuEntry* gui_getEntry(){
 	return &gui_menu->entries[gui_menu->idx % gui_menu->num];
@@ -266,6 +267,7 @@ void drawDirectlyToFB(){
 }
 
 void gui_draw(const SceDisplayFrameBuf *pParam){
+	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);
 	ticker++;
 	if (gui_isOpen) {
 		renderer_setFB(pParam);
@@ -280,6 +282,7 @@ void gui_draw(const SceDisplayFrameBuf *pParam){
 		drawEmulatedPointersForPanel(SCE_TOUCH_PORT_FRONT);
 		drawEmulatedPointersForPanel(SCE_TOUCH_PORT_BACK);
 	}
+    ksceKernelUnlockMutex(mutex_gui_uid, 1);
 }
 
 void gui_updateEmulatedTouch(SceTouchPortType panel, EmulatedTouch etouch, SceTouchData pData){
@@ -314,6 +317,7 @@ void gui_onInput(SceCtrlData *ctrl) {
 	if (btn_has(ctrl->buttons, hotkeys[HOTKEY_MENU].v.u))
 		return; //Menu trigger butoons should not trigger any menu actions on menu open
 	
+	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);
 	if (gui_menu->onInput)
 		gui_menu->onInput(ctrl);
 
@@ -354,6 +358,7 @@ void gui_onInput(SceCtrlData *ctrl) {
 			btns[i].isLongPressed = false;
 		}
 	}
+    ksceKernelUnlockMutex(mutex_gui_uid, 1);
 }
 
 void ui_fixIdx(Menu* m, int idx){
@@ -439,22 +444,27 @@ void gui_open(const SceDisplayFrameBuf *pParam){
 		LOG("memory allocation for menu failed\n");
 		return;
 	}
+	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);
 	gui_menu = menus[MENU_MAIN_ID]; //&menu_main;
 	gui_setIdx(0);
 	gui_isOpen = true;
 	tickUIOpen = ksceKernelGetSystemTimeWide();
 	LOG("gui_open() tickUIOpen=%lli\n", tickUIOpen);
+    ksceKernelUnlockMutex(mutex_gui_uid, 1);
 }
 void gui_close(){
+	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);
 	renderer_freeVirtualFB();
 	gui_isOpen = false;
 	profile.version = ksceKernelGetSystemTimeWide();
 	sync();
 	LOGF("gui_close()\n");
+    ksceKernelUnlockMutex(mutex_gui_uid, 1);
 }
 
 void gui_init(){
 	memset(&btns, 0, sizeof(btns));
+    mutex_gui_uid = ksceKernelCreateMutex("remaPSV2_mutex_gui", 0, 0, NULL);
 	
     renderer_init(UI_WIDTH, UI_HEIGHT);
 
@@ -482,4 +492,6 @@ void gui_init(){
 }
 void gui_destroy(){
 	renderer_destroy();
+    if (mutex_gui_uid >= 0)
+        ksceKernelDeleteMutex(mutex_gui_uid);
 }

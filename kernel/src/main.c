@@ -473,6 +473,7 @@ int module_start(SceSize argc, const void *args) {
 
     // Create mutexes for ctrl and touch hooks
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
+    
     char fname[128];
     for (int j = 0; j < 5; j++){
         sprintf(fname, "remaPSV2_mutex_ctrl_%i", j);
