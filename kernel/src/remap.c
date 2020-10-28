@@ -943,7 +943,6 @@ void initTouchParams(){
 }
 
 void remap_setup(){
-    //ksceKernelGetSystemTimeLow
 	// Enabling analogs sampling 
 	if (profile.entries[PR_AN_MODE_WIDE].v.b){
 		ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);

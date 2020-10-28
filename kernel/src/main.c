@@ -353,7 +353,7 @@ PROCEVENT_EXIT:
 // Always return SceShell pid to read all buttons
 SceUID ksceKernelGetProcessId_patched(void){
     int ret = TAI_CONTINUE(SceUID, refs[ksceKernelGetProcessId_id]);
-    if (shellPid > 0 && delayedStartDone)
+    if (shellPid > 0 && delayedStartDone && settings[SETT_REMAP_ENABLED].v.b)
         return shellPid;
     return ret;
 }
