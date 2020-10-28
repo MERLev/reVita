@@ -48,6 +48,7 @@ static bool   thread_run = true;
 char titleid[32] = "";
 int processid = -1;
 static SceUID shellPid = -1;
+static SceUID kernelPid = -1;
 bool isPspemu = false;
 bool isPSTV = false;
 bool isPSTVTouchEmulation = false;
@@ -167,7 +168,10 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
 
 #define DECL_FUNC_HOOK_PATCH_CTRL(name, space, logic, triggers) \
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
-        if (((space) == SPACE_KERNEL && ctrl->timeStamp == INTERNAL)  || shellPid <= 0 || !delayedStartDone) \
+        if (((space) == SPACE_KERNEL && ctrl->timeStamp == INTERNAL) \
+                || shellPid <= 0 \
+                || !delayedStartDone \
+                || ksceKernelGetProcessId() == kernelPid) \
             return TAI_CONTINUE(int, refs[name##_id], port, ctrl, nBufs); \
 		int ret = TAI_CONTINUE(int, refs[name##_id], \
             (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
@@ -473,7 +477,9 @@ int module_start(SceSize argc, const void *args) {
 
     // Create mutexes for ctrl and touch hooks
     mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
-    
+
+    kernelPid = ksceKernelGetProcessId();
+
     char fname[128];
     for (int j = 0; j < 5; j++){
         sprintf(fname, "remaPSV2_mutex_ctrl_%i", j);
