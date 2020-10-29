@@ -946,12 +946,11 @@ void remap_setup(){
 	// Enabling analogs sampling 
 	if (profile.entries[PR_AN_MODE_WIDE].v.b){
 		ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
-		ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+		ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
 	} else {
 		ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
-		ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
+		ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
 	}
-	ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
 	
 	// Enabling both touch panels sampling
 	ksceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
@@ -961,14 +960,14 @@ void remap_setup(){
 	SceTouchPanelInfo pi;
 	
 	for (int port = 0; port < SCE_TOUCH_PORT_MAX_NUM; port++){
-		if (ksceTouchGetPanelInfo(port, &pi) >= 0){
+		if (ksceTouchGetPanelInfo(port, &pi) == 0){
 			T_SIZE[port].a.x = pi.minAaX;
 			T_SIZE[port].a.y = pi.minAaY;
 			T_SIZE[port].b.x = pi.maxAaX;
 			T_SIZE[port].b.y = pi.maxAaY;
+			initTouchParams();
 		}
 	}
-	initTouchParams();
 }
 
 void remap_init(){

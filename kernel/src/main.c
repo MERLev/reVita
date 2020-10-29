@@ -35,6 +35,24 @@
 
 #define INTERNAL        (666*666)
 
+#define HOOK_EXPORT(module, libnid, funcnid, name) \
+    hooks[name##_id] = taiHookFunctionExportForKernel(\
+            KERNEL_PID, &refs[name##_id], #module, libnid, funcnid, name##_patched);\
+    if (hooks[name##_id] < 0)\
+        LOG("ERROR: Hook export "#module">"#name" : %08X", hooks[name##_id]);
+
+#define HOOK_IMPORT(module, libnid, funcnid, name) \
+    hooks[name##_id] = taiHookFunctionImportForKernel(\
+            KERNEL_PID, &refs[name##_id], #module, libnid, funcnid, name##_patched);\
+    if (hooks[name##_id] < 0)\
+        LOG("ERROR: Hook import "#module">"#name" : %08X", hooks[name##_id]);
+
+#define HOOK_OFFSET(modid, offset, name) \
+    hooks[name##_id] = taiHookFunctionOffsetForKernel(\
+            KERNEL_PID, &refs[name##_id], (modid), 0, (offset) | 1, 1, name##_patched);\
+    if (hooks[name##_id] < 0)\
+        LOG("ERROR: Hook offset "#name" : %08X", hooks[name##_id]);
+
 static tai_hook_ref_t refs[HOOKS_NUM];
 static SceUID         hooks[HOOKS_NUM];
 
@@ -138,10 +156,21 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
     if (!settings[SETT_REMAP_ENABLED].v.b) 
         return ret;
 
+    if (!delayedStartDone){
+        if (ksceKernelGetProcessId() != processid
+                || startTick + settings[SETT_DELAY_INIT].v.u * 1000000 > ksceKernelGetSystemTimeWide())
+            return ret;
+        // Activate delayed start
+        remap_setup();
+        delayedStartDone = true;
+        LOG("delayedStartDone = 1\n");
+    }
+
     ksceKernelLockMutex(mutexCtrlHook[port], 1, NULL);
     if (isKernelSpace) {
         // Update internal cache with latest buffers
-        remap_ctrl_updateBuffers(port, &ctrl[ret-1], isPositiveLogic, isExt);
+        if (ksceKernelGetProcessId() == processid)
+            remap_ctrl_updateBuffers(port, &ctrl[ret-1], isPositiveLogic, isExt);
 
         // Replace returned buffers with those from internal cache
         ret = min(ret, remap_ctrl_getBufferNum(port));
@@ -151,8 +180,10 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
     } else {
         // Update internal cache with latest buffers
         SceCtrlData scd;
-        ksceKernelMemcpyUserToKernel(&scd, (uintptr_t)&ctrl[ret-1], sizeof(SceCtrlData));
-        remap_ctrl_updateBuffers(port, &scd, isPositiveLogic, isExt);
+        if (ksceKernelGetProcessId() == processid){
+            ksceKernelMemcpyUserToKernel(&scd, (uintptr_t)&ctrl[ret-1], sizeof(SceCtrlData));
+            remap_ctrl_updateBuffers(port, &scd, isPositiveLogic, isExt);
+        }
 
         // Replace returned buffers with those from internal cache
         ret = min(ret, remap_ctrl_getBufferNum(port));
@@ -170,12 +201,16 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
         if (((space) == SPACE_KERNEL && ctrl->timeStamp == INTERNAL) \
                 || shellPid <= 0 \
-                || !delayedStartDone \
-                || ksceKernelGetProcessId() == kernelPid) \
+                || ksceKernelGetProcessId() == kernelPid \
+                || (isPspemu && ksceKernelGetProcessId() != processid)) \
             return TAI_CONTINUE(int, refs[name##_id], port, ctrl, nBufs); \
 		int ret = TAI_CONTINUE(int, refs[name##_id], \
             (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
         used_funcs[name##_id] = true; \
+        /*char titleidLocal[20]; \
+        ksceKernelGetProcessTitleId(ksceKernelGetProcessId(), titleidLocal, 20); \
+        if (ret > 0 && ret <= BUFFERS_NUM) \
+            LOG("   "#name"_patched(%i,...,%i):%i |%i|%s| pid:%i\n", port, nBufs, ret, ksceKernelGetProcessId(), titleidLocal, processid);*/\
         return onInput(port, ctrl, ret, (space), (logic), (triggers));\
     }
 
@@ -342,6 +377,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             if (!streq(titleid, HOME)){
                 isPspemu = false;
                 changeActiveApp(HOME, pid);
+                processid = shellPid;
             }
             break;
         default:
@@ -357,13 +393,16 @@ PROCEVENT_EXIT:
 // Always return SceShell pid to read all buttons
 SceUID ksceKernelGetProcessId_patched(void){
     int ret = TAI_CONTINUE(SceUID, refs[ksceKernelGetProcessId_id]);
-    if (shellPid > 0 && delayedStartDone && settings[SETT_REMAP_ENABLED].v.b)
+    if (shellPid > 0 
+            && delayedStartDone 
+            && settings[SETT_REMAP_ENABLED].v.b 
+            && !isPspemu)
         return shellPid;
     return ret;
 }
 
 int ksceRegMgrSetKeyInt_patched(char *category, char *name, int buf){
-	int ret = TAI_CONTINUE(int, refs[ksceRegMgrSetKeyInt_id], category, name, buf);
+    int ret = TAI_CONTINUE(int, refs[ksceRegMgrSetKeyInt_id], category, name, buf);
 	if (streq(category, "/CONFIG/SHELL") && streq(name, "touch_emulation"))
 		isPSTVTouchEmulation = buf;
 	return ret;
@@ -374,7 +413,7 @@ static int main_thread(SceSize args, void *argp) {
     while (thread_run) {
         // Set shell pid
         if (shellPid < 0){
-            shellPid = ksceKernelSysrootGetShellPid();
+            processid = shellPid = ksceKernelSysrootGetShellPid();
             ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
             remap_resetBuffers();
         }
@@ -382,14 +421,6 @@ static int main_thread(SceSize args, void *argp) {
         // Update PSM title
         if (isPspemu) 
             updatePspemuTitle();
-
-        //Activate delayed start
-        if (!delayedStartDone 
-            && startTick + settings[SETT_DELAY_INIT].v.u * 1000000 < ksceKernelGetSystemTimeWide()){
-            remap_setup();
-	        delayedStartDone = true;
-            LOG("delayedStartDone = 1\n");
-        }
 
         SceCtrlData ctrl;
         if(ksceCtrlPeekBufferPositive2_internal(0, &ctrl, 1) != 1){
@@ -435,7 +466,6 @@ void initDs34vita(){
         tai_module_info_t info;
         info.size = sizeof(tai_module_info_t);
         ds34vitaRunning = taiGetModuleInfoForKernel(KERNEL_PID, "ds34vita", &info) == 0;
-
     }
 }
 
@@ -448,28 +478,11 @@ void syncDS34Vita(){
     ds34vita_setIsPort1Allowed(!profile.entries[PR_CO_EMULATE_DS4].v.b);
     LOG("ds34vita_setIsPort1Allowed(%i)", !profile.entries[PR_CO_EMULATE_DS4].v.b);
 }
+
 //Sync configurations across other plugins
 void sync(){
     syncDS34Vita();
 }
-
-#define HOOK_EXPORT(module, libnid, funcnid, name) \
-    hooks[name##_id] = taiHookFunctionExportForKernel(\
-            KERNEL_PID, &refs[name##_id], #module, libnid, funcnid, name##_patched);\
-    if (hooks[name##_id] < 0)\
-        LOG("ERROR: Hook export "#module">"#name" : %08X", hooks[name##_id]);
-
-#define HOOK_IMPORT(module, libnid, funcnid, name) \
-    hooks[name##_id] = taiHookFunctionImportForKernel(\
-            KERNEL_PID, &refs[name##_id], #module, libnid, funcnid, name##_patched);\
-    if (hooks[name##_id] < 0)\
-        LOG("ERROR: Hook import "#module">"#name" : %08X", hooks[name##_id]);
-
-#define HOOK_OFFSET(modid, offset, name) \
-    hooks[name##_id] = taiHookFunctionOffsetForKernel(\
-            KERNEL_PID, &refs[name##_id], (modid), 0, (offset) | 1, 1, name##_patched);\
-    if (hooks[name##_id] < 0)\
-        LOG("ERROR: Hook offset "#name" : %08X", hooks[name##_id]);
 
 void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
@@ -559,6 +572,8 @@ int module_start(SceSize argc, const void *args) {
     // Create threads
     thread_uid = ksceKernelCreateThread("remaPSV2_thread", main_thread, 0x3C, 0x3000, 0, 0x10000, 0);
     ksceKernelStartThread(thread_uid, 0, NULL);
+    
+    remap_setup();
 
     return SCE_KERNEL_START_SUCCESS;
 }
