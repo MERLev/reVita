@@ -37,8 +37,13 @@ SceBool ksceAppMgrIsExclusiveProcessRunning();
 int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintptr_t *addr);
 int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uint32_t funcnid, uintptr_t *func);
 
-int ksceTouchPeek (SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs);
-int ksceTouchRead (SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs);
+int ksceCtrlPeekBufferPositive2(int port, SceCtrlData *ctrl, int nBufs);
+int ksceCtrlPeekBufferPositiveExt(int port, SceCtrlData *ctrl, int nBufs);
+int ksceCtrlPeekBufferPositiveExt2(int port, SceCtrlData *ctrl, int nBufs);
+int ksceCtrlSetSamplingModeExt(int mode);
+
+int ksceTouchPeek(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs);
+int ksceTouchRead(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs);
 int ksceTouchSetSamplingState(SceUInt32 port, SceTouchSamplingState state);
 int ksceTouchGetPanelInfo(SceUInt32 port, SceTouchPanelInfo *pPanelInfo);
 int ksceTouchPeekRegion(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, int region);
@@ -46,10 +51,9 @@ int ksceTouchReadRegion(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, in
 
 int ksceKernelGetModuleInfo(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
 SceUID ksceKernelGetProcessMainModule(SceUID pid);
-int ksceCtrlPeekBufferPositive2(int port, SceCtrlData *ctrl, int nBufs);
-int ksceCtrlPeekBufferPositiveExt(int port, SceCtrlData *ctrl, int nBufs);
-int ksceCtrlPeekBufferPositiveExt2(int port, SceCtrlData *ctrl, int nBufs);
-int ksceCtrlSetSamplingModeExt(int mode);
+
+int ksceLcdGetBrightness();
+int ksceLcdSetBrightness(int level);
 
 void vitasdkext_init();
 void vitasdkext_destroy();

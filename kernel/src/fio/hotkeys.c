@@ -169,6 +169,16 @@ void setDefHotkeys(){
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_SELECT + SCE_CTRL_START + SCE_CTRL_L1 + SCE_CTRL_R1, 
 		.key = "KILL_APP"});
+	hotkey_set((ProfileEntry){
+		.id = HOTKEY_BRIGHTNESS_INC,
+		.type = TYPE_UINT32,
+		.def.u = SCE_CTRL_SELECT + SCE_CTRL_VOLUP, 
+		.key = "HOTKEY_BRIGHTNESS_INC"});
+	hotkey_set((ProfileEntry){
+		.id = HOTKEY_BRIGHTNESS_DEC,
+		.type = TYPE_UINT32,
+		.def.u = SCE_CTRL_SELECT + SCE_CTRL_VOLDOWN, 
+		.key = "HOTKEY_BRIGHTNESS_DEC"});
 }
 
 void hotkeys_init(){

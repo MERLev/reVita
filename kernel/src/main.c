@@ -447,6 +447,8 @@ static int main_thread(SceSize args, void *argp) {
                         case HOTKEY_SUSPEND: sysactions_suspend();  break;
                         case HOTKEY_DISPLAY_OFF: sysactions_displayOff();  break;
                         case HOTKEY_KILL_APP: sysactions_killCurrentApp();  break;
+                        case HOTKEY_BRIGHTNESS_INC: sysactions_brightnessInc();  break;
+                        case HOTKEY_BRIGHTNESS_DEC: sysactions_brightnessDec();  break;
                     }
                 }
             }

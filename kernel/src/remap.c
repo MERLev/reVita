@@ -318,6 +318,8 @@ void addEmu(RuleData* rd) {
 				case REMAP_SYS_SUSPEND: sysactions_suspend();  break;
 				case REMAP_SYS_DISPLAY_OFF: sysactions_displayOff();  break;
 				case REMAP_SYS_KILL: sysactions_killCurrentApp();  break;
+				case REMAP_SYS_BRIGHTNESS_INC: sysactions_brightnessInc(); break;
+				case REMAP_SYS_BRIGHTNESS_DEC: sysactions_brightnessDec(); break;
 				default: break;
 			}
 			break;

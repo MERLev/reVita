@@ -7,5 +7,7 @@ void sysactions_killCurrentApp();
 void sysactions_standby();
 void sysactions_suspend();
 void sysactions_displayOff();
+void sysactions_brightnessInc();
+void sysactions_brightnessDec();
 
 #endif
