@@ -5,6 +5,7 @@
 #include "../../fio/theme.h"
 #include "../gui.h"
 #include "../renderer.h"
+#include "../rendererv.h"
 
 char* getControllerName(int id){
 	if 		(id == 	SCE_CTRL_TYPE_UNPAIRED) return "Unpaired";
@@ -28,7 +29,7 @@ void onDraw_controller(uint menuY){
 	int res = ksceCtrlGetControllerPortInfo(&pi);
 	if (res != 0){//Should not ever trigger
 		renderer_setColor(theme[COLOR_DANGER]);
-		renderer_drawString(L_1, y+= CHA_H, "Error getting controllers info");
+		rendererv_drawString(L_1, y+= CHA_H, "Error getting controllers info");
 		return;
 	}
 	
@@ -40,10 +41,10 @@ void onDraw_controller(uint menuY){
 	//Ports stats
 	y+=CHA_H;
 	renderer_setColor(theme[COLOR_HEADER]);
-	renderer_drawString(L_1, y+= CHA_H, "Detected controllers:");
+	rendererv_drawString(L_1, y+= CHA_H, "Detected controllers:");
 	for (int i = 0; i < 5; i++){
 		renderer_setColor((pi.port[i] == SCE_CTRL_TYPE_UNPAIRED) ? theme[COLOR_DANGER] : theme[COLOR_ACTIVE]);
-		renderer_drawStringF(L_2, y += CHA_H, "Port %i: %s", i, getControllerName(pi.port[i]));
+		rendererv_drawStringF(L_2, y += CHA_H, "Port %i: %s", i, getControllerName(pi.port[i]));
 	}
 }
 

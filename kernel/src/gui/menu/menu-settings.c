@@ -4,6 +4,7 @@
 #include "../../fio/theme.h"
 #include "../gui.h"
 #include "../renderer.h"
+#include "../rendererv.h"
 
 char* STR_THEME[THEME__NUM] = {
 	"DARK",
@@ -32,7 +33,7 @@ void onDraw_settings(uint menuY){
 		switch (id){
 			case SETT_THEME:
 				gui_setColor(i == gui_menu->idx, settings_isDef(id));
-				renderer_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
+				rendererv_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
 				gui_drawStringFRight(0, y, "%s", STR_THEME[settings[id].v.u]);
 				break;
 			default: 

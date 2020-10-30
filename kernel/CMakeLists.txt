@@ -36,6 +36,7 @@ add_executable(${PROJECT_NAME}
   src/fio/settings.c
   src/fio/hotkeys.c
   src/gui/renderer.c
+  src/gui/rendererv.c
   src/gui/gui.c
   src/gui/menu/menu-main.c
   src/gui/menu/menu-analog.c

@@ -4,6 +4,7 @@
 #include "../../fio/settings.h"
 #include "../gui.h"
 #include "../renderer.h"
+#include "../rendererv.h"
 
 void onButton_analog(uint32_t btn){
 	switch (btn) {

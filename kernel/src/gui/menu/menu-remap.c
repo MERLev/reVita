@@ -5,6 +5,7 @@
 #include "../../fio/settings.h"
 #include "../../fio/theme.h"
 #include "../renderer.h"
+#include "../rendererv.h"
 #include "../gui.h"
 
 struct RemapRule ui_ruleEdited; //Rule currently edited
@@ -265,27 +266,27 @@ void onDraw_remap(uint menuY){
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
 		if (gui_menu->entries[i].dataUint == NEW_RULE_IDX){
 			gui_setColor(i == gui_menu->idx, 1);
-			renderer_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
+			rendererv_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
 		} else {
 			struct RemapRule* rr = &profile.remaps[gui_menu->entries[i].dataUint];
 			gui_setColorExt(i == gui_menu->idx, true, !rr->propagate || rr->disabled);
 			char str[40] = "";
 			generateRemapActionName(str, &rr->trigger);
 			int len = strlen(str) * CHA_W;
-			renderer_drawString(L_1, y += CHA_H, str);
+			rendererv_drawString(L_1, y += CHA_H, str);
 			if (!rr->disabled){
 				renderer_setColor(theme[COLOR_DEFAULT]);
-				renderer_drawString(L_1 + len + CHA_W, y, ">");
+				rendererv_drawString(L_1 + len + CHA_W, y, ">");
 			} else {
 				renderer_setColor(theme[COLOR_DANGER]);
-				renderer_drawString(L_1 + len + CHA_W, y, "X");
+				rendererv_drawString(L_1 + len + CHA_W, y, "X");
 			}
 			str[0] = '\0';
 			generateRemapActionName(str, &rr->emu);
 			gui_setColorExt(i == gui_menu->idx, true, rr->disabled);
-			renderer_drawString(L_1 + len + 3*CHA_W, y, str);
+			rendererv_drawString(L_1 + len + 3*CHA_W, y, str);
 			if (rr->turbo)
-				renderer_drawString(UI_WIDTH - 4*CHA_W, y, "$M");
+				rendererv_drawString(UI_WIDTH - 4*CHA_W, y, "$M");
 		}
 	}
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx) / (gui_menu->num - 1));

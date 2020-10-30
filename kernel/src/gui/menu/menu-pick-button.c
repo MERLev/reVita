@@ -4,6 +4,7 @@
 #include "../../fio/settings.h"
 #include "../gui.h"
 #include "../renderer.h"
+#include "../rendererv.h"
 
 void onButton_pickButton(uint32_t btn){
 	uint32_t* btnP = gui_menu->dataPtr;
@@ -33,8 +34,8 @@ void onDraw_pickButton(uint menuY){
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
 		MenuEntry* me = &gui_menu->entries[i];
 		gui_setColor(i == gui_menu->idx, !btn_has(btns, me->dataUint));
-		renderer_drawCharIcon(me->icn, L_1, y += CHA_H);
-		renderer_drawString(L_1 + 3*CHA_W, y, me->name);
+		rendererv_drawCharIcon(me->icn, L_1, y += CHA_H);
+		rendererv_drawString(L_1 + 3*CHA_W, y, me->name);
 	}
 }
 

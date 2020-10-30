@@ -8,6 +8,7 @@
 #include "../log.h"
 #include "gui.h"
 #include "renderer.h"
+#include "rendererv.h"
 #include "img/icons.h"
 #include "menu/menu.h"
 
@@ -82,29 +83,29 @@ int gui_calcStartingIndex(int idx, int entriesNum, int screenEntries, int bottom
 }
 void gui_setColorHeader(uint8_t isCursor){
 	if (isCursor){
-		renderer_setColor(theme[COLOR_CURSOR_HEADER]);
+		rendererv_setColor(theme[COLOR_CURSOR_HEADER]);
 	} else {
-		renderer_setColor(theme[COLOR_HEADER]);
+		rendererv_setColor(theme[COLOR_HEADER]);
 	}
 }
 void gui_setColor(uint8_t isCursor, uint8_t isDefault){
 	if (isCursor){
-		if (isDefault) renderer_setColor(theme[COLOR_CURSOR_DEFAULT]);
-		else renderer_setColor(theme[COLOR_CURSOR_ACTIVE]);
+		if (isDefault) rendererv_setColor(theme[COLOR_CURSOR_DEFAULT]);
+		else rendererv_setColor(theme[COLOR_CURSOR_ACTIVE]);
 	} else {
-		if (isDefault) renderer_setColor(theme[COLOR_DEFAULT]);
-		else renderer_setColor(theme[COLOR_ACTIVE]);
+		if (isDefault) rendererv_setColor(theme[COLOR_DEFAULT]);
+		else rendererv_setColor(theme[COLOR_ACTIVE]);
 	}
 }
 void gui_setColorExt(uint8_t isCursor, uint8_t isDefault, uint8_t isDisabled){
 	if (isCursor){
-		if     (isDisabled) renderer_setColor(theme[COLOR_CURSOR_DANGER]);
-		else if (isDefault) renderer_setColor(theme[COLOR_CURSOR_DEFAULT]);
-		else                renderer_setColor(theme[COLOR_CURSOR_ACTIVE]);
+		if     (isDisabled) rendererv_setColor(theme[COLOR_CURSOR_DANGER]);
+		else if (isDefault) rendererv_setColor(theme[COLOR_CURSOR_DEFAULT]);
+		else                rendererv_setColor(theme[COLOR_CURSOR_ACTIVE]);
 	} else {
-		if     (isDisabled) renderer_setColor(theme[COLOR_DANGER]);
-		else if (isDefault) renderer_setColor(theme[COLOR_DEFAULT]);
-		else                renderer_setColor(theme[COLOR_ACTIVE]);
+		if     (isDisabled) rendererv_setColor(theme[COLOR_DANGER]);
+		else if (isDefault) rendererv_setColor(theme[COLOR_DEFAULT]);
+		else                rendererv_setColor(theme[COLOR_ACTIVE]);
 	}
 }
 void gui_drawStringFRight(int x, int y, const char *format, ...){
@@ -115,46 +116,46 @@ void gui_drawStringFRight(int x, int y, const char *format, ...){
 	vsnprintf(str, 512, format, va);
 	va_end(va);
 
-	renderer_drawString(UI_WIDTH - (strlen(str) + 2) * CHA_W - x, y, str);
+	rendererv_drawString(UI_WIDTH - (strlen(str) + 2) * CHA_W - x, y, str);
 }
 void gui_drawBoolFRight(int x, int y, bool b){
 	b = b % 2;
-	renderer_setColor(b ? 0x00329e15 : theme[COLOR_DANGER]);
+	rendererv_setColor(b ? 0x00329e15 : theme[COLOR_DANGER]);
 	gui_drawStringFRight(0, y, STR_SWITCH[b]);
 }
 void gui_drawScroll(int8_t up, int8_t down){
-	renderer_setColor(theme[COLOR_HEADER]);
+	rendererv_setColor(theme[COLOR_HEADER]);
 	if (up)
-		renderer_drawImage(UI_WIDTH - ICN_ARROW_X - 3, HEADER_HEIGHT + 3, ICN_ARROW_X, ICN_ARROW_Y, ICN_ARROW_UP);
+		rendererv_drawImage(UI_WIDTH - ICN_ARROW_X - 3, HEADER_HEIGHT + 3, ICN_ARROW_X, ICN_ARROW_Y, ICN_ARROW_UP);
 	if (down)
-		renderer_drawImage(UI_WIDTH - ICN_ARROW_X - 3, UI_HEIGHT - HEADER_HEIGHT - ICN_ARROW_X - 3, ICN_ARROW_X, ICN_ARROW_Y, ICN_ARROW_DOWN);
+		rendererv_drawImage(UI_WIDTH - ICN_ARROW_X - 3, UI_HEIGHT - HEADER_HEIGHT - ICN_ARROW_X - 3, ICN_ARROW_X, ICN_ARROW_Y, ICN_ARROW_DOWN);
 }
 void gui_drawFullScroll(int8_t up, int8_t down, float pos){
 	if (!up && !down) return;
-	renderer_setColor(theme[COLOR_HEADER]);
+	rendererv_setColor(theme[COLOR_HEADER]);
 	uint16_t calculatedPos = HEADER_HEIGHT + 4 + ICN_ARROW_Y + pos * (UI_HEIGHT - 2 * HEADER_HEIGHT - 2 * ICN_ARROW_Y - ICN_SLIDER_Y - 8);
-	renderer_drawImage(UI_WIDTH - ICN_ARROW_X - 3, calculatedPos, ICN_SLIDER_X, ICN_SLIDER_Y, ICN_SLIDER);
+	rendererv_drawImage(UI_WIDTH - ICN_ARROW_X - 3, calculatedPos, ICN_SLIDER_X, ICN_SLIDER_Y, ICN_SLIDER);
 	gui_drawScroll(1,1);
 }
 void gui_drawEditPointer(uint16_t x, uint16_t y){
-	renderer_drawImage(x, y, ICN_ARROW_X, ICN_ARROW_Y, (ticker % 32 < 16) ? ICN_ARROW_LEFT : ICN_ARROW_RIGHT);
+	rendererv_drawImage(x, y, ICN_ARROW_X, ICN_ARROW_Y, (ticker % 32 < 16) ? ICN_ARROW_LEFT : ICN_ARROW_RIGHT);
 }
 void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus){
 	if (me == NULL) return;
 	focus = focus % 2;
 	if (me->type == HEADER_TYPE){
-		renderer_setColor(theme[COLOR_HEADER]);
-		renderer_drawString(x, y, me->name);
+		rendererv_setColor(theme[COLOR_HEADER]);
+		rendererv_drawString(x, y, me->name);
 		return;
 	}
 	if (me->dataPE == NULL) return;
 	ProfileEntry* pe = me->dataPE;
 	gui_setColor(focus, profile_isDef(pe));
 	if (me->icn == ICON_NULL){
-		renderer_drawString(x, y, me->name);
+		rendererv_drawString(x, y, me->name);
 	} else {
-		renderer_drawCharIcon(me->icn, x, y);
-		renderer_drawString(x + CHA_W*3, y, me->name);
+		rendererv_drawCharIcon(me->icn, x, y);
+		rendererv_drawString(x + CHA_W*3, y, me->name);
 	}
 	switch (pe->type){
 		case TYPE_BOOL:
@@ -170,34 +171,34 @@ void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus){
 	}
 }
 void drawHeader(){
-	renderer_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
-	renderer_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
+	rendererv_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
+	rendererv_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
 	if (gui_menu->id == MENU_MAIN_ID){
-		renderer_drawStringF(L_0, 3, "     remaPSV2 v.%s", VERSION);
+		rendererv_drawStringF(L_0, 3, "     remaPSV2 v.%s", VERSION);
 		gui_drawStringFRight(0, 2, titleid);
 		if (settings[SETT_REMAP_ENABLED].v.b){
-			renderer_setColor(0x00329e15);
-			renderer_drawStringF(L_0, 3, "$~$`", VERSION);
+			rendererv_setColor(0x00329e15);
+			rendererv_drawStringF(L_0, 3, "$~$`", VERSION);
 		} else {
-			renderer_setColor(theme[COLOR_DANGER]);
-			renderer_drawStringF(L_0, 3, "$@$#", VERSION);
+			rendererv_setColor(theme[COLOR_DANGER]);
+			rendererv_drawStringF(L_0, 3, "$@$#", VERSION);
 		}
 	} else	
-		renderer_drawString(L_0, 3, gui_menu->name);
+		rendererv_drawString(L_0, 3, gui_menu->name);
 	
 }
 void drawFooter(){
-	renderer_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
-	renderer_drawRectangle(0, UI_HEIGHT - (HEADER_HEIGHT - 1), UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
-	renderer_setColor(theme[COLOR_HEADER]);   
+	rendererv_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
+	rendererv_drawRectangle(0, UI_HEIGHT - (HEADER_HEIGHT - 1), UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
+	rendererv_setColor(theme[COLOR_HEADER]);   
 	if (gui_menu->footer)                                                            
-		renderer_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, gui_menu->footer);
+		rendererv_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, gui_menu->footer);
 }
 void drawIndent(){
 	int y = (gui_menu->idx - gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET)) * CHA_H
 		+ HEADER_HEIGHT + CHA_H / 2;
-	renderer_drawRectangle(L_1 - 5, y - 1, UI_WIDTH - 2 * L_1 + 4, CHA_H + 2, theme[COLOR_BG_HEADER]);//BG
-	renderer_setColor(theme[COLOR_HEADER]);   
+	rendererv_drawRectangle(L_1 - 5, y - 1, UI_WIDTH - 2 * L_1 + 4, CHA_H + 2, theme[COLOR_BG_HEADER]);//BG
+	rendererv_setColor(theme[COLOR_HEADER]);   
 }
 
 void onDraw_generic(uint32_t menuY){
@@ -207,10 +208,10 @@ void onDraw_generic(uint32_t menuY){
 		MenuEntry* me = &gui_menu->entries[i];
 		gui_setColor(i == gui_menu->idx, 1);
 		if (me->icn == ICON_NULL){
-			renderer_drawString(L_1, y += CHA_H, me->name);
+			rendererv_drawString(L_1, y += CHA_H, me->name);
 		} else {
-			renderer_drawCharIcon(me->icn, L_1, y += CHA_H);
-			renderer_drawString(L_1 + CHA_W*3, y, me->name);
+			rendererv_drawCharIcon(me->icn, L_1, y += CHA_H);
+			rendererv_drawString(L_1 + CHA_W*3, y, me->name);
 		}
 	}
 }
@@ -220,9 +221,9 @@ void gui_drawTouchPointer(uint32_t panel, TouchPoint* tp){
 	int x = (float)fbWidth / (size.b.x - size.a.x) * (tp->x - size.a.x);
 	int y = (float)fbHeight / (size.b.y - size.a.y) * (tp->y - size.a.y);
 	renderer_setColor(theme[COLOR_TOUCH_SHADOW]);
-	renderer_drawImageDirectlyToFB(x - 10, y - 4, ICN_TOUCH_X, ICN_TOUCH_Y, ICN_TOUCH);
+	renderer_drawImage(x - 10, y - 4, ICN_TOUCH_X, ICN_TOUCH_Y, ICN_TOUCH);
 	renderer_setColor(panel ? theme[COLOR_TOUCH_BOTTOM] : theme[COLOR_TOUCH_FRONT]);
-	renderer_drawImageDirectlyToFB(x - 11, y - 5, ICN_TOUCH_X, ICN_TOUCH_Y, ICN_TOUCH);
+	renderer_drawImage(x - 11, y - 5, ICN_TOUCH_X, ICN_TOUCH_Y, ICN_TOUCH);
 }
 
 void drawEmulatedPointersForPanel(uint32_t panel){
@@ -249,7 +250,7 @@ void drawEmulatedPointersForPanel(uint32_t panel){
 }
 
 void drawBody() {
-	renderer_drawRectangle(0, HEADER_HEIGHT, UI_WIDTH, UI_HEIGHT -  2 * HEADER_HEIGHT, theme[COLOR_BG_BODY]);//BG
+	rendererv_drawRectangle(0, HEADER_HEIGHT, UI_WIDTH, UI_HEIGHT -  2 * HEADER_HEIGHT, theme[COLOR_BG_BODY]);//BG
 	if (!gui_menu->noIndent)
 		drawIndent();
 	//Draw menu
@@ -274,7 +275,7 @@ void gui_draw(const SceDisplayFrameBuf *pParam){
 		drawHeader();
 		drawBody();
 		drawFooter();
-		renderer_writeToFB(tickUIOpen);
+		renderer_writeFromVFB(tickUIOpen);
 		if (gui_menu->onDrawFB != NULL)
 			gui_menu->onDrawFB();
 	} else {
@@ -440,7 +441,7 @@ void gui_prevEntry(){
 }
 
 void gui_open(const SceDisplayFrameBuf *pParam){
-	if (renderer_allocVirtualFB() < 0){
+	if (rendererv_allocVirtualFB() < 0){
 		LOG("memory allocation for menu failed\n");
 		return;
 	}
@@ -454,7 +455,7 @@ void gui_open(const SceDisplayFrameBuf *pParam){
 }
 void gui_close(){
 	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);
-	renderer_freeVirtualFB();
+	rendererv_freeVirtualFB();
 	gui_isOpen = false;
 	profile.version = ksceKernelGetSystemTimeWide();
 	sync();
@@ -466,7 +467,8 @@ void gui_init(){
 	memset(&btns, 0, sizeof(btns));
     mutex_gui_uid = ksceKernelCreateMutex("remaPSV2_mutex_gui", 0, 0, NULL);
 	
-    renderer_init(UI_WIDTH, UI_HEIGHT);
+    renderer_init();
+    rendererv_init(UI_WIDTH, UI_HEIGHT);
 
 	menu_initMain();
 	menu_initAnalog();

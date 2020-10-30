@@ -4,6 +4,7 @@
 #include "../../fio/theme.h"
 #include "../gui.h"
 #include "../renderer.h"
+#include "../rendererv.h"
 
 void onButton_hotkeys(uint32_t btn){
 	int8_t id = gui_getEntry()->dataPE->id;
@@ -28,7 +29,7 @@ void onDraw_hotkeys(uint menuY){
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {		
 		int32_t id = gui_menu->entries[i].dataPE->id;
 		gui_setColor(i == gui_menu->idx, hotkeys_isDef(id));
-		renderer_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
+		rendererv_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
 		char str[10];
 		str[0] = '\0';
 		gui_generateBtnComboName(str, hotkeys[id].v.u, 6);

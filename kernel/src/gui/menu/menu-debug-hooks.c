@@ -5,13 +5,14 @@
 #include "../../fio/theme.h"
 #include "../gui.h"
 #include "../renderer.h"
+#include "../rendererv.h"
 
 void onDraw_hooks(uint menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, gui_lines - 1);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
 		renderer_setColor((used_funcs[gui_menu->entries[i].dataUint] ? theme[COLOR_ACTIVE] : theme[COLOR_DEFAULT]));
-		renderer_drawStringF(L_1, y += CHA_H, gui_menu->entries[i].name);
+		rendererv_drawStringF(L_1, y += CHA_H, gui_menu->entries[i].name);
 		gui_drawStringFRight(0, y, "%s", STR_YN[used_funcs[gui_menu->entries[i].dataUint]]);
 	}
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, 

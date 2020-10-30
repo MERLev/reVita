@@ -4,6 +4,7 @@
 #include "../../fio/settings.h"
 #include "../gui.h"
 #include "../renderer.h"
+#include "../rendererv.h"
 
 const char* STR_DEADBAND[3] = {
 	"Game default", 
@@ -32,7 +33,7 @@ void onDraw_gyro(uint menuY){
 		switch(pe->id){
 			case PR_GY_DEADBAND:
 				gui_setColor(i == gui_menu->idx, profile_isDef(pe));
-				renderer_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
+				rendererv_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
 				gui_drawStringFRight(0, y, "%s", STR_DEADBAND[pe->v.u]);
 				break;
 			default: gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i); break;

@@ -3,6 +3,7 @@
 #include "../../fio/settings.h"
 #include "../gui.h"
 #include "../renderer.h"
+#include "../rendererv.h"
 
 enum PROFILE_ACTIONS{
 	PROFILE_GLOBAL_SAVE = 0,
@@ -39,14 +40,14 @@ void onDraw_profiles(uint menuY){
 		if (gui_menu->entries[i].type == HEADER_TYPE){
 				gui_setColorHeader(gui_menu->idx == i);
 			if (i == 0){
-				renderer_drawStringF(L_1, y+=CHA_H, "%s [%s]", 
+				rendererv_drawStringF(L_1, y+=CHA_H, "%s [%s]", 
 					gui_menu->entries[i].name, profile.titleid);
 			} else {
-				renderer_drawString(L_1, y+=CHA_H, gui_menu->entries[i].name);
+				rendererv_drawString(L_1, y+=CHA_H, gui_menu->entries[i].name);
 			}
 		} else {
 			gui_setColor(i == gui_menu->idx, 1);
-			renderer_drawString(L_2, y += CHA_H, gui_menu->entries[i].name);
+			rendererv_drawString(L_2, y += CHA_H, gui_menu->entries[i].name);
 		}
 	}
 }

@@ -7,6 +7,7 @@
 #include "../../fio/theme.h"
 #include "../gui.h"
 #include "../renderer.h"
+#include "../rendererv.h"
 
 const char* getBtnName(uint32_t btn){
 	static char str[3];
@@ -28,10 +29,10 @@ void onDraw_debugButtons(uint menuY){
     int x = L_1;
 	uint buttons = ctrl.buttons;
 	renderer_setColor(theme[COLOR_HEADER]);
-	renderer_drawStringF(L_1, y += CHA_H, "             Port: [%i]", port);
+	rendererv_drawStringF(L_1, y += CHA_H, "             Port: [%i]", port);
 	if (ret < 1){
 		renderer_setColor(theme[COLOR_DANGER]);
-		renderer_drawString(L_1, y += CHA_H, "ERROR READING INPUT");
+		rendererv_drawString(L_1, y += CHA_H, "ERROR READING INPUT");
 		return;
 	}
 	for (int i = 0; i < 32; i++){
@@ -40,18 +41,18 @@ void onDraw_debugButtons(uint menuY){
 			x = L_1;
 		}
 		gui_setColor(0, !btn_has(buttons, 1 << i));
-		renderer_drawString(x += CHA_W*4, y, getBtnName(1 << i));
+		rendererv_drawString(x += CHA_W*4, y, getBtnName(1 << i));
 	}
 	renderer_setColor(theme[COLOR_DEFAULT]);
-	renderer_drawStringF(L_1, y += CHA_H, "$[: %i, $]: %i", 
+	rendererv_drawStringF(L_1, y += CHA_H, "$[: %i, $]: %i", 
 		ctrl.lt, ctrl.rt);
-	renderer_drawStringF(L_1, y += CHA_H, "$U: [%i, %i], $u[%i, %i]", 
+	rendererv_drawStringF(L_1, y += CHA_H, "$U: [%i, %i], $u[%i, %i]", 
 		ctrl.lx, ctrl.ly, ctrl.rx, ctrl.ry);
-	renderer_drawStringF(L_1, y += CHA_H, "reserved0 : [%i, %i, %i, %i]", 
+	rendererv_drawStringF(L_1, y += CHA_H, "reserved0 : [%i, %i, %i, %i]", 
 		ctrl.reserved0[0], ctrl.reserved0[1], ctrl.reserved0[2], ctrl.reserved0[3]);
-	renderer_drawStringF(L_1, y += CHA_H, "reserved1 : [%i, %i, %i, %i, %i,", 
+	rendererv_drawStringF(L_1, y += CHA_H, "reserved1 : [%i, %i, %i, %i, %i,", 
 		ctrl.reserved1[0], ctrl.reserved1[1], ctrl.reserved1[2], ctrl.reserved1[3], ctrl.reserved1[4]);
-	renderer_drawStringF(L_1, y += CHA_H, "             %i, %i, %i, %i, %i]", 
+	rendererv_drawStringF(L_1, y += CHA_H, "             %i, %i, %i, %i, %i]", 
 		ctrl.reserved1[5], ctrl.reserved1[6], ctrl.reserved1[7], ctrl.reserved1[8], ctrl.reserved1[9]);
 }
 
