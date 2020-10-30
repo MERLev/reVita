@@ -57,4 +57,8 @@ int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int cou
 int ksceCtrlPeekBufferPositive2_internal(int port, SceCtrlData *pad_data, int count);
 int ksceTouchPeek_internal(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs);
 
+bool isCallKernel();
+bool isCallShell();
+bool isCallActive();
+
 #endif

@@ -6,6 +6,7 @@
 
 #define BUFFERS_NUM             64
 #define PORTS_NUM               5
+#define PROC_NUM                2
 #define MULTITOUCH_FRONT_NUM    6
 #define MULTITOUCH_BACK_NUM		4
 

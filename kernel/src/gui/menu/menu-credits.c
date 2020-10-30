@@ -10,7 +10,7 @@ void onDraw_credits(uint menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, gui_lines - 1);
 	for (int i = ii; i < min(gui_menu->num, ii + gui_lines); i++) {	
-		renderer_setColor(theme[COLOR_DEFAULT]);
+		rendererv_setColor(theme[COLOR_DEFAULT]);
 		rendererv_drawString(L_0, y += CHA_H, gui_menu->entries[i].name);
 	}
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, 

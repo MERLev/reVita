@@ -15,7 +15,7 @@
 #include "log.h"
 
 #define TURBO_DELAY			        (50*1000)
-#define CACHE_CTRL_SIZE (sizeof(SceCtrlData) * BUFFERS_NUM * PORTS_NUM)
+#define CACHE_CTRL_SIZE (sizeof(SceCtrlData) * BUFFERS_NUM * PORTS_NUM * PROC_NUM)
 #define CACHE_TOUCH_SIZE (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM * SCE_TOUCH_PORT_MAX_NUM)
 #define MEM_SIZE ((0xfff + CACHE_CTRL_SIZE + CACHE_TOUCH_SIZE) & ~0xfff)
 
@@ -36,7 +36,7 @@ typedef struct CtrlCache{
 }CtrlCache;
 
 // Status of each rule
-enum RULE_STATUS rs[PORTS_NUM][REMAP_NUM];
+enum RULE_STATUS rs[PORTS_NUM][PROC_NUM][REMAP_NUM];
 TouchPoints2 T_SIZE[SCE_TOUCH_PORT_MAX_NUM];
 
 static TouchPoint 
@@ -68,7 +68,7 @@ SceUID remap_memId;
 uint8_t* remap_memBase;
 
 // Caches to store remapped buffers per each hook and port
-static struct CtrlCache cacheCtrl[PORTS_NUM];
+static struct CtrlCache cacheCtrl[PORTS_NUM][PROC_NUM];
 static struct TouchCache cacheTouch[TOUCH_HOOKS_NUM][SCE_TOUCH_PORT_MAX_NUM];
 
 bool newEmulatedTouchBuffer[TOUCH_HOOKS_NUM][SCE_TOUCH_PORT_MAX_NUM];
@@ -660,54 +660,69 @@ void remap_fixSideButtons(SceCtrlData *ctrl){
 }
 
 int remap_ctrl_getBufferNum(int port){
-	return cacheCtrl[port].num;
+	return cacheCtrl[port][isCallShell()].num;
+}
+
+void fixScreenshotPropagation(SceCtrlData *ctrl){
+	if (btn_has(ctrl->buttons, SCE_CTRL_PSBUTTON) && btn_has(ctrl->buttons, SCE_CTRL_START))
+		btn_del(&ctrl->buttons, SCE_CTRL_START);
 }
 
 void remap_ctrl_updateBuffers(int port, SceCtrlData *ctrl, bool isPositiveLogic, bool isExt) {
+	// Check if call is from Shell
+	int isShell = isCallShell();
+
 	// If buffer for timestamp is already remapped
-	if (cacheCtrl[port].num > 0 && ctrl->timeStamp == cacheCtrl[port].buffers[cacheCtrl[port].num - 1].timeStamp){
+	if (cacheCtrl[port][isShell].num > 0 && ctrl->timeStamp == cacheCtrl[port][isShell].buffers[cacheCtrl[port][isShell].num - 1].timeStamp){
 		return;
 	}
 
 	// If buffer full - remove latest entry
-	if (cacheCtrl[port].num >= BUFFERS_NUM){
+	if (cacheCtrl[port][isShell].num >= BUFFERS_NUM){
 		for (int i = 1; i < BUFFERS_NUM; i++)
-			cacheCtrl[port].buffers[i - 1] = cacheCtrl[port].buffers[i];
-		cacheCtrl[port].num--;
+			cacheCtrl[port][isShell].buffers[i - 1] = cacheCtrl[port][isShell].buffers[i];
+		cacheCtrl[port][isShell].num--;
 	}
 
 	// Add curr ctrl to buffer
-	int idx = cacheCtrl[port].num;
-	cacheCtrl[port].num++;
-	cacheCtrl[port].buffers[idx] = ctrl[0];
+	int idx = cacheCtrl[port][isShell].num;
+	cacheCtrl[port][isShell].num++;
+	cacheCtrl[port][isShell].buffers[idx] = ctrl[0];
 
 	// Invert for negative logic
 	if (!isPositiveLogic)
-		cacheCtrl[port].buffers[idx].buttons = 0xFFFFFFFF - cacheCtrl[port].buffers[idx].buttons;
+		cacheCtrl[port][isShell].buffers[idx].buttons = 0xFFFFFFFF - cacheCtrl[port][isShell].buffers[idx].buttons;
 
 	// Swap side buttons for non-Ext hooks for Vita mode
 	if (!isExt)
-		remap_swapSideButtons(&cacheCtrl[port].buffers[idx]);
+		remap_swapSideButtons(&cacheCtrl[port][isShell].buffers[idx]);
 
 	// Patch for more buttons
     if (!isExt){
     	SceCtrlData scd_ext;
         if (ksceCtrlPeekBufferPositive2_internal(port, &scd_ext, 1) > 0){
-			cacheCtrl[port].buffers[idx].buttons |= scd_ext.buttons;
+			cacheCtrl[port][isShell].buffers[idx].buttons |= scd_ext.buttons;
 		}
     }
 
 	// Apply remap
-	applyRemap(&cacheCtrl[port].buffers[idx], &rs[port][0], port);
+	applyRemap(&cacheCtrl[port][isShell].buffers[idx], &rs[port][isShell][0], port);
+
+	// Fix screenshot propagation when sys buttons hack is active
+	if (!isShell)
+		fixScreenshotPropagation(&cacheCtrl[port][isShell].buffers[idx]);
 }
 
 int remap_ctrl_readBuffer(int port, SceCtrlData *ctrl, int buffIdx, bool isPositiveLogic, bool isExt){
+	// Check if call is from Shell
+	int isShell = isCallShell();
+	
 	// Not enough buffers cached
-	if (buffIdx >= cacheCtrl[port].num)
+	if (buffIdx >= cacheCtrl[port][isShell].num)
 		return false;
 
 	// Read buffer from cache
-	*ctrl = cacheCtrl[port].buffers[cacheCtrl[port].num - buffIdx];
+	*ctrl = cacheCtrl[port][isShell].buffers[cacheCtrl[port][isShell].num - buffIdx];
 
 	// Swap L1<>LT R1<>RT
 	if (profile.entries[PR_CO_SWAP_BUTTONS].v.b)
@@ -859,10 +874,12 @@ int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t ho
 }
 
 void remap_resetBuffers(){
-	for (int j = 0; j < PORTS_NUM; j++){
-		cacheCtrl[j].num = 0;
-		for (int k = 0; k < REMAP_NUM; k++)
-			rs[j][k] = RS_NONACTIVE;
+	for (int i = 0; i < PORTS_NUM; i++){
+		for (int j = 0; j < PROC_NUM; j++){
+			cacheCtrl[i][j].num = 0;
+			for (int k = 0; k < REMAP_NUM; k++)
+				rs[i][j][k] = RS_NONACTIVE;
+		}
 	}
 	for (int i = 0; i < TOUCH_HOOKS_NUM; i++){
 		for (int j = 0; j < SCE_TOUCH_PORT_MAX_NUM; j++){
@@ -985,9 +1002,11 @@ void remap_init(){
     ksceKernelGetMemBlockBase(remap_memId, (void**)&remap_memBase);
     LOG("MEMORY ALLOC remap cacheCtrl %i\n", CACHE_CTRL_SIZE);
     LOG("MEMORY ALLOC remap cacheTouch %i\n", CACHE_TOUCH_SIZE);
-	for (int j = 0; j < PORTS_NUM; j++){
-		cacheCtrl[j].buffers = (SceCtrlData*)(remap_memBase + 
-			sizeof(SceCtrlData) * BUFFERS_NUM * j);
+	for (int i = 0; i < PORTS_NUM; i++){
+		for (int j = 0; j < PROC_NUM; j++){
+			cacheCtrl[i][j].buffers = (SceCtrlData*)(remap_memBase + 
+				sizeof(SceCtrlData) * BUFFERS_NUM * (i * PROC_NUM + j));
+		}
 	}
 	for (int i = 0; i < TOUCH_HOOKS_NUM; i++){
     	for (int j = 0; j < SCE_TOUCH_PORT_MAX_NUM; j++){

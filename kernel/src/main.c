@@ -77,6 +77,18 @@ bool ds34vitaRunning;
 static uint64_t startTick;
 static bool delayedStartDone = false;
 
+bool isCallKernel(){
+    return ksceKernelGetProcessId() == kernelPid;
+}
+
+bool isCallShell(){
+    return ksceKernelGetProcessId() == shellPid;
+}
+
+bool isCallActive(){
+    return ksceKernelGetProcessId() == processid;
+}
+
 int ksceCtrlPeekBufferPositive_internal(int port, SceCtrlData *pad_data, int count){
     pad_data->timeStamp = INTERNAL;
     int ret = ksceCtrlPeekBufferPositive(port, pad_data, count);
@@ -199,8 +211,9 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
         if (((space) == SPACE_KERNEL && ctrl->timeStamp == INTERNAL) \
                 || shellPid <= 0 \
-                || ksceKernelGetProcessId() != processid \
-                || (isPspemu && ksceKernelGetProcessId() != processid)) \
+                /*|| !isCallActive() \
+                || (isPspemu && ksceKernelGetProcessId() != processid))*/ \
+                || (!isCallShell() && !isCallActive()))\
             return TAI_CONTINUE(int, refs[name##_id], port, ctrl, nBufs); \
 		int ret = TAI_CONTINUE(int, refs[name##_id], \
             (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
@@ -393,7 +406,7 @@ SceUID ksceKernelGetProcessId_patched(void){
     int ret = TAI_CONTINUE(SceUID, refs[ksceKernelGetProcessId_id]);
     if (shellPid > 0 
             && delayedStartDone 
-            && settings[SETT_REMAP_ENABLED].v.b 
+            && settings[SETT_REMAP_ENABLED].v.b//) 
             && !isPspemu)
         return shellPid;
     return ret;
@@ -567,7 +580,7 @@ int module_start(SceSize argc, const void *args) {
     }
 
 	HOOK_EXPORT(SceCtrl,       TAI_ANY_LIBRARY, 0xF11D0D30, ksceCtrlGetControllerPortInfo);
-	// HOOK_IMPORT(SceCtrl,       0xE2C40624,      0x9DCB4B7A, ksceKernelGetProcessId);
+	HOOK_IMPORT(SceCtrl,       0xE2C40624,      0x9DCB4B7A, ksceKernelGetProcessId);
 	HOOK_EXPORT(SceDisplay,    0x9FED47AC,      0x16466675, ksceDisplaySetFrameBufInternal);
 	HOOK_IMPORT(SceProcessmgr, 0x887F19D0,      0x414CC813, ksceKernelInvokeProcEventHandler);
 	HOOK_EXPORT(SceRegistryMgr, 0xB2223AEB, 0xD72EA399, ksceRegMgrSetKeyInt);
@@ -576,7 +589,8 @@ int module_start(SceSize argc, const void *args) {
     thread_uid = ksceKernelCreateThread("remaPSV2_thread", main_thread, 0x3C, 0x3000, 0, 0x10000, 0);
     ksceKernelStartThread(thread_uid, 0, NULL);
     
-    remap_setup();
+    // remap_setup();
+    // scheduleDelayedStart();
 
     return SCE_KERNEL_START_SUCCESS;
 }
