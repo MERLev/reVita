@@ -72,7 +72,6 @@ target_link_libraries(${PROJECT_NAME}
   ScePowerForDriver_stub 
 	SceRegMgrForDriver_stub 
   SceDebugForDriver_stub
-  SceLcdForDriver_stub
   ds34vita_stub_weak
 )
 

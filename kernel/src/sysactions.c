@@ -9,6 +9,8 @@
 #include "sysactions.h"
 #include "log.h"
 
+int brightnessLevel;
+
 void sysactions_softReset(){
     kscePowerRequestSoftReset();
 }
@@ -29,12 +31,18 @@ void sysactions_killCurrentApp(){
         ksceAppMgrKillProcess(processid);
 }
 void sysactions_brightnessInc(){
-    ksceLcdSetBrightness(clamp(
-        21 + (ksceLcdGetBrightness() + (0xFFFF - 21) * 0.1),
-        21, 0xFFFF + 1));
+    brightnessLevel = clamp(
+        21 + (brightnessLevel + (0xFFFF - 21) * 0.1),
+        21, 0xFFFF + 1);
+    kscePowerSetDisplayBrightness(brightnessLevel);
 }
 void sysactions_brightnessDec(){
-    ksceLcdSetBrightness(clamp(
-        21 + (ksceLcdGetBrightness() - (0xFFFF - 21) * 0.1),
-        21, 0xFFFF + 1));
+    brightnessLevel = clamp(
+        21 + (brightnessLevel - (0xFFFF - 21) * 0.1),
+        21, 0xFFFF + 1);
+    kscePowerSetDisplayBrightness(brightnessLevel);
+}
+
+void sysactions_init(){
+	ksceRegMgrGetKeyInt("/CONFIG/DISPLAY", "brightness", (int *)&brightnessLevel);
 }
