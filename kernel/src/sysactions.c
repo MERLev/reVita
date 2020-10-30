@@ -33,7 +33,7 @@ void sysactions_killCurrentApp(){
         ksceAppMgrKillProcess(processid);
 }
 void brigtnessPopup(){
-    char percent[128];
+    char percent[10];
 	sprintf(percent, "%i%%", brightnessLevel / ((0xFFFF - 21) / 100));
     gui_popupShow("Brightness:", percent, 2*1000*1000);
 }

@@ -28,7 +28,7 @@ void onDraw_controller(uint menuY){
 	SceCtrlPortInfo pi;
 	int res = ksceCtrlGetControllerPortInfo(&pi);
 	if (res != 0){//Should not ever trigger
-		renderer_setColor(theme[COLOR_DANGER]);
+		rendererv_setColor(theme[COLOR_DANGER]);
 		rendererv_drawString(L_1, y+= CHA_H, "Error getting controllers info");
 		return;
 	}
@@ -40,10 +40,10 @@ void onDraw_controller(uint menuY){
 
 	//Ports stats
 	y+=CHA_H;
-	renderer_setColor(theme[COLOR_HEADER]);
+	rendererv_setColor(theme[COLOR_HEADER]);
 	rendererv_drawString(L_1, y+= CHA_H, "Detected controllers:");
 	for (int i = 0; i < 5; i++){
-		renderer_setColor((pi.port[i] == SCE_CTRL_TYPE_UNPAIRED) ? theme[COLOR_DANGER] : theme[COLOR_ACTIVE]);
+		rendererv_setColor((pi.port[i] == SCE_CTRL_TYPE_UNPAIRED) ? theme[COLOR_DANGER] : theme[COLOR_ACTIVE]);
 		rendererv_drawStringF(L_2, y += CHA_H, "Port %i: %s", i, getControllerName(pi.port[i]));
 	}
 }

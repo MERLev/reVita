@@ -163,6 +163,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
         // Activate delayed start
         remap_setup();
         delayedStartDone = true;
+        gui_popupShow("remaPSV2", "Ready", 2*1000*1000);
         LOG("delayedStartDone = 1\n");
     }
 
@@ -337,9 +338,9 @@ DISPLAY_HOOK_RET:
 }
 
 bool isAppAllowed(char* titleId){
-    if (STREQANY(titleId,  // If test app
-            "TSTCTRL00", "TSTCTRL20", "TSTCTRLE0", "TSTCTRLE2", "TSTCTRLN0", "TSTCTRLN2", "VSDK00019"))
-        return false;                  // Use MAIN profile
+    // if (STREQANY(titleId,  // If test app
+    //         "TSTCTRL00", "TSTCTRL20", "TSTCTRLE0", "TSTCTRLE2", "TSTCTRLN0", "TSTCTRLN2", "VSDK00019"))
+    //     return false;                  // Use MAIN profile
     if (strStartsWith(titleId, "NPXS") && !STREQANY(titleId, 
             "NPXS10012",     // PS3Link
             "NPXS10013"))    // PS4Link)
