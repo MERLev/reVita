@@ -92,11 +92,11 @@ void renderer_drawStringF(int x, int y, const char *format, ...){
 }
 
 void renderer_drawRectangle(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t clr) {
-	if ((x + w) > uiWidth || (y + h) > uiHeight)
+	if ((x + w) > fbWidth || (y + h) > fbHeight)
 		return;
 	for (int i = x; i < x + w; i++)
 		for (int j = y; j < y + h; j++)
-			drawPixel(x + i, y + j, clr);
+			drawPixel(i, j, clr);
 }
 
 void renderer_drawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2) {

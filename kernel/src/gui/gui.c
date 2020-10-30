@@ -55,6 +55,13 @@ uint8_t gui_isOpen = false;
 uint8_t gui_lines = 10;
 static SceUID mutex_gui_uid = -1;
 
+// Popup params
+static char popupHeader[40];
+static char popupMessage[40];
+static int popupTTL = 0;
+static SceInt64 popupTick = -1;
+static bool isPopupActive = false;
+
 struct MenuEntry* gui_getEntry(){
 	return &gui_menu->entries[gui_menu->idx % gui_menu->num];
 }
@@ -267,6 +274,29 @@ void drawBody() {
 void drawDirectlyToFB(){
 }
 
+void drawPopup(){
+	renderer_drawRectangle(
+		CHA_W, CHA_H, 
+		CHA_W * (max(strlen(popupHeader), strlen(popupMessage)) + 1), CHA_H * 3, 
+		theme[COLOR_BG_HEADER]);
+	renderer_setColor(theme[COLOR_HEADER]);
+	renderer_drawStringF(CHA_W * 1.5, CHA_H * 1.5, popupHeader);
+	renderer_setColor(theme[COLOR_DEFAULT]);
+	renderer_drawStringF(CHA_W * 1.5, CHA_H * 2.5, popupMessage);
+}
+
+void updatePopup(){
+	if (!isPopupActive)
+		return;
+
+	if (ksceKernelGetSystemTimeWide() > popupTTL + popupTick){
+		isPopupActive = false;
+		return;
+	}
+
+	drawPopup();
+}
+
 void gui_draw(const SceDisplayFrameBuf *pParam){
 	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);
 	ticker++;
@@ -283,7 +313,20 @@ void gui_draw(const SceDisplayFrameBuf *pParam){
 		drawEmulatedPointersForPanel(SCE_TOUCH_PORT_FRONT);
 		drawEmulatedPointersForPanel(SCE_TOUCH_PORT_BACK);
 	}
+	updatePopup();
     ksceKernelUnlockMutex(mutex_gui_uid, 1);
+}
+
+void gui_popupShow(char* header, char* message, uint ttl){
+	strclone(popupHeader, header);
+	strclone(popupMessage, message);
+	popupTTL = ttl;
+	popupTick = ksceKernelGetSystemTimeWide();
+	isPopupActive = true;
+}
+
+void gui_popupHide(){
+	isPopupActive = false;
 }
 
 void gui_updateEmulatedTouch(SceTouchPortType panel, EmulatedTouch etouch, SceTouchData pData){

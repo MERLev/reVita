@@ -7,6 +7,7 @@
 #include "main.h"
 #include "fio/profile.h"
 #include "sysactions.h"
+#include "gui/gui.h"
 #include "log.h"
 
 #define BRIGHTNESS_STEP 10
@@ -31,12 +32,19 @@ void sysactions_killCurrentApp(){
     if (processid != -1)
         ksceAppMgrKillProcess(processid);
 }
+void brigtnessPopup(){
+    char percent[128];
+	sprintf(percent, "%i%%", brightnessLevel / ((0xFFFF - 21) / 100));
+    gui_popupShow("Brightness:", percent, 2*1000*1000);
+}
+
 void sysactions_brightnessInc(){
     brightnessLevel = clamp(
         21 + (brightnessLevel + (0xFFFF - 21) * BRIGHTNESS_STEP / 100),
         21, 0xFFFF + 1);
     kscePowerSetDisplayBrightness(brightnessLevel);
 	ksceRegMgrSetKeyInt("/CONFIG/DISPLAY", "brightness", brightnessLevel);
+    brigtnessPopup();
 }
 void sysactions_brightnessDec(){
     brightnessLevel = clamp(
@@ -44,6 +52,7 @@ void sysactions_brightnessDec(){
         21, 0xFFFF + 1);
     kscePowerSetDisplayBrightness(brightnessLevel);
 	ksceRegMgrSetKeyInt("/CONFIG/DISPLAY", "brightness", brightnessLevel);
+    brigtnessPopup();
 }
 
 void sysactions_init(){

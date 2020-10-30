@@ -138,6 +138,9 @@ void gui_draw(const SceDisplayFrameBuf *pParam);
 void gui_open();
 void gui_close();
 
+void gui_popupShow(char* header, char* message, uint ttl);
+void gui_popupHide();
+
 void onButton_generic(uint32_t btn);
 void onButton_genericEntries(uint32_t btn);
 
