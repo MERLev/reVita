@@ -122,7 +122,7 @@ bool reportInZone(SceTouchReport* str, const TouchPoints2 tz){
 }
 
 // Store emulated touchpoint
-void storeTouchPoint(EmulatedTouch *et, TouchPoint tp){
+void storeTouchPoint(EmulatedTouch *et, TouchPoint tp, int port, int ruleIdx){
 	for (int i = 0; i < et->num; i++)
 		if (et->reports[i].point.x == tp.x && et->reports[i].point.y == tp.y)
 			return;
@@ -130,11 +130,13 @@ void storeTouchPoint(EmulatedTouch *et, TouchPoint tp){
 	et->reports[et->num].point.y = tp.y;
 	et->reports[et->num].isSwipe = false;
 	et->reports[et->num].isSmartSwipe = false;
+	et->reports[et->num].port = port;
+	et->reports[et->num].ruleIdx = ruleIdx;
 	et->num++;
 }
 
 // Store emulated swipe
-void storeTouchSwipe(EmulatedTouch *et, TouchPoints2 tps){
+void storeTouchSwipe(EmulatedTouch *et, TouchPoints2 tps, int port, int ruleIdx){
 	for (int i = 0; i < et->num; i++)
 		if (et->reports[i].isSwipe == true &&
 				et->reports[i].point.x == tps.a.x && et->reports[i].point.y == tps.a.y && 
@@ -148,11 +150,13 @@ void storeTouchSwipe(EmulatedTouch *et, TouchPoints2 tps){
 	et->reports[et->num].isSwipe = true;
 	et->reports[et->num].isSmartSwipe = false;
 	et->reports[et->num].isSwipeFinished = false;
+	et->reports[et->num].port = port;
+	et->reports[et->num].ruleIdx = ruleIdx;
 	et->num++;
 }
 
 // Store emulated controllable swipe
-EmulatedTouchEvent* storeTouchSmartSwipe(EmulatedTouch *et, TouchPoint tp, int port){
+EmulatedTouchEvent* storeTouchSmartSwipe(EmulatedTouch *et, TouchPoint tp, int port, int ruleIdx){
 	for (int i = 0; i < et->num; i++)
 		if (et->reports[i].isSmartSwipe == true &&
 				et->reports[i].point.x == tp.x && et->reports[i].point.y == tp.y)
@@ -167,22 +171,26 @@ EmulatedTouchEvent* storeTouchSmartSwipe(EmulatedTouch *et, TouchPoint tp, int p
 	ete->isSmartSwipe = true;
 	ete->isSwipeFinished = false;
 	ete->port = port;
+	ete->ruleIdx = ruleIdx;
 	et->num++;
 	return ete;
 }
 
-void removeEmuReport(EmulatedTouch *et, int idx){
+bool isTpEqual(TouchPoint tp1, TouchPoint tp2){
+	return tp1.x == tp2.x && tp1.y == tp2.y;
+}
+
+void removeEmuReportByIdx(EmulatedTouch *et, int idx){
 	for (int i = idx + 1; i < et->num; i++)
 		et->reports[i - 1] = et->reports[i];
 	et->num--;
 }
 
-void removeEmuSmartSwipe(EmulatedTouch *etouch, TouchPoint tp, int port){
+void removeEmuReport(EmulatedTouch *etouch, int port, int ruleIdx){
 	int i = 0;
 	while (i < etouch->num){
-		if (etouch->reports[i].isSmartSwipe && etouch->reports[i].port == port 
-				&& etouch->reports[i].point.x == tp.x && etouch->reports[i].point.y == tp.y) {
-			removeEmuReport(etouch, i);
+		if (etouch->reports[i].port == port && etouch->reports[i].ruleIdx == ruleIdx){
+			removeEmuReportByIdx(etouch, i);
 			break;
 		}
 		i++;
@@ -192,8 +200,8 @@ void removeEmuSmartSwipe(EmulatedTouch *etouch, TouchPoint tp, int port){
 void cleanEmuReports(EmulatedTouch *et){
 	int i = 0;
 	while (i < et->num){
-		if ((!et->reports[i].isSwipe && !et->reports[i].isSmartSwipe) || et->reports[i].isSwipeFinished) 
-			removeEmuReport(et, i);
+		if (et->reports[i].isSwipeFinished) 
+			removeEmuReportByIdx(et, i);
 		else 
 			i++;
 	}
@@ -230,20 +238,20 @@ void addEmu(RuleData* rd) {
 					&& emu->action != REMAP_TOUCH_SWIPE_SMART_L && emu->action != REMAP_TOUCH_SWIPE_SMART_R)
 				break;
 			switch (emu->action){
-				case REMAP_TOUCH_ZONE_CENTER:	storeTouchPoint(&et[port], T_CENTER[port]);  break;
-				case REMAP_TOUCH_ZONE_L:  		storeTouchPoint(&et[port], T_L[port]);  break;
-				case REMAP_TOUCH_ZONE_R:  		storeTouchPoint(&et[port], T_R[port]);  break;
-				case REMAP_TOUCH_ZONE_TL: 		storeTouchPoint(&et[port], T_TL[port]); break;
-				case REMAP_TOUCH_ZONE_TR: 		storeTouchPoint(&et[port], T_TR[port]); break;
-				case REMAP_TOUCH_ZONE_BL: 		storeTouchPoint(&et[port], T_BL[port]); break;
-				case REMAP_TOUCH_ZONE_BR: 		storeTouchPoint(&et[port], T_BR[port]); break;
-				case REMAP_TOUCH_CUSTOM:  		storeTouchPoint(&et[port], emu->param.tPoint); break;
+				case REMAP_TOUCH_ZONE_CENTER:	storeTouchPoint(&et[port], T_CENTER[port], rd->port, rd->idx);  break;
+				case REMAP_TOUCH_ZONE_L:  		storeTouchPoint(&et[port], T_L[port], rd->port, rd->idx);  break;
+				case REMAP_TOUCH_ZONE_R:  		storeTouchPoint(&et[port], T_R[port], rd->port, rd->idx);  break;
+				case REMAP_TOUCH_ZONE_TL: 		storeTouchPoint(&et[port], T_TL[port], rd->port, rd->idx); break;
+				case REMAP_TOUCH_ZONE_TR: 		storeTouchPoint(&et[port], T_TR[port], rd->port, rd->idx); break;
+				case REMAP_TOUCH_ZONE_BL: 		storeTouchPoint(&et[port], T_BL[port], rd->port, rd->idx); break;
+				case REMAP_TOUCH_ZONE_BR: 		storeTouchPoint(&et[port], T_BR[port], rd->port, rd->idx); break;
+				case REMAP_TOUCH_CUSTOM:  		storeTouchPoint(&et[port], emu->param.tPoint, rd->port, rd->idx); break;
 				case REMAP_TOUCH_SWIPE:   
 					if (*rd->status == RS_STARTED || (*rd->status == RS_ACTIVE && rd->rr->turbo && rd->isTurboTick)) 
-						storeTouchSwipe(&et[port], emu->param.tPoints); 
+						storeTouchSwipe(&et[port], emu->param.tPoints, rd->port, rd->idx); 
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_DPAD:  
-					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint, rd->port);
+					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint, rd->port, rd->idx);
 					if (btn_has(rd->btns, SCE_CTRL_LEFT)) 
 						ete->swipeEndPoint.x = clamp(
 							ete->swipeEndPoint.x - profile.entries[PR_TO_SWIPE_SMART_SENS].v.u,
@@ -272,7 +280,7 @@ void addEmu(RuleData* rd) {
 					}
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_L:  
-					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint, rd->port);
+					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint, rd->port, rd->idx);
 					if (abs(127 - rd->ctrl->lx) > profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)
 						ete->swipeEndPoint.x = clamp(
 							ete->swipeEndPoint.x + 
@@ -289,7 +297,7 @@ void addEmu(RuleData* rd) {
 								rd->analogLeftProp.up = rd->analogLeftProp.down = 0;
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_R:  
-					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint, rd->port); 
+					ete = storeTouchSmartSwipe(&et[port], emu->param.tPoint, rd->port, rd->idx); 
 					if (abs(127 - rd->ctrl->rx) > profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)
 						ete->swipeEndPoint.x = clamp(
 							ete->swipeEndPoint.x + 
@@ -312,14 +320,14 @@ void addEmu(RuleData* rd) {
 		case REMAP_TYPE_SYSACTIONS:
 			if (*rd->status != RS_STARTED) break;
 			switch (emu->action){
-				case REMAP_SYS_RESET_SOFT: sysactions_softReset();  break;
-				case REMAP_SYS_RESET_COLD: sysactions_coldReset();  break;
-				case REMAP_SYS_STANDBY: sysactions_standby();  break;
-				case REMAP_SYS_SUSPEND: sysactions_suspend();  break;
-				case REMAP_SYS_DISPLAY_OFF: sysactions_displayOff();  break;
-				case REMAP_SYS_KILL: sysactions_killCurrentApp();  break;
-				case REMAP_SYS_BRIGHTNESS_INC: sysactions_brightnessInc(); break;
-				case REMAP_SYS_BRIGHTNESS_DEC: sysactions_brightnessDec(); break;
+				case REMAP_SYS_RESET_SOFT: 		sysactions_softReset(); break;
+				case REMAP_SYS_RESET_COLD: 		sysactions_coldReset(); break;
+				case REMAP_SYS_STANDBY: 		sysactions_standby(); break;
+				case REMAP_SYS_SUSPEND: 		sysactions_suspend(); break;
+				case REMAP_SYS_DISPLAY_OFF: 	sysactions_displayOff(); break;
+				case REMAP_SYS_KILL: 			sysactions_killCurrentApp(); break;
+				case REMAP_SYS_BRIGHTNESS_INC: 	sysactions_brightnessInc(); break;
+				case REMAP_SYS_BRIGHTNESS_DEC: 	sysactions_brightnessDec(); break;
 				default: break;
 			}
 			break;
@@ -341,12 +349,8 @@ void remEmu(RuleData* rd) {
 		case REMAP_TYPE_BACK_TOUCH_POINT: 
 			;int port = rd->rr->emu.type == REMAP_TYPE_FRONT_TOUCH_POINT ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
 			switch (rd->rr->emu.action){
-				case REMAP_TOUCH_SWIPE_SMART_L:   
-				case REMAP_TOUCH_SWIPE_SMART_R:   
-				case REMAP_TOUCH_SWIPE_SMART_DPAD: 
-					removeEmuSmartSwipe(&et[port], rd->rr->emu.param.tPoint, rd->port);
-					break;
-				default: break;
+				case REMAP_TOUCH_SWIPE: /* Remove on finish */ break;
+				default: removeEmuReport(&et[port], rd->port, rd->idx);	break;
 			}
 			break;
 		default: break;
@@ -387,6 +391,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 
 	//Applying remap rules
 	for (int i = 0; i < profile.remapsNum; i++){
+		rd.idx = i;
 		struct RemapRule* rr = &profile.remaps[i];
 		rd.rr = &profile.remaps[i];
 		if (rd.rr->disabled) continue;

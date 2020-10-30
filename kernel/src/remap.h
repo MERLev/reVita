@@ -103,6 +103,7 @@ typedef struct RuleData{
 	enum RULE_STATUS* status;
 	bool isTurboTick;
     int port;
+    int idx;
 }RuleData;
 
 typedef struct EmulatedTouchEvent{
@@ -113,6 +114,7 @@ typedef struct EmulatedTouchEvent{
 	bool isSmartSwipe;
 	bool isSwipeFinished;
     int port;
+    int ruleIdx;
 }EmulatedTouchEvent;
 
 typedef struct EmulatedTouch{
