@@ -73,12 +73,14 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 			break;
 		case REMAP_TYPE_SYSACTIONS: strcat(str, "$!");
 			switch (ra->action){
-				case REMAP_SYS_RESET_SOFT:  strcat(str, "Soft reset"); break;
-				case REMAP_SYS_RESET_COLD: 	strcat(str, "Reboot"); break;
-				case REMAP_SYS_STANDBY:    	strcat(str, "Power Off"); break;
-				case REMAP_SYS_SUSPEND:  	strcat(str, "Suspend"); break;
-				case REMAP_SYS_DISPLAY_OFF: strcat(str, "Display Off"); break;
-				case REMAP_SYS_KILL: 		strcat(str, "Kill App"); break;
+				case REMAP_SYS_RESET_SOFT:  	strcat(str, "Soft reset"); break;
+				case REMAP_SYS_RESET_COLD: 		strcat(str, "Reboot"); break;
+				case REMAP_SYS_STANDBY:    		strcat(str, "Power Off"); break;
+				case REMAP_SYS_SUSPEND:  		strcat(str, "Suspend"); break;
+				case REMAP_SYS_DISPLAY_OFF: 	strcat(str, "Display Off"); break;
+				case REMAP_SYS_KILL: 			strcat(str, "Kill App"); break;
+				case REMAP_SYS_BRIGHTNESS_INC: 	strcat(str, "Brightness +"); break;
+				case REMAP_SYS_BRIGHTNESS_DEC: 	strcat(str, "Brightness -"); break;
 				default: break;
 			}
 			break;

@@ -405,6 +405,8 @@ int ksceRegMgrSetKeyInt_patched(char *category, char *name, int buf){
     int ret = TAI_CONTINUE(int, refs[ksceRegMgrSetKeyInt_id], category, name, buf);
 	if (streq(category, "/CONFIG/SHELL") && streq(name, "touch_emulation"))
 		isPSTVTouchEmulation = buf;
+	if (streq(category, "/CONFIG/DISPLAY") && streq(name, "brightness"))
+		brightnessLevel = buf;
 	return ret;
 }
 
@@ -526,6 +528,7 @@ int module_start(SceSize argc, const void *args) {
     gui_init();
     remap_init();
     userspace_init();
+    sysactions_init();
 
 	ksceRegMgrGetKeyInt("/CONFIG/SHELL", "touch_emulation", (int *)&isPSTVTouchEmulation);
     startTick = ksceKernelGetSystemTimeWide();
