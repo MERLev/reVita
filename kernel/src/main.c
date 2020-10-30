@@ -169,8 +169,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
     ksceKernelLockMutex(mutexCtrlHook[port], 1, NULL);
     if (isKernelSpace) {
         // Update internal cache with latest buffers
-        if (ksceKernelGetProcessId() == processid)
-            remap_ctrl_updateBuffers(port, &ctrl[ret-1], isPositiveLogic, isExt);
+        remap_ctrl_updateBuffers(port, &ctrl[ret-1], isPositiveLogic, isExt);
 
         // Replace returned buffers with those from internal cache
         ret = min(ret, remap_ctrl_getBufferNum(port));
@@ -180,10 +179,8 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
     } else {
         // Update internal cache with latest buffers
         SceCtrlData scd;
-        if (ksceKernelGetProcessId() == processid){
-            ksceKernelMemcpyUserToKernel(&scd, (uintptr_t)&ctrl[ret-1], sizeof(SceCtrlData));
-            remap_ctrl_updateBuffers(port, &scd, isPositiveLogic, isExt);
-        }
+        ksceKernelMemcpyUserToKernel(&scd, (uintptr_t)&ctrl[ret-1], sizeof(SceCtrlData));
+        remap_ctrl_updateBuffers(port, &scd, isPositiveLogic, isExt);
 
         // Replace returned buffers with those from internal cache
         ret = min(ret, remap_ctrl_getBufferNum(port));
@@ -201,7 +198,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
         if (((space) == SPACE_KERNEL && ctrl->timeStamp == INTERNAL) \
                 || shellPid <= 0 \
-                || ksceKernelGetProcessId() == kernelPid \
+                || ksceKernelGetProcessId() != processid \
                 || (isPspemu && ksceKernelGetProcessId() != processid)) \
             return TAI_CONTINUE(int, refs[name##_id], port, ctrl, nBufs); \
 		int ret = TAI_CONTINUE(int, refs[name##_id], \
@@ -569,7 +566,7 @@ int module_start(SceSize argc, const void *args) {
     }
 
 	HOOK_EXPORT(SceCtrl,       TAI_ANY_LIBRARY, 0xF11D0D30, ksceCtrlGetControllerPortInfo);
-	HOOK_IMPORT(SceCtrl,       0xE2C40624,      0x9DCB4B7A, ksceKernelGetProcessId);
+	// HOOK_IMPORT(SceCtrl,       0xE2C40624,      0x9DCB4B7A, ksceKernelGetProcessId);
 	HOOK_EXPORT(SceDisplay,    0x9FED47AC,      0x16466675, ksceDisplaySetFrameBufInternal);
 	HOOK_IMPORT(SceProcessmgr, 0x887F19D0,      0x414CC813, ksceKernelInvokeProcEventHandler);
 	HOOK_EXPORT(SceRegistryMgr, 0xB2223AEB, 0xD72EA399, ksceRegMgrSetKeyInt);
