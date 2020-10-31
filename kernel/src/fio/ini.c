@@ -137,7 +137,7 @@ void addNumber(int* val, uint8_t number, uint8_t pos){
 }
 int parseBGR(char* c){
     //sscnf cannot parse HEX unfortunatly - had to do it manually
-    int ret = 0;
+    int ret = 0xFF000000;
     for (int i = 0; i < strlen(c) - 1; i++){
         switch(c[i + 1]){
             case '1': addNumber(&ret, 0x1, i); break;

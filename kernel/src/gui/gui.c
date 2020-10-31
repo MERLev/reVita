@@ -127,7 +127,7 @@ void gui_drawStringFRight(int x, int y, const char *format, ...){
 }
 void gui_drawBoolFRight(int x, int y, bool b){
 	b = b % 2;
-	rendererv_setColor(b ? 0x00329e15 : theme[COLOR_DANGER]);
+	rendererv_setColor(theme[b ? COLOR_SUCCESS : COLOR_DANGER]);
 	gui_drawStringFRight(0, y, STR_SWITCH[b]);
 }
 void gui_drawScroll(int8_t up, int8_t down){
@@ -184,7 +184,7 @@ void drawHeader(){
 		rendererv_drawStringF(L_0, 3, "     remaPSV2 v.%s", VERSION);
 		gui_drawStringFRight(0, 2, titleid);
 		if (settings[SETT_REMAP_ENABLED].v.b){
-			rendererv_setColor(0x00329e15);
+			rendererv_setColor(theme[COLOR_SUCCESS]);
 			rendererv_drawStringF(L_0, 3, "$~$`", VERSION);
 		} else {
 			rendererv_setColor(theme[COLOR_DANGER]);

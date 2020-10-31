@@ -10,7 +10,7 @@
 #include "gui/gui.h"
 #include "log.h"
 
-#define BRIGHTNESS_STEP 10
+#define BRIGHTNESS_STEP 6
 int brightnessLevel;
 
 void sysactions_softReset(){
