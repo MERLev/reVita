@@ -890,13 +890,14 @@ void remap_resetBuffers(){
 				rs[i][j][k] = RS_NONACTIVE;
 		}
 	}
-	for (int i = 0; i < TOUCH_HOOKS_NUM; i++){
-		for (int j = 0; j < SCE_TOUCH_PORT_MAX_NUM; j++){
-			cacheTouch[i][j].num = 0;
+	for (int i = 0; i < SCE_TOUCH_PORT_MAX_NUM; i++){
+		for (int j = 0; j < TOUCH_HOOKS_NUM; j++){
+			cacheTouch[j][i].num = 0;
 		}
+		et[i].num = 0;
+		gui_updateEmulatedTouch(i, et[i], (SceTouchData){.reportNum = 0});
 	}
-	et[SCE_TOUCH_PORT_BACK].num = 0;
-	et[SCE_TOUCH_PORT_FRONT].num = 0;
+	
 }
 
 void initTouchParams(){
