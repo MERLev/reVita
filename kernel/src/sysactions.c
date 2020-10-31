@@ -33,9 +33,13 @@ void sysactions_killCurrentApp(){
         ksceAppMgrKillProcess(processid);
 }
 void brigtnessPopup(){
-    char percent[10];
-	sprintf(percent, "%i%%", brightnessLevel / ((0xFFFF - 21) / 100));
-    gui_popupShow("Brightness:", percent, 2*1000*1000);
+    int percentage = brightnessLevel / ((0xFFFF - 21) / 100);
+    char header[40];
+    char message[40] = "\0";
+	sprintf(header, "Brightness: %i%%", percentage);
+    for (int i = 0; i < 20; i++)
+        strcat(message, i * 5 < percentage ? "|" : "-");
+    gui_popupShow(header, message, 2*1000*1000);
 }
 
 void sysactions_brightnessInc(){
@@ -46,6 +50,7 @@ void sysactions_brightnessInc(){
 	ksceRegMgrSetKeyInt("/CONFIG/DISPLAY", "brightness", brightnessLevel);
     brigtnessPopup();
 }
+
 void sysactions_brightnessDec(){
     brightnessLevel = clamp(
         21 + (brightnessLevel - (0xFFFF - 21) * BRIGHTNESS_STEP / 100),

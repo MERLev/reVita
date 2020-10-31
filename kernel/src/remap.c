@@ -233,6 +233,8 @@ void addEmu(RuleData* rd) {
 			break;
 		case REMAP_TYPE_FRONT_TOUCH_POINT: 
 		case REMAP_TYPE_BACK_TOUCH_POINT:
+			if (rd->port == 1)
+				break;
 			;int port = emu->type == REMAP_TYPE_FRONT_TOUCH_POINT ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
 			if (rd->rr->turbo && rd->isTurboTick && emu->action != REMAP_TOUCH_SWIPE 
 					&& emu->action != REMAP_TOUCH_SWIPE_SMART_L && emu->action != REMAP_TOUCH_SWIPE_SMART_R)
@@ -318,7 +320,12 @@ void addEmu(RuleData* rd) {
 			}
 			break;
 		case REMAP_TYPE_SYSACTIONS:
-			if (*rd->status != RS_STARTED) break;
+			if (rd->port == 1)
+				break;
+			if (rd->rr->turbo && rd->isTurboTick)
+				break;
+			if (!rd->rr->turbo && *rd->status != RS_STARTED) 
+				break;
 			switch (emu->action){
 				case REMAP_SYS_RESET_SOFT: 		sysactions_softReset(); break;
 				case REMAP_SYS_RESET_COLD: 		sysactions_coldReset(); break;
@@ -332,6 +339,8 @@ void addEmu(RuleData* rd) {
 			}
 			break;
 		case REMAP_TYPE_REMAPSV_ACTIONS:
+			if (rd->port == 1)
+				break;
 			if (*rd->status != RS_STARTED) break;
 			LOG("profile_inc(&profile.entries[%i], 1)\n", emu->action);
 			profile_inc(&profile.entries[emu->action], 1);
@@ -706,7 +715,7 @@ void remap_ctrl_updateBuffers(int port, SceCtrlData *ctrl, bool isPositiveLogic,
     }
 
 	// Apply remap
-	applyRemap(&cacheCtrl[port][isShell].buffers[idx], &rs[port][isShell][0], port);
+	applyRemap(&cacheCtrl[port][isShell].buffers[idx], &rs[port][0][0], port);
 
 	// Fix screenshot propagation when sys buttons hack is active
 	if (!isShell)
