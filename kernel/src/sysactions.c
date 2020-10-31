@@ -6,6 +6,7 @@
 #include "common.h"
 #include "main.h"
 #include "fio/profile.h"
+#include "fio/settings.h"
 #include "sysactions.h"
 #include "gui/gui.h"
 #include "log.h"
@@ -29,17 +30,23 @@ void sysactions_displayOff(){
     kscePowerRequestDisplayOff();
 }
 void sysactions_killCurrentApp(){
-    if (processid != -1)
-        ksceAppMgrKillProcess(processid);
+    if (processid == -1)
+        return;
+        
+    if (settings[POP_KILL].v.b)
+        gui_popupShow("Kill", titleid, 2*1000*1000);
+    ksceAppMgrKillProcess(processid);
 }
 void brigtnessPopup(){
     int percentage = brightnessLevel / ((0xFFFF - 21) / 100);
     char header[40];
     char message[40] = "\0";
 	sprintf(header, "Brightness: %i%%", percentage);
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 20; i++){
         strcat(message, i * 5 < percentage ? "|" : "-");
-    gui_popupShow(header, message, 2*1000*1000);
+    }
+	if (settings[POP_BRIGHTNESS].v.b)
+        gui_popupShow(header, message, 2*1000*1000);
 }
 
 void sysactions_brightnessInc(){

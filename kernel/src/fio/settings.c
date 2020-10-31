@@ -168,6 +168,37 @@ void setDefSettings(){
 		.min.u = 0,
 		.max.u = THEME__NUM - 1,
 		.key = "THEME"});
+
+	set((ProfileEntry){
+		.id = POP_SAVE,
+		.type = TYPE_BOOL,
+		.def.b = true, 
+		.key = "POP_SAVE"});
+	set((ProfileEntry){
+		.id = POP_LOAD,
+		.type = TYPE_BOOL,
+		.def.b = false, 
+		.key = "POP_LOAD"});
+	set((ProfileEntry){
+		.id = POP_BRIGHTNESS,
+		.type = TYPE_BOOL,
+		.def.b = true, 
+		.key = "POP_BRIGHTNESS"});
+	set((ProfileEntry){
+		.id = POP_REMAPSV2,
+		.type = TYPE_BOOL,
+		.def.b = true, 
+		.key = "POP_REMAPSV2"});
+	set((ProfileEntry){
+		.id = POP_READY,
+		.type = TYPE_BOOL,
+		.def.b = true, 
+		.key = "POP_READY"});
+	set((ProfileEntry){
+		.id = POP_KILL,
+		.type = TYPE_BOOL,
+		.def.b = true, 
+		.key = "POP_KILL"});
 }
 
 void settings_init(){

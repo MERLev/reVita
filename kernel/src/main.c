@@ -175,7 +175,8 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
         // Activate delayed start
         remap_setup();
         delayedStartDone = true;
-        gui_popupShow("remaPSV2", "Ready", 2*1000*1000);
+        if (settings[POP_READY].v.b)
+            gui_popupShow("remaPSV2", "Ready", 2*1000*1000);
         LOG("delayedStartDone = 1\n");
     }
 
@@ -453,7 +454,11 @@ static int main_thread(SceSize args, void *argp) {
                             gui_open();
                             remap_resetBuffers();
                             break;
-                        case HOTKEY_REMAPS_TOOGLE: FLIP(settings[SETT_REMAP_ENABLED].v.b); break;
+                        case HOTKEY_REMAPS_TOOGLE: 
+                            FLIP(settings[SETT_REMAP_ENABLED].v.b); 
+	                        if (settings[POP_REMAPSV2].v.b)
+                                gui_popupShow("remaPSV2", settings[SETT_REMAP_ENABLED].v.b ? "On" : "Off", 2*1000*1000);
+                            break;
                         case HOTKEY_RESET_SOFT: sysactions_softReset();  break;
                         case HOTKEY_RESET_COLD: sysactions_coldReset();  break;
                         case HOTKEY_STANDBY: sysactions_standby();  break;

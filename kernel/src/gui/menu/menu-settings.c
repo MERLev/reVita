@@ -45,10 +45,10 @@ void onDraw_settings(uint menuY){
 }
 
 static struct MenuEntry menu_settings_entries[] = {
-	(MenuEntry){.name = "Remap rules enabled", .dataPE = &settings[SETT_REMAP_ENABLED]},
-	(MenuEntry){.name = "Save profile on close", .dataPE = &settings[SETT_AUTOSAVE]},
-	(MenuEntry){.name = "Startup delay", .dataPE = &settings[SETT_DELAY_INIT]},
-	(MenuEntry){.name = "Theme", .dataPE = &settings[SETT_THEME]}};
+	(MenuEntry){.name = "Remap rules enabled", 		.dataPE = &settings[SETT_REMAP_ENABLED]},
+	(MenuEntry){.name = "Save profile on close", 	.dataPE = &settings[SETT_AUTOSAVE]},
+	(MenuEntry){.name = "Startup delay", 			.dataPE = &settings[SETT_DELAY_INIT]},
+	(MenuEntry){.name = "Theme", 					.dataPE = &settings[SETT_THEME]}};
 static struct Menu menu_settings = (Menu){
 	.id = MENU_SETT_ID, 
 	.parent = MENU_MAIN_ID,
@@ -59,6 +59,24 @@ static struct Menu menu_settings = (Menu){
 	.num = SIZE(menu_settings_entries), 
 	.entries = menu_settings_entries};
 
+static struct MenuEntry menu_popup_entries[] = {
+	(MenuEntry){.name = "Toggle RemaPSV2", 	.dataPE = &settings[POP_REMAPSV2]},
+	(MenuEntry){.name = "RemaPSV2 ready", 	.dataPE = &settings[POP_READY]},
+	(MenuEntry){.name = "Profile Save", 	.dataPE = &settings[POP_SAVE]},
+	(MenuEntry){.name = "Profile Load", 	.dataPE = &settings[POP_LOAD]},
+	(MenuEntry){.name = "Brigtness", 		.dataPE = &settings[POP_BRIGHTNESS]},
+	(MenuEntry){.name = "Kill application", .dataPE = &settings[POP_KILL]}};
+static struct Menu menu_popup = (Menu){
+	.id = MENU_POPUP_ID, 
+	.parent = MENU_MAIN_ID,
+	.name = "$| Popup", 
+	.footer = "$SRESET  $:RESET ALL",
+	.onButton = onButton_settings,
+	.onDraw = onDraw_settings,
+	.num = SIZE(menu_popup_entries), 
+	.entries = menu_popup_entries};
+
 void menu_initSettings(){
 	gui_registerMenu(&menu_settings);
+	gui_registerMenu(&menu_popup);
 }

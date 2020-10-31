@@ -514,12 +514,14 @@ ERROR: //Free allocated memory
 
 bool profile_save(char* titleId) {
     LOG("profile_save('%s')\n", titleid);
-	gui_popupShow("Save profile", titleid, 2*1000*1000);
+	if (settings[POP_SAVE].v.b)
+		gui_popupShow("Save profile", titleid, 2*1000*1000);
 	return writeProfile(&profile, titleId);
 }
 bool profile_load(char* titleId) {
     LOG("profile_load('%s')\n", titleid);
-	gui_popupShow("Load profile", titleid, 2*1000*1000);
+	if (settings[POP_LOAD].v.b)
+		gui_popupShow("Load profile", titleid, 2*1000*1000);
 	if (strcmp(profile.titleid, HOME) == 0){  //If used home profile previously
 		clone(&profile_home, &profile);       //copy it back to its cache
 	}
