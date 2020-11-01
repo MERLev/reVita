@@ -5,25 +5,6 @@
 #include <psp2/touch.h>
 #include <psp2/appmgr.h> 
 
-// Taken from Adrenaline
-typedef struct {
-	int savestate_mode;
-	int num;
-	uint sp;
-	uint ra;
-
-	int pops_mode;
-	int draw_psp_screen_in_pops;
-	char title[128];
-	char titleid[12];
-	char filename[256];
-
-	int psp_cmd;
-	int vita_cmd;
-	int psp_response;
-	int vita_response;
-} SceAdrenaline;
-
 typedef enum SceCtrlButtonsExt {
     SCE_CTRL_TOUCHPAD    = 0x04000000,             //!< Dualshock 4 Touchpad button
     SCE_CTRL_L2          = SCE_CTRL_LTRIGGER,

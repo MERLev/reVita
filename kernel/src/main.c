@@ -126,13 +126,12 @@ void changeActiveApp(char* tId, int pid){
 }
 
 static void updatePspemuTitle() {
-    SceAdrenaline adrenaline;
-    // Credits to @Electry's TrackPlugX https://github.com/Electry/TrackPlugX/blob/dev/plugin/main.c
-    if (ksceKernelMemcpyUserToKernelForPid(processid, &adrenaline, (uintptr_t)0x73CDE000, sizeof(adrenaline)) != 0)
+    char id[12];
+    if (ksceKernelMemcpyUserToKernelForPid(processid, &id[0], (uintptr_t)0x73CDE000 + 0x98, sizeof(id)) != 0)
         return;
-    char *id = (char*)&adrenaline.titleid;
+
     if (streq(id, ""))
-        id = "XMB";
+        strclone(id, "XMB");
     if (isPspemu && !streq(titleid, id))
         changeActiveApp(id, processid);
 }
