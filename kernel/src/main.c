@@ -168,9 +168,16 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
         return ret;
 
     if (!delayedStartDone){
-        if (ksceKernelGetProcessId() != processid
-                || startTick + settings[SETT_DELAY_INIT].v.u * 1000000 > ksceKernelGetSystemTimeWide())
+        if (settings[POP_LOADING].v.b){
+            char str[20];
+            sprintf(str, "Loading... %isec", 
+                settings[SETT_DELAY_INIT].v.u - (int)((ksceKernelGetSystemTimeWide() - startTick) / 1000000));
+            gui_popupShow("remaPSV2", str, 2*1000*1000);
+        }
+
+        if (startTick + settings[SETT_DELAY_INIT].v.u * 1000000 > ksceKernelGetSystemTimeWide())
             return ret;
+
         // Activate delayed start
         remap_setup();
         delayedStartDone = true;

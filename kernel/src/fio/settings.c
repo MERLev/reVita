@@ -57,6 +57,7 @@ bool generateINISettings(char* buff){
 			case POP_LOAD:
 			case POP_BRIGHTNESS:
 			case POP_READY:
+			case POP_LOADING:
 			case POP_REMAPSV2:
 			case POP_KILL:
 				ini_addBool(ini, settings[i].key, settings[i].v.b);
@@ -90,6 +91,7 @@ bool parseINISettings(char* buff){
 			case POP_LOAD:
 			case POP_BRIGHTNESS:
 			case POP_READY:
+			case POP_LOADING:
 			case POP_REMAPSV2:
 			case POP_KILL:
 				e->v.u = parseBool(ini->val);
@@ -214,6 +216,11 @@ void setDefSettings(){
 		.type = TYPE_BOOL,
 		.def.b = true, 
 		.key = "POP_READY"});
+	set((ProfileEntry){
+		.id = POP_LOADING,
+		.type = TYPE_BOOL,
+		.def.b = false, 
+		.key = "POP_LOADING"});
 	set((ProfileEntry){
 		.id = POP_KILL,
 		.type = TYPE_BOOL,
