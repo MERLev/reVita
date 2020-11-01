@@ -37,6 +37,7 @@ void onDraw_pickButton(uint menuY){
 		rendererv_drawCharIcon(me->icn, L_1, y += CHA_H);
 		rendererv_drawString(L_1 + 3*CHA_W, y, me->name);
 	}
+	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx)/(gui_menu->num-1));
 }
 
 static struct MenuEntry menu_pick_button_entries[] = {

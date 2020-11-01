@@ -221,6 +221,7 @@ void onDraw_generic(uint32_t menuY){
 			rendererv_drawString(L_1 + CHA_W*3, y, me->name);
 		}
 	}
+	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx)/(gui_menu->num-1));
 }
 
 void gui_drawTouchPointer(uint32_t panel, TouchPoint* tp){
