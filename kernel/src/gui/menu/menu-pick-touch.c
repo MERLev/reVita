@@ -35,8 +35,8 @@ void drawTouchSwipe(uint32_t panel, TouchPoints2* tz){
 		(float)fbWidth  / (size.b.x - size.a.x) * max(0, (tz->b.x - size.a.x)), 
 		(float)fbHeight / (size.b.y - size.a.y) * max(0, (tz->b.y - size.a.y)), 
 		3);
-	gui_drawTouchPointerN(panel, &tz->a, "1");
-	gui_drawTouchPointerN(panel, &tz->b, "2");
+	gui_drawTouchPointerN(panel, &tz->a, "START");
+	gui_drawTouchPointerN(panel, &tz->b, "END");
 }
 
 void onDrawFB_pickTouchPoint(){

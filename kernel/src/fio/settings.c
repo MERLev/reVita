@@ -27,8 +27,14 @@ struct ProfileEntry* findByKey(char* n){
 void settings_reset(enum SETT_ID id){
 	settings[id].v = settings[id].def;
 }
+
 void settings_resetAll(){
-	for (int i = 0; i < SETT__NUM; i++)
+	for (int i = 0; i < POP_SAVE; i++)
+		settings_reset(i);
+}
+
+void settings_resetAllPopups(){
+	for (int i = POP_SAVE; i < SETT__NUM; i++)
 		settings_reset(i);
 }
 
@@ -202,6 +208,9 @@ void setDefSettings(){
 }
 
 void settings_init(){
+	//Create dir if not exists
+	ksceIoMkdir(PATH, 0777); 
+
 	setDefSettings();
 	settings_load();
 }

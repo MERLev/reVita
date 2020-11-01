@@ -11,6 +11,17 @@ char* STR_THEME[THEME__NUM] = {
 	"LIGHT"
 };
 
+void onButton_popup(uint32_t btn){
+	int8_t id = gui_getEntry()->dataPE->id;
+	switch (btn) {
+		case SCE_CTRL_RIGHT: profile_inc(&settings[id], 1); break;
+		case SCE_CTRL_LEFT: profile_dec(&settings[id], 1); break;
+		case SCE_CTRL_SQUARE: settings_reset(id); break;
+		case SCE_CTRL_START: settings_resetAllPopups(); break;
+		default: onButton_genericEntries(btn); break;
+	}
+}
+
 void onButton_settings(uint32_t btn){
 	int8_t id = gui_getEntry()->dataPE->id;
 	switch (btn) {
@@ -21,7 +32,7 @@ void onButton_settings(uint32_t btn){
 		default: onButton_genericEntries(btn); break;
 	}
 	if (id == SETT_THEME || btn == SCE_CTRL_START) 
-		theme_load(settings[id].v.u);
+		theme_load(settings[SETT_THEME].v.u);
 }
 
 void onDraw_settings(uint menuY){
@@ -69,9 +80,9 @@ static struct MenuEntry menu_popup_entries[] = {
 static struct Menu menu_popup = (Menu){
 	.id = MENU_POPUP_ID, 
 	.parent = MENU_MAIN_ID,
-	.name = "$| Popup", 
+	.name = "$| Popups", 
 	.footer = "$SRESET  $:RESET ALL",
-	.onButton = onButton_settings,
+	.onButton = onButton_popup,
 	.onDraw = onDraw_settings,
 	.num = SIZE(menu_popup_entries), 
 	.entries = menu_popup_entries};

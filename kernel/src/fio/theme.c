@@ -146,7 +146,7 @@ void setDefThemeLight(){
 	theme[COLOR_TOUCH_BOTTOM] = 	0xFFFF6600;
 	theme[COLOR_TOUCH_SHADOW] = 	0xFF000000;
 }
-void theme_init(){//Load theme
+void theme_init(){
 	setDefThemeDark();
 	if (!theme_load(THEME_DARK)){
 		setDefThemeDark();

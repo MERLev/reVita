@@ -21,6 +21,7 @@ extern struct ProfileEntry settings[SETT__NUM];
 bool settings_isDef(enum SETT_ID id);
 void settings_reset(enum SETT_ID id);
 void settings_resetAll();
+void settings_resetAllPopups();
 bool settings_save();
 
 void settings_init();

@@ -33,8 +33,8 @@ static struct MenuEntry menu_main_entries[] = {
 	(MenuEntry){.name = "Show hooks", 		.dataUint = MENU_HOKS_ID, 			.icn = ICON_MENU_BUG},
 	(MenuEntry){.name = "Show buttons", 	.dataUint = MENU_DEBUG_BUTTONS_ID, 	.icn = ICON_MENU_BUG},
 	(MenuEntry){.name = "Settings", 		.dataUint = MENU_SETT_ID, 			.icn = ICON_MENU_SETTINGS},
+	(MenuEntry){.name = "Popups", 			.dataUint = MENU_POPUP_ID, 			.icn = ICON_MENU_SETTINGS},
 	(MenuEntry){.name = "Hotkeys", 			.dataUint = MENU_HOTKEYS_ID, 		.icn = ICON_CONFIG},
-	(MenuEntry){.name = "Popup", 			.dataUint = MENU_POPUP_ID, 			.icn = ICON_MENU_SETTINGS},
 	(MenuEntry){.name = "Profiles", 		.dataUint = MENU_PROFILE_ID, 		.icn = ICON_MENU_STORAGE},
 	(MenuEntry){.name = "Credits", 			.dataUint = MENU_CREDITS_ID, 		.icn = ICON_MENU_CREDITS}};
 static struct Menu menu_main = (Menu){
