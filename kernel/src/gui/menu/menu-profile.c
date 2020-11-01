@@ -64,7 +64,7 @@ static struct MenuEntry menu_profiles_entries[] = {
 	(MenuEntry){.name = "Reset global", .dataUint = PROFILE_GLOBAL_RESET}};
 static struct Menu menu_profiles = (Menu){
 	.id = MENU_PROFILE_ID, 
-	.parent = MENU_MAIN_ID,
+	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$/ PROFILES", 
 	.onButton = onButton_profiles,
 	.onDraw = onDraw_profiles,

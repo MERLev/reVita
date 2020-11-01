@@ -39,7 +39,7 @@ static struct MenuEntry menu_hooks_entries[] = {
 };
 static struct Menu menu_hooks = (Menu){
 	.id = MENU_HOKS_ID, 
-	.parent = MENU_MAIN_ID,
+	.parent = MENU_MAIN_DEVELOPER_ID,
 	.name = "$b HOOKS", 
 	.noIndent = true,
 	.onDraw = onDraw_hooks,

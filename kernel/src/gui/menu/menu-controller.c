@@ -53,7 +53,7 @@ static struct MenuEntry menu_controllers_entries[] = {
 	(MenuEntry){.name = "Vita as virtual DS4", 			.dataPE = &profile.entries[PR_CO_EMULATE_DS4]}};
 static struct Menu menu_controller = (Menu){
 	.id = MENU_CONTROLLER_ID, 
-	.parent = MENU_MAIN_ID,
+	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$t CONTROLLER", 
 	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_controller,

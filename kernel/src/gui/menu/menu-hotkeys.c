@@ -51,7 +51,7 @@ static struct MenuEntry menu_hotkeys_entries[] = {
 	(MenuEntry){.name = "Brightness -", .dataPE = &hotkeys[HOTKEY_BRIGHTNESS_DEC]}};
 static struct Menu menu_hotkeys = (Menu){
 	.id = MENU_HOTKEYS_ID, 
-	.parent = MENU_MAIN_ID,
+	.parent = MENU_MAIN_SETTINGS_ID,
 	.name = "$c HOTKEYS", 
 	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_hotkeys,

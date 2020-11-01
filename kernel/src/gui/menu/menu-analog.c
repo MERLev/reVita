@@ -31,7 +31,7 @@ static struct MenuEntry menu_analog_entries[] = {
 	(MenuEntry){.name = "Right Analog - Y Axis", .icn = ICON_RS_UP,.dataPE = &profile.entries[PR_AN_RIGHT_DEADZONE_Y]}};
 static struct Menu menu_analog = (Menu){
 	.id = MENU_ANALOG_ID, 
-	.parent = MENU_MAIN_ID,
+	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$u ANALOG STICKS", 
 	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_analog,

@@ -53,6 +53,12 @@ bool generateINISettings(char* buff){
 				break;
 			case SETT_AUTOSAVE:
 			case SETT_REMAP_ENABLED:
+			case POP_SAVE:
+			case POP_LOAD:
+			case POP_BRIGHTNESS:
+			case POP_READY:
+			case POP_REMAPSV2:
+			case POP_KILL:
 				ini_addBool(ini, settings[i].key, settings[i].v.b);
 				break;
 			default: break;
@@ -63,6 +69,7 @@ bool generateINISettings(char* buff){
 
 bool parseINISettings(char* buff){
 	settings_resetAll();
+	settings_resetAllPopups();
 
 	INI_READER _ini = ini_read(buff);
 	INI_READER* ini = &_ini;
@@ -79,6 +86,12 @@ bool parseINISettings(char* buff){
 				break;
 			case SETT_AUTOSAVE:
 			case SETT_REMAP_ENABLED:
+			case POP_SAVE:
+			case POP_LOAD:
+			case POP_BRIGHTNESS:
+			case POP_READY:
+			case POP_REMAPSV2:
+			case POP_KILL:
 				e->v.u = parseBool(ini->val);
 				break;
 			default: break;
@@ -91,6 +104,7 @@ bool settings_load(){
 	char* buff;
 	bool ret = false;
 	settings_resetAll();
+	settings_resetAllPopups();
 
     //Mem allocation for buffer
 	SceUID buff_uid  = ksceKernelAllocMemBlock("RemaPSV2_INI_R", 

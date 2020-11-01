@@ -56,7 +56,7 @@ static struct MenuEntry menu_gyro_entries[] = {
 	(MenuEntry){.name = "Wheel mode", .dataPE = &profile.entries[PR_GY_WHEEL]}};
 static struct Menu menu_gyro = (Menu){
 	.id = MENU_GYRO_ID, 
-	.parent = MENU_MAIN_ID,
+	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$Q GYROSCOPE", 
 	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_gyro,

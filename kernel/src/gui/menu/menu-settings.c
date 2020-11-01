@@ -62,7 +62,7 @@ static struct MenuEntry menu_settings_entries[] = {
 	(MenuEntry){.name = "Theme", 					.dataPE = &settings[SETT_THEME]}};
 static struct Menu menu_settings = (Menu){
 	.id = MENU_SETT_ID, 
-	.parent = MENU_MAIN_ID,
+	.parent = MENU_MAIN_SETTINGS_ID,
 	.name = "$| SETTINGS", 
 	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_settings,
@@ -79,7 +79,7 @@ static struct MenuEntry menu_popup_entries[] = {
 	(MenuEntry){.name = "Kill application", .dataPE = &settings[POP_KILL]}};
 static struct Menu menu_popup = (Menu){
 	.id = MENU_POPUP_ID, 
-	.parent = MENU_MAIN_ID,
+	.parent = MENU_MAIN_SETTINGS_ID,
 	.name = "$| Popups", 
 	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_popup,

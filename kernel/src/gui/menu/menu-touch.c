@@ -33,7 +33,7 @@ static struct MenuEntry menu_touch_entries[] = {
 	(MenuEntry){.name = "Native", 				.icn = ICON_TOUCH,	.dataPE = &profile.entries[PR_TO_DRAW_NATIVE]}};
 static struct Menu menu_touch = (Menu){
 	.id = MENU_TOUCH_ID, 
-	.parent = MENU_MAIN_ID,
+	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$F TOUCH", 
 	.footer = "$SRESET  $:RESET ALL",
 	.onButton = onButton_touch,

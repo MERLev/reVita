@@ -298,7 +298,7 @@ static struct MenuEntry menu_remap_entries_def[MENU_REMAP_NUM] = {
 static struct MenuEntry menu_remap_entries[REMAP_NUM + MENU_REMAP_NUM];
 static struct Menu menu_remap = (Menu){
 	.id = MENU_REMAP_ID, 
-	.parent = MENU_MAIN_ID,
+	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "REMAP RULES", 
 	.footer = "$SDISABLE $TPROPAGATE $;TURBO $:REMOVE",
 	.onButton = onButton_remap,
