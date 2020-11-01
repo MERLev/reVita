@@ -225,6 +225,10 @@ void onDraw_generic(uint32_t menuY){
 }
 
 void gui_drawTouchPointer(uint32_t panel, TouchPoint* tp){
+	gui_drawTouchPointerN(panel, tp, NULL);
+}
+
+void gui_drawTouchPointerN(uint32_t panel, TouchPoint* tp, char* str){
 	TouchPoints2 size = T_SIZE[panel];
 	int x = (float)fbWidth / (size.b.x - size.a.x) * (tp->x - size.a.x);
 	int y = (float)fbHeight / (size.b.y - size.a.y) * (tp->y - size.a.y);
@@ -232,6 +236,12 @@ void gui_drawTouchPointer(uint32_t panel, TouchPoint* tp){
 	renderer_drawImage(x - 10, y - 4, ICN_TOUCH_X, ICN_TOUCH_Y, ICN_TOUCH);
 	renderer_setColor(panel ? theme[COLOR_TOUCH_BOTTOM] : theme[COLOR_TOUCH_FRONT]);
 	renderer_drawImage(x - 11, y - 5, ICN_TOUCH_X, ICN_TOUCH_Y, ICN_TOUCH);
+	if (str != NULL){
+		renderer_setColor(theme[COLOR_TOUCH_SHADOW]);
+		renderer_drawString(x + 19, y + 10, str);
+		renderer_setColor(panel ? theme[COLOR_TOUCH_BOTTOM] : theme[COLOR_TOUCH_FRONT]);
+		renderer_drawString(x + 18, y + 9, str);
+	}
 }
 
 void drawEmulatedPointersForPanel(uint32_t panel){
@@ -276,10 +286,10 @@ void drawDirectlyToFB(){
 }
 
 void drawPopup(){
+	renderer_setColor(theme[COLOR_BG_HEADER]);
 	renderer_drawRectangle(
 		CHA_W, CHA_H, 
-		CHA_W * (max(strlen(popupHeader), strlen(popupMessage)) + 1), CHA_H * 3, 
-		theme[COLOR_BG_HEADER]);
+		CHA_W * (max(strlen(popupHeader), strlen(popupMessage)) + 1), CHA_H * 3);
 	renderer_setColor(theme[COLOR_HEADER]);
 	renderer_drawStringF(CHA_W * 1.5, CHA_H * 1.5, popupHeader);
 	renderer_setColor(theme[COLOR_DEFAULT]);

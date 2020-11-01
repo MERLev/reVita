@@ -55,7 +55,6 @@ void renderer_drawImage(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const un
 				bitN = 0;
 			}
 			if (READ(img[idx], (7 - bitN)))
-				// vfb_base[(y + j) * uiWidth + x + i] = color;
 				drawPixel(x + i, y + j, color);
 			bitN++;
 		}
@@ -77,7 +76,7 @@ void renderer_drawString(int x, int y, const char *str){
 		}
 	}
 	if (isStripped)
-		renderer_drawRectangle(x, y + CHA_H / 2, (strlen(str)) * CHA_W, 2, color);
+		renderer_drawRectangle(x, y + CHA_H / 2, (strlen(str)) * CHA_W, 2);
 }
 
 void renderer_drawStringF(int x, int y, const char *format, ...){
@@ -91,13 +90,13 @@ void renderer_drawStringF(int x, int y, const char *format, ...){
 	renderer_drawString(x, y, str);
 }
 
-void renderer_drawRectangle(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t clr) {
+void renderer_drawRectangle(uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
 	if ((x + w) > fbWidth || (y + h) > fbHeight)
 		return;
 	uint32_t line[w];
-	memset(&line[0], clr, sizeof(clr) * w);
+	memset(&line[0], color, sizeof(line));
 	for (int j = y; j < y + h; j++)
-		ksceKernelMemcpyKernelToUser((uintptr_t)&fb_base[j * fbPitch + x], &line, sizeof(clr) * w);
+		ksceKernelMemcpyKernelToUser((uintptr_t)&fb_base[j * fbPitch + x], &line[0], sizeof(line));
 }
 
 void renderer_drawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2) {

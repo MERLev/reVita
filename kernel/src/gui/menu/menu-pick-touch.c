@@ -18,13 +18,12 @@ void drawTouchZone(uint32_t panel, TouchPoints2* tz){
 		bx = (float)fbWidth  / (size.b.x - size.a.x) * max(0, (tz->b.x - size.a.x)),
 		ay = (float)fbHeight / (size.b.y - size.a.y) * max(0, (tz->a.y - size.a.y)),
 		by = (float)fbHeight / (size.b.y - size.a.y) * max(0, (tz->b.y - size.a.y));
-	renderer_drawLineThick(ax, ay, bx, ay, 3); // Horizontal 1
-	renderer_drawLineThick(ax, by, bx, by, 3); // Horizontal 2
-	renderer_drawLineThick(ax, ay, ax, by, 3); // Vertical 1
-	renderer_drawLineThick(bx, ay, bx, by, 3); // Vertical 2
-
-	gui_drawTouchPointer(panel, &tz->a);
-	gui_drawTouchPointer(panel, &tz->b);
+	renderer_drawLineThick(ax, ay, bx, ay, 2); // Horizontal 1
+	renderer_drawLineThick(ax, by, bx, by, 2); // Horizontal 2
+	renderer_drawLineThick(ax, ay, ax, by, 2); // Vertical 1
+	renderer_drawLineThick(bx, ay, bx, by, 2); // Vertical 2
+	gui_drawTouchPointerN(panel, &tz->a, "1");
+	gui_drawTouchPointerN(panel, &tz->b, "2");
 }
 
 void drawTouchSwipe(uint32_t panel, TouchPoints2* tz){
@@ -36,8 +35,8 @@ void drawTouchSwipe(uint32_t panel, TouchPoints2* tz){
 		(float)fbWidth  / (size.b.x - size.a.x) * max(0, (tz->b.x - size.a.x)), 
 		(float)fbHeight / (size.b.y - size.a.y) * max(0, (tz->b.y - size.a.y)), 
 		3);
-	gui_drawTouchPointer(panel, &tz->a);
-	gui_drawTouchPointer(panel, &tz->b);
+	gui_drawTouchPointerN(panel, &tz->a, "1");
+	gui_drawTouchPointerN(panel, &tz->b, "2");
 }
 
 void onDrawFB_pickTouchPoint(){

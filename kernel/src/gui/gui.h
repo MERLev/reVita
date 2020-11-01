@@ -109,6 +109,7 @@ extern const char* STR_SWITCH[2];
 
 void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus);
 void gui_drawTouchPointer(uint32_t panel, TouchPoint* tp);
+void gui_drawTouchPointerN(uint32_t panel, TouchPoint* tp, char* str);
 void gui_generateBtnComboName(char* str, uint32_t btns, int max);
 int gui_calcStartingIndex(int idx, int entriesNum, int screenEntries, int bottomOffset);
 void gui_setColorHeader(uint8_t isCursor);
