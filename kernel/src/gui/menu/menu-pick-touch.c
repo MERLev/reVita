@@ -68,28 +68,29 @@ void analogTouchPicker(TouchPoint* tp, SceCtrlData *ctrl, int port, int isLeftAn
 		tp->y = clamp(tp->y + shiftY, size.a.y, size.b.y);
 }
 //Set custom touch point xy using touch
-void touchPicker(TouchPoint* tp, SceTouchPortType port){
+void touchPicker(TouchPoint* tp, SceTouchPortType port, int num){
 	SceTouchData std;
-	//ToDo why reportsNum is always 0 ???
 	int ret = ksceTouchPeek_internal(port, &std, 1);
-	if (ret && std.reportNum > 0){
-		tp->x = std.report[0].x;
-		tp->y =std.report[0].y;
+	if (ret && std.reportNum > num){
+		tp->x = std.report[num].x;
+		tp->y = std.report[num].y;
 	}
 }
+
 void onInput_touchPicker(SceCtrlData *ctrl){
 	RemapAction* ra = gui_menu->dataPtr;
 	SceTouchPortType port = (ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE) ?
 		SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
 	if ((ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_BACK_TOUCH_POINT) && ra->action != REMAP_TOUCH_SWIPE){
-		touchPicker(&ra->param.tPoint, port);
+		touchPicker(&ra->param.tPoint, port, 0);
 		analogTouchPicker(&ra->param.tPoint, ctrl, port, true);
 		analogTouchPicker(&ra->param.tPoint, ctrl, port, false);
 	} else if (ra->type == REMAP_TYPE_FRONT_TOUCH_ZONE || ra->type == REMAP_TYPE_BACK_TOUCH_ZONE || 
 			((ra->type == REMAP_TYPE_FRONT_TOUCH_POINT || ra->type == REMAP_TYPE_BACK_TOUCH_POINT) && ra->action == REMAP_TOUCH_SWIPE)){
 		TouchPoint* tpA = &ra->param.tPoints.a;
 		TouchPoint* tpB = &ra->param.tPoints.b;
-		// touchPicker((ui_getEntry()->data < 2) ? tpA : tpB, port);
+		touchPicker(&ra->param.tPoints.a, port, 0);
+		touchPicker(&ra->param.tPoints.b, port, 1);
 		analogTouchPicker(tpA, ctrl, port, true);
 		analogTouchPicker(tpB, ctrl, port, false);
 	}

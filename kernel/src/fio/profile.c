@@ -542,9 +542,11 @@ bool profile_load(char* titleId) {
 
 void profile_localSave(){
 	writeProfile(&profile, profile.titleid);
+	gui_popupShow("Save profile", profile.titleid, 2*1000*1000);
 }
 void profile_localLoad(){
 	readProfile(&profile, profile.titleid);
+	gui_popupShow("Load profile", profile.titleid, 2*1000*1000);
 }
 void profile_localReset(){
 	profile_resetAnalog();
@@ -552,21 +554,29 @@ void profile_localReset(){
 	profile_resetGyro();
 	profile_resetTouch();
 	profile_resetRemapRules();
+	gui_popupShow("Reset profile", profile.titleid, 2*1000*1000);
 }
 void profile_localDelete(){
 	fio_deleteFile(PATH, profile.titleid, EXT_INI);
+	gui_popupShow("Delete profile", profile.titleid, 2*1000*1000);
 }
 
 void profile_saveAsGlobal(){
 	clone(&profile_global, &profile);
 	writeProfile(&profile_global, NAME_GLOBAL);
+	gui_popupShow("Save profile", "as Global", 2*1000*1000);
 }
 void profile_loadFromGlobal(){
+	char titleId_orig[32];
+	strclone(titleId_orig, profile.titleid);
 	clone(&profile, &profile_global);
+	strclone(profile.titleid, titleId_orig);
+	gui_popupShow("Load profile", "from Global", 2*1000*1000);
 }
 void profile_resetGlobal(){
 	profile_resetProfile(&profile_global);
 	writeProfile(&profile_global, NAME_GLOBAL);
+	gui_popupShow("Reset profile", "Global", 2*1000*1000);
 }
 
 bool profile_isDef(ProfileEntry* pe){
