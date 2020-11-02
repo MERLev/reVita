@@ -105,6 +105,7 @@ extern Menu* menus[MENU_ID__NUM];
 extern struct RemapRule ui_ruleEdited; //Rule currently edited
 extern int ui_ruleEditedIdx;
 extern int64_t tickUIOpen;
+extern int64_t tickMenuOpen;
 
 extern const char* STR_BTN_S[HW_BUTTONS_NUM];
 extern const char* STR_YN[2];

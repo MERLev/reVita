@@ -12,9 +12,10 @@
 #include "img/icons.h"
 #include "menu/menu.h"
 
-#define STR_SIZE                  40
-#define DELAY_LONGPRESS   	400*1000	//0.400 sec
-#define DELAY_REPEAT   		 60*1000	//0.070 sec
+#define STR_SIZE                  (39)
+#define DELAY_LONGPRESS   	(400##000)	// 0.400 sec
+#define DELAY_REPEAT   		 (60##000)	// 0.070 sec
+#define DELAY_FOOTER   	 (2##500##000)	//     2 sec
 
 typedef struct BtnInfo{
 	uint32_t btn;
@@ -51,6 +52,7 @@ Menu* gui_menu;
 
 SceUID mem_uid;
 int64_t tickUIOpen = 0;
+int64_t tickMenuOpen = 0;
 uint8_t gui_isOpen = false;
 uint8_t gui_lines = 10;
 static SceUID mutex_gui_uid = -1;
@@ -180,6 +182,7 @@ void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus){
 void drawHeader(){
 	rendererv_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
 	rendererv_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
+	rendererv_setColor(theme[COLOR_HEADER]);
 	if (gui_menu->id == MENU_MAIN_ID){
 		rendererv_drawStringF(L_0, 3, "     remaPSV2 v.%s", VERSION);
 		gui_drawStringFRight(0, 2, titleid);
@@ -197,9 +200,24 @@ void drawHeader(){
 void drawFooter(){
 	rendererv_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
 	rendererv_drawRectangle(0, UI_HEIGHT - (HEADER_HEIGHT - 1), UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
-	rendererv_setColor(theme[COLOR_HEADER]);   
-	if (gui_menu->footer)                                                            
-		rendererv_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, gui_menu->footer);
+	if (gui_menu->footer){
+		rendererv_setColor(theme[COLOR_HEADER]);
+		if (strlen(gui_menu->footer) <= STR_SIZE){
+			rendererv_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, gui_menu->footer);
+		} else {
+			int strNum = (strlen(gui_menu->footer) - 1) / STR_SIZE + 1;
+			LOG("strNum: %i\n", strNum);
+			int strIdx = ((ksceKernelGetSystemTimeWide() - tickMenuOpen) % (strNum * DELAY_FOOTER)) / DELAY_FOOTER;
+			LOG("strIdx: %i %i -> %i\n", strIdx, 
+				strNum * DELAY_FOOTER, 
+				1);
+			char sub[STR_SIZE+1];
+        	strncpy(sub, &gui_menu->footer[strIdx * STR_SIZE], STR_SIZE);
+			sub[STR_SIZE] = '\0';
+			rendererv_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, sub);
+		}
+
+	}
 }
 void drawIndent(){
 	int y = (gui_menu->idx - gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET)) * CHA_H
@@ -443,6 +461,7 @@ void open(enum MENU_ID id){
 		menus[id]->onBuild(menus[id]);
 	gui_menu = menus[id];
 	gui_setIdx(gui_menu->idx);
+	tickMenuOpen = ksceKernelGetSystemTimeWide();
 }
 void gui_openMenu(enum MENU_ID id){
 	menus[id]->prev = gui_menu->id;
@@ -503,7 +522,7 @@ void gui_open(const SceDisplayFrameBuf *pParam){
 	gui_menu = menus[MENU_MAIN_ID]; //&menu_main;
 	gui_setIdx(0);
 	gui_isOpen = true;
-	tickUIOpen = ksceKernelGetSystemTimeWide();
+	tickUIOpen = tickMenuOpen = ksceKernelGetSystemTimeWide();
 	LOG("gui_open() tickUIOpen=%lli\n", tickUIOpen);
     ksceKernelUnlockMutex(mutex_gui_uid, 1);
 }

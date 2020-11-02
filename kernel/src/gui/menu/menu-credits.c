@@ -39,6 +39,7 @@ static struct Menu menu_credits = (Menu){
 	.id = MENU_CREDITS_ID, 
 	.parent = MENU_MAIN_ID,
 	.name = "$? CREDITS", 
+	.footer = 	"                                 $CBACK",
 	.noIndent = true,
 	.onDraw = onDraw_credits,
 	.num = SIZE(menu_credits_entries), 

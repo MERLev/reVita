@@ -248,6 +248,7 @@ void profile_resetAnalog(){
 	profile_resetEntryById(PR_AN_LEFT_DEADZONE_Y);
 	profile_resetEntryById(PR_AN_RIGHT_DEADZONE_X);
 	profile_resetEntryById(PR_AN_RIGHT_DEADZONE_Y);
+	profile_resetEntryById(PR_AN_MODE_WIDE);
 }
 void profile_resetTouch(){
 	profile_resetEntryById(PR_TO_SWAP);

@@ -76,7 +76,7 @@ static struct MenuEntry menu_debug_buttons_entries[MENU_DEBUG_BUTTONS_NUM];
 static struct Menu menu_debug_buttons = (Menu){
 	.id = MENU_DEBUG_BUTTONS_ID, 
 	.parent = MENU_MAIN_DEVELOPER_ID,
-	.name = "$b BUTTONS INFO", 
+	.name = "$b DEVELOPER > BUTTONS INFO", 
 	.footer = "$S+$<$> CHANGE PORT          $S+$v BACK",
 	.noIndent = true,
 	.onDraw = onDraw_debugButtons,
