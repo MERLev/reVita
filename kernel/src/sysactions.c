@@ -5,13 +5,17 @@
 #include "vitasdkext.h"
 #include "common.h"
 #include "main.h"
+#include "fio/fio.h"
 #include "fio/profile.h"
 #include "fio/settings.h"
 #include "sysactions.h"
 #include "gui/gui.h"
 #include "log.h"
 
-#define BRIGHTNESS_STEP 6
+#define PATH_SAVE_BACKUP    "ux0:/data/remaPSV2/Save"
+#define PATH_SAVE           "ux0:/user/00/savedata"
+
+#define BRIGHTNESS_STEP     6
 int brightnessLevel;
 
 void sysactions_softReset(){
@@ -69,4 +73,39 @@ void sysactions_brightnessDec(){
 
 void sysactions_init(){
 	ksceRegMgrGetKeyInt("/CONFIG/DISPLAY", "brightness", (int *)&brightnessLevel);
+}
+
+void sysactions_saveBackup(){
+	//Create dir if not exists
+	ksceIoMkdir(PATH_SAVE_BACKUP, 0777); 
+
+    char src[64];
+    char dest[64];
+	sprintf(src, "%s/%s", PATH_SAVE, titleid);
+	sprintf(dest, "%s/%s", PATH_SAVE_BACKUP, titleid);
+    
+    if (fio_exist(src)){
+        if (fio_copyDir(src, dest) == 0){
+            gui_popupShow("Savefile backup", titleid, 2*1000*1000);
+            return;
+        }
+    }
+
+    gui_popupShow("Savefile backup", "Failed", 2*1000*1000);
+}
+
+void sysactions_saveRestore(){
+    char src[64];
+    char dest[64];
+	sprintf(src, "%s/%s", PATH_SAVE_BACKUP, titleid);
+	sprintf(dest, "%s/%s", PATH_SAVE, titleid);
+    
+    if (fio_exist(src)){
+        if (fio_copyDir(src, dest) == 0){
+            gui_popupShow("Savefile restore", titleid, 2*1000*1000);
+            return;
+        }
+    }
+
+    gui_popupShow("Savefile restore", "Failed", 2*1000*1000);
 }

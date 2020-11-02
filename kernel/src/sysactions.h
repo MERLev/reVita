@@ -11,6 +11,8 @@ void sysactions_suspend();
 void sysactions_displayOff();
 void sysactions_brightnessInc();
 void sysactions_brightnessDec();
+void sysactions_saveBackup();
+void sysactions_saveRestore();
 
 void sysactions_init();
 

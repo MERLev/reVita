@@ -172,13 +172,23 @@ void setDefHotkeys(){
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_BRIGHTNESS_INC,
 		.type = TYPE_UINT32,
-		.def.u = SCE_CTRL_SELECT + SCE_CTRL_VOLUP, 
+		.def.u = SCE_CTRL_START + SCE_CTRL_UP,  
 		.key = "HOTKEY_BRIGHTNESS_INC"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_BRIGHTNESS_DEC,
 		.type = TYPE_UINT32,
-		.def.u = SCE_CTRL_SELECT + SCE_CTRL_VOLDOWN, 
+		.def.u = SCE_CTRL_START + SCE_CTRL_DOWN,  
 		.key = "HOTKEY_BRIGHTNESS_DEC"});
+	hotkey_set((ProfileEntry){
+		.id = HOTKEY_SAVE_BACKUP,
+		.type = TYPE_UINT32,
+		.def.u = 0, 
+		.key = "HOTKEY_SAVE_BACKUP"});
+	hotkey_set((ProfileEntry){
+		.id = HOTKEY_SAVE_RESTORE,
+		.type = TYPE_UINT32,
+		.def.u = 0, 
+		.key = "HOTKEY_SAVE_RESTORE"});
 }
 
 void hotkeys_init(){

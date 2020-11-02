@@ -39,16 +39,18 @@ void onDraw_hotkeys(uint menuY){
 }
 
 static struct MenuEntry menu_hotkeys_entries[] = {
-	(MenuEntry){.name = "Menu open", .dataPE = &hotkeys[HOTKEY_MENU]},
-	(MenuEntry){.name = "Toggle remap rules", .dataPE = &hotkeys[HOTKEY_REMAPS_TOOGLE]},
-	(MenuEntry){.name = "Soft reset", .dataPE = &hotkeys[HOTKEY_RESET_SOFT]},
-	(MenuEntry){.name = "Reboot", .dataPE = &hotkeys[HOTKEY_RESET_COLD]},
-	(MenuEntry){.name = "Power Off", .dataPE = &hotkeys[HOTKEY_STANDBY]},
-	(MenuEntry){.name = "Suspend", .dataPE = &hotkeys[HOTKEY_SUSPEND]},
-	(MenuEntry){.name = "Display Off", .dataPE = &hotkeys[HOTKEY_DISPLAY_OFF]},
-	(MenuEntry){.name = "Kill App", .dataPE = &hotkeys[HOTKEY_KILL_APP]},
-	(MenuEntry){.name = "Brightness +", .dataPE = &hotkeys[HOTKEY_BRIGHTNESS_INC]},
-	(MenuEntry){.name = "Brightness -", .dataPE = &hotkeys[HOTKEY_BRIGHTNESS_DEC]}};
+	(MenuEntry){.name = "Menu open", 			.dataPE = &hotkeys[HOTKEY_MENU]},
+	(MenuEntry){.name = "Toggle remap rules", 	.dataPE = &hotkeys[HOTKEY_REMAPS_TOOGLE]},
+	(MenuEntry){.name = "Soft reset", 			.dataPE = &hotkeys[HOTKEY_RESET_SOFT]},
+	(MenuEntry){.name = "Reboot", 				.dataPE = &hotkeys[HOTKEY_RESET_COLD]},
+	(MenuEntry){.name = "Power Off", 			.dataPE = &hotkeys[HOTKEY_STANDBY]},
+	(MenuEntry){.name = "Suspend", 				.dataPE = &hotkeys[HOTKEY_SUSPEND]},
+	(MenuEntry){.name = "Display Off", 			.dataPE = &hotkeys[HOTKEY_DISPLAY_OFF]},
+	(MenuEntry){.name = "Kill App", 			.dataPE = &hotkeys[HOTKEY_KILL_APP]},
+	(MenuEntry){.name = "Brightness +", 		.dataPE = &hotkeys[HOTKEY_BRIGHTNESS_INC]},
+	(MenuEntry){.name = "Brightness -", 		.dataPE = &hotkeys[HOTKEY_BRIGHTNESS_DEC]}/*,
+	(MenuEntry){.name = "Savefile backup", 		.dataPE = &hotkeys[HOTKEY_SAVE_BACKUP]},
+	(MenuEntry){.name = "Savefile restore", 	.dataPE = &hotkeys[HOTKEY_SAVE_RESTORE]}*/};
 static struct Menu menu_hotkeys = (Menu){
 	.id = MENU_HOTKEYS_ID, 
 	.parent = MENU_MAIN_SETTINGS_ID,
