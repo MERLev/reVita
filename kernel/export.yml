@@ -10,7 +10,7 @@ remaPSV2:
     remaPSV2KernelLib:
       syscall: true
       functions:
-        - remaPSV2k_userPluginReady
-        - remaPSV2k_getProfileVersion
+        # - remaPSV2k_userPluginReady
+        # - remaPSV2k_getProfileVersion
         - remaPSV2k_getProfile
         - remaPSV2k_setSceMotionState

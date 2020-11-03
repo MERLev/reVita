@@ -51,9 +51,12 @@ static struct MenuEntry menu_gyro_entries[] = {
 	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_DEADZONE_X]},
 	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_DEADZONE_Y]},
 	(MenuEntry){.name = "$E Z Axis", .dataPE = &profile.entries[PR_GY_DEADZONE_Z]},
+	(MenuEntry){.name = "Anti-Deadzone", .type = HEADER_TYPE},
+	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_ANTIDEADZONE_X]},
+	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_ANTIDEADZONE_Y]},
+	(MenuEntry){.name = "$E Z Axis", .dataPE = &profile.entries[PR_GY_ANTIDEADZONE_Z]},
 	(MenuEntry){.name = "More", .type = HEADER_TYPE},
-	(MenuEntry){.name = "Deadband  ", .dataPE = &profile.entries[PR_GY_DEADBAND]},
-	(MenuEntry){.name = "Wheel mode", .dataPE = &profile.entries[PR_GY_WHEEL]}};
+	(MenuEntry){.name = "Deadband  ", .dataPE = &profile.entries[PR_GY_DEADBAND]}};
 static struct Menu menu_gyro = (Menu){
 	.id = MENU_GYRO_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,

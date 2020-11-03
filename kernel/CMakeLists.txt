@@ -28,7 +28,7 @@ add_executable(${PROJECT_NAME}
   src/remap.c
   src/sysactions.c
   src/userspace.c
-  src/motion-kernel.c
+  # src/motion-kernel.c
   src/fio/ini.c
   src/fio/fio.c
   src/fio/profile.c

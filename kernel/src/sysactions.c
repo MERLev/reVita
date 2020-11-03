@@ -71,10 +71,6 @@ void sysactions_brightnessDec(){
     brigtnessPopup();
 }
 
-void sysactions_init(){
-	ksceRegMgrGetKeyInt("/CONFIG/DISPLAY", "brightness", (int *)&brightnessLevel);
-}
-
 void sysactions_saveBackup(){
     char msg[64];
 	sprintf(msg, "Backuping save for %s", titleid);
@@ -116,4 +112,8 @@ void sysactions_saveRestore(){
     }
 
     gui_popupShow(msg, "Failed !", 2*1000*1000);
+}
+
+void sysactions_init(){
+	ksceRegMgrGetKeyInt("/CONFIG/DISPLAY", "brightness", (int *)&brightnessLevel);
 }

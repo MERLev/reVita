@@ -7,73 +7,41 @@
 #include "log.h"
 
 #define DELAY 1000
+#define TTL   500##000
 static SceUID mutex_sce_touch_peek_uid = -1;
 
-bool userPluginLoaded = false;
-bool hasStoredData = false;
+// bool userPluginLoaded = false;
+// bool hasStoredData = false;
 
 //Arguments for sceMotionGetState
+SceInt64 tick = 0;
 SceMotionState sms;
-int ret; 
+int result; 
 
-/*export*/ void remaPSV2k_userPluginReady(){
-    userPluginLoaded = true;
-}
-/*export*/ int remaPSV2k_getProfileVersion(){
-    return profile.version;
-}
 /*export*/ void remaPSV2k_getProfile(Profile* p){
     ksceKernelMemcpyKernelToUser((uintptr_t)&p[0], &profile, sizeof(profile));
 }
 /*export*/ void remaPSV2k_setSceMotionState(SceMotionState *pData, int r){
-    bool readyToReturn = false;
-    bool hasUnsetData = true;
+    ksceKernelLockMutex(mutex_sce_touch_peek_uid, 1, NULL);
 
-    while (!readyToReturn){
-        if (ksceKernelLockMutex(mutex_sce_touch_peek_uid, 1, NULL) >= 0){
-            if (hasUnsetData){
-                hasUnsetData = false;
-                
-                if (r == 0 )
-                    ksceKernelMemcpyUserToKernel(&sms, (uintptr_t)pData, sizeof(SceMotionState)); 
-                ret = r;
-                hasStoredData = true;;
-            }
-            if (!hasStoredData)
-                readyToReturn = true;
+    ksceKernelMemcpyUserToKernel(&sms, (uintptr_t)pData, sizeof(SceMotionState)); 
+    result = r;
+    tick = ksceKernelGetSystemTimeWide();
 
-            ksceKernelUnlockMutex(mutex_sce_touch_peek_uid, 1);
-        }
-        if (!readyToReturn)
-            ksceKernelDelayThread(DELAY);
-    }
+    ksceKernelUnlockMutex(mutex_sce_touch_peek_uid, 1);
 }
 
 int __sceMotionGetState(SceMotionState *pData){
-    if (!userPluginLoaded)
-        return 0;
+    int ret = -1;
+    ksceKernelLockMutex(mutex_sce_touch_peek_uid, 1, NULL);
 
-    int result = 0;
-    bool readyToReturn = false;
-
-    while(!readyToReturn) {
-        if (ksceKernelLockMutex(mutex_sce_touch_peek_uid, 1, NULL) >= 0){
-            if (hasStoredData){
-                if (ret == 0){
-                    memcpy(pData, &sms, sizeof(SceMotionState));
-                    result = ret;
-                }
-                readyToReturn = true;
-                hasStoredData = false;
-            }
-            ksceKernelUnlockMutex(mutex_sce_touch_peek_uid, 1);
-        }
-
-        if (!readyToReturn)
-            ksceKernelDelayThread(DELAY);
+    if (tick + TTL > ksceKernelGetSystemTimeWide()){
+        memcpy(pData, &sms, sizeof(SceMotionState));
+        ret = result;
     }
-
-    return result;
+    
+    ksceKernelUnlockMutex(mutex_sce_touch_peek_uid, 1);
+    return ret;
 }
 
 void userspace_init(){

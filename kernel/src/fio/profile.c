@@ -266,8 +266,10 @@ void profile_resetGyro() {
 	profile_resetEntryById(PR_GY_DEADZONE_X);
 	profile_resetEntryById(PR_GY_DEADZONE_Y);
 	profile_resetEntryById(PR_GY_DEADZONE_Z);
+	profile_resetEntryById(PR_GY_ANTIDEADZONE_X);
+	profile_resetEntryById(PR_GY_ANTIDEADZONE_Y);
+	profile_resetEntryById(PR_GY_ANTIDEADZONE_Z);
 	profile_resetEntryById(PR_GY_DEADBAND);
-	profile_resetEntryById(PR_GY_WHEEL);
 }
 void profile_resetController(){
 	profile_resetEntryById(PR_CO_SWAP_BUTTONS);
@@ -675,23 +677,23 @@ void setDefProfile(){
 	setPE((ProfileEntry){
 		.id = PR_GY_SENSIVITY_X,
 		.type = TYPE_UINT32,
-		.def.u = 127,
+		.def.u = 25,
 		.min.u = 1,
-		.max.u = 200,
+		.max.u = 100,
 		.key = "SENSIVITY_X"});
 	setPE((ProfileEntry){
 		.id = PR_GY_SENSIVITY_Y,
 		.type = TYPE_UINT32,
-		.def.u = 127,
+		.def.u = 25,
 		.min.u = 1,
-		.max.u = 200,
+		.max.u = 100,
 		.key = "SENSIVITY_Y"});
 	setPE((ProfileEntry){
 		.id = PR_GY_SENSIVITY_Z,
 		.type = TYPE_UINT32,
-		.def.u = 127,
+		.def.u = 25,
 		.min.u = 1,
-		.max.u = 200,
+		.max.u = 100,
 		.key = "SENSIVITY_Z"});
 	setPE((ProfileEntry){
 		.id = PR_GY_DEADZONE_X,
@@ -715,17 +717,33 @@ void setDefProfile(){
 		.max.u = 200,
 		.key = "DEADZONE_Z"});
 	setPE((ProfileEntry){
+		.id = PR_GY_ANTIDEADZONE_X,
+		.type = TYPE_UINT32,
+		.def.u = 10,
+		.min.u = 0,
+		.max.u = 100,
+		.key = "ANTIDEADZONE_X"});
+	setPE((ProfileEntry){
+		.id = PR_GY_ANTIDEADZONE_Y,
+		.type = TYPE_UINT32,
+		.def.u = 10,
+		.min.u = 0,
+		.max.u = 100,
+		.key = "ANTIDEADZONE_Y"});
+	setPE((ProfileEntry){
+		.id = PR_GYANTIDEADZONE_Z,
+		.type = TYPE_UINT32,
+		.def.u = 10,
+		.min.u = 0,
+		.max.u = 100,
+		.key = "ANTIDEADZONE_Z"});
+	setPE((ProfileEntry){
 		.id = PR_GY_DEADBAND,
 		.type = TYPE_UINT32,
 		.def.u = 0,
 		.min.u = 0,
 		.max.u = 2,
 		.key = "DEADBAND"});
-	setPE((ProfileEntry){
-		.id = PR_GY_WHEEL,
-		.type = TYPE_BOOL,
-		.def.u = false,
-		.key = "WHEEL"});
 
 	// External controllers
 	setPE((ProfileEntry){

@@ -544,7 +544,7 @@ int module_start(SceSize argc, const void *args) {
     snprintf(titleid, sizeof(titleid), HOME);
 
     // Init all components
-    motion_init();
+    // motion_init();
     settings_init();
     hotkeys_init();
     theme_init();
@@ -631,7 +631,7 @@ int module_stop(SceSize argc, const void *args) {
                 ksceKernelDeleteMutex(mutexTouchHook[i][j]);
 
     vitasdkext_destroy();
-    motion_destroy();
+    // motion_destroy();
     settings_destroy();
     hotkeys_destroy();
     theme_destroy();
