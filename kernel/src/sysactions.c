@@ -76,6 +76,10 @@ void sysactions_init(){
 }
 
 void sysactions_saveBackup(){
+    char msg[64];
+	sprintf(msg, "Backuping save for %s", titleid);
+    gui_popupShow(msg, "Please, wait ...", 0);
+
 	//Create dir if not exists
 	ksceIoMkdir(PATH_SAVE_BACKUP, 0777); 
 
@@ -86,15 +90,19 @@ void sysactions_saveBackup(){
     
     if (fio_exist(src)){
         if (fio_copyDir(src, dest) == 0){
-            gui_popupShow("Savefile backup", titleid, 2*1000*1000);
+            gui_popupShow(msg, "Done !", 3*1000*1000);
             return;
         }
     }
 
-    gui_popupShow("Savefile backup", "Failed", 2*1000*1000);
+    gui_popupShow(msg, "Failed !", 3*1000*1000);
 }
 
 void sysactions_saveRestore(){
+    char msg[64];
+	sprintf(msg, "Restoring save for %s", titleid);
+    gui_popupShow(msg, "Please, wait ...", 0);
+
     char src[64];
     char dest[64];
 	sprintf(src, "%s/%s", PATH_SAVE_BACKUP, titleid);
@@ -102,10 +110,10 @@ void sysactions_saveRestore(){
     
     if (fio_exist(src)){
         if (fio_copyDir(src, dest) == 0){
-            gui_popupShow("Savefile restore", titleid, 2*1000*1000);
+            gui_popupShow(msg, "Done !", 2*1000*1000);
             return;
         }
     }
 
-    gui_popupShow("Savefile restore", "Failed", 2*1000*1000);
+    gui_popupShow(msg, "Failed !", 2*1000*1000);
 }

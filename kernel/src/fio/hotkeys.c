@@ -67,6 +67,7 @@ bool parseINIHotkeys(char* buff){
 	while(ini_nextEntry(ini)){
 		ProfileEntry* e = hotkeys_findByKey(ini->name);
 		if (e == NULL) continue;
+		e->v.u = 0;
 		profile_parseINIButtons(ini, &e->v.u);
 	}
 	return true;
@@ -182,12 +183,12 @@ void setDefHotkeys(){
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_SAVE_BACKUP,
 		.type = TYPE_UINT32,
-		.def.u = 0, 
+		.def.u = SCE_CTRL_START + SCE_CTRL_L1, 
 		.key = "HOTKEY_SAVE_BACKUP"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_SAVE_RESTORE,
 		.type = TYPE_UINT32,
-		.def.u = 0, 
+		.def.u = SCE_CTRL_START + SCE_CTRL_R1, 
 		.key = "HOTKEY_SAVE_RESTORE"});
 }
 

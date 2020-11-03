@@ -318,7 +318,7 @@ void updatePopup(){
 	if (!isPopupActive)
 		return;
 
-	if (ksceKernelGetSystemTimeWide() > popupTTL + popupTick){
+	if (popupTTL != 0 && (ksceKernelGetSystemTimeWide() > popupTTL + popupTick)){
 		isPopupActive = false;
 		return;
 	}

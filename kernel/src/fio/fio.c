@@ -3,7 +3,11 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include "../log.h"
 
+#define TRANSFER_SIZE 		 (128 * 1024)
+#define ERROR_BLACKLISTED	   0x90010001
+#define ERROR_SUBFOLDER	       0x90010002
 #define SCE_ERROR_ERRNO_ENOENT 0x80010002
 #define SCE_ERROR_ERRNO_EEXIST 0x80010011
 #define SCE_ERROR_ERRNO_ENODEV 0x80010013
@@ -12,7 +16,7 @@ char *save_blacklist[] = {
     "sce_pfs/",
     "sce_sys/safemem.dat",
     "sce_sys/keystone",
-    "sce_sys/param.sfo",
+    // "sce_sys/param.sfo",
     "sce_sys/sealedkey",
     NULL,
 };
@@ -21,6 +25,7 @@ bool isBlacklisted(char* path){
     int i = 0;
     while (save_blacklist[i]) {
         if (strstr(path, save_blacklist[i])) {
+			LOG(" Blacklisted: '%s'\n", path);
             return true;
         }
         i += 1;
@@ -70,41 +75,85 @@ bool fio_deleteFile(char* path, char* name, char* ext){
 	return false;
 }
 
-bool fio_copyFile(char *src, char *dest) {
+int fio_copyFile(char *src, char *dest){
+	int ret = 0;
+
+	// Check if blacklisted
     if (strcmp(src, dest) == 0 
 			|| isBlacklisted(src) 
 			|| isBlacklisted(dest))
-		return -1;
+		return ERROR_BLACKLISTED;
 
-    int ignore_error = strncmp(dest, "savedata0:", 10) == 0;
+	// The destination is a subfolder of the source folder
+	int len = strlen(src);
+	if (strcmp(src, dest) == 0 
+			&& (dest[len] == '/' || dest[len - 1] == '/')){
+		return ERROR_SUBFOLDER;
+	}
 
-    SceUID fdsrc = ksceIoOpen(src, SCE_O_RDONLY, 0);
-    if (!ignore_error && fdsrc < 0) {
-        return fdsrc;
-    }
+	// Open both files
+	SceUID fdsrc = ksceIoOpen(src, SCE_O_RDONLY, 0);
+	if (fdsrc < 0)
+		return fdsrc;
 
-    int size = ksceIoLseek(fdsrc, 0, SEEK_END);
-    ksceIoLseek(fdsrc, 0, SEEK_SET);
-    char buf[size];
-    ksceIoRead(fdsrc, buf, size);
-    ksceIoClose(fdsrc);
+	SceUID fddst = ksceIoOpen(dest, SCE_O_WRONLY | SCE_O_CREAT | SCE_O_TRUNC, 0777);
+	if (fddst < 0){
+		ksceIoClose(fdsrc);
+		return fddst;
+	}
 
-    SceUID fddst = ksceIoOpen(dest, SCE_O_WRONLY | SCE_O_CREAT, 0777);
-    if (!ignore_error && fddst < 0) {
-        return fddst;
-    }
-    ksceIoWrite(fddst, buf, size);
-    ksceIoClose(fddst);
+	//Mem allocation for buffer
+	char* buff;
+	SceUID buff_uid  = ksceKernelAllocMemBlock("RemaPSV2_filecopy", 
+		SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, (TRANSFER_SIZE + 0xfff) & ~0xfff, NULL);
+	if (buff_uid < 0){
+		ret = buff_uid;
+		goto ERROR_IO;
+	}
+    ksceKernelGetMemBlockBase(buff_uid, (void**)&buff);
 
-    return 1;
+	// Copy file using buffer
+	while (true){
+		int read = ksceIoRead(fdsrc, buff, TRANSFER_SIZE);
+		if (read < 0){
+			ret = read;
+			goto ERROR;
+		}
+		if (read == 0)
+			break;
+
+		int written = ksceIoWrite(fddst, buff, read);
+		if (written < 0){
+			ret = written;
+			goto ERROR;
+		}
+	}
+
+	// Inherit file stat
+	SceIoStat stat;
+	memset(&stat, 0, sizeof(SceIoStat));
+	ksceIoGetstatByFd(fdsrc, &stat);
+	ksceIoChstatByFd(fddst, &stat, 0x3B);
+
+ERROR_IO:
+	// Close / Clean IO
+	ksceIoClose(fddst);
+	ksceIoClose(fdsrc);
+	if (ret < 0)
+		ksceIoRemove(dest);
+
+ERROR: 
+	// Free allocated memory
+	ksceKernelFreeMemBlock(buff_uid);
+
+    return ret;
 }
 
-bool fio_copyDir(char *src, char *dest) {
+int fio_copyDir(char *src, char *dest) {
     if (strcmp(src, dest) == 0 
 			|| isBlacklisted(src) 
 			|| isBlacklisted(dest))
-		return -1;
-
+		return 0;
     SceUID dfd = ksceIoDopen(src);
 
     if (!fio_exist(dest)) {
@@ -140,7 +189,7 @@ bool fio_copyDir(char *src, char *dest) {
                 ret = fio_copyFile(new_src, new_dest);
             }
 
-            if (ret <= 0) {
+            if (ret < 0 && ret != ERROR_BLACKLISTED) {
                 ksceIoDclose(dfd);
                 return ret;
             }
@@ -148,5 +197,5 @@ bool fio_copyDir(char *src, char *dest) {
     } while (res > 0);
 
     ksceIoDclose(dfd);
-    return 1;
+    return 0;
 }
