@@ -23,6 +23,9 @@ void onButton_pickButton(uint32_t btn){
 			gui_openMenuNext();
 			break;
 		case SCE_CTRL_CIRCLE: gui_openMenuPrev(); break;
+		case SCE_CTRL_TRIANGLE: 
+			*btnP = 0;
+			break;
 		default: onButton_generic(btn);
 	}
 }
@@ -66,7 +69,7 @@ static struct Menu menu_pick_button = (Menu){
 	.id = MENU_PICK_BUTTON_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.name = "SELECT BUTTONS", 
-	.footer = "$SSELECT $XCONTINUE              $CBACK",
+	.footer = "$SSELECT $XCONTINUE $TCLEAR ALL  $CBACK",
 	.onButton = onButton_pickButton,
 	.onDraw = onDraw_pickButton,
 	.num = SIZE(menu_pick_button_entries), 

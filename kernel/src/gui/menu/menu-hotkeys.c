@@ -12,6 +12,9 @@ void onButton_hotkeys(uint32_t btn){
 		case SCE_CTRL_CROSS:
 			gui_openMenuSmartPtr(MENU_PICK_BUTTON_ID, 
 				gui_menu->id, gui_menu->id, &hotkeys[id].v.u); 
+			break;		
+		case SCE_CTRL_TRIANGLE:
+			gui_getEntry()->dataPE->v.u = 0;
 			break;
 		case SCE_CTRL_SQUARE: hotkeys_reset(id); break;
 		case SCE_CTRL_START: hotkeys_resetAll(); break;
@@ -56,7 +59,8 @@ static struct Menu menu_hotkeys = (Menu){
 	.id = MENU_HOTKEYS_ID, 
 	.parent = MENU_MAIN_SETTINGS_ID,
 	.name = "$c SETTINGS > HOTKEYS", 
-	.footer = 	"$XSELECT $SRESET $:RESET ALL     $CBACK",
+	.footer = 	"$XSELECT $TCLEAR $SRESET $:RESET ALL   "
+				"                                 $CBACK",
 	.onButton = onButton_hotkeys,
 	.onDraw = onDraw_hotkeys,
 	.num = SIZE(menu_hotkeys_entries), 

@@ -15,7 +15,8 @@
 #define STR_SIZE                  (39)
 #define DELAY_LONGPRESS   	(400##000)	// 0.400 sec
 #define DELAY_REPEAT   		 (60##000)	// 0.070 sec
-#define DELAY_FOOTER   	 (2##500##000)	//     2 sec
+#define DELAY_FOOTER   	 (2##500##000)	// 2     sec
+#define TIME_MUTE_KEYS   	(500##000)	// 0.5   sec
 
 typedef struct BtnInfo{
 	uint32_t btn;
@@ -387,10 +388,11 @@ void onButton_genericEntries(uint32_t btn){
 }
 
 void gui_onInput(SceCtrlData *ctrl) {
-	if (btn_has(ctrl->buttons, hotkeys[HOTKEY_MENU].v.u))
-		return; //Menu trigger butoons should not trigger any menu actions on menu open
+	if (tickUIOpen + TIME_MUTE_KEYS > ksceKernelGetSystemTimeWide())
+		return; // Menu trigger hotkey should not trigger any menu actions on menu open
 	
 	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);
+	
 	if (gui_menu->onInput)
 		gui_menu->onInput(ctrl);
 
