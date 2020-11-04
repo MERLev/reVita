@@ -336,6 +336,9 @@ void addEmu(RuleData* rd) {
 				case REMAP_SYS_KILL: 			sysactions_killCurrentApp(); break;
 				case REMAP_SYS_BRIGHTNESS_INC: 	sysactions_brightnessInc(); break;
 				case REMAP_SYS_BRIGHTNESS_DEC: 	sysactions_brightnessDec(); break;
+				case REMAP_SYS_SAVE_BACKUP: 	sysactions_saveRestore(); break;
+				case REMAP_SYS_SAVE_RESTORE: 	sysactions_saveBackup(); break;
+				case REMAP_SYS_CALIBRATE_MOTION:sysactions_calibrateMotion(); break;
 				default: break;
 			}
 			break;
@@ -371,8 +374,8 @@ void remEmu(RuleData* rd) {
 int convertGyroVal(float val, int sensId, int deadId, int antideadId){
 	// Scale
 	int scaledVal = clamp(val * 127 * profile.entries[sensId].v.u / 100, 0, 127);
-	// Apply Deadzone and Anti-Deadzone
 
+	// Apply Deadzone and Anti-Deadzone
 	return 127 * profile.entries[antideadId].v.u / 100 
 		+ ((float)scaledVal - 127 * profile.entries[deadId].v.u / 100) 
 		* (100 - profile.entries[antideadId].v.u) / (100 - profile.entries[deadId].v.u);
@@ -397,11 +400,14 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 
 	SceMotionState sms;
 	int gyroRet = __sceMotionGetState(&sms);
-	// if (gyroRet >= 0){
-	// 	char str[40];
-	// 	sprintf(str, "%i", (int)(sms.acceleration.x * profile.entries[PR_GY_SENSIVITY_Z].v.u * 8));
-	// 	gui_popupShow("acceleration.x", str, 1000000);
-	// }
+
+	// Apply calibration to gyro
+	if (gyroRet >= 0){
+		sms.acceleration.x -= (float)(profile.entries[PR_GY_CALIBRATION_Z].v.i) / 1000;
+		// char str[40];
+		// sprintf(str, "%i", (int)(sms.acceleration.x * profile.entries[PR_GY_SENSIVITY_Z].v.u * 8));
+		// gui_popupShow("acceleration.x", str, 1000000);
+	}
 
 	//Set sticks def values
 	rd.analogLeftEmu = rd.analogRightEmu = rd.analogLeftProp = rd.analogRightProp = (EmulatedStick){0, 0, 0, 0};

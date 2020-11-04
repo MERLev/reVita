@@ -50,7 +50,8 @@ static struct MenuEntry menu_hotkeys_entries[] = {
 	(MenuEntry){.name = "Brightness +", 		.dataPE = &hotkeys[HOTKEY_BRIGHTNESS_INC]},
 	(MenuEntry){.name = "Brightness -", 		.dataPE = &hotkeys[HOTKEY_BRIGHTNESS_DEC]},
 	(MenuEntry){.name = "Savefile backup", 		.dataPE = &hotkeys[HOTKEY_SAVE_BACKUP]},
-	(MenuEntry){.name = "Savefile restore", 	.dataPE = &hotkeys[HOTKEY_SAVE_RESTORE]}};
+	(MenuEntry){.name = "Savefile restore", 	.dataPE = &hotkeys[HOTKEY_SAVE_RESTORE]},
+	(MenuEntry){.name = "Calibrate motion", 	.dataPE = &hotkeys[HOTKEY_MOTION_CALIBRATE]}};
 static struct Menu menu_hotkeys = (Menu){
 	.id = MENU_HOTKEYS_ID, 
 	.parent = MENU_MAIN_SETTINGS_ID,

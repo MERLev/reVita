@@ -17,6 +17,7 @@
 #define HEADER_TYPE         -1
 #define TEXT_IDX            -2
 #define NEW_RULE_IDX        -3
+#define COMMAND_TYPE        -4
 
 ;enum MENU_ID{
 	MENU_MAIN_ID = 0,

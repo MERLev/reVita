@@ -94,6 +94,9 @@ const char* REMAP_ACTION_STR[REMAP_ACTION_NUM] = {
 	"SYS_KILL",
 	"SYS_BRIGHTNESS_INC",
 	"SYS_BRIGHTNESS_DEC",
+    "REMAP_SYS_SAVE_BACKUP",
+    "REMAP_SYS_SAVE_RESTORE",
+    "REMAP_SYS_CALIBRATE_MOTION",
 	"REM_SWAP_TOUCHPADS"
 };
 enum REMAP_ACTION getActionId(char* n){
@@ -269,6 +272,7 @@ void profile_resetGyro() {
 	profile_resetEntryById(PR_GY_ANTIDEADZONE_X);
 	profile_resetEntryById(PR_GY_ANTIDEADZONE_Y);
 	profile_resetEntryById(PR_GY_ANTIDEADZONE_Z);
+	profile_resetEntryById(PR_GY_CALIBRATION_Z);
 	profile_resetEntryById(PR_GY_DEADBAND);
 }
 void profile_resetController(){
@@ -737,6 +741,13 @@ void setDefProfile(){
 		.min.u = 0,
 		.max.u = 100,
 		.key = "ANTIDEADZONE_Z"});
+	setPE((ProfileEntry){
+		.id = PR_GY_CALIBRATION_Z,
+		.type = TYPE_INT32,
+		.def.i = 0,
+		.min.i = -1000,
+		.max.i = 1000,
+		.key = "CALIBRATION_Z"});
 	setPE((ProfileEntry){
 		.id = PR_GY_DEADBAND,
 		.type = TYPE_UINT32,

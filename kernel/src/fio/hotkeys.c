@@ -190,6 +190,11 @@ void setDefHotkeys(){
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START + SCE_CTRL_R1, 
 		.key = "HOTKEY_SAVE_RESTORE"});
+	hotkey_set((ProfileEntry){
+		.id = HOTKEY_MOTION_CALIBRATE,
+		.type = TYPE_UINT32,
+		.def.u = SCE_CTRL_START + SCE_CTRL_CIRCLE, 
+		.key = "HOTKEY_MOTION_CALIBRATE"});
 }
 
 void hotkeys_init(){

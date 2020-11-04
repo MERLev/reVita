@@ -1,9 +1,11 @@
 #include <vitasdkkern.h>
 #include <taihen.h>
+#include <psp2/motion.h> 
 #include <psp2kern/power.h> 
 #include <psp2kern/appmgr.h> 
 #include "vitasdkext.h"
 #include "common.h"
+#include "userspace.h"
 #include "main.h"
 #include "fio/fio.h"
 #include "fio/profile.h"
@@ -112,6 +114,18 @@ void sysactions_saveRestore(){
     }
 
     gui_popupShow(msg, "Failed !", 2*1000*1000);
+}
+
+void sysactions_calibrateMotion(){
+	SceMotionState sms;
+	int gyroRet = __sceMotionGetState(&sms);
+    if (gyroRet >= 0){
+        profile.entries[PR_GY_CALIBRATION_Z].v.i = clamp(
+            (int)(sms.acceleration.x * 1000), 
+            profile.entries[PR_GY_CALIBRATION_Z].min.i, 
+            profile.entries[PR_GY_CALIBRATION_Z].max.i);
+        gui_popupShow("Motion calibration", "Done !", 2*1000*1000);
+    }
 }
 
 void sysactions_init(){

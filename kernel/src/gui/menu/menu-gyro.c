@@ -1,6 +1,7 @@
 #include <vitasdkkern.h>
 #include "../../main.h"
 #include "../../common.h"
+#include "../../sysactions.h"
 #include "../../fio/settings.h"
 #include "../gui.h"
 #include "../renderer.h"
@@ -15,6 +16,12 @@ const char* STR_DEADBAND[3] = {
 void onButton_gyro(uint32_t btn){
 	switch (btn) {
 		case SCE_CTRL_START: profile_resetGyro(); break;
+		case SCE_CTRL_CROSS:
+			if (gui_getEntry()->type == COMMAND_TYPE 
+					&& gui_getEntry()->dataUint == REMAP_SYS_CALIBRATE_MOTION){
+				sysactions_calibrateMotion();
+			}
+			break;
 		default: onButton_genericEntries(btn);break;
 	}
 }
@@ -27,6 +34,14 @@ void onDraw_gyro(uint menuY){
 		if (gui_menu->entries[i].type == HEADER_TYPE){
 			gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i); 
 			continue;
+		}
+
+		if (gui_menu->entries[i].type == COMMAND_TYPE){
+			if (gui_menu->entries[i].dataUint == REMAP_SYS_CALIBRATE_MOTION){
+				gui_setColor(i == gui_menu->idx, true);
+				rendererv_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
+				continue;
+			}
 		}
 
 		ProfileEntry* pe = gui_menu->entries[i].dataPE;
@@ -56,6 +71,8 @@ static struct MenuEntry menu_gyro_entries[] = {
 	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_ANTIDEADZONE_Y]},
 	(MenuEntry){.name = "$E Z Axis", .dataPE = &profile.entries[PR_GY_ANTIDEADZONE_Z]},
 	(MenuEntry){.name = "More", .type = HEADER_TYPE},
+	(MenuEntry){.name = "$E Z Axis Calibration", .dataPE = &profile.entries[PR_GY_CALIBRATION_Z]},
+	(MenuEntry){.name = "$E Calibrate now", .type = COMMAND_TYPE, .dataUint = REMAP_SYS_CALIBRATE_MOTION},
 	(MenuEntry){.name = "Deadband  ", .dataPE = &profile.entries[PR_GY_DEADBAND]}};
 static struct Menu menu_gyro = (Menu){
 	.id = MENU_GYRO_ID, 
