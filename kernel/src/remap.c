@@ -397,11 +397,11 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 
 	SceMotionState sms;
 	int gyroRet = __sceMotionGetState(&sms);
-	if (gyroRet >= 0){
-		char str[40];
-		sprintf(str, "%i", (int)(sms.acceleration.x * profile.entries[PR_GY_SENSIVITY_Z].v.u * 8));
-		gui_popupShow("acceleration.x", str, 1000000);
-	}
+	// if (gyroRet >= 0){
+	// 	char str[40];
+	// 	sprintf(str, "%i", (int)(sms.acceleration.x * profile.entries[PR_GY_SENSIVITY_Z].v.u * 8));
+	// 	gui_popupShow("acceleration.x", str, 1000000);
+	// }
 
 	//Set sticks def values
 	rd.analogLeftEmu = rd.analogRightEmu = rd.analogLeftProp = rd.analogRightProp = (EmulatedStick){0, 0, 0, 0};

@@ -35,12 +35,9 @@ target_link_libraries(${PROJECT_NAME}
   taihen_stub
   SceLibKernel_stub_weak
   SceKernelThreadMgr_stub_weak
-  SceCtrl_stub_weak
-  SceIofilemgr_stub_weak
-  SceSysmem_stub_weak
-  SceMotion_stub 
-  SceTouch_stub 
-  SceAppMgr_stub
+  SceIofilemgr_stub_weak 
+  SceMotion_stub_weak 
+	ds34motion_stub_weak
 )
 
 set_target_properties(${PROJECT_NAME}

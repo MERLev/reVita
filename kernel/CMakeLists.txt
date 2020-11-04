@@ -87,9 +87,9 @@ vita_create_self(remaPSV2.skprx ${PROJECT_NAME}
 )
 add_dependencies(remaPSV2.skprx ${PROJECT_NAME})
  
-# vita_create_stubs(stubs ${PROJECT_NAME} export.yml KERNEL)
+vita_create_stubs(stubs ${PROJECT_NAME} export.yml KERNEL)
 
-# install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stubs/
-#   DESTINATION lib
-#   FILES_MATCHING PATTERN "*.a"
-# )
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stubs/
+  DESTINATION lib
+  FILES_MATCHING PATTERN "*.a"
+)
