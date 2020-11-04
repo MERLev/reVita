@@ -273,6 +273,7 @@ void profile_resetGyro() {
 	profile_resetEntryById(PR_GY_ANTIDEADZONE_Y);
 	profile_resetEntryById(PR_GY_ANTIDEADZONE_Z);
 	profile_resetEntryById(PR_GY_CALIBRATION_Z);
+	profile_resetEntryById(PR_GY_DS4_MOTION);
 	profile_resetEntryById(PR_GY_DEADBAND);
 }
 void profile_resetController(){
@@ -703,22 +704,22 @@ void setDefProfile(){
 		.id = PR_GY_DEADZONE_X,
 		.type = TYPE_UINT32,
 		.def.u = 0,
-		.min.u = 1,
-		.max.u = 200,
+		.min.u = 0,
+		.max.u = 100,
 		.key = "DEADZONE_X"});
 	setPE((ProfileEntry){
 		.id = PR_GY_DEADZONE_Y,
 		.type = TYPE_UINT32,
 		.def.u = 0,
-		.min.u = 1,
-		.max.u = 200,
+		.min.u = 0,
+		.max.u = 100,
 		.key = "DEADZONE_Y"});
 	setPE((ProfileEntry){
 		.id = PR_GY_DEADZONE_Z,
 		.type = TYPE_UINT32,
 		.def.u = 0,
-		.min.u = 1,
-		.max.u = 200,
+		.min.u = 0,
+		.max.u = 100,
 		.key = "DEADZONE_Z"});
 	setPE((ProfileEntry){
 		.id = PR_GY_ANTIDEADZONE_X,
@@ -748,6 +749,11 @@ void setDefProfile(){
 		.min.i = -1000,
 		.max.i = 1000,
 		.key = "CALIBRATION_Z"});
+	setPE((ProfileEntry){
+		.id = PR_GY_DS4_MOTION,
+		.type = TYPE_BOOL,
+		.def.u = 1,
+		.key = "DS4_MOTION"});
 	setPE((ProfileEntry){
 		.id = PR_GY_DEADBAND,
 		.type = TYPE_UINT32,

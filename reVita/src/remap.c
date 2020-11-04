@@ -384,12 +384,29 @@ int convertGyroVal(float val, int sensId, int deadId, int antideadId){
 void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {	
 	// Gathering real touch data
 	SceTouchData std[SCE_TOUCH_PORT_MAX_NUM];
-	int retTouch[SCE_TOUCH_PORT_MAX_NUM];
-	ksceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
-	ksceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
-	retTouch[SCE_TOUCH_PORT_FRONT] = ksceTouchPeek_internal(SCE_TOUCH_PORT_FRONT, &std[SCE_TOUCH_PORT_FRONT], 1);
-	retTouch[SCE_TOUCH_PORT_BACK] = ksceTouchPeek_internal(SCE_TOUCH_PORT_BACK, &std[SCE_TOUCH_PORT_BACK], 1);
+	int retTouch[SCE_TOUCH_PORT_MAX_NUM] = {-1, -1};
+	if (port <= 1) { // Touch should be used only by Player 1
+		ksceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
+		ksceTouchSetSamplingState(SCE_TOUCH_PORT_BACK, SCE_TOUCH_SAMPLING_STATE_START);
+		retTouch[SCE_TOUCH_PORT_FRONT] = ksceTouchPeek_internal(SCE_TOUCH_PORT_FRONT, &std[SCE_TOUCH_PORT_FRONT], 1);
+		retTouch[SCE_TOUCH_PORT_BACK] = ksceTouchPeek_internal(SCE_TOUCH_PORT_BACK, &std[SCE_TOUCH_PORT_BACK], 1);
+	}
 	
+	// Read motion data
+	SceMotionState sms;
+	int gyroRet = -1;
+	if (port <= 1) // Motion should be used only by Player 1
+		gyroRet = __sceMotionGetState(&sms);
+
+	// Apply calibration to motion
+	if (gyroRet >= 0){
+		sms.acceleration.x -= (float)(profile.entries[PR_GY_CALIBRATION_Z].v.i) / 1000;
+		// char str[40];
+		// sprintf(str, "%i", (int)(sms.acceleration.x * profile.entries[PR_GY_SENSIVITY_Z].v.u * 8));
+		// gui_popupShow("acceleration.x", str, 1000000);
+	}
+
+	// Create RuleData
 	RuleData rd;
 	rd.isTurboTick = (ksceKernelGetSystemTimeWide() % TURBO_DELAY) < (TURBO_DELAY / 2);
 	rd.btns = ctrl->buttons;
@@ -398,20 +415,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 	rd.ctrl = ctrl;
 	rd.port = port;
 
-	SceMotionState sms;
-	int gyroRet = -1;
-	if (port <= 1)
-		gyroRet = __sceMotionGetState(&sms);
-
-	// Apply calibration to gyro
-	if (gyroRet >= 0){
-		sms.acceleration.x -= (float)(profile.entries[PR_GY_CALIBRATION_Z].v.i) / 1000;
-		// char str[40];
-		// sprintf(str, "%i", (int)(sms.acceleration.x * profile.entries[PR_GY_SENSIVITY_Z].v.u * 8));
-		// gui_popupShow("acceleration.x", str, 1000000);
-	}
-
-	//Set sticks def values
+	// Set sticks def values
 	rd.analogLeftEmu = rd.analogRightEmu = rd.analogLeftProp = rd.analogRightProp = (EmulatedStick){0, 0, 0, 0};
 	if (ctrl->lx <= 127) rd.analogLeftProp.left = 127 - ctrl->lx;
 	else rd.analogLeftProp.right = ctrl->lx - 127;
@@ -422,7 +426,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 	if (ctrl->ry <= 127) rd.analogRightProp.up = 127 - ctrl->ry;
 	else  rd.analogRightProp.down = ctrl->ry - 127;
 
-	//Applying remap rules
+	// Applying remap rules
 	for (int i = 0; i < profile.remapsNum; i++){
 		rd.idx = i;
 		struct RemapRule* rr = &profile.remaps[i];

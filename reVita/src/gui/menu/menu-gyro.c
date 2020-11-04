@@ -78,7 +78,8 @@ static struct MenuEntry menu_gyro_entries[] = {
 	(MenuEntry){.name = "More", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$E Z Axis Calibration", .dataPE = &profile.entries[PR_GY_CALIBRATION_Z]},
 	(MenuEntry){.name = "$E Calibrate now", .type = COMMAND_TYPE, .dataUint = REMAP_SYS_CALIBRATE_MOTION},
-	(MenuEntry){.name = "Deadband  ", .dataPE = &profile.entries[PR_GY_DEADBAND]}};
+	(MenuEntry){.name = "Use DS34Motion", .dataPE = &profile.entries[PR_GY_DS4_MOTION]},
+	(MenuEntry){.name = "Deadband", .dataPE = &profile.entries[PR_GY_DEADBAND]}};
 static struct Menu menu_gyro = (Menu){
 	.id = MENU_GYRO_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,

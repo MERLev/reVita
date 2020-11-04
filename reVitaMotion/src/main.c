@@ -27,7 +27,7 @@ static int motion_thread(SceSize args, void *argp) {
     while (thread_motion_run) {
 		SceMotionState motionstate;
     	int ret = sceMotionGetState(&motionstate);
-		if (isDsmotionRunning)
+		if (isDsmotionRunning && profile.entries[PR_GY_DS4_MOTION].v.b)
     		dsMotionGetState(&motionstate);
 		if (ret >= 0 && timestamp != motionstate.hostTimestamp){
 			timestamp = motionstate.hostTimestamp;
