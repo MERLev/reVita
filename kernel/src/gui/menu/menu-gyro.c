@@ -7,9 +7,9 @@
 #include "../rendererv.h"
 
 const char* STR_DEADBAND[3] = {
-	"Game default", 
+	"Disable",
 	"Enable", 
-	"Disable"
+	"Game default" 
 };
 
 void onButton_gyro(uint32_t btn){

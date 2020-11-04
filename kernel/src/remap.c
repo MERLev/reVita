@@ -368,9 +368,16 @@ void remEmu(RuleData* rd) {
 	}
 }
 
-int convertGyroVal(float val, int sensId){
-	return clamp(val * 127 * profile.entries[sensId].v.u / 100, -127, 127);
+int convertGyroVal(float val, int sensId, int deadId, int antideadId){
+	// Scale
+	int scaledVal = clamp(val * 127 * profile.entries[sensId].v.u / 100, 0, 127);
+	// Apply Deadzone and Anti-Deadzone
+
+	return 127 * profile.entries[antideadId].v.u / 100 
+		+ ((float)scaledVal - 127 * profile.entries[deadId].v.u / 100) 
+		* (100 - profile.entries[antideadId].v.u) / (100 - profile.entries[deadId].v.u);
 }
+
 void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {	
 	// Gathering real touch data
 	SceTouchData std[SCE_TOUCH_PORT_MAX_NUM];
@@ -389,14 +396,12 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 	rd.port = port;
 
 	SceMotionState sms;
-	// int gyroRet = ksceMotionStartSampling();
-	// int gyroRet = ksceMotionGetState(&sms);
 	int gyroRet = __sceMotionGetState(&sms);
-	// if (gyroRet >= 0){
-	// 	char str[40];
-	// 	sprintf(str, "%i", (int)(sms.acceleration.x * profile.entries[PR_GY_SENSIVITY_Z].v.u));
-	// 	gui_popupShow("acceleration.x", str, 1000000);
-	// }
+	if (gyroRet >= 0){
+		char str[40];
+		sprintf(str, "%i", (int)(sms.acceleration.x * profile.entries[PR_GY_SENSIVITY_Z].v.u * 8));
+		gui_popupShow("acceleration.x", str, 1000000);
+	}
 
 	//Set sticks def values
 	rd.analogLeftEmu = rd.analogRightEmu = rd.analogLeftProp = rd.analogRightProp = (EmulatedStick){0, 0, 0, 0};
@@ -548,48 +553,54 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 				if (gyroRet != 0) break;
 				switch (trigger->action){
 					case REMAP_GYRO_UP:  
-						if (updateStatus(rd.status, sms.angularVelocity.x > 0)){
-							rd.stickposval = convertGyroVal(sms.angularVelocity.x * 2, PR_GY_SENSIVITY_X);
+						if (updateStatus(rd.status, sms.angularVelocity.x * 100 > (int)profile.entries[PR_GY_DEADZONE_X].v.u)){
+							rd.stickposval = convertGyroVal(sms.angularVelocity.x * 4, 
+								PR_GY_SENSIVITY_X, PR_GY_DEADZONE_X, PR_GY_ANTIDEADZONE_X);
 							addEmu(&rd);
 						} 
 						if (*rd.status == RS_STOPPED)
 							remEmu(&rd);
 						break;
 					case REMAP_GYRO_DOWN:
-						if (updateStatus(rd.status, sms.angularVelocity.x < 0)){
-							rd.stickposval = convertGyroVal(-sms.angularVelocity.x * 2, PR_GY_SENSIVITY_X);
+						if (updateStatus(rd.status, sms.angularVelocity.x * 100 < - (int)profile.entries[PR_GY_DEADZONE_X].v.u)){
+							rd.stickposval = convertGyroVal(-sms.angularVelocity.x * 4, 
+								PR_GY_SENSIVITY_X, PR_GY_DEADZONE_X, PR_GY_ANTIDEADZONE_X);
 							addEmu(&rd);
 						}
 						if (*rd.status == RS_STOPPED)
 							remEmu(&rd);
 						break;
 					case REMAP_GYRO_LEFT:
-						if (updateStatus(rd.status, sms.angularVelocity.y > 0)){
-							rd.stickposval = convertGyroVal(sms.angularVelocity.y * 2, PR_GY_SENSIVITY_Y);
+						if (updateStatus(rd.status, sms.angularVelocity.y * 100 > (int)profile.entries[PR_GY_DEADZONE_Y].v.u)){
+							rd.stickposval = convertGyroVal(sms.angularVelocity.y * 4, 
+								PR_GY_SENSIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
 							addEmu(&rd);
 						}
 						if (*rd.status == RS_STOPPED)
 							remEmu(&rd);
 						break;
 					case REMAP_GYRO_RIGHT:
-						if (updateStatus(rd.status, sms.angularVelocity.y < 0)){
-							rd.stickposval = convertGyroVal(-sms.angularVelocity.y * 2, PR_GY_SENSIVITY_Y);
+						if (updateStatus(rd.status, sms.angularVelocity.y * 100 < - (int)profile.entries[PR_GY_DEADZONE_Y].v.u)){
+							rd.stickposval = convertGyroVal(-sms.angularVelocity.y * 4,
+								PR_GY_SENSIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
 							addEmu(&rd);
 						}
 						if (*rd.status == RS_STOPPED)
 							remEmu(&rd);
 						break;
 					case REMAP_GYRO_ROLL_LEFT:
-						if (updateStatus(rd.status, sms.acceleration.x < 0)){
-							rd.stickposval = convertGyroVal(-sms.acceleration.x * 8, PR_GY_SENSIVITY_Z);
+						if (updateStatus(rd.status, sms.acceleration.x * 100 < - (int)profile.entries[PR_GY_DEADZONE_Z].v.u)){
+							rd.stickposval = convertGyroVal(-sms.acceleration.x * 8, 
+								PR_GY_SENSIVITY_Z, PR_GY_DEADZONE_Z, PR_GY_ANTIDEADZONE_Z);
 							addEmu(&rd);
 						}
 						if (*rd.status == RS_STOPPED)
 							remEmu(&rd);
 						break;
 					case REMAP_GYRO_ROLL_RIGHT:
-						if (updateStatus(rd.status, sms.acceleration.x > 0)){
-							rd.stickposval = convertGyroVal(sms.acceleration.x * 8, PR_GY_SENSIVITY_Z);
+						if (updateStatus(rd.status, sms.acceleration.x * 100 > (int)profile.entries[PR_GY_DEADZONE_Z].v.u)){
+							rd.stickposval = convertGyroVal(sms.acceleration.x * 8, 
+								PR_GY_SENSIVITY_Z, PR_GY_DEADZONE_Z, PR_GY_ANTIDEADZONE_Z);
 							addEmu(&rd);
 						}
 						if (*rd.status == RS_STOPPED)

@@ -719,28 +719,28 @@ void setDefProfile(){
 	setPE((ProfileEntry){
 		.id = PR_GY_ANTIDEADZONE_X,
 		.type = TYPE_UINT32,
-		.def.u = 10,
+		.def.u = 5,
 		.min.u = 0,
 		.max.u = 100,
 		.key = "ANTIDEADZONE_X"});
 	setPE((ProfileEntry){
 		.id = PR_GY_ANTIDEADZONE_Y,
 		.type = TYPE_UINT32,
-		.def.u = 10,
+		.def.u = 5,
 		.min.u = 0,
 		.max.u = 100,
 		.key = "ANTIDEADZONE_Y"});
 	setPE((ProfileEntry){
-		.id = PR_GYANTIDEADZONE_Z,
+		.id = PR_GY_ANTIDEADZONE_Z,
 		.type = TYPE_UINT32,
-		.def.u = 10,
+		.def.u = 5,
 		.min.u = 0,
 		.max.u = 100,
 		.key = "ANTIDEADZONE_Z"});
 	setPE((ProfileEntry){
 		.id = PR_GY_DEADBAND,
 		.type = TYPE_UINT32,
-		.def.u = 0,
+		.def.u = 2,
 		.min.u = 0,
 		.max.u = 2,
 		.key = "DEADBAND"});

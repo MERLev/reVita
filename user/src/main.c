@@ -23,16 +23,18 @@ static tai_hook_ref_t refs[HOOKS_NUM];
 
 Profile profile;
 static char titleid[16];
+uint64_t startTick;
+int timestamp = 0;
 
 // Simplified generic hooking function
 void hookFunction(uint32_t nid, const void *func) {
 	hooks[current_hook] = taiHookFunctionImport(&refs[current_hook],TAI_MAIN_MODULE,TAI_ANY_LIBRARY,nid,func);
+	LOG("hooked: %08X\n", hooks[current_hook]);
 	current_hook++;
 }
 
 // Thread to send SceMotionState to kernel plugin
 static int motion_thread(SceSize args, void *argp) {
-	int timestamp = 0;
     while (thread_motion_run) {
 		SceMotionState motionstate;
     	int ret = sceMotionGetState(&motionstate);
@@ -48,8 +50,13 @@ static int motion_thread(SceSize args, void *argp) {
 // Thread to keep up-to-date profile
 static int profile_thread(SceSize args, void *argp) {
     while (thread_profile_run) {
+		if (startTick != 0 && startTick + 10000000 < sceKernelGetProcessTimeWide()){	
+			sceMotionStartSampling();
+		}
 		remaPSV2k_getProfile(&profile);
-		// sceMotionSetDeadband(profile.entries[PR_GY_DEADBAND].v.b);
+		if (profile.entries[PR_GY_DEADBAND].v.u < 2)
+			sceMotionSetDeadband(profile.entries[PR_GY_DEADBAND].v.b);
+
 		sceKernelDelayThread(DELAY_CONFIG_CHECK);
     }
     return 0;
@@ -61,18 +68,18 @@ int module_start(SceSize argc, const void *args) {
 
 	// Skip onto System apps and LiveArea
 	sceAppMgrAppParamGetString(0, 12, titleid , 256); 
-	if(strncmp(titleid, "NPXS", strlen("NPXS")) == 0)
-		return SCE_KERNEL_START_SUCCESS;
-	if(strcmp(titleid, "") == 0)
-		return SCE_KERNEL_START_SUCCESS;
+	// if(strncmp(titleid, "NPXS", strlen("NPXS")) == 0)
+	// 	return SCE_KERNEL_START_SUCCESS;
+	// if(strcmp(titleid, "") == 0)
+	// 	return SCE_KERNEL_START_SUCCESS;
 
 	memset(&profile, 0, sizeof(profile));
-
+	startTick = sceKernelGetProcessTimeWide();
 	//Send ready to kernel plugin
 	// remaPSV2k_userPluginReady();
 	
 	//Start gyro sampling
-	sceMotionStartSampling();
+	// sceMotionStartSampling();
 
 	//Start threads
 	thread_profile_uid = sceKernelCreateThread("remaPSV2_u_profile_thread", profile_thread, 64, 0x3000, 0, 0x10000, 0);
