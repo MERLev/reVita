@@ -14,7 +14,7 @@
 #include "gui/gui.h"
 #include "log.h"
 
-#define PATH_SAVE_BACKUP    "ux0:/data/remaPSV2/Save"
+#define PATH_SAVE_BACKUP    "ux0:/data/reVita/Save"
 #define PATH_SAVE           "ux0:/user/00/savedata"
 
 #define BRIGHTNESS_STEP     6

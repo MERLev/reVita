@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "fio/profile.h"
-#include "remapsv.h"
+#include "revita.h"
 #include "log.h"
 
 #define DELAY 1000
@@ -18,10 +18,10 @@ SceInt64 tick = 0;
 SceMotionState sms;
 int result; 
 
-/*export*/ void remaPSV2k_getProfile(Profile* p){
+/*export*/ void reVita_getProfile(Profile* p){
     ksceKernelMemcpyKernelToUser((uintptr_t)&p[0], &profile, sizeof(profile));
 }
-/*export*/ void remaPSV2k_setSceMotionState(SceMotionState *pData, int r){
+/*export*/ void reVita_setSceMotionState(SceMotionState *pData, int r){
     ksceKernelLockMutex(mutex_sce_touch_peek_uid, 1, NULL);
 
     ksceKernelMemcpyUserToKernel(&sms, (uintptr_t)pData, sizeof(SceMotionState)); 
@@ -45,7 +45,7 @@ int __sceMotionGetState(SceMotionState *pData){
 }
 
 void userspace_init(){
-    mutex_sce_touch_peek_uid = ksceKernelCreateMutex("remaPSV2_mutex_userspace", 0, 0, NULL);
+    mutex_sce_touch_peek_uid = ksceKernelCreateMutex("reVita_mutex_userspace", 0, 0, NULL);
 }
 void userspace_destroy(){
     if (mutex_sce_touch_peek_uid >= 0)

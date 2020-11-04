@@ -180,7 +180,7 @@ static int threadInitMotion(SceSize args, void *argp) {
 
 void motion_init(){
         LOG("motion_init()\n");
-    thread_uid = ksceKernelCreateThread("remaPSV2_thread_motion", threadInitMotion, 0x3C, 0x3000, 0, 0x10000, 0);
+    thread_uid = ksceKernelCreateThread("reVita_thread_motion", threadInitMotion, 0x3C, 0x3000, 0, 0x10000, 0);
     ksceKernelStartThread(thread_uid, 0, NULL);
 }
 void motion_destroy(){

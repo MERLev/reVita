@@ -12,7 +12,7 @@
 
 #define SECTION "HOTKEYS"
 #define BUFFER_SIZE_HOTKEYS (200 * sizeof(char)+ 0xfff) & ~0xfff
-#define PATH "ux0:/data/remaPSV2"
+#define PATH "ux0:/data/reVita"
 #define NAME_SETTINGS "HOTKEYS"
 #define EXT "INI"
 

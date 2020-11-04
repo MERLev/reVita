@@ -8,7 +8,7 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   endif()
 endif()
 
-project(remaPSV2_user)
+project(reVitaMotion)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -std=gnu99 -DTAIPOOL_AS_STDLIB")
@@ -29,7 +29,7 @@ add_executable(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-  remaPSV2_stub
+  reVita_stub
   k
   gcc
   taihen_stub
@@ -44,6 +44,6 @@ set_target_properties(${PROJECT_NAME}
   PROPERTIES LINK_FLAGS "-nostdlib"
 )
 
-vita_create_self(remaPSV2.suprx ${PROJECT_NAME}
+vita_create_self(${PROJECT_NAME}.suprx ${PROJECT_NAME}
   CONFIG export.yml
 )

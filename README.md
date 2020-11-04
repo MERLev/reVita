@@ -1,5 +1,5 @@
-# remaPSV2 v.2.0.2
-**remaPSV2** is an updated version of [Rinnegatamante](https://github.com/Rinnegatamante)'s **[remaPSV](https://github.com/Rinnegatamante/remaPSV)** (which takes the name from the glorious remaPSP included in cwCheat for PSP). 
+# reVita v.1.0
+**reVita** is an updated version of [Rinnegatamante](https://github.com/Rinnegatamante)'s **[remaPSV](https://github.com/Rinnegatamante/remaPSV)** (which takes the name from the glorious remaPSP included in cwCheat for PSP). 
 
 ![Image](/include/screenshot.png)
 
@@ -16,17 +16,18 @@
 
 - Full support
   - All official games and some of the homebrew
-- Partial support without plugin menu opening [[How To]](https://github.com/MERLev/remaPSV2#known-issues)
+- Partial support without plugin menu opening [[How To]](https://github.com/MERLev/reVita#known-issues)
   - Adrenaline, PS4link, some of the homebrew
 - No support
   - Livearea, all other system apps, some of the homebrews
 
 ## Installation
 
-- Copy **remaPSV2.suprx** and **ioplus.skprx** to **ur0:/tai** folder 
-- Add **remaPSV2.suprx** into your **ur0:/config.ini** file (under ***ALL** or whatever game you want to use it).
+- Copy **reVita.skprx**, **reVitaMotion.suprx** and **ioplus.skprx** to **ur0:/tai** folder 
+- Add **reVita.skprx** into your **ur0:/config.ini** file (under ***KERNEL** or whatever game you want to use it).
+- Add **reVitaMotion.suprx** into your **ur0:/config.ini** file (under ***MAIN** or whatever game you want to use it).
 - Add **ioplus.skprx** into your taiHen config file (under ***KERNEL**)
-- To bring the config menu, press **START + Square** in game.
+- To bring the config menu, press **START + SQUARE** in game.
 
 ## Usage
 
@@ -41,7 +42,7 @@
 - How do I map combo of buttons ?
   - Combo mappings are not supported
 - Is it possible to remap PS4Link keys
-  - Yes, but a bit [tricky](https://github.com/MERLev/remaPSV2#known-issues)
+  - Yes, but a bit [tricky](https://github.com/MERLev/reVita#known-issues)
 - Is there a way to turn it on and off? Or does it save presets on a game by game basis?
   - ATM, no
 - Is there any way to have this work on the save screen/system apps/livearea ?

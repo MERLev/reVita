@@ -4,7 +4,7 @@
 #include <psp2/motion.h> 
 #include <psp2/kernel/threadmgr.h> 
 #include "log.h"
-#include "../../kernel/src/remapsv.h"
+#include "../../reVita/src/revita.h"
 #include "DSMotionLibrary.h"
 
 #define DELAY_STARTUP      5##000##000
@@ -31,7 +31,7 @@ static int motion_thread(SceSize args, void *argp) {
     		dsMotionGetState(&motionstate);
 		if (ret >= 0 && timestamp != motionstate.hostTimestamp){
 			timestamp = motionstate.hostTimestamp;
-			remaPSV2k_setSceMotionState(&motionstate, ret);
+			reVita_setSceMotionState(&motionstate, ret);
 		}
 		sceKernelDelayThread(DELAY_MOTION_SEND);
     }
@@ -55,7 +55,7 @@ static int profile_thread(SceSize args, void *argp) {
 
 	// Keep profile up-to-date
     while (thread_profile_run) {
-		remaPSV2k_getProfile(&profile);
+		reVita_getProfile(&profile);
 		if (profile.entries[PR_GY_DEADBAND].v.u < 2)
 			sceMotionSetDeadband(profile.entries[PR_GY_DEADBAND].v.b);
 
@@ -70,10 +70,10 @@ int module_start(SceSize argc, const void *args) {
 
 	memset(&profile, 0, sizeof(profile));
 
-	thread_profile_uid = sceKernelCreateThread("remaPSV2_u_profile_thread", profile_thread, 64, 0x3000, 0, 0x10000, 0);
+	thread_profile_uid = sceKernelCreateThread("reVita_u_profile_thread", profile_thread, 64, 0x3000, 0, 0x10000, 0);
     sceKernelStartThread(thread_profile_uid, 0, NULL);
 
-	thread_motion_uid = sceKernelCreateThread("remaPSV2_u_motion_thread", motion_thread, 64, 0x3000, 0, 0x10000, 0);
+	thread_motion_uid = sceKernelCreateThread("reVita_u_motion_thread", motion_thread, 64, 0x3000, 0, 0x10000, 0);
     sceKernelStartThread(thread_motion_uid, 0, NULL);
 
 	return SCE_KERNEL_START_SUCCESS;

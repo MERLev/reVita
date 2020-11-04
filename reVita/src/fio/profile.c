@@ -10,7 +10,7 @@
 #include "../common.h"
 #include "../log.h"
 
-#define PATH "ux0:/data/remaPSV2/Profile/"
+#define PATH "ux0:/data/reVita/Profile/"
 #define NAME_GLOBAL "GLOBAL"
 #define NAME_HOME "HOME"
 #define EXT "bin"

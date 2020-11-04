@@ -8,8 +8,8 @@
 #include "ini.h"
 
 #define SECTION "THEME"
-#define PATH "ux0:/data/remaPSV2"
-#define PATH_THEME "ux0:/data/remaPSV2/Theme"
+#define PATH "ux0:/data/reVita"
+#define PATH_THEME "ux0:/data/reVita/Theme"
 #define EXT_INI "INI"
 #define BUFFER_SIZE_THEME (1000 * sizeof(char)+ 0xfff) & ~0xfff
 

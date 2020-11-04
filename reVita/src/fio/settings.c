@@ -11,7 +11,7 @@
 
 #define SECTION "SETTINGS"
 #define BUFFER_SIZE_SETTINGS (200 * sizeof(char)+ 0xfff) & ~0xfff
-#define PATH "ux0:/data/remaPSV2"
+#define PATH "ux0:/data/reVita"
 #define NAME_SETTINGS "SETTINGS"
 #define EXT "INI"
 
@@ -58,7 +58,7 @@ bool generateINISettings(char* buff){
 			case POP_BRIGHTNESS:
 			case POP_READY:
 			case POP_LOADING:
-			case POP_REMAPSV2:
+			case POP_REVITA:
 			case POP_KILL:
 				ini_addBool(ini, settings[i].key, settings[i].v.b);
 				break;
@@ -92,7 +92,7 @@ bool parseINISettings(char* buff){
 			case POP_BRIGHTNESS:
 			case POP_READY:
 			case POP_LOADING:
-			case POP_REMAPSV2:
+			case POP_REVITA:
 			case POP_KILL:
 				e->v.u = parseBool(ini->val);
 				break;
@@ -207,10 +207,10 @@ void setDefSettings(){
 		.def.b = true, 
 		.key = "POP_BRIGHTNESS"});
 	set((ProfileEntry){
-		.id = POP_REMAPSV2,
+		.id = POP_REVITA,
 		.type = TYPE_BOOL,
 		.def.b = true, 
-		.key = "POP_REMAPSV2"});
+		.key = "POP_REVITA"});
 	set((ProfileEntry){
 		.id = POP_READY,
 		.type = TYPE_BOOL,

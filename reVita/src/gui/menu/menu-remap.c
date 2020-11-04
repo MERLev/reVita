@@ -387,7 +387,7 @@ static struct MenuEntry menu_remap_emu_type_entries[] = {
 	(MenuEntry){.name = "Front Touch", 					.icn = ICON_FT,			.dataUint = REMAP_TYPE_FRONT_TOUCH_POINT},
 	(MenuEntry){.name = "Back Touch", 					.icn = ICON_BT, 		.dataUint = REMAP_TYPE_BACK_TOUCH_POINT},
 	(MenuEntry){.name = "System Actions", 				.icn = ICON_DANGER,		.dataUint = REMAP_TYPE_SYSACTIONS},
-	(MenuEntry){.name = "remaPSV2 settings", 			.icn = ICON_CONFIG,		.dataUint = REMAP_TYPE_REMAPSV_ACTIONS},
+	(MenuEntry){.name = "reVita settings", 			.icn = ICON_CONFIG,		.dataUint = REMAP_TYPE_REMAPSV_ACTIONS},
 	(MenuEntry){.name = "Disabled", 					.icn = ICON_DISABLED, 	.dataUint = REMAP_TYPE_DISABLED}};
 static struct Menu menu_remap_emu_type = (Menu){
 	.id = MENU_REMAP_EMU_TYPE_ID, 

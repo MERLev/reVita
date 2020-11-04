@@ -185,7 +185,7 @@ void drawHeader(){
 	rendererv_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
 	rendererv_setColor(theme[COLOR_HEADER]);
 	if (gui_menu->id == MENU_MAIN_ID){
-		rendererv_drawStringF(L_0, 3, "     remaPSV2 v.%s", VERSION);
+		rendererv_drawStringF(L_0, 3, "     reVita v.%s", VERSION);
 		gui_drawStringFRight(0, 2, titleid);
 		if (settings[SETT_REMAP_ENABLED].v.b){
 			rendererv_setColor(theme[COLOR_SUCCESS]);
@@ -540,7 +540,7 @@ void gui_close(){
 
 void gui_init(){
 	memset(&btns, 0, sizeof(btns));
-    mutex_gui_uid = ksceKernelCreateMutex("remaPSV2_mutex_gui", 0, 0, NULL);
+    mutex_gui_uid = ksceKernelCreateMutex("reVita_mutex_gui", 0, 0, NULL);
 	
     renderer_init();
     rendererv_init(UI_WIDTH, UI_HEIGHT);

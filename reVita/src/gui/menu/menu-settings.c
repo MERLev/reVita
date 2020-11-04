@@ -71,7 +71,7 @@ static struct Menu menu_settings = (Menu){
 	.entries = menu_settings_entries};
 
 static struct MenuEntry menu_popup_entries[] = {
-	(MenuEntry){.name = "Toggle RemaPSV2", 	.dataPE = &settings[POP_REMAPSV2]},
+	(MenuEntry){.name = "Toggle RemaPSV2", 	.dataPE = &settings[POP_REVITA]},
 	(MenuEntry){.name = "RemaPSV2 ready", 	.dataPE = &settings[POP_READY]},
 	(MenuEntry){.name = "RemaPSV2 Loading", .dataPE = &settings[POP_LOADING]},
 	(MenuEntry){.name = "Profile Save", 	.dataPE = &settings[POP_SAVE]},

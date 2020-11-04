@@ -8,7 +8,7 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   endif()
 endif()
 
-project(remaPSV2_kernel)
+project(reVita)
 include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -std=gnu99")
@@ -81,11 +81,11 @@ set_target_properties(${PROJECT_NAME}
 	COMPILE_FLAGS "-D__VITA_KERNEL__"
 )
 
-vita_create_self(remaPSV2.skprx ${PROJECT_NAME}
+vita_create_self(${PROJECT_NAME}.skprx ${PROJECT_NAME}
   UNSAFE
   CONFIG export.yml
 )
-add_dependencies(remaPSV2.skprx ${PROJECT_NAME})
+add_dependencies(${PROJECT_NAME}.skprx ${PROJECT_NAME})
  
 vita_create_stubs(stubs ${PROJECT_NAME} export.yml KERNEL)
 

@@ -22,7 +22,7 @@
 #include "log.h"
 #include "userspace.h"
 #include "ds34vita.h"
-#include "remapsv.h"
+#include "revita.h"
 
 #define INVALID_PID    -1
 
@@ -172,7 +172,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
             char str[20];
             sprintf(str, "Loading... %isec", 
                 settings[SETT_DELAY_INIT].v.u - (int)((ksceKernelGetSystemTimeWide() - startTick) / 1000000));
-            gui_popupShow("remaPSV2", str, 2*1000*1000);
+            gui_popupShow("reVita", str, 2*1000*1000);
         }
 
         if (startTick + settings[SETT_DELAY_INIT].v.u * 1000000 > ksceKernelGetSystemTimeWide())
@@ -182,7 +182,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
         remap_setup();
         delayedStartDone = true;
         if (settings[POP_READY].v.b)
-            gui_popupShow("remaPSV2", "Ready", 2*1000*1000);
+            gui_popupShow("reVita", "Ready", 2*1000*1000);
         LOG("delayedStartDone = 1\n");
     }
 
@@ -462,8 +462,8 @@ static int main_thread(SceSize args, void *argp) {
                             break;
                         case HOTKEY_REMAPS_TOOGLE: 
                             FLIP(settings[SETT_REMAP_ENABLED].v.b); 
-	                        if (settings[POP_REMAPSV2].v.b)
-                                gui_popupShow("remaPSV2", settings[SETT_REMAP_ENABLED].v.b ? "On" : "Off", 2*1000*1000);
+	                        if (settings[POP_REVITA].v.b)
+                                gui_popupShow("reVita", settings[SETT_REMAP_ENABLED].v.b ? "On" : "Off", 2*1000*1000);
                             break;
                         case HOTKEY_RESET_SOFT: sysactions_softReset();  break;
                         case HOTKEY_RESET_COLD: sysactions_coldReset();  break;
@@ -518,18 +518,18 @@ int module_start(SceSize argc, const void *args) {
     LOG("Plugin started\n");
 
     // Create mutexes for ctrl and touch hooks
-    mutex_procevent_uid = ksceKernelCreateMutex("remaPSV2_mutex_procevent", 0, 0, NULL);
+    mutex_procevent_uid = ksceKernelCreateMutex("reVita_mutex_procevent", 0, 0, NULL);
 
     kernelPid = ksceKernelGetProcessId();
 
     char fname[128];
     for (int j = 0; j < 5; j++){
-        sprintf(fname, "remaPSV2_mutex_ctrl_%i", j);
+        sprintf(fname, "reVita_mutex_ctrl_%i", j);
         mutexCtrlHook[j] = ksceKernelCreateMutex(&fname[0], 0, 0, NULL);
     }
     for (int i = 0; i < TOUCH_HOOKS_NUM; i++){
         for (int j = 0; j < 2; j++){
-	        sprintf(fname, "remaPSV2_mutex_touch_%i_%i", i, j);
+	        sprintf(fname, "reVita_mutex_touch_%i_%i", i, j);
             mutexTouchHook[i][j] = ksceKernelCreateMutex(&fname[0], 0, 0, NULL);
         }
     }
@@ -600,7 +600,7 @@ int module_start(SceSize argc, const void *args) {
 	HOOK_EXPORT(SceRegistryMgr, 0xB2223AEB, 0xD72EA399, ksceRegMgrSetKeyInt);
 
     // Create threads
-    thread_uid = ksceKernelCreateThread("remaPSV2_thread", main_thread, 0x3C, 0x3000, 0, 0x10000, 0);
+    thread_uid = ksceKernelCreateThread("reVita_thread", main_thread, 0x3C, 0x3000, 0, 0x10000, 0);
     ksceKernelStartThread(thread_uid, 0, NULL);
     
     // remap_setup();
