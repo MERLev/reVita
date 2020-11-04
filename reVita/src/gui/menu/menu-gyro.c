@@ -22,7 +22,12 @@ void onButton_gyro(uint32_t btn){
 				sysactions_calibrateMotion();
 			}
 			break;
-		default: onButton_genericEntries(btn);break;
+		default: 
+			if (gui_getEntry()->type == COMMAND_TYPE)
+				onButton_generic(btn);
+			else
+				onButton_genericEntries(btn);
+			break;
 	}
 }
 

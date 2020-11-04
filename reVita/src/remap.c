@@ -399,7 +399,9 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 	rd.port = port;
 
 	SceMotionState sms;
-	int gyroRet = __sceMotionGetState(&sms);
+	int gyroRet = -1;
+	if (port <= 1)
+		gyroRet = __sceMotionGetState(&sms);
 
 	// Apply calibration to gyro
 	if (gyroRet >= 0){
