@@ -49,6 +49,7 @@ extern int processid;
 extern bool isPspemu;
 extern bool isPSTV;
 extern bool isPSTVTouchEmulation;
+extern bool isSafeBoot;
 
 extern bool used_funcs[HOOKS_NUM];
 

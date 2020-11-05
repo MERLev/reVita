@@ -15,7 +15,7 @@ void onButton_main(uint32_t btn){
 		case SCE_CTRL_CIRCLE:
 			gui_close();
 			settings_save();
-			if (settings[0].v.b)
+			if (settings[0].v.b && !isSafeBoot)
 				profile_save(titleid);
 			remap_setup();
 			break;

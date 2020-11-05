@@ -129,7 +129,7 @@ void changeActiveApp(char* tId, int pid){
         } else {
             profile_loadFromGlobal();
             strclone(profile.titleid, titleid);
-            gui_popupShow("Safe start", "Global profile used", 3*1000*1000);
+            gui_popupShowWarning("Safe start", "Global profile used", 3*1000*1000);
         }
 
         remap_resetBuffers();
@@ -194,7 +194,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
         remap_setup();
         delayedStartDone = true;
         if (settings[POP_READY].v.b)
-            gui_popupShow("reVita", "Ready", 2*1000*1000);
+            gui_popupShowSuccess("reVita", "Ready", 2*1000*1000);
         LOG("delayedStartDone = 1\n");
     }
 

@@ -425,7 +425,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 	// Apply calibration to motion
 	if (gyroRet >= 0){
 		sms.rotationMatrix.x.z = calibrate(sms.rotationMatrix.x.z, (float)(profile.entries[PR_GY_CALIBRATION_X].v.i) / 1000);
-		sms.rotationMatrix.y.y = calibrate(sms.rotationMatrix.y.y, (float)(profile.entries[PR_GY_CALIBRATION_Y].v.i) / 1000);
+		sms.rotationMatrix.y.z = calibrate(sms.rotationMatrix.y.z, (float)(profile.entries[PR_GY_CALIBRATION_Y].v.i) / 1000);
 		sms.acceleration.x = calibrate(sms.acceleration.x, (float)(profile.entries[PR_GY_CALIBRATION_Z].v.i) / 1000);
 	}
 
@@ -627,11 +627,11 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 							PR_GY_SENSITIVITY_X, PR_GY_DEADZONE_X, PR_GY_ANTIDEADZONE_X);
 						break;
 					case REMAP_GYRO_SIM_UP:
-						gyroRule(&rd, sms.rotationMatrix.y.y, 8, NEG, 
+						gyroRule(&rd, sms.rotationMatrix.y.z, 8, NEG, 
 							PR_GY_SENSITIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
 						break;
 					case REMAP_GYRO_SIM_DOWN:
-						gyroRule(&rd, sms.rotationMatrix.y.y, 8, POS, 
+						gyroRule(&rd, sms.rotationMatrix.y.z, 8, POS, 
 							PR_GY_SENSITIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
 						break;
 					case REMAP_GYRO_SIM_ROLL_LEFT:

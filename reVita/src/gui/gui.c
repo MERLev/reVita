@@ -63,6 +63,7 @@ static char popupHeader[40];
 static char popupMessage[40];
 static int popupTTL = 0;
 static SceInt64 popupTick = -1;
+static uint32_t popupColor;
 static bool isPopupActive = false;
 
 struct MenuEntry* gui_getEntry(){
@@ -188,20 +189,6 @@ void drawHeader(){
 		gui_menu->onDrawHeader();
 	else 
 		rendererv_drawString(L_0, 3, gui_menu->name);
-
-	// if (gui_menu->id == MENU_MAIN_ID){
-	// 	rendererv_drawStringF(L_0, 3, "     reVita v.%s", VERSION);
-	// 	gui_drawStringFRight(0, 2, titleid);
-	// 	if (settings[SETT_REMAP_ENABLED].v.b){
-	// 		rendererv_setColor(theme[COLOR_SUCCESS]);
-	// 		rendererv_drawStringF(L_0, 3, "$~$`", VERSION);
-	// 	} else {
-	// 		rendererv_setColor(theme[COLOR_DANGER]);
-	// 		rendererv_drawStringF(L_0, 3, "$@$#", VERSION);
-	// 	}
-	// } else	
-	// 	rendererv_drawString(L_0, 3, gui_menu->name);
-	
 }
 void drawFooter(){
 	rendererv_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
@@ -314,7 +301,7 @@ void drawPopup(){
 	renderer_drawRectangle(
 		CHA_W, CHA_H, 
 		CHA_W * (max(strlen(popupHeader), strlen(popupMessage)) + 1), CHA_H * 3);
-	renderer_setColor(theme[COLOR_HEADER]);
+	renderer_setColor(popupColor);
 	renderer_drawStringF(CHA_W * 1.5, CHA_H * 1.5, popupHeader);
 	renderer_setColor(theme[COLOR_DEFAULT]);
 	renderer_drawStringF(CHA_W * 1.5, CHA_H * 2.5, popupMessage);
@@ -330,6 +317,32 @@ void updatePopup(){
 	}
 
 	drawPopup();
+}
+
+void popupShow(char* header, char* message, uint ttl, uint32_t clr){
+	strclone(popupHeader, header);
+	strclone(popupMessage, message);
+	popupTTL = ttl;
+	popupTick = ksceKernelGetSystemTimeWide();
+	popupColor = clr;
+	isPopupActive = true;
+}
+
+void gui_popupShow(char* header, char* message, uint ttl){
+	popupShow(header, message, ttl, theme[COLOR_HEADER]);
+}
+void gui_popupShowSuccess(char* header, char* message, uint ttl){
+	popupShow(header, message, ttl, theme[COLOR_SUCCESS]);
+}
+void gui_popupShowWarning(char* header, char* message, uint ttl){
+	popupShow(header, message, ttl, theme[COLOR_ACTIVE]);
+}
+void gui_popupShowDanger(char* header, char* message, uint ttl){
+	popupShow(header, message, ttl, theme[COLOR_DANGER]);
+}
+
+void gui_popupHide(){
+	isPopupActive = false;
 }
 
 void gui_draw(const SceDisplayFrameBuf *pParam){
@@ -350,18 +363,6 @@ void gui_draw(const SceDisplayFrameBuf *pParam){
 	}
 	updatePopup();
     ksceKernelUnlockMutex(mutex_gui_uid, 1);
-}
-
-void gui_popupShow(char* header, char* message, uint ttl){
-	strclone(popupHeader, header);
-	strclone(popupMessage, message);
-	popupTTL = ttl;
-	popupTick = ksceKernelGetSystemTimeWide();
-	isPopupActive = true;
-}
-
-void gui_popupHide(){
-	isPopupActive = false;
 }
 
 void gui_updateEmulatedTouch(SceTouchPortType panel, EmulatedTouch etouch, SceTouchData pData){
