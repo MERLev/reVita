@@ -338,6 +338,7 @@ void addEmu(RuleData* rd) {
 				case REMAP_SYS_BRIGHTNESS_DEC: 	sysactions_brightnessDec(); break;
 				case REMAP_SYS_SAVE_BACKUP: 	sysactions_saveRestore(); break;
 				case REMAP_SYS_SAVE_RESTORE: 	sysactions_saveBackup(); break;
+				case REMAP_SYS_SAVE_DELETE: 	sysactions_saveDelete(); break;
 				case REMAP_SYS_CALIBRATE_MOTION:sysactions_calibrateMotion(); break;
 				default: break;
 			}

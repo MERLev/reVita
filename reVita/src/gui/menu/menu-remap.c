@@ -453,6 +453,7 @@ static struct MenuEntry menu_remap_emu_sysactions_entries[] = {
 	(MenuEntry){.name = "Brightness -", .dataUint = REMAP_SYS_BRIGHTNESS_DEC},
 	(MenuEntry){.name = "Savegame backup", .dataUint = REMAP_SYS_SAVE_BACKUP},
 	(MenuEntry){.name = "Savegame restore", .dataUint = REMAP_SYS_SAVE_RESTORE},
+	(MenuEntry){.name = "Savegame delete backup", .dataUint = REMAP_SYS_SAVE_DELETE},
 	(MenuEntry){.name = "Calibrate motion", .dataUint = REMAP_SYS_CALIBRATE_MOTION}};
 static struct Menu menu_remap_emu_sysactions = (Menu){
 	.id = MENU_REMAP_EMU_SYSACTIONS_ID, 

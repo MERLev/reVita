@@ -10,6 +10,7 @@ void menu_initSettings();
 void menu_initHotkeys();
 void menu_initCredits();
 void menu_initProfile();
+void menu_initSavemanager();
 
 void menu_initDebugHooks();
 void menu_initDebugButtons();

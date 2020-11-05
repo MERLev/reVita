@@ -9,10 +9,14 @@ void sysactions_killCurrentApp();
 void sysactions_standby();
 void sysactions_suspend();
 void sysactions_displayOff();
+
 void sysactions_brightnessInc();
 void sysactions_brightnessDec();
+
 void sysactions_saveBackup();
 void sysactions_saveRestore();
+void sysactions_saveDelete();
+
 void sysactions_calibrateMotion();
 
 void sysactions_init();

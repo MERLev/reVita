@@ -191,6 +191,11 @@ void setDefHotkeys(){
 		.def.u = SCE_CTRL_START + SCE_CTRL_R1, 
 		.key = "HOTKEY_SAVE_RESTORE"});
 	hotkey_set((ProfileEntry){
+		.id = HOTKEY_SAVE_DELETE,
+		.type = TYPE_UINT32,
+		.def.u = 0, 
+		.key = "HOTKEY_SAVE_DELETE"});
+	hotkey_set((ProfileEntry){
 		.id = HOTKEY_MOTION_CALIBRATE,
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START + SCE_CTRL_CIRCLE, 

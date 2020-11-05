@@ -74,6 +74,9 @@ bool fio_deleteFile(char* path, char* name, char* ext){
 		return true;
 	return false;
 }
+int fio_delete(char* path){
+	return ksceIoRemove(path);
+}
 
 int fio_copyFile(char *src, char *dest){
 	int ret = 0;

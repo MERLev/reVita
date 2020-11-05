@@ -116,6 +116,24 @@ void sysactions_saveRestore(){
     gui_popupShow(msg, "Failed !", 2*1000*1000);
 }
 
+void sysactions_saveDelete(){
+    char msg[64];
+	sprintf(msg, "Removing backup for %s", titleid);
+    gui_popupShow(msg, "Please, wait ...", 0);
+
+    char src[64];
+	sprintf(src, "%s/%s", PATH_SAVE_BACKUP, titleid);
+    
+    if (fio_exist(src)){
+        if (fio_delete(src) == 0){
+            gui_popupShow(msg, "Done !", 2*1000*1000);
+            return;
+        }
+    }
+
+    gui_popupShow(msg, "Failed !", 2*1000*1000);
+}
+
 void sysactions_calibrateMotion(){
 	SceMotionState sms;
 	int gyroRet = __sceMotionGetState(&sms);

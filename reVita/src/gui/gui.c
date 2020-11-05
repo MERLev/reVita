@@ -555,6 +555,7 @@ void gui_init(){
 
 	menu_initCredits();
 	menu_initProfile();
+	menu_initSavemanager();
 
 	menu_initDebugHooks();
 	menu_initDebugButtons();

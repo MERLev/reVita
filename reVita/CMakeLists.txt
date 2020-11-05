@@ -47,6 +47,7 @@ add_executable(${PROJECT_NAME}
   src/gui/menu/menu-credits.c
   src/gui/menu/menu-hotkeys.c
   src/gui/menu/menu-profile.c
+  src/gui/menu/menu-savemanager.c
   src/gui/menu/menu-debug-hooks.c
   src/gui/menu/menu-debug-buttons.c
   src/gui/menu/menu-pick-button.c

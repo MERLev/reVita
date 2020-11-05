@@ -78,6 +78,7 @@ static struct Menu menu_main_developer = (Menu){
 static struct MenuEntry menu_main_entries[] = {
 	(MenuEntry){.name = "Profile", 			.dataUint = MENU_MAIN_PROFILE_ID, 	.icn = ICON_BTN_CROSS},
 	(MenuEntry){.name = "Settings", 		.dataUint = MENU_MAIN_SETTINGS_ID, 	.icn = ICON_MENU_SETTINGS},
+	(MenuEntry){.name = "Save Manager", 	.dataUint = MENU_SAVEMANAGER_ID, 	.icn = ICON_MENU_STORAGE},
 	(MenuEntry){.name = "Developer", 		.dataUint = MENU_MAIN_DEVELOPER_ID, .icn = ICON_MENU_BUG},
 	(MenuEntry){.name = "Credits", 			.dataUint = MENU_CREDITS_ID, 		.icn = ICON_MENU_CREDITS}};
 static struct Menu menu_main = (Menu){
