@@ -264,9 +264,9 @@ void profile_resetTouch(){
 	profile_resetEntryById(PR_TO_DRAW_NATIVE);
 }
 void profile_resetGyro() {
-	profile_resetEntryById(PR_GY_SENSIVITY_X);
-	profile_resetEntryById(PR_GY_SENSIVITY_Y);
-	profile_resetEntryById(PR_GY_SENSIVITY_Z);
+	profile_resetEntryById(PR_GY_SENSITIVITY_X);
+	profile_resetEntryById(PR_GY_SENSITIVITY_Y);
+	profile_resetEntryById(PR_GY_SENSITIVITY_Z);
 	profile_resetEntryById(PR_GY_DEADZONE_X);
 	profile_resetEntryById(PR_GY_DEADZONE_Y);
 	profile_resetEntryById(PR_GY_DEADZONE_Z);
@@ -657,7 +657,7 @@ void setDefProfile(){
 		.def.u = 10,
 		.min.u = 1,
 		.max.u =100,
-		.key = "SWIPE_SENSIVITY"});
+		.key = "SWIPE_SENSITIVITY"});
 	setPE((ProfileEntry){
 		.id = PR_TO_DRAW_POINT,
 		.type = TYPE_BOOL,
@@ -681,26 +681,26 @@ void setDefProfile(){
 
 	// Gyro
 	setPE((ProfileEntry){
-		.id = PR_GY_SENSIVITY_X,
+		.id = PR_GY_SENSITIVITY_X,
 		.type = TYPE_UINT32,
 		.def.u = 25,
 		.min.u = 1,
 		.max.u = 100,
-		.key = "SENSIVITY_X"});
+		.key = "SENSITIVITY_X"});
 	setPE((ProfileEntry){
-		.id = PR_GY_SENSIVITY_Y,
+		.id = PR_GY_SENSITIVITY_Y,
 		.type = TYPE_UINT32,
 		.def.u = 25,
 		.min.u = 1,
 		.max.u = 100,
-		.key = "SENSIVITY_Y"});
+		.key = "SENSITIVITY_Y"});
 	setPE((ProfileEntry){
-		.id = PR_GY_SENSIVITY_Z,
+		.id = PR_GY_SENSITIVITY_Z,
 		.type = TYPE_UINT32,
 		.def.u = 25,
 		.min.u = 1,
 		.max.u = 100,
-		.key = "SENSIVITY_Z"});
+		.key = "SENSITIVITY_Z"});
 	setPE((ProfileEntry){
 		.id = PR_GY_DEADZONE_X,
 		.type = TYPE_UINT32,

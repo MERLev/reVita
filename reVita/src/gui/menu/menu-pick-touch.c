@@ -11,6 +11,8 @@
 #include "../rendererv.h"
 #include "../../log.h"
 
+#define ANALOG_DEADZONE_PICKER	30
+
 void drawTouchZone(uint32_t panel, TouchPoints2* tz){
 	renderer_setColor(panel ? theme[COLOR_TOUCH_BOTTOM] : theme[COLOR_TOUCH_FRONT]);
 	TouchPoints2 size = T_SIZE[panel];
@@ -59,13 +61,14 @@ void onDrawFB_pickTouchSwipe(){
 
 //Set custom touch point xy using LS + RS
 void analogTouchPicker(TouchPoint* tp, SceCtrlData *ctrl, int port, int isLeftAnalog){
-	int shiftX = ((float)((isLeftAnalog ? ctrl->lx : ctrl->rx) - 127)) / 8;
-	int shiftY = ((float)((isLeftAnalog ? ctrl->ly : ctrl->ry) - 127)) / 8;
+	int multi = 1 + btn_has(ctrl->buttons, SCE_CTRL_L1)  + btn_has(ctrl->buttons, SCE_CTRL_R1);
+	int shiftX = ((float)((isLeftAnalog ? ctrl->lx : ctrl->rx) - 127));
+	int shiftY = ((float)((isLeftAnalog ? ctrl->ly : ctrl->ry) - 127));
 	TouchPoints2 size = T_SIZE[port];
-	if (abs(shiftX) > 30 / 8)
-		tp->x = clamp(tp->x + shiftX, size.a.x, size.b.x);
-	if (abs(shiftY) > 30 / 8)
-		tp->y = clamp(tp->y + shiftY, size.a.y, size.b.y);
+	if (abs(shiftX) > ANALOG_DEADZONE_PICKER)
+		tp->x = clamp(tp->x + shiftX * multi / 8, size.a.x, size.b.x);
+	if (abs(shiftY) > ANALOG_DEADZONE_PICKER)
+		tp->y = clamp(tp->y + shiftY * multi / 8, size.a.y, size.b.y);
 }
 //Set custom touch point xy using touch
 void touchPicker(TouchPoint* tp, SceTouchPortType port, int num){
@@ -200,7 +203,7 @@ static struct Menu menu_pick_touch_point = (Menu){
 	.id = MENU_PICK_TOUCH_POINT_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
 	.name = "$i SELECT TOUCH POINT", 
-	.footer = "$U$uCHANGE $<$>CHANGE            $CBACK", 
+	.footer = "$U$uCHANGE $<$>CHANGE ${$}FASTER $CBACK", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchPoint,
 	.onDraw = onDraw_pickTouchPoint,
@@ -217,7 +220,7 @@ static struct Menu menu_pick_touch_zone = (Menu){
 	.id = MENU_PICK_TOUCH_ZONE_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.name = "$i SELECT TOUCH ZONE", 
-	.footer = "$UPOINT1 $uPOINT2 $<$>CHANGE     $CBACK", 
+	.footer = "$U$uCHANGE $<$>CHANGE ${$}FASTER $CBACK", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchZone,
 	.onDraw = onDraw_pickTouchZone,
@@ -234,7 +237,7 @@ static struct Menu menu_pick_touch_swipe = (Menu){
 	.id = MENU_PICK_TOUCH_SWIPE_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.name = "$j SELECT SWIPE POINTS", 
-	.footer = "$USTART $uEND $<$>CHANGE         $CBACK",
+	.footer = "$U$uCHANGE $<$>CHANGE ${$}FASTER $CBACK", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchZone,
 	.onDraw = onDraw_pickTouchZone,

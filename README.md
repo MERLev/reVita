@@ -8,7 +8,7 @@
 - ability to remap buttons, analog sticks, back and front touch zones, gyroscope movements
 - ability to emulate buttons, analog sticks, touch events
 - 4 pre-defined and 4 customizable touch points to emulate
-- improve gyro sensivity in any game by disabling gyro deadband
+- improve gyro sensitivity in any game by disabling gyro deadband
 - external controllers support
 - per-game and global profiles
 
@@ -48,7 +48,7 @@
 - Is there any way to have this work on the save screen/system apps/livearea ?
   - ATM, no
 - What is deadband under gyro menu ?
-  - Deadband limits gyroscope sensivity, so smallest movements are ignored to handle shaking hands, and it is enabled by default in most vita games. Disabling it will higly increase sensivity of gyroscope.
+  - Deadband limits gyroscope sensitivity, so smallest movements are ignored to handle shaking hands, and it is enabled by default in most vita games. Disabling it will higly increase sensitivity of gyroscope.
 
 
 ## Known issues

@@ -122,11 +122,13 @@ void changeActiveApp(char* tId, int pid){
 
         SceCtrlData scd;
         ksceCtrlPeekBufferPositive2_internal(0, &scd, 1);
-        if (!btn_has(scd.buttons, hotkeys[HOTKEY_SAFE_START].v.u))
+        if (!btn_has(scd.buttons, hotkeys[HOTKEY_SAFE_START].v.u)){
             profile_load(titleid);
-        else
+        } else {
             profile_loadFromGlobal();
-            
+            strclone(profile.titleid, titleid);
+        }
+
         remap_resetBuffers();
         gui_close();
     }

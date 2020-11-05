@@ -24,7 +24,7 @@ void onDraw_touch(uint menuY){
 
 static struct MenuEntry menu_touch_entries[] = {
 	(MenuEntry){.name = "Swipe duration", 		.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_SWIPE_DURATION]},
-	(MenuEntry){.name = "Smart Swipe sensivity",.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_SWIPE_SMART_SENS]},
+	(MenuEntry){.name = "Smart Swipe sensitivity",.icn = ICON_SWIPE,	.dataPE = &profile.entries[PR_TO_SWIPE_SMART_SENS]},
 	(MenuEntry){.name = "Swap touchpads", 		.icn = ICON_BT,		.dataPE = &profile.entries[PR_TO_SWAP]},
 	(MenuEntry){.name = "Draw Pointer", 		.type = HEADER_TYPE},
 	(MenuEntry){.name = "Touch Point", 			.icn = ICON_TOUCH,	.dataPE = &profile.entries[PR_TO_DRAW_POINT]},

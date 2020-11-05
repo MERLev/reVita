@@ -403,7 +403,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 	if (gyroRet >= 0){
 		sms.acceleration.x -= (float)(profile.entries[PR_GY_CALIBRATION_Z].v.i) / 1000;
 		// char str[40];
-		// sprintf(str, "%i", (int)(sms.acceleration.x * profile.entries[PR_GY_SENSIVITY_Z].v.u * 8));
+		// sprintf(str, "%i", (int)(sms.acceleration.x * profile.entries[PR_GY_SENSITIVITY_Z].v.u * 8));
 		// gui_popupShow("acceleration.x", str, 1000000);
 	}
 
@@ -568,7 +568,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 					case REMAP_GYRO_UP:  
 						if (updateStatus(rd.status, sms.angularVelocity.x * 100 > (int)profile.entries[PR_GY_DEADZONE_X].v.u)){
 							rd.stickposval = convertGyroVal(sms.angularVelocity.x * 4, 
-								PR_GY_SENSIVITY_X, PR_GY_DEADZONE_X, PR_GY_ANTIDEADZONE_X);
+								PR_GY_SENSITIVITY_X, PR_GY_DEADZONE_X, PR_GY_ANTIDEADZONE_X);
 							addEmu(&rd);
 						} 
 						if (*rd.status == RS_STOPPED)
@@ -577,7 +577,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 					case REMAP_GYRO_DOWN:
 						if (updateStatus(rd.status, sms.angularVelocity.x * 100 < - (int)profile.entries[PR_GY_DEADZONE_X].v.u)){
 							rd.stickposval = convertGyroVal(-sms.angularVelocity.x * 4, 
-								PR_GY_SENSIVITY_X, PR_GY_DEADZONE_X, PR_GY_ANTIDEADZONE_X);
+								PR_GY_SENSITIVITY_X, PR_GY_DEADZONE_X, PR_GY_ANTIDEADZONE_X);
 							addEmu(&rd);
 						}
 						if (*rd.status == RS_STOPPED)
@@ -586,7 +586,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 					case REMAP_GYRO_LEFT:
 						if (updateStatus(rd.status, sms.angularVelocity.y * 100 > (int)profile.entries[PR_GY_DEADZONE_Y].v.u)){
 							rd.stickposval = convertGyroVal(sms.angularVelocity.y * 4, 
-								PR_GY_SENSIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
+								PR_GY_SENSITIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
 							addEmu(&rd);
 						}
 						if (*rd.status == RS_STOPPED)
@@ -595,7 +595,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 					case REMAP_GYRO_RIGHT:
 						if (updateStatus(rd.status, sms.angularVelocity.y * 100 < - (int)profile.entries[PR_GY_DEADZONE_Y].v.u)){
 							rd.stickposval = convertGyroVal(-sms.angularVelocity.y * 4,
-								PR_GY_SENSIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
+								PR_GY_SENSITIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
 							addEmu(&rd);
 						}
 						if (*rd.status == RS_STOPPED)
@@ -604,7 +604,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 					case REMAP_GYRO_ROLL_LEFT:
 						if (updateStatus(rd.status, sms.acceleration.x * 100 < - (int)profile.entries[PR_GY_DEADZONE_Z].v.u)){
 							rd.stickposval = convertGyroVal(-sms.acceleration.x * 8, 
-								PR_GY_SENSIVITY_Z, PR_GY_DEADZONE_Z, PR_GY_ANTIDEADZONE_Z);
+								PR_GY_SENSITIVITY_Z, PR_GY_DEADZONE_Z, PR_GY_ANTIDEADZONE_Z);
 							addEmu(&rd);
 						}
 						if (*rd.status == RS_STOPPED)
@@ -613,7 +613,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 					case REMAP_GYRO_ROLL_RIGHT:
 						if (updateStatus(rd.status, sms.acceleration.x * 100 > (int)profile.entries[PR_GY_DEADZONE_Z].v.u)){
 							rd.stickposval = convertGyroVal(sms.acceleration.x * 8, 
-								PR_GY_SENSIVITY_Z, PR_GY_DEADZONE_Z, PR_GY_ANTIDEADZONE_Z);
+								PR_GY_SENSITIVITY_Z, PR_GY_DEADZONE_Z, PR_GY_ANTIDEADZONE_Z);
 							addEmu(&rd);
 						}
 						if (*rd.status == RS_STOPPED)
