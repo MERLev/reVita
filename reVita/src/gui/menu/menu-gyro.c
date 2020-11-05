@@ -63,6 +63,10 @@ void onDraw_gyro(uint menuY){
 }
 
 static struct MenuEntry menu_gyro_entries[] = {
+	(MenuEntry){.name = "$t Use DS34Motion", .dataPE = &profile.entries[PR_GY_DS4_MOTION]},
+	(MenuEntry){.name = "$Q Deadband", .dataPE = &profile.entries[PR_GY_DEADBAND]},
+	(MenuEntry){.name = "$E Z Axis Calibration", .dataPE = &profile.entries[PR_GY_CALIBRATION_Z]},
+	(MenuEntry){.name = "$E Calibrate now", .type = COMMAND_TYPE, .dataUint = REMAP_SYS_CALIBRATE_MOTION},
 	(MenuEntry){.name = "Sensivity", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_SENSIVITY_X]},
 	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_SENSIVITY_Y]},
@@ -74,12 +78,7 @@ static struct MenuEntry menu_gyro_entries[] = {
 	(MenuEntry){.name = "Anti-Deadzone", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_ANTIDEADZONE_X]},
 	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_ANTIDEADZONE_Y]},
-	(MenuEntry){.name = "$E Z Axis", .dataPE = &profile.entries[PR_GY_ANTIDEADZONE_Z]},
-	(MenuEntry){.name = "More", .type = HEADER_TYPE},
-	(MenuEntry){.name = "$E Z Axis Calibration", .dataPE = &profile.entries[PR_GY_CALIBRATION_Z]},
-	(MenuEntry){.name = "$E Calibrate now", .type = COMMAND_TYPE, .dataUint = REMAP_SYS_CALIBRATE_MOTION},
-	(MenuEntry){.name = "Use DS34Motion", .dataPE = &profile.entries[PR_GY_DS4_MOTION]},
-	(MenuEntry){.name = "Deadband", .dataPE = &profile.entries[PR_GY_DEADBAND]}};
+	(MenuEntry){.name = "$E Z Axis", .dataPE = &profile.entries[PR_GY_ANTIDEADZONE_Z]}};
 static struct Menu menu_gyro = (Menu){
 	.id = MENU_GYRO_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,

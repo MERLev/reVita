@@ -125,13 +125,26 @@ void sysactions_saveDelete(){
 	sprintf(src, "%s/%s", PATH_SAVE_BACKUP, titleid);
     
     if (fio_exist(src)){
-        if (fio_delete(src) == 0){
+        if (fio_deletePath(src) == 1){
             gui_popupShow(msg, "Done !", 2*1000*1000);
             return;
         }
     }
 
     gui_popupShow(msg, "Failed !", 2*1000*1000);
+}
+
+void sysactions_saveDeleteAll(){
+    gui_popupShow("Clearing backups", "Please, wait ...", 0);
+    
+    if (fio_exist(PATH_SAVE_BACKUP)){
+        if (fio_deletePath(PATH_SAVE_BACKUP) == 1){
+            gui_popupShow("Clearing backups", "Done !", 2*1000*1000);
+            return;
+        }
+    }
+
+    gui_popupShow("Clearing backups", "Failed !", 2*1000*1000);
 }
 
 void sysactions_calibrateMotion(){

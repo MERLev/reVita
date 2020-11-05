@@ -6,6 +6,7 @@
 #include "../log.h"
 
 #define TRANSFER_SIZE 		 (128 * 1024)
+#define MAX_PATH_SIZE 		 		(512)
 #define ERROR_BLACKLISTED	   0x90010001
 #define ERROR_SUBFOLDER	       0x90010002
 #define SCE_ERROR_ERRNO_ENOENT 0x80010002
@@ -201,4 +202,49 @@ int fio_copyDir(char *src, char *dest) {
 
     ksceIoDclose(dfd);
     return 0;
+}
+
+int fio_deletePath(const char *path){
+	SceUID dfd = ksceIoDopen(path);
+	if (dfd >= 0) {
+		int res = 0;
+
+		char new_path[MAX_PATH_SIZE];
+		do {
+			SceIoDirent dir;
+			memset(&dir, 0, sizeof(SceIoDirent));
+
+			res = ksceIoDread(dfd, &dir);
+			if (res > 0) {
+				new_path[0] = '\0';
+				snprintf(new_path, MAX_PATH_SIZE, "%s%s%s", path, (path[strlen(path) - 1] == '/') ? "" : "/", dir.d_name);
+
+				if (SCE_S_ISDIR(dir.d_stat.st_mode)) {
+					int ret = fio_deletePath(new_path);
+					if (ret <= 0) {
+						ksceIoDclose(dfd);
+						return ret;
+					}
+				} else {
+					int ret = ksceIoRemove(new_path);
+					if (ret < 0) {
+						ksceIoDclose(dfd);
+						return ret;
+					}
+				}
+			}
+		} while (res > 0);
+
+		ksceIoDclose(dfd);
+
+		int ret = ksceIoRmdir(path);
+		if (ret < 0)
+			return ret;
+	} else {
+		int ret = ksceIoRemove(path);
+		if (ret < 0)
+			return ret;
+	}
+
+	return 1;
 }

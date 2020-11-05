@@ -16,6 +16,7 @@ void sysactions_brightnessDec();
 void sysactions_saveBackup();
 void sysactions_saveRestore();
 void sysactions_saveDelete();
+void sysactions_saveDeleteAll();
 
 void sysactions_calibrateMotion();
 

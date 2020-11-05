@@ -9,7 +9,8 @@
 enum SAVEMANAGER_ACTIONS{
 	SAVEMANAGER_BACKUP = 0,
 	SAVEMANAGER_RESTORE,
-	SAVEMANAGER_CLEAR
+	SAVEMANAGER_CLEAR,
+	SAVEMANAGER_CLEAR_ALL
 };
 
 void onButton_savemanager(uint32_t btn){
@@ -19,6 +20,7 @@ void onButton_savemanager(uint32_t btn){
 				case SAVEMANAGER_BACKUP:   	sysactions_saveBackup(); break;
 				case SAVEMANAGER_RESTORE:   sysactions_saveRestore(); break;
 				case SAVEMANAGER_CLEAR: 	sysactions_saveDelete(); break;
+				case SAVEMANAGER_CLEAR_ALL: sysactions_saveDeleteAll(); break;
 				default: break;
 			}
 			break;
@@ -30,15 +32,27 @@ void onDraw_savemanager(uint menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
-		gui_setColor(i == gui_menu->idx, true);
-		rendererv_drawString(L_2, y += CHA_H, gui_menu->entries[i].name);
+		if (gui_menu->entries[i].type == HEADER_TYPE){
+				gui_setColorHeader(gui_menu->idx == i);
+			if (i == 0){
+				rendererv_drawStringF(L_1, y+=CHA_H, profile.titleid);
+			} else {
+				rendererv_drawString(L_1, y+=CHA_H, gui_menu->entries[i].name);
+			}
+		} else {
+			gui_setColor(i == gui_menu->idx, 1);
+			rendererv_drawString(L_2, y += CHA_H, gui_menu->entries[i].name);
+		}
 	}
 }
 
 static struct MenuEntry menu_savemanager_entries[] = {
-	(MenuEntry){.name = "Backup", 			.dataUint = SAVEMANAGER_BACKUP},
-	(MenuEntry){.name = "Restore", 			.dataUint = SAVEMANAGER_RESTORE},
-	(MenuEntry){.name = "Remove Backup", 	.dataUint = SAVEMANAGER_CLEAR}};
+	(MenuEntry){.name = "", 					.type = HEADER_TYPE},
+	(MenuEntry){.name = "Backup", 				.dataUint = SAVEMANAGER_BACKUP},
+	(MenuEntry){.name = "Restore", 				.dataUint = SAVEMANAGER_RESTORE},
+	(MenuEntry){.name = "Remove Backup", 		.dataUint = SAVEMANAGER_CLEAR},
+	(MenuEntry){.name = "More", 				.type = HEADER_TYPE},
+	(MenuEntry){.name = "Remove All Backups", 	.dataUint = SAVEMANAGER_CLEAR_ALL}};
 static struct Menu menu_savemanager = (Menu){
 	.id = MENU_SAVEMANAGER_ID, 
 	.parent = MENU_MAIN_ID,
