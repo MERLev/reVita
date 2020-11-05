@@ -119,7 +119,14 @@ void changeActiveApp(char* tId, int pid){
         processid = pid;
         for (int i = 0; i < HOOKS_NUM; i++)
             used_funcs[i] = false;
-        profile_load(titleid);
+
+        SceCtrlData scd;
+        ksceCtrlPeekBufferPositive2_internal(0, &scd, 1);
+        if (!btn_has(scd.buttons, hotkeys[HOTKEY_SAFE_START].v.u))
+            profile_load(titleid);
+        else
+            profile_loadFromGlobal();
+            
         remap_resetBuffers();
         gui_close();
     }

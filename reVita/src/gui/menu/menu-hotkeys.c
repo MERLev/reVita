@@ -43,6 +43,7 @@ void onDraw_hotkeys(uint menuY){
 
 static struct MenuEntry menu_hotkeys_entries[] = {
 	(MenuEntry){.name = "Menu open", 			.dataPE = &hotkeys[HOTKEY_MENU]},
+	(MenuEntry){.name = "Safe Start", 			.dataPE = &hotkeys[HOTKEY_SAFE_START]},
 	(MenuEntry){.name = "Toggle remap rules", 	.dataPE = &hotkeys[HOTKEY_REMAPS_TOOGLE]},
 	(MenuEntry){.name = "Soft reset", 			.dataPE = &hotkeys[HOTKEY_RESET_SOFT]},
 	(MenuEntry){.name = "Reboot", 				.dataPE = &hotkeys[HOTKEY_RESET_COLD]},

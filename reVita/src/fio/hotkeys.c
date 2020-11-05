@@ -136,6 +136,11 @@ void setDefHotkeys(){
 		.def.u = SCE_CTRL_START + SCE_CTRL_SQUARE, 
 		.key = "MENU"});
 	hotkey_set((ProfileEntry){
+		.id = HOTKEY_SAFE_START,
+		.type = TYPE_UINT32,
+		.def.u = SCE_CTRL_START, 
+		.key = "SAFE_START"});
+	hotkey_set((ProfileEntry){
 		.id = HOTKEY_REMAPS_TOOGLE,
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START + SCE_CTRL_TRIANGLE, 
