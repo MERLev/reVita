@@ -7,6 +7,6 @@
 /*export*/ extern void reVita_userPluginReady();
 /*export*/ extern int reVita_getProfileVersion();
 /*export*/ extern void reVita_getProfile(Profile* p);
-/*export*/ extern void reVita_setSceMotionState(SceMotionState *pData, int r);
+/*export*/ extern int reVita_setSceMotionState(SceMotionState *pData, int r);
 
 #endif

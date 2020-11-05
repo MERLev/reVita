@@ -31,7 +31,8 @@ static int motion_thread(SceSize args, void *argp) {
     		dsMotionGetState(&motionstate);
 		if (ret >= 0 && timestamp != motionstate.hostTimestamp){
 			timestamp = motionstate.hostTimestamp;
-			reVita_setSceMotionState(&motionstate, ret);
+			if (reVita_setSceMotionState(&motionstate, ret))
+				sceMotionReset();
 		}
 		sceKernelDelayThread(DELAY_MOTION_SEND);
     }

@@ -20,6 +20,9 @@
 #define CACHE_TOUCH_SIZE (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM * SCE_TOUCH_PORT_MAX_NUM)
 #define MEM_SIZE ((0xfff + CACHE_CTRL_SIZE + CACHE_TOUCH_SIZE) & ~0xfff)
 
+#define POS  1
+#define NEG -1
+
 enum RULE_STATUS{
 	RS_NONACTIVE,   // Rule is stopped for some time
 	RS_STARTED,     // Rule just started
@@ -382,6 +385,26 @@ int convertGyroVal(float val, int sensId, int deadId, int antideadId){
 		* (100 - profile.entries[antideadId].v.u) / (100 - profile.entries[deadId].v.u);
 }
 
+void gyroRule(RuleData* rd, float val, int multi, int sign, int sensId, int deadId, int antideadId){
+	if (val * sign > 0){
+		if (updateStatus(rd->status, abs(val * 100) > (int)profile.entries[deadId].v.u)){
+			rd->stickposval = convertGyroVal(val * multi * sign, sensId, deadId, antideadId);
+			addEmu(rd);
+		}
+	}
+	if (*rd->status == RS_STOPPED)
+		remEmu(rd);
+}
+
+float calibrate(float val, float add){
+	val -= add;
+	if (val > 1.0)
+		val -= 2;
+	if (val < -1.0)
+		val += 2;
+	return val;
+}
+
 void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {	
 	// Gathering real touch data
 	SceTouchData std[SCE_TOUCH_PORT_MAX_NUM];
@@ -401,10 +424,9 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 
 	// Apply calibration to motion
 	if (gyroRet >= 0){
-		sms.acceleration.x -= (float)(profile.entries[PR_GY_CALIBRATION_Z].v.i) / 1000;
-		// char str[40];
-		// sprintf(str, "%i", (int)(sms.acceleration.x * profile.entries[PR_GY_SENSITIVITY_Z].v.u * 8));
-		// gui_popupShow("acceleration.x", str, 1000000);
+		sms.rotationMatrix.x.z = calibrate(sms.rotationMatrix.x.z, (float)(profile.entries[PR_GY_CALIBRATION_X].v.i) / 1000);
+		sms.rotationMatrix.y.y = calibrate(sms.rotationMatrix.y.y, (float)(profile.entries[PR_GY_CALIBRATION_Y].v.i) / 1000);
+		sms.acceleration.x = calibrate(sms.acceleration.x, (float)(profile.entries[PR_GY_CALIBRATION_Z].v.i) / 1000);
 	}
 
 	// Create RuleData
@@ -565,59 +587,60 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 			case REMAP_TYPE_GYROSCOPE: 
 				if (gyroRet != 0) break;
 				switch (trigger->action){
-					case REMAP_GYRO_UP:  
-						if (updateStatus(rd.status, sms.angularVelocity.x * 100 > (int)profile.entries[PR_GY_DEADZONE_X].v.u)){
-							rd.stickposval = convertGyroVal(sms.angularVelocity.x * 4, 
-								PR_GY_SENSITIVITY_X, PR_GY_DEADZONE_X, PR_GY_ANTIDEADZONE_X);
-							addEmu(&rd);
-						} 
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
-						break;
-					case REMAP_GYRO_DOWN:
-						if (updateStatus(rd.status, sms.angularVelocity.x * 100 < - (int)profile.entries[PR_GY_DEADZONE_X].v.u)){
-							rd.stickposval = convertGyroVal(-sms.angularVelocity.x * 4, 
-								PR_GY_SENSITIVITY_X, PR_GY_DEADZONE_X, PR_GY_ANTIDEADZONE_X);
-							addEmu(&rd);
-						}
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
-						break;
+				/*  |             |      CAM      |       SIM      |
+				    |-------------|---------------|----------------|
+                    | horisontal  | AngVelocity.y |  rotation.x.z  |
+                    | vertical    | AngVelocity.x |  rotation.y.y  |
+					| roll        | AngVelocity.z | Acceleration.x |  */
+					// Camera mode
 					case REMAP_GYRO_LEFT:
-						if (updateStatus(rd.status, sms.angularVelocity.y * 100 > (int)profile.entries[PR_GY_DEADZONE_Y].v.u)){
-							rd.stickposval = convertGyroVal(sms.angularVelocity.y * 4, 
-								PR_GY_SENSITIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
-							addEmu(&rd);
-						}
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
+						gyroRule(&rd, sms.angularVelocity.y, 4, POS, 
+							PR_GY_SENSITIVITY_X, PR_GY_DEADZONE_X, PR_GY_ANTIDEADZONE_X);
 						break;
 					case REMAP_GYRO_RIGHT:
-						if (updateStatus(rd.status, sms.angularVelocity.y * 100 < - (int)profile.entries[PR_GY_DEADZONE_Y].v.u)){
-							rd.stickposval = convertGyroVal(-sms.angularVelocity.y * 4,
-								PR_GY_SENSITIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
-							addEmu(&rd);
-						}
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
+						gyroRule(&rd, sms.angularVelocity.y, 4, NEG, 
+							PR_GY_SENSITIVITY_X, PR_GY_DEADZONE_X, PR_GY_ANTIDEADZONE_X);
+						break;
+					case REMAP_GYRO_UP: 
+						gyroRule(&rd, sms.angularVelocity.x, 4, POS, 
+							PR_GY_SENSITIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
+						break;
+					case REMAP_GYRO_DOWN:
+						gyroRule(&rd, sms.angularVelocity.x, 4, NEG, 
+							PR_GY_SENSITIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
 						break;
 					case REMAP_GYRO_ROLL_LEFT:
-						if (updateStatus(rd.status, sms.acceleration.x * 100 < - (int)profile.entries[PR_GY_DEADZONE_Z].v.u)){
-							rd.stickposval = convertGyroVal(-sms.acceleration.x * 8, 
-								PR_GY_SENSITIVITY_Z, PR_GY_DEADZONE_Z, PR_GY_ANTIDEADZONE_Z);
-							addEmu(&rd);
-						}
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
+						gyroRule(&rd, sms.angularVelocity.z, 4, POS, 
+							PR_GY_SENSITIVITY_Z, PR_GY_DEADZONE_Z, PR_GY_ANTIDEADZONE_Z);
 						break;
 					case REMAP_GYRO_ROLL_RIGHT:
-						if (updateStatus(rd.status, sms.acceleration.x * 100 > (int)profile.entries[PR_GY_DEADZONE_Z].v.u)){
-							rd.stickposval = convertGyroVal(sms.acceleration.x * 8, 
-								PR_GY_SENSITIVITY_Z, PR_GY_DEADZONE_Z, PR_GY_ANTIDEADZONE_Z);
-							addEmu(&rd);
-						}
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
+						gyroRule(&rd, sms.angularVelocity.z, 4, NEG, 
+							PR_GY_SENSITIVITY_Z, PR_GY_DEADZONE_Z, PR_GY_ANTIDEADZONE_Z);
+						break;
+					// Sim mode
+					case REMAP_GYRO_SIM_LEFT: 
+						gyroRule(&rd, sms.rotationMatrix.x.z, 8, NEG, 
+							PR_GY_SENSITIVITY_X, PR_GY_DEADZONE_X, PR_GY_ANTIDEADZONE_X);
+						break;
+					case REMAP_GYRO_SIM_RIGHT:
+						gyroRule(&rd, sms.rotationMatrix.x.z, 8, POS, 
+							PR_GY_SENSITIVITY_X, PR_GY_DEADZONE_X, PR_GY_ANTIDEADZONE_X);
+						break;
+					case REMAP_GYRO_SIM_UP:
+						gyroRule(&rd, sms.rotationMatrix.y.y, 8, NEG, 
+							PR_GY_SENSITIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
+						break;
+					case REMAP_GYRO_SIM_DOWN:
+						gyroRule(&rd, sms.rotationMatrix.y.y, 8, POS, 
+							PR_GY_SENSITIVITY_Y, PR_GY_DEADZONE_Y, PR_GY_ANTIDEADZONE_Y);
+						break;
+					case REMAP_GYRO_SIM_ROLL_LEFT:
+						gyroRule(&rd, sms.acceleration.x, 8, NEG, 
+							PR_GY_SENSITIVITY_Z, PR_GY_DEADZONE_Z, PR_GY_ANTIDEADZONE_Z);
+						break;
+					case REMAP_GYRO_SIM_ROLL_RIGHT:
+						gyroRule(&rd, sms.acceleration.x, 8, POS, 
+							PR_GY_SENSITIVITY_Z, PR_GY_DEADZONE_Z, PR_GY_ANTIDEADZONE_Z);
 						break;
 					default: break;
 				}

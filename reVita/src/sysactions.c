@@ -150,11 +150,20 @@ void sysactions_saveDeleteAll(){
 void sysactions_calibrateMotion(){
 	SceMotionState sms;
 	int gyroRet = __sceMotionGetState(&sms);
-    if (gyroRet >= 0){
+    if (gyroRet >= 0){     
+        profile.entries[PR_GY_CALIBRATION_X].v.i = clamp(
+            (int)(sms.rotationMatrix.x.z * 1000), 
+            profile.entries[PR_GY_CALIBRATION_X].min.i, 
+            profile.entries[PR_GY_CALIBRATION_X].max.i);   
+        profile.entries[PR_GY_CALIBRATION_Y].v.i = clamp(
+            (int)(sms.rotationMatrix.y.y * 1000), 
+            profile.entries[PR_GY_CALIBRATION_Y].min.i, 
+            profile.entries[PR_GY_CALIBRATION_Y].max.i);
         profile.entries[PR_GY_CALIBRATION_Z].v.i = clamp(
             (int)(sms.acceleration.x * 1000), 
             profile.entries[PR_GY_CALIBRATION_Z].min.i, 
-            profile.entries[PR_GY_CALIBRATION_Z].max.i);
+            profile.entries[PR_GY_CALIBRATION_Z].max.i); 
+        // void __sceMotionReset();
         gui_popupShow("Motion calibration", "Done !", 2*1000*1000);
     }
 }

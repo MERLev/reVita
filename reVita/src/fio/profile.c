@@ -86,6 +86,12 @@ const char* REMAP_ACTION_STR[REMAP_ACTION_NUM] = {
     "GYRO_RIGHT",
     "GYRO_ROLL_LEFT",
     "GYRO_ROLL_RIGHT",
+    "GYRO_SIM_UP",
+    "GYRO_SIM_DOWN",
+    "GYRO_SIM_LEFT",
+    "GYRO_SIM_RIGHT",
+    "GYRO_SIM_ROLL_LEFT",
+    "GYRO_SIM_ROLL_RIGHT",
 	"SYS_RESET_SOFT",
 	"SYS_RESET_COLD",
 	"SYS_STANDBY",
@@ -273,6 +279,8 @@ void profile_resetGyro() {
 	profile_resetEntryById(PR_GY_ANTIDEADZONE_X);
 	profile_resetEntryById(PR_GY_ANTIDEADZONE_Y);
 	profile_resetEntryById(PR_GY_ANTIDEADZONE_Z);
+	profile_resetEntryById(PR_GY_CALIBRATION_X);
+	profile_resetEntryById(PR_GY_CALIBRATION_Y);
 	profile_resetEntryById(PR_GY_CALIBRATION_Z);
 	profile_resetEntryById(PR_GY_DS4_MOTION);
 	profile_resetEntryById(PR_GY_DEADBAND);
@@ -743,6 +751,20 @@ void setDefProfile(){
 		.min.u = 0,
 		.max.u = 100,
 		.key = "ANTIDEADZONE_Z"});
+	setPE((ProfileEntry){
+		.id = PR_GY_CALIBRATION_X,
+		.type = TYPE_INT32,
+		.def.i = 0,
+		.min.i = -1000,
+		.max.i = 1000,
+		.key = "CALIBRATION_X"});
+	setPE((ProfileEntry){
+		.id = PR_GY_CALIBRATION_Y,
+		.type = TYPE_INT32,
+		.def.i = 0,
+		.min.i = -1000,
+		.max.i = 1000,
+		.key = "CALIBRATION_Y"});
 	setPE((ProfileEntry){
 		.id = PR_GY_CALIBRATION_Z,
 		.type = TYPE_INT32,

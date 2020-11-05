@@ -65,8 +65,11 @@ void onDraw_gyro(uint menuY){
 static struct MenuEntry menu_gyro_entries[] = {
 	(MenuEntry){.name = "$t Use DS34Motion", .dataPE = &profile.entries[PR_GY_DS4_MOTION]},
 	(MenuEntry){.name = "$Q Deadband", .dataPE = &profile.entries[PR_GY_DEADBAND]},
-	(MenuEntry){.name = "$E Z Axis Calibration", .dataPE = &profile.entries[PR_GY_CALIBRATION_Z]},
+	(MenuEntry){.name = "Calibration", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$E Calibrate now", .type = COMMAND_TYPE, .dataUint = REMAP_SYS_CALIBRATE_MOTION},
+	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_CALIBRATION_X]},
+	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_CALIBRATION_Y]},
+	(MenuEntry){.name = "$E Z Axis", .dataPE = &profile.entries[PR_GY_CALIBRATION_Z]},
 	(MenuEntry){.name = "Sensitivity", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_SENSITIVITY_X]},
 	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_SENSITIVITY_Y]},

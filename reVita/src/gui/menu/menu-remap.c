@@ -63,11 +63,17 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 			break;
 		case REMAP_TYPE_GYROSCOPE:
 			switch (ra->action){
+				case REMAP_GYRO_SIM_LEFT:
 				case REMAP_GYRO_LEFT:  		strcat(str, "$q"); break;
+				case REMAP_GYRO_SIM_RIGHT:
 				case REMAP_GYRO_RIGHT: 		strcat(str, "$e"); break;
+				case REMAP_GYRO_SIM_UP:
 				case REMAP_GYRO_UP:    		strcat(str, "$w"); break;
+				case REMAP_GYRO_SIM_DOWN:
 				case REMAP_GYRO_DOWN:  		strcat(str, "$s"); break;
+				case REMAP_GYRO_SIM_ROLL_LEFT:
 				case REMAP_GYRO_ROLL_LEFT:  strcat(str, "$Q"); break;
+				case REMAP_GYRO_SIM_ROLL_RIGHT:
 				case REMAP_GYRO_ROLL_RIGHT: strcat(str, "$E"); break;
 				default: break;
 			}
@@ -363,12 +369,20 @@ static struct Menu menu_remap_trigger_back_touch = (Menu){
 	.entries = menu_remap_trigger_back_touch_entries};
 
 static struct MenuEntry menu_remap_trigger_gyro_entries[] = {
+	(MenuEntry){.name = "Camera mode:", 			.type = HEADER_TYPE},
 	(MenuEntry){.name = "Move left", 	.icn = ICON_GY_LEFT, 		.dataUint = REMAP_GYRO_LEFT},
 	(MenuEntry){.name = "Move right", 	.icn = ICON_GY_RIGHT, 		.dataUint = REMAP_GYRO_RIGHT},
 	(MenuEntry){.name = "Move up", 		.icn = ICON_GY_UP, 			.dataUint = REMAP_GYRO_UP},
 	(MenuEntry){.name = "Move down", 	.icn = ICON_GY_DOWN, 		.dataUint = REMAP_GYRO_DOWN},
 	(MenuEntry){.name = "Roll left", 	.icn = ICON_GY_ROLLLEFT, 	.dataUint = REMAP_GYRO_ROLL_LEFT},
-	(MenuEntry){.name = "Roll right", 	.icn = ICON_GY_ROLLRIGHT, 	.dataUint = REMAP_GYRO_ROLL_RIGHT}};
+	(MenuEntry){.name = "Roll right", 	.icn = ICON_GY_ROLLRIGHT, 	.dataUint = REMAP_GYRO_ROLL_RIGHT},
+	(MenuEntry){.name = "Sim mode:", 			.type = HEADER_TYPE},
+	(MenuEntry){.name = "Move left", 	.icn = ICON_GY_LEFT, 		.dataUint = REMAP_GYRO_SIM_LEFT},
+	(MenuEntry){.name = "Move right", 	.icn = ICON_GY_RIGHT, 		.dataUint = REMAP_GYRO_SIM_RIGHT},
+	(MenuEntry){.name = "Move up", 		.icn = ICON_GY_UP, 			.dataUint = REMAP_GYRO_SIM_UP},
+	(MenuEntry){.name = "Move down", 	.icn = ICON_GY_DOWN, 		.dataUint = REMAP_GYRO_SIM_DOWN},
+	(MenuEntry){.name = "Roll left", 	.icn = ICON_GY_ROLLLEFT, 	.dataUint = REMAP_GYRO_SIM_ROLL_LEFT},
+	(MenuEntry){.name = "Roll right", 	.icn = ICON_GY_ROLLRIGHT, 	.dataUint = REMAP_GYRO_SIM_ROLL_RIGHT}};
 static struct Menu menu_remap_trigger_gyro = (Menu){
 	.id = MENU_REMAP_TRIGGER_GYRO_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
