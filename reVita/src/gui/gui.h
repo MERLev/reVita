@@ -4,7 +4,7 @@
 #include "img/icons-font.h"
 #include "../fio/profile.h"
 
-#define VERSION				"2.1.0"
+#define VERSION				"0.1"
 
 #define UI_WIDTH            480
 #define UI_HEIGHT           272
@@ -62,6 +62,7 @@ typedef void (*onButtonF)(uint32_t btn);
 typedef void (*onInputF)(SceCtrlData *ctrl);
 typedef void (*onDrawF)(uint32_t menuY);
 typedef void (*onDrawFBF)();
+typedef void (*onDrawHeader)();
 typedef void (*onBuildF)(struct Menu* m);
 typedef struct Menu{
 	enum MENU_ID id;
@@ -81,6 +82,7 @@ typedef struct Menu{
 	onInputF onInput;
 	onDrawF onDraw;
 	onDrawFBF onDrawFB;
+	onDrawHeader onDrawHeader;
 	onBuildF onBuild;
 	union {
 		int32_t dataInt;

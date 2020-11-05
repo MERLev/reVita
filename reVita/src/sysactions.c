@@ -43,7 +43,7 @@ void sysactions_killCurrentApp(){
         gui_popupShow("Kill", titleid, 2*1000*1000);
     ksceAppMgrKillProcess(processid);
 }
-void brigtnessPopup(){
+void brightnessPopup(){
     int percentage = brightnessLevel / ((0xFFFF - 21) / 100);
     char header[40];
     char message[40] = "\0";
@@ -61,7 +61,7 @@ void sysactions_brightnessInc(){
         21, 0xFFFF + 1);
     kscePowerSetDisplayBrightness(brightnessLevel);
 	ksceRegMgrSetKeyInt("/CONFIG/DISPLAY", "brightness", brightnessLevel);
-    brigtnessPopup();
+    brightnessPopup();
 }
 
 void sysactions_brightnessDec(){
@@ -70,7 +70,7 @@ void sysactions_brightnessDec(){
         21, 0xFFFF + 1);
     kscePowerSetDisplayBrightness(brightnessLevel);
 	ksceRegMgrSetKeyInt("/CONFIG/DISPLAY", "brightness", brightnessLevel);
-    brigtnessPopup();
+    brightnessPopup();
 }
 
 void sysactions_saveBackup(){

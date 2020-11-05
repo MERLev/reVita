@@ -43,6 +43,13 @@ void onDraw_pickButton(uint menuY){
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx)/(gui_menu->num-1));
 }
 
+void onDrawHeader_pickButton(){
+	rendererv_drawStringF(L_0, 3, gui_menu->name);
+	char str[21] = "\0";
+	gui_generateBtnComboName(str, *(uint32_t*)gui_menu->dataPtr, 10);
+	gui_drawStringFRight(0, 2, str);
+}
+
 static struct MenuEntry menu_pick_button_entries[] = {
 	(MenuEntry){.name = "Cross", 	.icn = ICON_BTN_CROSS, 		.dataUint = SCE_CTRL_CROSS},
 	(MenuEntry){.name = "Circle", 	.icn = ICON_BTN_CIRCLE, 	.dataUint = SCE_CTRL_CIRCLE},
@@ -68,10 +75,11 @@ static struct MenuEntry menu_pick_button_entries[] = {
 static struct Menu menu_pick_button = (Menu){
 	.id = MENU_PICK_BUTTON_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
-	.name = "SELECT BUTTONS", 
+	.name = "BUTTONS: ", 
 	.footer = "$SSELECT $XCONTINUE $TCLEAR ALL  $CBACK",
 	.onButton = onButton_pickButton,
 	.onDraw = onDraw_pickButton,
+	.onDrawHeader = onDrawHeader_pickButton,
 	.num = SIZE(menu_pick_button_entries), 
 	.entries = menu_pick_button_entries};
 

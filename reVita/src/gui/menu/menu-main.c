@@ -2,7 +2,9 @@
 #include "../../main.h"
 #include "../../common.h"
 #include "../../fio/settings.h"
+#include "../../fio/theme.h"
 #include "../gui.h"
+#include "../rendererv.h"
 
 void onButton_main(uint32_t btn){
 	switch (btn) {
@@ -31,6 +33,18 @@ void onButton_main_submenu(uint32_t btn){
 			gui_setIdx(0);
 			break;
 		default: onButton_generic(btn);
+	}
+}
+
+void onDrawHeader_main(){
+	rendererv_drawStringF(L_0, 3, "     reVita v.%s", VERSION);
+	gui_drawStringFRight(0, 2, titleid);
+	if (settings[SETT_REMAP_ENABLED].v.b){
+		rendererv_setColor(theme[COLOR_SUCCESS]);
+		rendererv_drawStringF(L_0, 3, "$~$`", VERSION);
+	} else {
+		rendererv_setColor(theme[COLOR_DANGER]);
+		rendererv_drawStringF(L_0, 3, "$@$#", VERSION);
 	}
 }
 
@@ -86,6 +100,7 @@ static struct Menu menu_main = (Menu){
 	.name = "$P MAIN MENU",
 	.footer = 	"$XSELECT $;TOGGLE $CCLOSE      by Mer1e",
 	.onButton = onButton_main,
+	.onDrawHeader = onDrawHeader_main,
 	.num = SIZE(menu_main_entries), 
 	.entries = menu_main_entries};
 

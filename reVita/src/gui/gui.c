@@ -184,18 +184,23 @@ void drawHeader(){
 	rendererv_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
 	rendererv_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
 	rendererv_setColor(theme[COLOR_HEADER]);
-	if (gui_menu->id == MENU_MAIN_ID){
-		rendererv_drawStringF(L_0, 3, "     reVita v.%s", VERSION);
-		gui_drawStringFRight(0, 2, titleid);
-		if (settings[SETT_REMAP_ENABLED].v.b){
-			rendererv_setColor(theme[COLOR_SUCCESS]);
-			rendererv_drawStringF(L_0, 3, "$~$`", VERSION);
-		} else {
-			rendererv_setColor(theme[COLOR_DANGER]);
-			rendererv_drawStringF(L_0, 3, "$@$#", VERSION);
-		}
-	} else	
+	if (gui_menu->onDrawHeader != NULL)
+		gui_menu->onDrawHeader();
+	else 
 		rendererv_drawString(L_0, 3, gui_menu->name);
+
+	// if (gui_menu->id == MENU_MAIN_ID){
+	// 	rendererv_drawStringF(L_0, 3, "     reVita v.%s", VERSION);
+	// 	gui_drawStringFRight(0, 2, titleid);
+	// 	if (settings[SETT_REMAP_ENABLED].v.b){
+	// 		rendererv_setColor(theme[COLOR_SUCCESS]);
+	// 		rendererv_drawStringF(L_0, 3, "$~$`", VERSION);
+	// 	} else {
+	// 		rendererv_setColor(theme[COLOR_DANGER]);
+	// 		rendererv_drawStringF(L_0, 3, "$@$#", VERSION);
+	// 	}
+	// } else	
+	// 	rendererv_drawString(L_0, 3, gui_menu->name);
 	
 }
 void drawFooter(){
@@ -518,6 +523,7 @@ void gui_prevEntry(){
 void gui_open(const SceDisplayFrameBuf *pParam){
 	if (rendererv_allocVirtualFB() < 0){
 		LOG("memory allocation for menu failed\n");
+		gui_popupShow("Error", "Buy more RAM !", 3*1000*1000);
 		return;
 	}
 	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);

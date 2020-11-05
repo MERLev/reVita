@@ -70,6 +70,7 @@ static SceUID kernelPid = -1;
 bool isPspemu = false;
 bool isPSTV = false;
 bool isPSTVTouchEmulation = false;
+bool isSafeBoot = false;
 
 bool used_funcs[HOOKS_NUM];
 bool ds34vitaRunning;
@@ -122,11 +123,13 @@ void changeActiveApp(char* tId, int pid){
 
         SceCtrlData scd;
         ksceCtrlPeekBufferPositive2_internal(0, &scd, 1);
-        if (!btn_has(scd.buttons, hotkeys[HOTKEY_SAFE_START].v.u)){
+        isSafeBoot = hotkeys[HOTKEY_SAFE_START].v.u != 0 && btn_has(scd.buttons, hotkeys[HOTKEY_SAFE_START].v.u);
+        if (!isSafeBoot){
             profile_load(titleid);
         } else {
             profile_loadFromGlobal();
             strclone(profile.titleid, titleid);
+            gui_popupShow("Safe start", "Global profile used", 3*1000*1000);
         }
 
         remap_resetBuffers();
@@ -181,7 +184,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
             char str[20];
             sprintf(str, "Loading... %isec", 
                 settings[SETT_DELAY_INIT].v.u - (int)((ksceKernelGetSystemTimeWide() - startTick) / 1000000));
-            gui_popupShow("reVita", str, 2*1000*1000);
+            gui_popupShow(isSafeBoot ? "reVita - Safe Start" : "reVita", str, 2*1000*1000);
         }
 
         if (startTick + settings[SETT_DELAY_INIT].v.u * 1000000 > ksceKernelGetSystemTimeWide())
