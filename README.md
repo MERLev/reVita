@@ -92,6 +92,12 @@ Thanks to evryone who helped me along the way :
 - [Vita Nuova](https://t.co/3Efi3PGwK5?amp=1) communinity for all the help and support I got there.
 - [HENkaku](https://discord.gg/m7MwpKA) communinity for various help.
 
+Projects, which code was reused:
+- [remaPSV](https://github.com/Rinnegatamante/remaPSV) - original plugin.
+- [PSVshell](https://github.com/Electry/PSVshell) - process management and UI.
+- [VitaShell](https://github.com/TheOfficialFloW/VitaShell) - FIO.
+- [BetterTrackPlug](https://github.com/fmudanyali/BetterTrackPlug) - Adrenaline integration.
+
 ## Original credits from [remaPSV](https://github.com/Rinnegatamante/remaPSV) by [Rinnegatamante](https://github.com//Rinnegatamante)
 
 - Dmaskell92 for testing the plugin.
