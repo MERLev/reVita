@@ -88,20 +88,19 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 				case REMAP_SYS_KILL: 			strcat(str, "Kill App"); break;
 				case REMAP_SYS_BRIGHTNESS_INC: 	strcat(str, "Brightness +"); break;
 				case REMAP_SYS_BRIGHTNESS_DEC: 	strcat(str, "Brightness -"); break;
+				case REMAP_SYS_SAVE_BACKUP: 	strcat(str, "Savegame backup"); break;
+				case REMAP_SYS_SAVE_RESTORE: 	strcat(str, "Savegame restore"); break;
+				case REMAP_SYS_SAVE_DELETE: 	strcat(str, "Savegame delete backup"); break;
+				case REMAP_SYS_CALIBRATE_MOTION:strcat(str, "Calibrate motion"); break;
 				default: break;
 			}
 			break;
 		case REMAP_TYPE_REMAPSV_ACTIONS: strcat(str, "$c ");
-			// strcat(str, profile.entries[ra->action].key);
 			for(int i = 0; i < menus[MENU_REMAP_EMU_REMAPSV_ID]->num; i++){
 				if (menus[MENU_REMAP_EMU_REMAPSV_ID]->entries[i].dataUint == ra->action){
 					strcat(str, menus[MENU_REMAP_EMU_REMAPSV_ID]->entries[i].name);
 				}
 			}
-			// switch (ra->action){
-			// 	case REMAP_REM_SWAP_TOUCHPADS:  strcat(str, "Swap Touchpads"); break;
-			// 	default: break;
-			// }
 			break;
 		case REMAP_TYPE_DISABLED: strcat(str, "$%");
 			break;
@@ -401,7 +400,7 @@ static struct MenuEntry menu_remap_emu_type_entries[] = {
 	(MenuEntry){.name = "Front Touch", 					.icn = ICON_FT,			.dataUint = REMAP_TYPE_FRONT_TOUCH_POINT},
 	(MenuEntry){.name = "Back Touch", 					.icn = ICON_BT, 		.dataUint = REMAP_TYPE_BACK_TOUCH_POINT},
 	(MenuEntry){.name = "System Actions", 				.icn = ICON_DANGER,		.dataUint = REMAP_TYPE_SYSACTIONS},
-	(MenuEntry){.name = "reVita settings", 			.icn = ICON_CONFIG,		.dataUint = REMAP_TYPE_REMAPSV_ACTIONS},
+	(MenuEntry){.name = "reVita settings", 				.icn = ICON_CONFIG,		.dataUint = REMAP_TYPE_REMAPSV_ACTIONS},
 	(MenuEntry){.name = "Disabled", 					.icn = ICON_DISABLED, 	.dataUint = REMAP_TYPE_DISABLED}};
 static struct Menu menu_remap_emu_type = (Menu){
 	.id = MENU_REMAP_EMU_TYPE_ID, 
@@ -457,18 +456,18 @@ static struct Menu menu_remap_emu_touch_back = (Menu){
 	.entries = menu_remap_emu_touch_back_entries};
 
 static struct MenuEntry menu_remap_emu_sysactions_entries[] = {
-	(MenuEntry){.name = "Soft reset", 	.dataUint = REMAP_SYS_RESET_SOFT},
-	(MenuEntry){.name = "Reboot", 		.dataUint = REMAP_SYS_RESET_COLD},
-	(MenuEntry){.name = "Power Off", 	.dataUint = REMAP_SYS_STANDBY},
-	(MenuEntry){.name = "Suspend", 		.dataUint = REMAP_SYS_SUSPEND},
-	(MenuEntry){.name = "Display Off", 	.dataUint = REMAP_SYS_DISPLAY_OFF},
-	(MenuEntry){.name = "Kill App", 	.dataUint = REMAP_SYS_KILL},
-	(MenuEntry){.name = "Brightness +", .dataUint = REMAP_SYS_BRIGHTNESS_INC},
-	(MenuEntry){.name = "Brightness -", .dataUint = REMAP_SYS_BRIGHTNESS_DEC},
-	(MenuEntry){.name = "Savegame backup", .dataUint = REMAP_SYS_SAVE_BACKUP},
-	(MenuEntry){.name = "Savegame restore", .dataUint = REMAP_SYS_SAVE_RESTORE},
+	(MenuEntry){.name = "Soft reset", 			.dataUint = REMAP_SYS_RESET_SOFT},
+	(MenuEntry){.name = "Reboot", 				.dataUint = REMAP_SYS_RESET_COLD},
+	(MenuEntry){.name = "Power Off", 			.dataUint = REMAP_SYS_STANDBY},
+	(MenuEntry){.name = "Suspend", 				.dataUint = REMAP_SYS_SUSPEND},
+	(MenuEntry){.name = "Display Off", 			.dataUint = REMAP_SYS_DISPLAY_OFF},
+	(MenuEntry){.name = "Kill App", 			.dataUint = REMAP_SYS_KILL},
+	(MenuEntry){.name = "Brightness +", 		.dataUint = REMAP_SYS_BRIGHTNESS_INC},
+	(MenuEntry){.name = "Brightness -", 		.dataUint = REMAP_SYS_BRIGHTNESS_DEC},
+	(MenuEntry){.name = "Savegame backup", 		.dataUint = REMAP_SYS_SAVE_BACKUP},
+	(MenuEntry){.name = "Savegame restore", 	.dataUint = REMAP_SYS_SAVE_RESTORE},
 	(MenuEntry){.name = "Savegame delete backup", .dataUint = REMAP_SYS_SAVE_DELETE},
-	(MenuEntry){.name = "Calibrate motion", .dataUint = REMAP_SYS_CALIBRATE_MOTION}};
+	(MenuEntry){.name = "Calibrate motion", 	.dataUint = REMAP_SYS_CALIBRATE_MOTION}};
 static struct Menu menu_remap_emu_sysactions = (Menu){
 	.id = MENU_REMAP_EMU_SYSACTIONS_ID, 
 	.name = "$! SYSTEM ACTIONS",

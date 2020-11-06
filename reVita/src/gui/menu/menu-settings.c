@@ -39,8 +39,13 @@ void onDraw_settings(uint menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {		
-		int32_t id = gui_menu->entries[i].dataPE->id;
 		
+		if (gui_menu->entries[i].type == HEADER_TYPE){
+			gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i); 
+			continue;
+		}
+
+		int32_t id = gui_menu->entries[i].dataPE->id;
 		switch (id){
 			case SETT_THEME:
 				gui_setColor(i == gui_menu->idx, settings_isDef(id));
@@ -71,6 +76,8 @@ static struct Menu menu_settings = (Menu){
 	.entries = menu_settings_entries};
 
 static struct MenuEntry menu_popup_entries[] = {
+	(MenuEntry){.name = "Allow popups", 	.dataPE = &settings[POP_ALL]},
+	(MenuEntry){.name = "Toggle individual popups", 	.type = HEADER_TYPE},
 	(MenuEntry){.name = "Toggle RemaPSV2", 	.dataPE = &settings[POP_REVITA]},
 	(MenuEntry){.name = "RemaPSV2 ready", 	.dataPE = &settings[POP_READY]},
 	(MenuEntry){.name = "RemaPSV2 Loading", .dataPE = &settings[POP_LOADING]},

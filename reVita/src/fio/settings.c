@@ -34,7 +34,7 @@ void settings_resetAll(){
 }
 
 void settings_resetAllPopups(){
-	for (int i = POP_SAVE; i < SETT__NUM; i++)
+	for (int i = POP_ALL; i < SETT__NUM; i++)
 		settings_reset(i);
 }
 
@@ -191,6 +191,11 @@ void setDefSettings(){
 		.max.u = THEME__NUM - 1,
 		.key = "THEME"});
 
+	set((ProfileEntry){
+		.id = POP_ALL,
+		.type = TYPE_BOOL,
+		.def.b = true, 
+		.key = "POP_ALL"});
 	set((ProfileEntry){
 		.id = POP_SAVE,
 		.type = TYPE_BOOL,

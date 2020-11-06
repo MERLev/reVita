@@ -298,6 +298,8 @@ void drawDirectlyToFB(){
 }
 
 void drawPopup(){
+	if (!settings[POP_ALL].v.b)
+		return;
 	renderer_setColor(theme[COLOR_BG_HEADER]);
 	renderer_drawRectangle(
 		CHA_W, CHA_H, 
