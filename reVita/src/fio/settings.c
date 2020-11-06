@@ -176,6 +176,11 @@ void setDefSettings(){
 		.type = TYPE_BOOL,
 		.def.b = true, 
 		.key = "AUTOSAVE"});
+	set((ProfileEntry){
+		.id = SETT_ANIMATION,
+		.type = TYPE_BOOL,
+		.def.b = true, 
+		.key = "ANIMATION"});
 	// set((ProfileEntry){
 	// 	.id = SETT_DELAY_INIT,
 	// 	.type = TYPE_UINT32,

@@ -356,20 +356,19 @@ void gui_draw(const SceDisplayFrameBuf *pParam){
 		drawHeader();
 		drawBody();
 		drawFooter();
-		renderer_writeFromVFB(tickUIOpen);
+		renderer_writeFromVFB(tickUIOpen, settings[SETT_ANIMATION].v.b);
 		if (gui_menu->onDrawFB != NULL)
 			gui_menu->onDrawFB();
 	} else {
 		renderer_setFB(pParam);
 		drawEmulatedPointersForPanel(SCE_TOUCH_PORT_FRONT);
 		drawEmulatedPointersForPanel(SCE_TOUCH_PORT_BACK);
+		if (gui_isBlankFrame){
+			renderer_blankFrame();
+			gui_isBlankFrame = false;
+		} 
 	}
-	if (gui_isBlankFrame){
-		renderer_blankFrame();
-		gui_isBlankFrame = false;
-	} else {
-		updatePopup();
-	}
+	updatePopup();
     ksceKernelUnlockMutex(mutex_gui_uid, 1);
 }
 

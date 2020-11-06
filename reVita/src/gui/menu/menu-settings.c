@@ -61,9 +61,10 @@ void onDraw_settings(uint menuY){
 }
 
 static struct MenuEntry menu_settings_entries[] = {
-	(MenuEntry){.name = "Remap rules enabled", 		.dataPE = &settings[SETT_REMAP_ENABLED]},
+	(MenuEntry){.name = "Plugin enabled", 			.dataPE = &settings[SETT_REMAP_ENABLED]},
 	(MenuEntry){.name = "Save profile on close", 	.dataPE = &settings[SETT_AUTOSAVE]},
-	// (MenuEntry){.name = "Startup delay", 			.dataPE = &settings[SETT_DELAY_INIT]},
+	(MenuEntry){.name = "Animation", 				.dataPE = &settings[SETT_ANIMATION]},
+	// (MenuEntry){.name = "Startup delay", 		.dataPE = &settings[SETT_DELAY_INIT]},
 	(MenuEntry){.name = "Theme", 					.dataPE = &settings[SETT_THEME]}};
 static struct Menu menu_settings = (Menu){
 	.id = MENU_SETT_ID, 

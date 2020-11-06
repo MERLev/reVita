@@ -20,7 +20,7 @@ void renderer_drawRectangle(uint32_t x, uint32_t y, uint32_t w, uint32_t h);
 
 void renderer_blankFrame();
 void renderer_setFB(const SceDisplayFrameBuf *param);
-void renderer_writeFromVFB(int64_t timeFromOpene);
+void renderer_writeFromVFB(int64_t timeFromOpene, bool anim);
 
 void renderer_setColor(uint32_t clr);
 void renderer_setStripped(bool flag);

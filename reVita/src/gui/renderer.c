@@ -39,10 +39,12 @@ void drawPixel(int32_t x, int32_t y, uint32_t color){
 }
 
 void renderer_blankFrame(){
-	char line[fbPitch];
-	memset(&line, BLACK, fbPitch);
+	uint32_t buff[fbWidth/4];
+	memset(&buff, BLACK, sizeof(buff));
 	for(int i = 0; i < fbHeight; i++)
-		ksceKernelMemcpyKernelToUser((uintptr_t)&fb_base[i * fbPitch], &line, fbPitch);
+		for(int j = 0; i < 4; i++)
+			ksceKernelMemcpyKernelToUser(
+				(uintptr_t)&fb_base[i * fbPitch + j * fbWidth / 4], &buff[0], sizeof(buff));
 }
 
 void renderer_drawChar(char character, int x, int y){
@@ -175,14 +177,14 @@ void renderer_setFB(const SceDisplayFrameBuf *param){
 	fbPitch = param->pitch;
 }
 
-void renderer_writeFromVFB(int64_t tickOpened){
+void renderer_writeFromVFB(int64_t tickOpened, bool anim){
 	int64_t tick = ksceKernelGetSystemTimeWide();
 
 	uint32_t ui_x = (max(fbWidth - uiWidth, 0)) / 2;
 	uint32_t ui_y = (max(fbHeight - uiHeight, 0)) / 2;
 
 	float multiplyer = 0;
-	if (ANIMATION_TIME >= tick - tickOpened)
+	if (ANIMATION_TIME >= tick - tickOpened && anim)
 		multiplyer = ((float)(ANIMATION_TIME - (int)(tick - tickOpened))) / ANIMATION_TIME;
 
 	int32_t ui_yAnimated = ui_y - (uiHeight + ui_y) * multiplyer;
