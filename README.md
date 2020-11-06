@@ -1,85 +1,98 @@
 # reVita v.1.0
-**reVita** is an updated version of [Rinnegatamante](https://github.com/Rinnegatamante)'s **[remaPSV](https://github.com/Rinnegatamante/remaPSV)** (which takes the name from the glorious remaPSP included in cwCheat for PSP). 
+**reVita** is a plugin for PS Vita / PS TV, which allows you to remap inputs and trigger different actions. It is a continuation of [Rinnegatamante](https://github.com/Rinnegatamante)'s **[remaPSV](https://github.com/Rinnegatamante/remaPSV)**, which was fully rewritten as a kernel plugin.
 
 ![Image](/include/screenshot.png)
 
 ## Functionality
 
-- ability to remap buttons, analog sticks, back and front touch zones, gyroscope movements
-- ability to emulate buttons, analog sticks, touch events
-- 4 pre-defined and 4 customizable touch points to emulate
+- Remap
+  - buttons (combos too)
+  - analog sticks
+  - back and front touch zones
+  - gyroscope movements
+- Emulate 
+  - buttons (combos too)
+  - analog sticks, 
+  - touch presses and swipes
+- Trigger system events
+  - Reboot
+  - Sleep
+  - Power Off
+  - Display Off
+  - Kill current application
+  - Brightness control (works on PS TV too)
+  - Savegames backup/restore
+- swap touchpads
+- display native and emulated touch pointers
+- disable Gyro's deadband for better sensivity
+- virtual DS4 controller
 - improve gyro sensitivity in any game by disabling gyro deadband
 - external controllers support
 - per-game and global profiles
+- themes
 
-## Compability
+## Compability with plugins
 
-- Full support
-  - All official games and some of the homebrew
-- Partial support without plugin menu opening [[How To]](https://github.com/MERLev/reVita#known-issues)
-  - Adrenaline, PS4link, some of the homebrew
-- No support
-  - Livearea, all other system apps, some of the homebrews
+- **[MiniVitaTV](https://github.com/TheOfficialFloW/MiniVitaTV)** - full compability
+- **[ds34vita](https://github.com/MERLev/ds34vita)** - full compability
+- **[ds4touch](https://github.com/MERLev/ds4Touch)** - full compability
+- **[ds3vita](https://github.com/xerpi/ds3vita)** and **[ds4vita](https://github.com/xerpi/ds4vita)** - partial compability, use **[ds34vita](https://github.com/MERLev/ds34vita)** instead to get full support.
+- **[DSMotion](https://github.com/OperationNT414C/DSMotion)** - not compatible, use **[DS34Motion](https://github.com/MERLev/DS34Motion)** instead to get full support.
+
+## Compability with Apps
+
+- Not compatible with most system apps and some of the homebrew.
+- Adrenaline - to get UI working, you need to change **Adrenaline Settings -> Graphics Filtering** to anything else **except** original.
 
 ## Installation
 
-- Copy **reVita.skprx**, **reVitaMotion.suprx** and **ioplus.skprx** to **ur0:/tai** folder 
-- Add **reVita.skprx** into your **ur0:/config.ini** file (under ***KERNEL** or whatever game you want to use it).
-- Add **reVitaMotion.suprx** into your **ur0:/config.ini** file (under ***MAIN** or whatever game you want to use it).
-- Add **ioplus.skprx** into your taiHen config file (under ***KERNEL**)
-- To bring the config menu, press **START + SQUARE** in game.
+- Copy **ioplus.skprx** to **ur0:/tai** folder, add **ioplus.skprx** into your **ur0:/config.ini** config file under ***KERNEL*** section.
+- Copy **reVita.skprx** to **ur0:/tai** folder, add **reVita.skprx** into your **ur0:/config.ini** config file under ***KERNEL*** section.
+- [Optional, to get Gyro support] Copy **reVitaMotion.suprx** to **ur0:/tai** folder, add **reVitaMotion.suprx** into your **ur0:/config.ini** config file under ***MAIN*** section.
 
 ## Usage
 
-- When in-game, press (start) + (square) to bring up plugin menu
+- To bring the config menu, press **START + SQUARE**, customisable under Settings -> Hotkeys.
 
 ## FAQ
 
 - How to open plugin menu ?
-  - Press (start) + (square) whin in-game
+  - Press (start) + (square)
 - What can you do with gyro ?
   - You can remap gyro direction (up, down, left, right) to right stick directions to enable gyro aim in any game.
-- How do I map combo of buttons ?
-  - Combo mappings are not supported
-- Is it possible to remap PS4Link keys
-  - Yes, but a bit [tricky](https://github.com/MERLev/reVita#known-issues)
-- Is there a way to turn it on and off? Or does it save presets on a game by game basis?
-  - ATM, no
-- Is there any way to have this work on the save screen/system apps/livearea ?
-  - ATM, no
+- Is there a way to turn it on and off?
+  - **START + TRIANGLE**, customisable under Settings -> Hotkeys
+- Does it save presets on a game by game basis?
+  - Yes, you can use Profile -> Profile Management for more options.
 - What is deadband under gyro menu ?
   - Deadband limits gyroscope sensitivity, so smallest movements are ignored to handle shaking hands, and it is enabled by default in most vita games. Disabling it will higly increase sensitivity of gyroscope.
 
-
 ## Known issues
 
-- Menu not opening in Adrenaline, PS4link and some homebrew. 
-  - Solution: To use plugin for such apps, you can follow those steps
-    1. Open any game/app where plugin menu is working
-    2. Configure everything as of doing it for desired app with menu not working.
-    3. Go to settings -> save as Global config
-    4. Open you desired app -> it should already be using global config and you remaps should be working
-    5. Press (START) + (TRIANGLE) to save your global profile as current running game profile.
-  
-- Unresponsive black screen after going out of sleep mode. 
-  - Solution: Should be fixed in 2.0.1 version.
-
-- Screen blinking in Jak and Daxter. 
-  - Solution: restart an app.
+- Menu not opening in Adrenaline
+  - Change **Adrenaline Settings -> Graphics Filtering** to anything else **except** original.
 
 ## Credits
 
-- [original version](https://github.com/Rinnegatamante/remaPSV) created by [Rinnegatamante](https://github.com/Rinnegatamante)
+Thanks to evryone who helped me along the way :
+- [bosshunter](https://github.com/bosshunter), for doing most of the testing and supplying me with ideas.
+- [Rinnegatamante](https://github.com/Rinnegatamante), [remaPSV](https://github.com/Rinnegatamante/remaPSV) author, for various help provided.
 - [S1ngyy](https://github.com/S1ngyy), for providing code for analogs/gyro support
-- [pablojrl123](https://github.com/pablojrl123), for customizable buttons activation code
-- Cassie for testing
-- W0lfwang for testing
-- TheIronUniverse for testing
-- mantixero for testing it in PS4link
-- Kiiro Yakumo for testing it in PS4Link
-- [Vita Nuova](https://t.co/3Efi3PGwK5?amp=1) communinity for all the help and support I got there
+- [pablojrl123](https://github.com/pablojrl123), for customizable buttons activation code.
+- [Bythos](https://github.com/bythos14), for help with reversing, fixing libk and other general stuff.
+- [ellipticaldoor](https://github.com/ellipticaldoor) for testing.
+- [teakhanirons](https://github.com/teakhanirons) for various help and advices.
+- [Princess-of-Sleeping](https://github.com/Princess-of-Sleeping) for help with reversing.
+- Derpy (Cassie) for testing.
+- W0lfwang for testing.
+- TheIronUniverse for testing.
+- mantixero for testing it in PS4link.
+- Kiiro Yakumo for testing it in PS4Link.
+- Nino1026 for testing.
+- [Vita Nuova](https://t.co/3Efi3PGwK5?amp=1) communinity for all the help and support I got there.
+- [HENkaku](https://discord.gg/m7MwpKA) communinity for various help.
 
-## Original credits by [Rinnegatamante](https://github.com//Rinnegatamante)
+## Original credits from [remaPSV](https://github.com/Rinnegatamante/remaPSV) by [Rinnegatamante](https://github.com//Rinnegatamante)
 
 - Dmaskell92 for testing the plugin.
 - All my Patroners for their awesome support:
