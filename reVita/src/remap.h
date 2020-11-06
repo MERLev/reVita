@@ -146,6 +146,7 @@ int remap_ctrl_readBuffer(int port, SceCtrlData *ctrl, int buffIdx, bool isPosit
 void remap_patchToExt(SceCtrlData *ctrl);
 int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId, 
         SceTouchData** remappedBuffers);
+int remap_touchRegion(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId);
 void remap_resetBuffers();
 void remap_init();
 void remap_destroy();

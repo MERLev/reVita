@@ -226,7 +226,10 @@ void onDraw_generic(uint32_t menuY){
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
 		MenuEntry* me = &gui_menu->entries[i];
-		gui_setColor(i == gui_menu->idx, 1);
+		if (gui_menu->entries[i].type == HEADER_TYPE)
+			rendererv_setColor(theme[COLOR_HEADER]);
+		else
+			gui_setColor(i == gui_menu->idx, 1);
 		if (me->icn == ICON_NULL){
 			rendererv_drawString(L_1, y += CHA_H, me->name);
 		} else {

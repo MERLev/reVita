@@ -54,14 +54,14 @@ void onDraw_profiles(uint menuY){
 
 static struct MenuEntry menu_profiles_entries[] = {
 	(MenuEntry){.name = "Local", .type = HEADER_TYPE},
-	(MenuEntry){.name = "Save", .dataUint = PROFILE_LOCAL_SAVE},
-	(MenuEntry){.name = "Load", .dataUint = PROFILE_LOCAL_LOAD},
-	(MenuEntry){.name = "Reset", .dataUint = PROFILE_LOCAL_RESET},
-	(MenuEntry){.name = "Delete", .dataUint = PROFILE_LOCAL_DELETE},
+	(MenuEntry){.name = "$G Save", .dataUint = PROFILE_LOCAL_SAVE},
+	(MenuEntry){.name = "$H Load", .dataUint = PROFILE_LOCAL_LOAD},
+	(MenuEntry){.name = "$J Reset", .dataUint = PROFILE_LOCAL_RESET},
+	(MenuEntry){.name = "$J Delete", .dataUint = PROFILE_LOCAL_DELETE},
 	(MenuEntry){.name = "Global", .type = HEADER_TYPE},
-	(MenuEntry){.name = "Save as global", .dataUint = PROFILE_GLOBAL_SAVE},
-	(MenuEntry){.name = "Load from global", .dataUint = PROFILE_GLOABL_LOAD},
-	(MenuEntry){.name = "Reset global", .dataUint = PROFILE_GLOBAL_RESET}};
+	(MenuEntry){.name = "$G Save as global", .dataUint = PROFILE_GLOBAL_SAVE},
+	(MenuEntry){.name = "$H Load from global", .dataUint = PROFILE_GLOABL_LOAD},
+	(MenuEntry){.name = "$J Reset global", .dataUint = PROFILE_GLOBAL_RESET}};
 static struct Menu menu_profiles = (Menu){
 	.id = MENU_PROFILE_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,

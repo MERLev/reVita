@@ -35,24 +35,24 @@ void onDraw_savemanager(uint menuY){
 		if (gui_menu->entries[i].type == HEADER_TYPE){
 				gui_setColorHeader(gui_menu->idx == i);
 			if (i == 0){
-				rendererv_drawStringF(L_1, y+=CHA_H, profile.titleid);
+				rendererv_drawStringF(L_1, y+=CHA_H, titleid);
 			} else {
 				rendererv_drawString(L_1, y+=CHA_H, gui_menu->entries[i].name);
 			}
 		} else {
 			gui_setColor(i == gui_menu->idx, 1);
-			rendererv_drawString(L_2, y += CHA_H, gui_menu->entries[i].name);
+			rendererv_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
 		}
 	}
 }
 
 static struct MenuEntry menu_savemanager_entries[] = {
 	(MenuEntry){.name = "", 					.type = HEADER_TYPE},
-	(MenuEntry){.name = "Backup", 				.dataUint = SAVEMANAGER_BACKUP},
-	(MenuEntry){.name = "Restore", 				.dataUint = SAVEMANAGER_RESTORE},
-	(MenuEntry){.name = "Remove Backup", 		.dataUint = SAVEMANAGER_CLEAR},
+	(MenuEntry){.name = "$G Backup", 				.dataUint = SAVEMANAGER_BACKUP},
+	(MenuEntry){.name = "$H Restore", 				.dataUint = SAVEMANAGER_RESTORE},
+	(MenuEntry){.name = "$J Remove Backup", 		.dataUint = SAVEMANAGER_CLEAR},
 	(MenuEntry){.name = "More", 				.type = HEADER_TYPE},
-	(MenuEntry){.name = "Remove All Backups", 	.dataUint = SAVEMANAGER_CLEAR_ALL}};
+	(MenuEntry){.name = "$J Remove All Backups", 	.dataUint = SAVEMANAGER_CLEAR_ALL}};
 static struct Menu menu_savemanager = (Menu){
 	.id = MENU_SAVEMANAGER_ID, 
 	.parent = MENU_MAIN_ID,

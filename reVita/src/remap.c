@@ -911,31 +911,37 @@ void updateTouchInfo(SceUInt32 port, int hookId, SceTouchData *pData){
 
 int remap_touch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId, 
 		SceTouchData **remappedBuffers){
-				// If buffer for timestamp is already remapped
+	// If buffer for timestamp is already remapped
 	if (pData->timeStamp == cacheTouch[hookId][port].buffers[cacheTouch[hookId][port].num - 1].timeStamp){
 		*remappedBuffers = &cacheTouch[hookId][port].buffers[cacheTouch[hookId][port].num - nBufs];
 		return nBufs;
 	}
 
-	//If buffer full - remove latest entry
+	// If buffer full - remove latest entry
 	if (cacheTouch[hookId][port].num >= BUFFERS_NUM){
 		for (int i = 1; i < BUFFERS_NUM; i++)
 			cacheTouch[hookId][port].buffers[i - 1] = cacheTouch[hookId][port].buffers[i];
 		cacheTouch[hookId][port].num--;
 	}
 	
-	//Add curr buffer to cache
+	// Add curr buffer to cache
 	int idx = cacheTouch[hookId][port].num;
 	cacheTouch[hookId][port].num++;
 	cacheTouch[hookId][port].buffers[idx] = pData[0];
 	
-	//Updating latest buffer with simulated touches
+	// Updating latest buffer with simulated touches
 	updateTouchInfo(port, hookId, &cacheTouch[hookId][port].buffers[idx]);
 	
-	//Limit returned buufers num with what we have stored
+	// Limit returned buufers num with what we have stored
 	nBufs = min(nBufs, cacheTouch[hookId][port].num);
 
 	*remappedBuffers = &cacheTouch[hookId][port].buffers[idx + 1 - nBufs];
+	return nBufs;
+}
+
+int remap_touchRegion(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId){
+	// Do not use buffering for regions
+	updateTouchInfo(port, hookId, pData);
 	return nBufs;
 }
 

@@ -290,13 +290,22 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
     ksceKernelLockMutex(mutexTouchHook[port], 1, NULL);
     SceTouchData* remappedBuffers; 
     if (isKernelSpace){
-        ret = remap_touch(port, &pData[nBufs - 1], nBufs, hookIdx, &remappedBuffers);
-        memcpy(&pData[0], remappedBuffers, ret * sizeof(SceTouchData));
+        if (hookIdx < 2){   // Touch
+            ret = remap_touch(port, &pData[nBufs - 1], nBufs, hookIdx, &remappedBuffers);
+            memcpy(&pData[0], remappedBuffers, ret * sizeof(SceTouchData));
+        } else {            // Touch region
+            ret = remap_touchRegion(port, &pData[nBufs - 1], nBufs, hookIdx);
+        }
     } else {
         SceTouchData std;                // Last buffer
         ksceKernelMemcpyUserToKernel(&std, (uintptr_t)&pData[ret-1], sizeof(SceTouchData));
-        ret = remap_touch(port, &std, nBufs, hookIdx, &remappedBuffers);
-        ksceKernelMemcpyKernelToUser((uintptr_t)&pData[0], remappedBuffers, ret * sizeof(SceTouchData)); 
+        if (hookIdx < 2){   // Touch
+            ret = remap_touch(port, &std, nBufs, hookIdx, &remappedBuffers);
+            ksceKernelMemcpyKernelToUser((uintptr_t)&pData[0], remappedBuffers, ret * sizeof(SceTouchData)); 
+        } else {            // Touch region
+            ret = remap_touchRegion(port, &pData[nBufs - 1], nBufs, hookIdx);
+            ksceKernelMemcpyKernelToUser((uintptr_t)&pData[0], &std, ret * sizeof(SceTouchData)); 
+        }
     }
     ksceKernelUnlockMutex(mutexTouchHook[port], 1);
     return ret;
@@ -323,21 +332,20 @@ void scaleTouchData(int port, SceTouchData *pData){
         used_funcs[name##_id] = true; \
         return onTouch(port, pData, ret, name##_id - ksceTouchPeek_id, (space)); \
     }
-/*#define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(index, name, space) \
+#define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, int region) { \
-        if (isInternalTouchCall) \
-            return TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
+        if (pData->status == INTERNAL || shellPid <= 0 || !delayedStartDone) \
+            return TAI_CONTINUE(int, refs[name##_id], port, pData, nBufs, region); \
         if (profile.entries[PR_TO_SWAP].v.b) \
             port = !port; \
-		int ret = TAI_CONTINUE(int, refs[(index)], port, pData, nBufs, region); \
-        if (region != 1) return ret; \
-        used_funcs[(index)] = true; \
-        return onTouch(port, pData, ret, (index) - ksceTouchPeek_id, (space)); \
-    }*/
+		int ret = TAI_CONTINUE(int, refs[name##_id], port, pData, nBufs, region); \
+        used_funcs[name##_id] = true; \
+        return onTouch(port, pData, ret, name##_id - ksceTouchPeek_id, (space)); \
+    }
 DECL_FUNC_HOOK_PATCH_TOUCH(ksceTouchPeek, SPACE_KERNEL)
 DECL_FUNC_HOOK_PATCH_TOUCH(ksceTouchRead, SPACE_KERNEL)
-// DECL_FUNC_HOOK_PATCH_TOUCH_REGION(ksceTouchPeekRegion, SPACE_KERNEL)
-// DECL_FUNC_HOOK_PATCH_TOUCH_REGION(ksceTouchReadRegion, SPACE_KERNEL)
+DECL_FUNC_HOOK_PATCH_TOUCH_REGION(ksceTouchPeekRegion, SPACE_KERNEL)
+DECL_FUNC_HOOK_PATCH_TOUCH_REGION(ksceTouchReadRegion, SPACE_KERNEL)
 
 int ksceCtrlGetControllerPortInfo_patched(SceCtrlPortInfo* info){
     int ret = TAI_CONTINUE(int, refs[ksceCtrlGetControllerPortInfo_id], info);
@@ -614,13 +622,13 @@ int module_start(SceSize argc, const void *args) {
     if (!isPSTV) {
         HOOK_EXPORT(SceTouch, TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek);
         HOOK_EXPORT(SceTouch, TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead);
-        // HOOK_EXPORT(SceTouch, TAI_ANY_LIBRARY, 0x9B3F7207, ksceTouchPeekRegion);
-        // HOOK_EXPORT(SceTouch, TAI_ANY_LIBRARY, 0x9A91F624, ksceTouchReadRegion);
+        HOOK_EXPORT(SceTouch, TAI_ANY_LIBRARY, 0x9B3F7207, ksceTouchPeekRegion);
+        HOOK_EXPORT(SceTouch, TAI_ANY_LIBRARY, 0x9A91F624, ksceTouchReadRegion);
     } else {
         HOOK_EXPORT(SceTouchDummy, TAI_ANY_LIBRARY, 0xBAD1960B, ksceTouchPeek);
         HOOK_EXPORT(SceTouchDummy, TAI_ANY_LIBRARY, 0x70C8AACE, ksceTouchRead);
-        // HOOK_EXPORT(SceTouchDummy, TAI_ANY_LIBRARY, 0x9B3F7207, ksceTouchPeekRegion);
-        // HOOK_EXPORT(SceTouchDummy, TAI_ANY_LIBRARY, 0x9A91F624, ksceTouchReadRegion);
+        HOOK_EXPORT(SceTouchDummy, TAI_ANY_LIBRARY, 0x9B3F7207, ksceTouchPeekRegion);
+        HOOK_EXPORT(SceTouchDummy, TAI_ANY_LIBRARY, 0x9A91F624, ksceTouchReadRegion);
     }
 
 	HOOK_EXPORT(SceCtrl,       TAI_ANY_LIBRARY, 0xF11D0D30, ksceCtrlGetControllerPortInfo);
@@ -632,9 +640,6 @@ int module_start(SceSize argc, const void *args) {
     // Create threads
     thread_uid = ksceKernelCreateThread("reVita_thread", main_thread, 0x3C, 0x3000, 0, 0x10000, 0);
     ksceKernelStartThread(thread_uid, 0, NULL);
-    
-    // remap_setup();
-    // scheduleDelayedStart();
 
     return SCE_KERNEL_START_SUCCESS;
 }

@@ -87,6 +87,7 @@ void sysactions_saveBackup(){
 	sprintf(dest, "%s/%s", PATH_SAVE_BACKUP, titleid);
     
     if (fio_exist(src)){
+        LOG("save found\n");
         if (fio_copyDir(src, dest) == 0){
             gui_popupShowSuccess(msg, "Done !", 3*1000*1000);
             return;
