@@ -201,11 +201,7 @@ void drawFooter(){
 			rendererv_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, gui_menu->footer);
 		} else {
 			int strNum = (strlen(gui_menu->footer) - 1) / STR_SIZE + 1;
-			LOG("strNum: %i\n", strNum);
 			int strIdx = ((ksceKernelGetSystemTimeWide() - tickMenuOpen) % (strNum * DELAY_FOOTER)) / DELAY_FOOTER;
-			LOG("strIdx: %i %i -> %i\n", strIdx, 
-				strNum * DELAY_FOOTER, 
-				1);
 			char sub[STR_SIZE+1];
         	strncpy(sub, &gui_menu->footer[strIdx * STR_SIZE], STR_SIZE);
 			sub[STR_SIZE] = '\0';

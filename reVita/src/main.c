@@ -77,7 +77,7 @@ bool used_funcs[HOOKS_NUM];
 bool ds34vitaRunning;
 
 static uint64_t startTick;
-static bool delayedStartDone = false;
+static bool isDelayedStartDone = false;
 
 bool isCallKernel(){
     return ksceKernelGetProcessId() == kernelPid;
@@ -110,8 +110,8 @@ int ksceTouchPeek_internal(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs)
 }
 
 void scheduleDelayedStart(){
-    LOG("delayedStartDone =  0\n");
-    delayedStartDone = false;
+    LOG("isDelayedStartDone =  0\n");
+    isDelayedStartDone = false;
     startTick = ksceKernelGetSystemTimeWide();
 }
 
@@ -177,10 +177,8 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
         else
             return nullButtons_user(ctrl, nBufs, isPositiveLogic);
     }
-    if (!settings[SETT_REMAP_ENABLED].v.b) 
-        return ret;
 
-    if (!delayedStartDone){
+    if (!isDelayedStartDone){
         if (settings[POP_LOADING].v.b){
             char str[20];
             sprintf(str, "Loading... %isec", 
@@ -193,11 +191,14 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
 
         // Activate delayed start
         remap_setup();
-        delayedStartDone = true;
+        isDelayedStartDone = true;
         if (settings[POP_READY].v.b)
             gui_popupShowSuccess("reVita", "Ready", 2*1000*1000);
-        LOG("delayedStartDone = 1\n");
+        LOG("isDelayedStartDone = 1\n");
     }
+    
+    if (!settings[SETT_REMAP_ENABLED].v.b) 
+        return ret;
 
     ksceKernelLockMutex(mutexCtrlHook[port], 1, NULL);
     if (isKernelSpace) {
@@ -231,17 +232,11 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
     static int name##_patched(int port, SceCtrlData *ctrl, int nBufs) { \
         if (((space) == SPACE_KERNEL && ctrl->timeStamp == INTERNAL) \
                 || shellPid <= 0 \
-                /*|| !isCallActive() \
-                || (isPspemu && ksceKernelGetProcessId() != processid))*/ \
                 || (!isCallShell() && !isCallActive()))\
             return TAI_CONTINUE(int, refs[name##_id], port, ctrl, nBufs); \
 		int ret = TAI_CONTINUE(int, refs[name##_id], \
             (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
         used_funcs[name##_id] = true; \
-        /*char titleidLocal[20]; \
-        ksceKernelGetProcessTitleId(ksceKernelGetProcessId(), titleidLocal, 20); \
-        if (ret > 0 && ret <= BUFFERS_NUM) \
-            LOG("   "#name"_patched(%i,...,%i):%i |%i|%s| pid:%i\n", port, nBufs, ret, ksceKernelGetProcessId(), titleidLocal, processid);*/\
         return onInput(port, ctrl, ret, (space), (logic), (triggers));\
     }
 
@@ -322,7 +317,7 @@ void scaleTouchData(int port, SceTouchData *pData){
 
 #define DECL_FUNC_HOOK_PATCH_TOUCH(name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) { \
-        if (pData->status == INTERNAL || shellPid <= 0 || !delayedStartDone) \
+        if (pData->status == INTERNAL || shellPid <= 0 || !isDelayedStartDone) \
             return TAI_CONTINUE(int, refs[name##_id], port, pData, nBufs); \
         if (profile.entries[PR_TO_SWAP].v.b) \
             port = !port; \
@@ -334,11 +329,13 @@ void scaleTouchData(int port, SceTouchData *pData){
     }
 #define DECL_FUNC_HOOK_PATCH_TOUCH_REGION(name, space) \
     static int name##_patched(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, int region) { \
-        if (pData->status == INTERNAL || shellPid <= 0 || !delayedStartDone) \
+        if (pData->status == INTERNAL || shellPid <= 0 || !isDelayedStartDone) \
             return TAI_CONTINUE(int, refs[name##_id], port, pData, nBufs, region); \
         if (profile.entries[PR_TO_SWAP].v.b) \
             port = !port; \
 		int ret = TAI_CONTINUE(int, refs[name##_id], port, pData, nBufs, region); \
+        if (profile.entries[PR_TO_SWAP].v.b && ret > 0 && ret < 64) \
+            scaleTouchData(!port, &pData[ret - 1]); \
         used_funcs[name##_id] = true; \
         return onTouch(port, pData, ret, name##_id - ksceTouchPeek_id, (space)); \
     }
@@ -376,12 +373,6 @@ int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplay
         goto DISPLAY_HOOK_RET;
 
     gui_draw(pParam);
-
-    if (gui_isOpen) {
-        SceCtrlData ctrl;
-        if(ksceCtrlPeekBufferPositive2_internal(0, &ctrl, 1) == 1)
-            gui_onInput(&ctrl);
-    }
     
     if (sync && gui_isOpen && !isCallShell()){
         
@@ -436,6 +427,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
                 isPspemu = false;
                 changeActiveApp(HOME, pid);
                 processid = shellPid;
+                isDelayedStartDone = true;
             }
             break;
         default:
@@ -452,7 +444,7 @@ PROCEVENT_EXIT:
 SceUID ksceKernelGetProcessId_patched(void){
     int ret = TAI_CONTINUE(SceUID, refs[ksceKernelGetProcessId_id]);
     if (shellPid > 0 
-            && delayedStartDone 
+            && isDelayedStartDone 
             && settings[SETT_REMAP_ENABLED].v.b//) 
             && !isPspemu)
         return shellPid;
@@ -485,7 +477,12 @@ static int main_thread(SceSize args, void *argp) {
         SceCtrlData ctrl;
         if(ksceCtrlPeekBufferPositive2_internal(0, &ctrl, 1) != 1){
             ksceKernelDelayThread(30 * 1000);
+            LOG("no input!\n");
             continue;
+        }
+
+        if (gui_isOpen) {
+            gui_onInput(&ctrl);
         }
 
         if (!gui_isOpen){
@@ -495,7 +492,7 @@ static int main_thread(SceSize args, void *argp) {
                         !btn_has(oldBtns, hotkeys[i].v.u)){
                     switch(i){
                         case HOTKEY_MENU:
-                            if (!delayedStartDone)
+                            if (!isDelayedStartDone)
                                 break;
                             gui_open();
                             remap_resetBuffers();
@@ -524,7 +521,7 @@ static int main_thread(SceSize args, void *argp) {
 
         oldBtns = ctrl.buttons;
 
-        ksceKernelDelayThread(30 * 1000);
+        ksceKernelDelayThread(16666);
     }
     return 0;
 }

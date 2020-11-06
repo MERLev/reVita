@@ -964,7 +964,6 @@ void remap_resetBuffers(){
 }
 
 void initTouchParams(){
-	LOG("initTouchParams()\n");
 	for (int port = 0; port < SCE_TOUCH_PORT_MAX_NUM; port++){
 		//Calculate predefined touchpoints
 		T_CENTER[port] = (TouchPoint){

@@ -1,5 +1,6 @@
 #include <vitasdkkern.h>
 #include "../../common.h"
+#include "../../main.h"
 #include "../../sysactions.h"
 #include "../../fio/settings.h"
 #include "../gui.h"
