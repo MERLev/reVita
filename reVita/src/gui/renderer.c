@@ -42,9 +42,13 @@ void renderer_blankFrame(){
 	uint32_t buff[fbWidth/4];
 	memset(&buff, BLACK, sizeof(buff));
 	for(int i = 0; i < fbHeight; i++)
-		for(int j = 0; i < 4; i++)
+		for(int j = 0; j < 4; j++)
 			ksceKernelMemcpyKernelToUser(
 				(uintptr_t)&fb_base[i * fbPitch + j * fbWidth / 4], &buff[0], sizeof(buff));
+	// for(int i = 0; i < fbHeight; i++)
+	// 	for(int j = 0; i < 1; i++)
+	// 		ksceKernelMemcpyKernelToUser(
+	// 			(uintptr_t)&fb_base[i * fbPitch + j * fbWidth / 4], &buff[0], sizeof(buff));
 }
 
 void renderer_drawChar(char character, int x, int y){

@@ -13,6 +13,7 @@
 #include "menu/menu.h"
 
 #define STR_SIZE                  (39)
+#define BLACK 				0xFF000000
 #define DELAY_LONGPRESS   	(400##000)	// 0.400 sec
 #define DELAY_REPEAT   		 (60##000)	// 0.070 sec
 #define DELAY_FOOTER   	 (2##500##000)	// 2     sec
@@ -297,6 +298,13 @@ void drawBody() {
 void drawDirectlyToFB(){
 }
 
+void drawBlankPopup(){
+	renderer_setColor(BLACK);
+	renderer_drawRectangle(
+		CHA_W, CHA_H, 
+		CHA_W * (max(strlen(popupHeader), strlen(popupMessage)) + 1), CHA_H * 3);
+}
+
 void drawPopup(){
 	if (!settings[POP_ALL].v.b)
 		return;
@@ -316,6 +324,7 @@ void updatePopup(){
 
 	if (popupTTL != 0 && (ksceKernelGetSystemTimeWide() > popupTTL + popupTick)){
 		isPopupActive = false;
+		drawBlankPopup();
 		return;
 	}
 
