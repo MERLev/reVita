@@ -63,27 +63,28 @@ char* ini_nextEntry(INI_READER* ini){
         return NULL;
     if (!strlen(ini->_.line)) 
         return ini_nextEntry(ini);
-    if (ini->_.line[0] == '[') {//Looks like section
+    if (ini->_.line[0] == '[') { // Looks like section
         char section[SECTION_SIZE];
         char sectionAttr[SECTION_ATTR_SIZE];
-        if (sscanf(ini->_.line, "[%127[^:]:%127[^]]", section, sectionAttr) == 2){ //Section with attr
+        if (sscanf(ini->_.line, "[%127[^:]:%127[^]]", section, sectionAttr) == 2){ // Section with attr
             strcpy(ini->section, section);
             strcpy(ini->sectionAttr, sectionAttr);
             return ini_nextEntry(ini);
-        } else if (sscanf (ini->_.line, "[%[^]]", section) == 1){ //Section without attr
+        } else if (sscanf (ini->_.line, "[%[^]]", section) == 1){ // Section without attr
             strcpy(ini->section, section);
             return ini_nextEntry(ini);
         }// Error parsing
-    } else if (strchr(ini->_.line, '=')){ //Looks like Entry
+    } else if (strchr(ini->_.line, '=')){ // Looks like Entry
         char key[ENTRY_NAME_SIZE];
         char value[ENTRY_VALUE_SIZE];
-        if (sscanf (ini->_.line, "%[^=]=%s", key, value) == 2){
+        int num = sscanf (ini->_.line, "%[^=]=%s", key, value);
+        if (num >= 1){
             strcpy(ini->name, key);
-            strcpy(ini->val, value);
+            strcpy(ini->val, num == 2 ? value : "");
             strcpy(ini->listVal, "");
             ini->_.EOE = NULL;
             return ini->name;
-        } //Error parsing
+        } // Error parsing
     }
     return ini_nextEntry(ini);
 }
