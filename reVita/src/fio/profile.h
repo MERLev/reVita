@@ -39,6 +39,8 @@ enum PROF_ID{
 	PR_CO_SWAP_BUTTONS,
 	PR_CO_FIX_BUTTONS,
 	PR_CO_EMULATE_DS4,
+	PR_MO_BLANK_FRAME,
+	PR_MO_DELAY_START,
     PROF__NUM
 };
 
@@ -92,6 +94,7 @@ void profile_resetAnalog();
 void profile_resetTouch();
 void profile_resetGyro();
 void profile_resetController();
+void profile_resetMore();
 struct Profile createProfile();
 
 bool profile_save(char* titleId);

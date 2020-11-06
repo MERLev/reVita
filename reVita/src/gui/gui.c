@@ -55,6 +55,7 @@ SceUID mem_uid;
 int64_t tickUIOpen = 0;
 int64_t tickMenuOpen = 0;
 uint8_t gui_isOpen = false;
+uint8_t gui_isBlankFrame = false;
 uint8_t gui_lines = 10;
 static SceUID mutex_gui_uid = -1;
 
@@ -361,7 +362,12 @@ void gui_draw(const SceDisplayFrameBuf *pParam){
 		drawEmulatedPointersForPanel(SCE_TOUCH_PORT_FRONT);
 		drawEmulatedPointersForPanel(SCE_TOUCH_PORT_BACK);
 	}
-	updatePopup();
+	if (gui_isBlankFrame){
+		renderer_blankFrame();
+		gui_isBlankFrame = false;
+	} else {
+		updatePopup();
+	}
     ksceKernelUnlockMutex(mutex_gui_uid, 1);
 }
 
@@ -524,7 +530,7 @@ void gui_prevEntry(){
 void gui_open(const SceDisplayFrameBuf *pParam){
 	if (rendererv_allocVirtualFB() < 0){
 		LOG("memory allocation for menu failed\n");
-		gui_popupShow("Error", "Buy more RAM !", 3*1000*1000);
+		gui_popupShowDanger("Error", "Buy more RAM !", 3*1000*1000);
 		return;
 	}
 	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);
@@ -542,6 +548,7 @@ void gui_close(){
 	profile.version = ksceKernelGetSystemTimeWide();
 	sync();
 	LOGF("gui_close()\n");
+	gui_isBlankFrame = (profile.entries[PR_MO_BLANK_FRAME].v.b);
     ksceKernelUnlockMutex(mutex_gui_uid, 1);
 }
 
@@ -557,6 +564,7 @@ void gui_init(){
 	menu_initTouch();
 	menu_initGyro();
 	menu_initController();
+	menu_initMore();
 	menu_initSettings();
 	menu_initHotkeys();
 

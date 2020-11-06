@@ -48,9 +48,9 @@ bool generateINISettings(char* buff){
 			case SETT_THEME: 
 				ini_addStr(ini, settings[i].key, THEME_STR[settings[i].v.u]);
 				break;
-			case SETT_DELAY_INIT:
-				ini_addInt(ini, settings[i].key, settings[i].v.u);
-				break;
+			// case SETT_DELAY_INIT:
+			// 	ini_addInt(ini, settings[i].key, settings[i].v.u);
+			// 	break;
 			case SETT_AUTOSAVE:
 			case SETT_REMAP_ENABLED:
 			case POP_SAVE:
@@ -82,9 +82,9 @@ bool parseINISettings(char* buff){
 			case SETT_THEME: 
 				e->v.u = theme_findIdByKey(ini->val);
 				break;
-			case SETT_DELAY_INIT:
-				e->v.u = parseInt(ini->val);
-				break;
+			// case SETT_DELAY_INIT:
+			// 	e->v.u = parseInt(ini->val);
+			// 	break;
 			case SETT_AUTOSAVE:
 			case SETT_REMAP_ENABLED:
 			case POP_SAVE:
@@ -176,13 +176,13 @@ void setDefSettings(){
 		.type = TYPE_BOOL,
 		.def.b = true, 
 		.key = "AUTOSAVE"});
-	set((ProfileEntry){
-		.id = SETT_DELAY_INIT,
-		.type = TYPE_UINT32,
-		.def.u = 10, 
-		.min.u = 0,
-		.max.u = 60,
-		.key = "DELAY_INIT"});
+	// set((ProfileEntry){
+	// 	.id = SETT_DELAY_INIT,
+	// 	.type = TYPE_UINT32,
+	// 	.def.u = 10, 
+	// 	.min.u = 0,
+	// 	.max.u = 60,
+	// 	.key = "DELAY_INIT"});
 	set((ProfileEntry){
 		.id = SETT_THEME,
 		.def.u = THEME_DARK, 

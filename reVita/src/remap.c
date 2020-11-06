@@ -422,7 +422,6 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 	if (port <= 1) // Motion should be used only by Player 1
 		gyroRet = __sceMotionGetState(&sms);
 
-	// Apply calibration to motion
 	if (gyroRet >= 0){
 		sms.rotationMatrix.x.z = calibrate(sms.rotationMatrix.x.z, (float)(profile.entries[PR_GY_CALIBRATION_X].v.i) / 1000);
 		sms.rotationMatrix.y.z = calibrate(sms.rotationMatrix.y.z, (float)(profile.entries[PR_GY_CALIBRATION_Y].v.i) / 1000);
@@ -587,11 +586,13 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 			case REMAP_TYPE_GYROSCOPE: 
 				if (gyroRet != 0) break;
 				switch (trigger->action){
-				/*  |             |      CAM      |       SIM      |
+				/*  T-------------T---------------T----------------T
+					|             |      CAM      |       SIM      |
 				    |-------------|---------------|----------------|
                     | horisontal  | AngVelocity.y |  rotation.x.z  |
                     | vertical    | AngVelocity.x |  rotation.y.y  |
-					| roll        | AngVelocity.z | Acceleration.x |  */
+					| roll        | AngVelocity.z | Acceleration.x |  
+					|-------------|---------------|----------------|  */
 					// Camera mode
 					case REMAP_GYRO_LEFT:
 						gyroRule(&rd, sms.angularVelocity.y, 4, POS, 

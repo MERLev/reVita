@@ -289,6 +289,10 @@ void profile_resetController(){
 	profile_resetEntryById(PR_CO_SWAP_BUTTONS);
 	profile_resetEntryById(PR_CO_EMULATE_DS4);
 }
+void profile_resetMore(){
+	profile_resetEntryById(PR_MO_BLANK_FRAME);
+	profile_resetEntryById(PR_MO_DELAY_START);
+}
 bool generateINIProfile(Profile* p, char* buff){
 	INI _ini = ini_create(buff, 99);
 	INI* ini = &_ini;
@@ -801,6 +805,21 @@ void setDefProfile(){
 		.type = TYPE_BOOL,
 		.def.u = false,
 		.key = "EMULATE_DS4"});
+
+	// More
+	setPE((ProfileEntry){
+		.id = PR_MO_BLANK_FRAME,
+		.type = TYPE_BOOL,
+		.def.u = 0,
+		.key = "BLANK_FB"});
+	setPE((ProfileEntry){
+		.id = PR_MO_DELAY_START,
+		.type = TYPE_BOOL,
+		.type = TYPE_UINT32,
+		.def.u = 10,
+		.min.u = 0,
+		.max.u = 60,
+		.key = "DELAY_START"});
 
 	strclone(profile_home.titleid, HOME);
 	memcpy(profile_home.entries, profile.entries, sizeof(ProfileEntry) * PROF__NUM);

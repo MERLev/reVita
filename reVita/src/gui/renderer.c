@@ -14,6 +14,8 @@
 #include "../common.h"
 #include "../log.h"
 
+#define BLACK 0xFF000000
+
 static uint32_t color;
 static bool isStripped;
 
@@ -34,6 +36,13 @@ bool readPixel(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const unsigned ch
 void drawPixel(int32_t x, int32_t y, uint32_t color){
 	if (x >= 0 && x < fbWidth && y >= 0 && y < fbHeight)
 		ksceKernelMemcpyKernelToUser((uintptr_t)&fb_base[y * fbPitch + x], &color, sizeof(color));
+}
+
+void renderer_blankFrame(){
+	char line[fbPitch];
+	memset(&line, BLACK, fbPitch);
+	for(int i = 0; i < fbHeight; i++)
+		ksceKernelMemcpyKernelToUser((uintptr_t)&fb_base[i * fbPitch], &line, fbPitch);
 }
 
 void renderer_drawChar(char character, int x, int y){

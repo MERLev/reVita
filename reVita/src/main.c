@@ -183,11 +183,11 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
         if (settings[POP_LOADING].v.b){
             char str[20];
             sprintf(str, "Loading... %isec", 
-                settings[SETT_DELAY_INIT].v.u - (int)((ksceKernelGetSystemTimeWide() - startTick) / 1000000));
+                profile.entries[PR_MO_DELAY_START].v.u - (int)((ksceKernelGetSystemTimeWide() - startTick) / 1000000));
             gui_popupShow(isSafeBoot ? "reVita - Safe Start" : "reVita", str, 2*1000*1000);
         }
 
-        if (startTick + settings[SETT_DELAY_INIT].v.u * 1000000 > ksceKernelGetSystemTimeWide())
+        if (startTick + profile.entries[PR_MO_DELAY_START].v.u * 1000000 > ksceKernelGetSystemTimeWide())
             return ret;
 
         // Activate delayed start
