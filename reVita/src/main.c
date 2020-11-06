@@ -7,6 +7,7 @@
 #include <psp2/touch.h>
 #include <psp2kern/kernel/sysmem.h> 
 #include <psp2kern/registrymgr.h> 
+#include <psp2kern/display.h> 
 
 #include "vitasdkext.h"
 #include "main.h"
@@ -34,6 +35,7 @@
 #define TRIGGERS_NONEXT 0
 
 #define INTERNAL        (666*666)
+#define PSVS_FRAMEBUF_HOOK_MAGIC 0x7183015
 
 #define HOOK_EXPORT(module, libnid, funcnid, name) \
     hooks[name##_id] = taiHookFunctionExportForKernel(\
@@ -56,6 +58,7 @@
 static tai_hook_ref_t refs[HOOKS_NUM];
 static SceUID         hooks[HOOKS_NUM];
 
+static SceUID g_mutex_framebuf_uid = -1;
 static SceUID mutex_procevent_uid = -1;
 static SceUID mutexCtrlHook[5];
 static SceUID mutexTouchHook[TOUCH_HOOKS_NUM][2];
@@ -349,21 +352,40 @@ int ksceCtrlGetControllerPortInfo_patched(SceCtrlPortInfo* info){
 int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplayFrameBuf *pParam, int sync) {
     used_funcs[ksceDisplaySetFrameBufInternal_id] = 1;
 
+    if (sync == PSVS_FRAMEBUF_HOOK_MAGIC) {
+        sync = 1;
+        goto DISPLAY_HOOK_RET;
+    }
+
+    if (head != ksceDisplayGetPrimaryHead() || !pParam || !pParam->base)
+        goto DISPLAY_HOOK_RET;
+
+    if (!index && isCallShell())
+        goto DISPLAY_HOOK_RET; // Do not draw on i0 in SceShell
+
     if (index && ksceAppMgrIsExclusiveProcessRunning())
         goto DISPLAY_HOOK_RET; // Do not draw over SceShell overlay
-
-    if (pParam)  
-        gui_draw(pParam);
-
-    if (!head || !pParam)
+    
+    if (ksceKernelLockMutex(g_mutex_framebuf_uid, 1, NULL) < 0)
         goto DISPLAY_HOOK_RET;
+
+    gui_draw(pParam);
 
     if (gui_isOpen) {
         SceCtrlData ctrl;
-        
         if(ksceCtrlPeekBufferPositive2_internal(0, &ctrl, 1) == 1)
             gui_onInput(&ctrl);
     }
+    
+    if (sync && gui_isOpen && !isCallShell()){
+        
+        ksceKernelUnlockMutex(g_mutex_framebuf_uid, 1);
+        int ret = TAI_CONTINUE(int, refs[ksceDisplaySetFrameBufInternal_id], head, index, pParam, 0);
+        ret = ksceDisplaySetFrameBufInternal(head, index, pParam, PSVS_FRAMEBUF_HOOK_MAGIC);
+        return ret;
+    }
+
+    ksceKernelUnlockMutex(g_mutex_framebuf_uid, 1);
 
 DISPLAY_HOOK_RET:
     return TAI_CONTINUE(int, refs[ksceDisplaySetFrameBufInternal_id], head, index, pParam, sync);
@@ -477,17 +499,17 @@ static int main_thread(SceSize args, void *argp) {
 	                        if (settings[POP_REVITA].v.b)
                                 gui_popupShow("reVita", settings[SETT_REMAP_ENABLED].v.b ? "On" : "Off", 2*1000*1000);
                             break;
-                        case HOTKEY_RESET_SOFT: sysactions_softReset();  break;
-                        case HOTKEY_RESET_COLD: sysactions_coldReset();  break;
-                        case HOTKEY_STANDBY: sysactions_standby();  break;
-                        case HOTKEY_SUSPEND: sysactions_suspend();  break;
-                        case HOTKEY_DISPLAY_OFF: sysactions_displayOff();  break;
-                        case HOTKEY_KILL_APP: sysactions_killCurrentApp();  break;
+                        case HOTKEY_RESET_SOFT:     sysactions_softReset();  break;
+                        case HOTKEY_RESET_COLD:     sysactions_coldReset();  break;
+                        case HOTKEY_STANDBY:        sysactions_standby();  break;
+                        case HOTKEY_SUSPEND:        sysactions_suspend();  break;
+                        case HOTKEY_DISPLAY_OFF:    sysactions_displayOff();  break;
+                        case HOTKEY_KILL_APP:       sysactions_killCurrentApp();  break;
                         case HOTKEY_BRIGHTNESS_INC: sysactions_brightnessInc();  break;
                         case HOTKEY_BRIGHTNESS_DEC: sysactions_brightnessDec();  break;
-                        case HOTKEY_SAVE_BACKUP: sysactions_saveBackup();  break;
-                        case HOTKEY_SAVE_RESTORE: sysactions_saveRestore();  break;
-                        case HOTKEY_SAVE_DELETE: sysactions_saveDelete();  break;
+                        case HOTKEY_SAVE_BACKUP:    sysactions_saveBackup();  break;
+                        case HOTKEY_SAVE_RESTORE:   sysactions_saveRestore();  break;
+                        case HOTKEY_SAVE_DELETE:    sysactions_saveDelete();  break;
                         case HOTKEY_MOTION_CALIBRATE: sysactions_calibrateMotion();  break;
                     }
                 }
@@ -546,6 +568,7 @@ int module_start(SceSize argc, const void *args) {
             mutexTouchHook[i][j] = ksceKernelCreateMutex(&fname[0], 0, 0, NULL);
         }
     }
+    g_mutex_framebuf_uid = ksceKernelCreateMutex("psvs_mutex_framebuf", 0, 0, NULL);
 
     // Import all needed functions
     vitasdkext_init();
@@ -634,6 +657,8 @@ int module_stop(SceSize argc, const void *args) {
             taiHookReleaseForKernel(hooks[i], refs[i]);
     }
 
+    if (g_mutex_framebuf_uid >= 0)
+        ksceKernelDeleteMutex(g_mutex_framebuf_uid);
     if (mutex_procevent_uid >= 0)
         ksceKernelDeleteMutex(mutex_procevent_uid);
     for (int j = 0; j < 5; j++)

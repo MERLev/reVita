@@ -72,6 +72,7 @@ target_link_libraries(${PROJECT_NAME}
   SceIofilemgrForDriver_stub
   SceCtrlForDriver_stub
   SceTouchForDriver_stub
+  SceDisplayForDriver_stub 
   ScePowerForDriver_stub 
 	SceRegMgrForDriver_stub 
   SceDebugForDriver_stub
