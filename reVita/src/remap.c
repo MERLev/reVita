@@ -5,9 +5,8 @@
 #include <stdlib.h>
 
 #include "vitasdkext.h"
-#include "motion-kernel.h"
 #include "main.h"
-#include "userspace.h"
+#include "revita.h"
 #include "remap.h"
 #include "fio/profile.h"
 #include "common.h"
@@ -420,7 +419,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 	SceMotionState sms;
 	int gyroRet = -1;
 	if (port <= 1) // Motion should be used only by Player 1
-		gyroRet = __sceMotionGetState(&sms);
+		gyroRet = revita_sceMotionGetState(&sms);
 
 	if (gyroRet >= 0){
 		sms.rotationMatrix.x.z = calibrate(sms.rotationMatrix.x.z, (float)(profile.entries[PR_GY_CALIBRATION_X].v.i) / 1000);

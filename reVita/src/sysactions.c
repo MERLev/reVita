@@ -5,7 +5,7 @@
 #include <psp2kern/appmgr.h> 
 #include "vitasdkext.h"
 #include "common.h"
-#include "userspace.h"
+#include "revita.h"
 #include "main.h"
 #include "fio/fio.h"
 #include "fio/profile.h"
@@ -149,7 +149,7 @@ void sysactions_saveDeleteAll(){
 
 void sysactions_calibrateMotion(){
 	SceMotionState sms;
-	int gyroRet = __sceMotionGetState(&sms);
+	int gyroRet = revita_sceMotionGetState(&sms);
     if (gyroRet >= 0){     
         profile.entries[PR_GY_CALIBRATION_X].v.i = clamp(
             (int)(sms.rotationMatrix.x.z * 1000), 

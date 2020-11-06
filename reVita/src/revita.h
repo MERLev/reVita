@@ -1,12 +1,10 @@
-#ifndef _REMAPSV_H_
-#define _REMAPSV_H_
+#ifndef _EXPORT_H_
+#define _EXPORT_H_
 
-#include "fio/profile.h"
-#include "fio/settings.h"
+int revita_sceMotionGetState(SceMotionState *pData);
+void revita_sceMotionReset();
 
-/*export*/ extern void reVita_userPluginReady();
-/*export*/ extern int reVita_getProfileVersion();
-/*export*/ extern void reVita_getProfile(Profile* p);
-/*export*/ extern int reVita_setSceMotionState(SceMotionState *pData, int r);
+void revita_init();
+void revita_destroy();
 
 #endif

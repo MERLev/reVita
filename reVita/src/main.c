@@ -11,7 +11,6 @@
 
 #include "vitasdkext.h"
 #include "main.h"
-#include "motion-kernel.h"
 #include "gui/gui.h"
 #include "remap.h"
 #include "fio/profile.h"
@@ -21,7 +20,6 @@
 #include "common.h"
 #include "sysactions.h"
 #include "log.h"
-#include "userspace.h"
 #include "ds34vita.h"
 #include "revita.h"
 
@@ -61,7 +59,7 @@ static SceUID         hooks[HOOKS_NUM];
 static SceUID g_mutex_framebuf_uid = -1;
 static SceUID mutex_procevent_uid = -1;
 static SceUID mutexCtrlHook[5];
-static SceUID mutexTouchHook[TOUCH_HOOKS_NUM][2];
+static SceUID mutexTouchHook[SCE_TOUCH_PORT_MAX_NUM];
 
 static SceUID thread_uid = -1;
 static bool   thread_run = true;
@@ -289,7 +287,7 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
     
 	if (!settings[SETT_REMAP_ENABLED].v.b) return nBufs;
 
-    ksceKernelLockMutex(mutexTouchHook[hookIdx][port], 1, NULL);
+    ksceKernelLockMutex(mutexTouchHook[port], 1, NULL);
     SceTouchData* remappedBuffers; 
     if (isKernelSpace){
         ret = remap_touch(port, &pData[nBufs - 1], nBufs, hookIdx, &remappedBuffers);
@@ -300,7 +298,7 @@ int onTouch(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, uint8_t hookId
         ret = remap_touch(port, &std, nBufs, hookIdx, &remappedBuffers);
         ksceKernelMemcpyKernelToUser((uintptr_t)&pData[0], remappedBuffers, ret * sizeof(SceTouchData)); 
     }
-    ksceKernelUnlockMutex(mutexTouchHook[hookIdx][port], 1);
+    ksceKernelUnlockMutex(mutexTouchHook[port], 1);
     return ret;
 }
 
@@ -552,23 +550,20 @@ void _start() __attribute__ ((weak, alias ("module_start")));
 int module_start(SceSize argc, const void *args) {
     LOG("Plugin started\n");
 
-    // Create mutexes for ctrl and touch hooks
-    mutex_procevent_uid = ksceKernelCreateMutex("reVita_mutex_procevent", 0, 0, NULL);
-
     kernelPid = ksceKernelGetProcessId();
 
+    // Create mutexes
+    mutex_procevent_uid = ksceKernelCreateMutex("reVita_mutex_procevent", 0, 0, NULL);
+    g_mutex_framebuf_uid = ksceKernelCreateMutex("psvs_mutex_framebuf", 0, 0, NULL);
     char fname[128];
     for (int j = 0; j < 5; j++){
         sprintf(fname, "reVita_mutex_ctrl_%i", j);
         mutexCtrlHook[j] = ksceKernelCreateMutex(&fname[0], 0, 0, NULL);
     }
-    for (int i = 0; i < TOUCH_HOOKS_NUM; i++){
-        for (int j = 0; j < 2; j++){
-	        sprintf(fname, "reVita_mutex_touch_%i_%i", i, j);
-            mutexTouchHook[i][j] = ksceKernelCreateMutex(&fname[0], 0, 0, NULL);
-        }
+    for (int i = 0; i < SCE_TOUCH_PORT_MAX_NUM; i++){
+        sprintf(fname, "reVita_mutex_touch_%i", i);
+        mutexTouchHook[i] = ksceKernelCreateMutex(&fname[0], 0, 0, NULL);
     }
-    g_mutex_framebuf_uid = ksceKernelCreateMutex("psvs_mutex_framebuf", 0, 0, NULL);
 
     // Import all needed functions
     vitasdkext_init();
@@ -581,14 +576,13 @@ int module_start(SceSize argc, const void *args) {
     snprintf(titleid, sizeof(titleid), HOME);
 
     // Init all components
-    // motion_init();
     settings_init();
     hotkeys_init();
     theme_init();
     profile_init();
     gui_init();
     remap_init();
-    userspace_init();
+    revita_init();
     sysactions_init();
 
 	ksceRegMgrGetKeyInt("/CONFIG/SHELL", "touch_emulation", (int *)&isPSTVTouchEmulation);
@@ -661,22 +655,20 @@ int module_stop(SceSize argc, const void *args) {
         ksceKernelDeleteMutex(g_mutex_framebuf_uid);
     if (mutex_procevent_uid >= 0)
         ksceKernelDeleteMutex(mutex_procevent_uid);
-    for (int j = 0; j < 5; j++)
-        if (mutexCtrlHook[j] >= 0)
-            ksceKernelDeleteMutex(mutexCtrlHook[j]);
-    for (int i = 0; i < TOUCH_HOOKS_NUM; i++)
-        for (int j = 0; j < 2; j++)
-            if (mutexTouchHook[i][j] >= 0)
-                ksceKernelDeleteMutex(mutexTouchHook[i][j]);
+    for (int i = 0; i < 5; i++)
+        if (mutexCtrlHook[i] >= 0)
+            ksceKernelDeleteMutex(mutexCtrlHook[i]);
+    for (int i = 0; i < SCE_TOUCH_PORT_MAX_NUM; i++)
+        if (mutexTouchHook[i] >= 0)
+            ksceKernelDeleteMutex(mutexTouchHook[i]);
 
     vitasdkext_destroy();
-    // motion_destroy();
     settings_destroy();
     hotkeys_destroy();
     theme_destroy();
     profile_destroy();
     gui_destroy();
     remap_destroy();
-    userspace_destroy();
+    revita_destroy();
     return SCE_KERNEL_STOP_SUCCESS;
 }

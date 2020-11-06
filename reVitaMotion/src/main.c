@@ -4,7 +4,7 @@
 #include <psp2/motion.h> 
 #include <psp2/kernel/threadmgr.h> 
 #include "log.h"
-#include "../../reVita/src/revita.h"
+#include "../../reVita/src/export.h"
 #include "DSMotionLibrary.h"
 
 #define DELAY_STARTUP      5##000##000
