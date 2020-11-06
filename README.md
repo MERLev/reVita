@@ -96,6 +96,7 @@ Projects, which code was reused:
 - [remaPSV](https://github.com/Rinnegatamante/remaPSV) - original plugin.
 - [PSVshell](https://github.com/Electry/PSVshell) - process management and UI.
 - [VitaShell](https://github.com/TheOfficialFloW/VitaShell) - FIO.
+- [DSMotion](https://github.com/OperationNT414C/DSMotion) - cross-plugin communication.
 - [BetterTrackPlug](https://github.com/fmudanyali/BetterTrackPlug) - Adrenaline integration.
 
 ## Original credits from [remaPSV](https://github.com/Rinnegatamante/remaPSV) by [Rinnegatamante](https://github.com//Rinnegatamante)
