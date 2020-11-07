@@ -50,8 +50,8 @@ extern bool isPspemu;
 extern bool isPSTV;
 extern bool isPSTVTouchEmulation;
 extern bool isSafeBoot;
-extern SceUID shellPid = -1;
-extern SceUID kernelPid = -1;
+extern SceUID shellPid;
+extern SceUID kernelPid;
 
 extern bool used_funcs[HOOKS_NUM];
 

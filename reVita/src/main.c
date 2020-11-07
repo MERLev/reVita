@@ -207,7 +207,10 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
             char str[20];
             sprintf(str, "Loading... %isec", 
                 profile.entries[PR_MO_DELAY_START].v.u - (int)((ksceKernelGetSystemTimeWide() - startTick) / 1000000));
-            gui_popupShow(isSafeBoot ? "reVita - Safe Start" : "reVita", str, TTL_POPUP_SHORT);
+            if (isSafeBoot)
+                gui_popupShowWarning("reVita - Safe Start", str, TTL_POPUP_SHORT);
+            else 
+                gui_popupShow("reVita", str, TTL_POPUP_SHORT);
         }
 
         if (startTick + profile.entries[PR_MO_DELAY_START].v.u * 1000000 > ksceKernelGetSystemTimeWide())

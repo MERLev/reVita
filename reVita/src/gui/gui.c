@@ -185,18 +185,18 @@ void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus){
 }
 void drawHeader(){
 	rendererv_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
-	rendererv_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
-	rendererv_setColor(theme[COLOR_HEADER]);
+	rendererv_drawRectangle(0, HEADER_HEIGHT - 1, UI_WIDTH, 1, theme[isSafeBoot ? COLOR_ACTIVE : COLOR_HEADER]);//Separator
+	rendererv_setColor(theme[isSafeBoot ? COLOR_ACTIVE : COLOR_HEADER]);
 	if (gui_menu->onDrawHeader != NULL)
 		gui_menu->onDrawHeader();
 	else 
 		rendererv_drawString(L_0, 3, gui_menu->name);
 }
 void drawFooter(){
-	rendererv_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, theme[COLOR_HEADER]);//Separator
 	rendererv_drawRectangle(0, UI_HEIGHT - (HEADER_HEIGHT - 1), UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
+	rendererv_drawRectangle(0, UI_HEIGHT - HEADER_HEIGHT, UI_WIDTH, 1, theme[isSafeBoot ? COLOR_ACTIVE : COLOR_HEADER]);//Separator
 	if (gui_menu->footer){
-		rendererv_setColor(theme[COLOR_HEADER]);
+		rendererv_setColor(theme[isSafeBoot ? COLOR_ACTIVE : COLOR_HEADER]);
 		if (strlen(gui_menu->footer) <= STR_SIZE){
 			rendererv_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, gui_menu->footer);
 		} else {
@@ -207,7 +207,6 @@ void drawFooter(){
 			sub[STR_SIZE] = '\0';
 			rendererv_drawStringF(L_0, UI_HEIGHT-HEADER_HEIGHT + 4, sub);
 		}
-
 	}
 }
 void drawIndent(){
@@ -310,11 +309,11 @@ void drawPopup(){
 	renderer_setColor(theme[COLOR_BG_HEADER]);
 	renderer_drawRectangle(
 		CHA_W, CHA_H, 
-		CHA_W * (max(strlen(popupHeader), strlen(popupMessage)) + 1), CHA_H * 3);
+		CHA_W * (max(strlen(popupHeader), strlen(popupMessage)) + 1), CHA_H * 3 + 1);
 	renderer_setColor(popupColor);
 	renderer_drawStringF(CHA_W * 1.5, CHA_H * 1.5, popupHeader);
 	renderer_setColor(theme[COLOR_DEFAULT]);
-	renderer_drawStringF(CHA_W * 1.5, CHA_H * 2.5, popupMessage);
+	renderer_drawStringF(CHA_W * 1.5, CHA_H * 2.5 + 1, popupMessage);
 }
 
 void updatePopup(){
