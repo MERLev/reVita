@@ -32,8 +32,30 @@
 #define TRIGGERS_EXT    1
 #define TRIGGERS_NONEXT 0
 
-#define INTERNAL        (666*666)
-#define PSVS_FRAMEBUF_HOOK_MAGIC 0x7183015
+#define INTERNAL                    (666*666)
+#define PSVS_FRAMEBUF_HOOK_MAGIC    0x7183015
+
+#define WHITELIST_NUM 18
+static char* whitelistNPXS[WHITELIST_NUM] = {
+    "NPXS10002",    // PlayStation®Store
+    "NPXS10003",    // Internet browser
+    "NPXS10004",    // Photos
+    "NPXS10005",    // Maps
+    "NPXS10006",    // Friends
+    "NPXS10007",    // Welcome Park
+    "NPXS10008",    // Trophy Collection
+    "NPXS10009",    // Music
+    "NPXS10010",    // Video
+    "NPXS10012",    // PS3Link
+    "NPXS10013",    // PS4Link
+    "NPXS10014",    // Messages
+    "NPXS10015",    // Settings
+    "NPXS10026",    // Content Manager
+    "NPXS10072",    // E-Mail
+    "NPXS10091",    // Calendar
+    "NPXS10094",    // Parental Controls
+    "NPXS10095"     // Panoramic Camera
+};
 
 #define HOOK_EXPORT(module, libnid, funcnid, name) \
     hooks[name##_id] = taiHookFunctionExportForKernel(\
@@ -66,8 +88,8 @@ static bool   thread_run = true;
 
 char titleid[32] = "";
 int processid = -1;
-static SceUID shellPid = -1;
-static SceUID kernelPid = -1;
+SceUID shellPid = -1;
+SceUID kernelPid = -1;
 bool isPspemu = false;
 bool isPSTV = false;
 bool isPSTVTouchEmulation = false;
@@ -390,14 +412,14 @@ DISPLAY_HOOK_RET:
     return TAI_CONTINUE(int, refs[ksceDisplaySetFrameBufInternal_id], head, index, pParam, sync);
 }
 
-bool isAppAllowed(char* titleId){
-    // if (STREQANY(titleId,  // If test app
-    //         "TSTCTRL00", "TSTCTRL20", "TSTCTRLE0", "TSTCTRLE2", "TSTCTRLN0", "TSTCTRLN2", "VSDK00019"))
-    //     return false;                  // Use MAIN profile
-    if (strStartsWith(titleId, "NPXS") && !STREQANY(titleId, 
-            "NPXS10012",     // PS3Link
-            "NPXS10013"))    // PS4Link)
-        return false;               // Use MAIN profile
+bool isAppAllowed(char* tId){
+    if (strStartsWith(tId, "NPXS")){
+        for (int i = 0; i < WHITELIST_NUM; i++){
+            if (streq(tId, whitelistNPXS[i]))
+                return true;
+        }
+        return false;
+    }
     return true;
 }
 
@@ -501,8 +523,12 @@ static int main_thread(SceSize args, void *argp) {
                             break;
                         case HOTKEY_REMAPS_TOOGLE: 
                             FLIP(settings[SETT_REMAP_ENABLED].v.b); 
-	                        if (settings[POP_REVITA].v.b)
-                                gui_popupShow("reVita", settings[SETT_REMAP_ENABLED].v.b ? "On" : "Off", TTL_POPUP_SHORT);
+	                        if (settings[POP_REVITA].v.b){
+                                if (settings[SETT_REMAP_ENABLED].v.b)
+                                    gui_popupShowSuccess("reVita", "$~$` On", TTL_POPUP_SHORT);
+                                else
+                                    gui_popupShowDanger("reVita", "$@$# Off", TTL_POPUP_SHORT);
+                            }
                             break;
                         case HOTKEY_RESET_SOFT:     sysactions_softReset();  break;
                         case HOTKEY_RESET_COLD:     sysactions_coldReset();  break;

@@ -36,11 +36,10 @@ void sysactions_displayOff(){
     kscePowerRequestDisplayOff();
 }
 void sysactions_killCurrentApp(){
-    if (processid == -1)
+    if (processid == -1 || processid == shellPid)
         return;
-        
     if (settings[POP_KILL].v.b)
-        gui_popupShowDanger("Kill", titleid, TTL_POPUP_SHORT);
+        gui_popupShowDanger("Application killed", titleid, TTL_POPUP_SHORT);
     ksceAppMgrKillProcess(processid);
 }
 void brightnessPopup(){
@@ -75,7 +74,7 @@ void sysactions_brightnessDec(){
 
 void sysactions_saveBackup(){
     char msg[64];
-	sprintf(msg, "Backuping save for %s", titleid);
+	sprintf(msg, "$G Backuping save for %s", titleid);
     gui_popupShow(msg, "Please, wait ...", 0);
 
 	//Create dir if not exists
@@ -99,7 +98,7 @@ void sysactions_saveBackup(){
 
 void sysactions_saveRestore(){
     char msg[64];
-	sprintf(msg, "Restoring save for %s", titleid);
+	sprintf(msg, "$H Restoring save for %s", titleid);
     gui_popupShow(msg, "Please, wait ...", 0);
 
     char src[64];
@@ -119,7 +118,7 @@ void sysactions_saveRestore(){
 
 void sysactions_saveDelete(){
     char msg[64];
-	sprintf(msg, "Removing backup for %s", titleid);
+	sprintf(msg, "$J Removing backup for %s", titleid);
     gui_popupShow(msg, "Please, wait ...", 0);
 
     char src[64];
@@ -136,16 +135,16 @@ void sysactions_saveDelete(){
 }
 
 void sysactions_saveDeleteAll(){
-    gui_popupShow("Clearing backups", "Please, wait ...", 0);
+    gui_popupShow("$J Clearing backups", "Please, wait ...", 0);
     
     if (fio_exist(PATH_SAVE_BACKUP)){
         if (fio_deletePath(PATH_SAVE_BACKUP) == 1){
-            gui_popupShowSuccess("Clearing backups", "Done !", TTL_POPUP_SHORT);
+            gui_popupShowSuccess("$J Clearing backups", "Done !", TTL_POPUP_SHORT);
             return;
         }
     }
 
-    gui_popupShowDanger("Clearing backups", "Failed !", TTL_POPUP_SHORT);
+    gui_popupShowDanger("$J Clearing backups", "Failed !", TTL_POPUP_SHORT);
 }
 
 void sysactions_calibrateMotion(){
@@ -165,7 +164,7 @@ void sysactions_calibrateMotion(){
             profile.entries[PR_GY_CALIBRATION_Z].min.i, 
             profile.entries[PR_GY_CALIBRATION_Z].max.i); 
         // void __sceMotionReset();
-        gui_popupShowSuccess("Motion calibration", "Done !", TTL_POPUP_SHORT);
+        gui_popupShowSuccess("$Q Motion calibration", "Done !", TTL_POPUP_SHORT);
     }
 }
 

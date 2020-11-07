@@ -210,6 +210,33 @@ void cleanEmuReports(EmulatedTouch *et){
 	}
 }
 
+void showRemapActionPopup(ProfileEntry* pe){
+	char header[20];
+	sprintf(header, "Toggle %s", pe->key);
+	switch (pe->id){
+		case PR_GY_DEADBAND:
+			;char* strDeadband[] = {"$@$# Forced Off", "$~$` Forced On", "Game default"};
+			gui_popupShow(header, strDeadband[pe->v.u], TTL_POPUP_SHORT);
+			break;
+		default: 
+			switch (pe->type){
+				case TYPE_BOOL:
+					if (pe->v.b)
+						gui_popupShowSuccess(header, "$~$` On", TTL_POPUP_SHORT);
+					else
+						gui_popupShowDanger(header, "$@$# Off", TTL_POPUP_SHORT);
+					break;
+				case TYPE_INT32:
+				case TYPE_UINT32:
+					;char msg[20];
+					sprintf(msg, "%i", pe->v.i);
+					gui_popupShowSuccess(header, "$~$` On", TTL_POPUP_SHORT);
+					break;
+			}
+			break;
+	}
+}
+
 // Add emulated event from rule
 void addEmu(RuleData* rd) {
 	struct RemapAction* emu = &rd->rr->emu;
@@ -351,7 +378,7 @@ void addEmu(RuleData* rd) {
 			if (*rd->status != RS_STARTED) break;
 			LOG("profile_inc(&profile.entries[%i], 1)\n", emu->action);
 			profile_inc(&profile.entries[emu->action], 1);
-        	gui_popupShow("Toggled", profile.entries[emu->action].key, TTL_POPUP_SHORT);
+			showRemapActionPopup(&profile.entries[emu->action]);
 			break;
 		case REMAP_TYPE_DISABLED:
 			// Do nothing
