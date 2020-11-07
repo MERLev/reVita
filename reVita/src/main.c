@@ -126,11 +126,13 @@ void changeActiveApp(char* tId, int pid){
         ksceCtrlPeekBufferPositive2_internal(0, &scd, 1);
         isSafeBoot = hotkeys[HOTKEY_SAFE_START].v.u != 0 && btn_has(scd.buttons, hotkeys[HOTKEY_SAFE_START].v.u);
         if (!isSafeBoot){
-            profile_load(titleid);
+            profile_load(titleid);    
+            if (settings[POP_LOAD].v.b)
+                gui_popupShowSuccess("$H Profile loaded", titleid, TTL_POPUP_SHORT);
         } else {
             profile_loadFromGlobal();
             strclone(profile.titleid, titleid);
-            gui_popupShowWarning("Safe start", "Global profile used", 3*1000*1000);
+            gui_popupShowWarning("Safe start", "Global profile used", TTL_POPUP_LONG);
         }
 
         remap_resetBuffers();
@@ -183,7 +185,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
             char str[20];
             sprintf(str, "Loading... %isec", 
                 profile.entries[PR_MO_DELAY_START].v.u - (int)((ksceKernelGetSystemTimeWide() - startTick) / 1000000));
-            gui_popupShow(isSafeBoot ? "reVita - Safe Start" : "reVita", str, 2*1000*1000);
+            gui_popupShow(isSafeBoot ? "reVita - Safe Start" : "reVita", str, TTL_POPUP_SHORT);
         }
 
         if (startTick + profile.entries[PR_MO_DELAY_START].v.u * 1000000 > ksceKernelGetSystemTimeWide())
@@ -193,7 +195,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
         remap_setup();
         isDelayedStartDone = true;
         if (settings[POP_READY].v.b)
-            gui_popupShowSuccess("reVita", "Ready", 2*1000*1000);
+            gui_popupShowSuccess("reVita", "Ready", TTL_POPUP_SHORT);
         LOG("isDelayedStartDone = 1\n");
     }
 
@@ -500,7 +502,7 @@ static int main_thread(SceSize args, void *argp) {
                         case HOTKEY_REMAPS_TOOGLE: 
                             FLIP(settings[SETT_REMAP_ENABLED].v.b); 
 	                        if (settings[POP_REVITA].v.b)
-                                gui_popupShow("reVita", settings[SETT_REMAP_ENABLED].v.b ? "On" : "Off", 2*1000*1000);
+                                gui_popupShow("reVita", settings[SETT_REMAP_ENABLED].v.b ? "On" : "Off", TTL_POPUP_SHORT);
                             break;
                         case HOTKEY_RESET_SOFT:     sysactions_softReset();  break;
                         case HOTKEY_RESET_COLD:     sysactions_coldReset();  break;
@@ -514,6 +516,15 @@ static int main_thread(SceSize args, void *argp) {
                         case HOTKEY_SAVE_RESTORE:   sysactions_saveRestore();  break;
                         case HOTKEY_SAVE_DELETE:    sysactions_saveDelete();  break;
                         case HOTKEY_MOTION_CALIBRATE: sysactions_calibrateMotion();  break;
+                        case HOTKEY_PROFILE_LOCAL_RESET: 
+                            profile_resetLocal();  
+					        gui_popupShowSuccess("$J Profile reset", profile.titleid, TTL_POPUP_SHORT);
+                            break;
+                        case HOTKEY_PROFILE_SHARED_LOAD: 
+                            profile_loadFromShared();  
+                            profile_saveLocal();
+					        gui_popupShowSuccess("$H Profile imoprted", "from Shared", TTL_POPUP_SHORT);
+                            break;
                     }
                 }
             }

@@ -29,7 +29,13 @@ void onButton_hotkeys(uint32_t btn){
 void onDraw_hotkeys(uint menuY){
     int y = menuY;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {		
+	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {	
+		
+		if (gui_menu->entries[i].type == HEADER_TYPE){
+			gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i); 
+			continue;
+		}
+		 	
 		int32_t id = gui_menu->entries[i].dataPE->id;
 		gui_setColor(i == gui_menu->idx, hotkeys_isDef(id));
 		rendererv_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
@@ -42,9 +48,14 @@ void onDraw_hotkeys(uint menuY){
 }
 
 static struct MenuEntry menu_hotkeys_entries[] = {
-	(MenuEntry){.name = "Menu open", 			.dataPE = &hotkeys[HOTKEY_MENU]},
+	(MenuEntry){.name = "reVita", 				.type = HEADER_TYPE},
+	(MenuEntry){.name = "Open menu", 			.dataPE = &hotkeys[HOTKEY_MENU]},
 	(MenuEntry){.name = "Safe Start", 			.dataPE = &hotkeys[HOTKEY_SAFE_START]},
-	(MenuEntry){.name = "Toggle remap rules", 	.dataPE = &hotkeys[HOTKEY_REMAPS_TOOGLE]},
+	(MenuEntry){.name = "Toggle state", 		.dataPE = &hotkeys[HOTKEY_REMAPS_TOOGLE]},
+	(MenuEntry){.name = "reVita profile", 				.type = HEADER_TYPE},
+	(MenuEntry){.name = "Reset profile",				.dataPE = &hotkeys[HOTKEY_PROFILE_LOCAL_RESET]},
+	(MenuEntry){.name = "Import profile from Shared",	.dataPE = &hotkeys[HOTKEY_PROFILE_SHARED_LOAD]},
+	(MenuEntry){.name = "System", 				.type = HEADER_TYPE},
 	(MenuEntry){.name = "Soft reset", 			.dataPE = &hotkeys[HOTKEY_RESET_SOFT]},
 	(MenuEntry){.name = "Reboot", 				.dataPE = &hotkeys[HOTKEY_RESET_COLD]},
 	(MenuEntry){.name = "Power Off", 			.dataPE = &hotkeys[HOTKEY_STANDBY]},
@@ -53,10 +64,12 @@ static struct MenuEntry menu_hotkeys_entries[] = {
 	(MenuEntry){.name = "Kill App", 			.dataPE = &hotkeys[HOTKEY_KILL_APP]},
 	(MenuEntry){.name = "Brightness +", 		.dataPE = &hotkeys[HOTKEY_BRIGHTNESS_INC]},
 	(MenuEntry){.name = "Brightness -", 		.dataPE = &hotkeys[HOTKEY_BRIGHTNESS_DEC]},
-	(MenuEntry){.name = "Savefile backup", 		.dataPE = &hotkeys[HOTKEY_SAVE_BACKUP]},
-	(MenuEntry){.name = "Savefile restore", 	.dataPE = &hotkeys[HOTKEY_SAVE_RESTORE]},
-	(MenuEntry){.name = "Savefile remove backup",.dataPE= &hotkeys[HOTKEY_SAVE_DELETE]},
-	(MenuEntry){.name = "Calibrate motion", 	.dataPE = &hotkeys[HOTKEY_MOTION_CALIBRATE]}};
+	(MenuEntry){.name = "Savegame", 			.type = HEADER_TYPE},
+	(MenuEntry){.name = "Backup", 				.dataPE = &hotkeys[HOTKEY_SAVE_BACKUP]},
+	(MenuEntry){.name = "Restore", 				.dataPE = &hotkeys[HOTKEY_SAVE_RESTORE]},
+	(MenuEntry){.name = "Remove backup",		.dataPE = &hotkeys[HOTKEY_SAVE_DELETE]},
+	(MenuEntry){.name = "Gyroscope", 			.type = HEADER_TYPE},
+	(MenuEntry){.name = "Calibrate", 			.dataPE = &hotkeys[HOTKEY_MOTION_CALIBRATE]}};
 static struct Menu menu_hotkeys = (Menu){
 	.id = MENU_HOTKEYS_ID, 
 	.parent = MENU_MAIN_SETTINGS_ID,

@@ -12,8 +12,8 @@
 
 #define PATH "ux0:/data/reVita/Profile/"
 #define NAME_GLOBAL "GLOBAL"
+#define NAME_SHARED "SHARED"
 #define NAME_HOME "HOME"
-#define EXT "bin"
 #define EXT_INI "INI"
 #define BUFFER_SIZE (1000 * sizeof(char)+ 0xfff) & ~0xfff
 
@@ -535,14 +535,10 @@ ERROR: //Free allocated memory
 
 bool profile_save(char* titleId) {
     LOG("profile_save('%s')\n", titleid);
-	if (settings[POP_SAVE].v.b)
-		gui_popupShowSuccess("Save profile", titleid, 2*1000*1000);
 	return writeProfile(&profile, titleId);
 }
 bool profile_load(char* titleId) {
     LOG("profile_load('%s')\n", titleid);
-	if (settings[POP_LOAD].v.b)
-		gui_popupShowSuccess("Load profile", titleid, 2*1000*1000);
 	if (strcmp(profile.titleid, HOME) == 0){  //If used home profile previously
 		clone(&profile_home, &profile);       //copy it back to its cache
 	}
@@ -560,43 +556,47 @@ bool profile_load(char* titleId) {
 	return false;
 }
 
-void profile_localSave(){
-	writeProfile(&profile, profile.titleid);
-	gui_popupShowSuccess("Save profile", profile.titleid, 2*1000*1000);
+void profile_saveLocal(){
+	writeProfile(&profile, titleid);
 }
-void profile_localLoad(){
-	readProfile(&profile, profile.titleid);
-	gui_popupShowSuccess("Load profile", profile.titleid, 2*1000*1000);
+void profile_loadLocal(){
+	readProfile(&profile, titleid);
 }
-void profile_localReset(){
+void profile_resetLocal(){
 	profile_resetAnalog();
 	profile_resetController();
 	profile_resetGyro();
 	profile_resetTouch();
 	profile_resetRemapRules();
-	gui_popupShowSuccess("Reset profile", profile.titleid, 2*1000*1000);
 }
-void profile_localDelete(){
+void profile_deleteLocal(){
 	fio_deleteFile(PATH, profile.titleid, EXT_INI);
-	gui_popupShowSuccess("Delete profile", profile.titleid, 2*1000*1000);
 }
 
 void profile_saveAsGlobal(){
 	clone(&profile_global, &profile);
 	writeProfile(&profile_global, NAME_GLOBAL);
-	gui_popupShowSuccess("Save profile", "as Global", 2*1000*1000);
 }
 void profile_loadFromGlobal(){
 	char titleId_orig[32];
 	strclone(titleId_orig, profile.titleid);
 	clone(&profile, &profile_global);
 	strclone(profile.titleid, titleId_orig);
-	gui_popupShowSuccess("Load profile", "from Global", 2*1000*1000);
 }
 void profile_resetGlobal(){
 	profile_resetProfile(&profile_global);
 	writeProfile(&profile_global, NAME_GLOBAL);
-	gui_popupShowSuccess("Reset profile", "Global", 2*1000*1000);
+}
+
+void profile_saveAsShared(){
+	writeProfile(&profile, NAME_SHARED);
+}
+void profile_loadFromShared(){
+	readProfile(&profile, NAME_SHARED);
+	strclone(profile.titleid, titleid);
+}
+void profile_deleteShared(){
+	fio_deleteFile(PATH, NAME_SHARED, EXT_INI);
 }
 
 bool profile_isDef(ProfileEntry* pe){

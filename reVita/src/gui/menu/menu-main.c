@@ -15,8 +15,11 @@ void onButton_main(uint32_t btn){
 		case SCE_CTRL_CIRCLE:
 			gui_close();
 			settings_save();
-			if (settings[0].v.b && !isSafeBoot)
+			if (settings[0].v.b && !isSafeBoot){
 				profile_save(titleid);
+				if (settings[POP_SAVE].v.b)
+					gui_popupShowSuccess("$G Profile saved", titleid, TTL_POPUP_SHORT);
+			}
 			remap_setup();
 			break;
 		case SCE_CTRL_SELECT:

@@ -539,7 +539,7 @@ void gui_prevEntry(){
 void gui_open(const SceDisplayFrameBuf *pParam){
 	if (rendererv_allocVirtualFB() < 0){
 		LOG("memory allocation for menu failed\n");
-		gui_popupShowDanger("Error", "Buy more RAM !", 3*1000*1000);
+		gui_popupShowDanger("Error", "Buy more RAM !", TTL_POPUP_LONG);
 		return;
 	}
 	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);

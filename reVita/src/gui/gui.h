@@ -19,6 +19,9 @@
 #define NEW_RULE_IDX        -3
 #define COMMAND_TYPE        -4
 
+#define TTL_POPUP_SHORT		2##000##000
+#define TTL_POPUP_LONG		2##000##000
+
 ;enum MENU_ID{
 	MENU_MAIN_ID = 0,
 	MENU_MAIN_PROFILE_ID,

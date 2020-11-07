@@ -351,7 +351,7 @@ void addEmu(RuleData* rd) {
 			if (*rd->status != RS_STARTED) break;
 			LOG("profile_inc(&profile.entries[%i], 1)\n", emu->action);
 			profile_inc(&profile.entries[emu->action], 1);
-        	gui_popupShow("Toggled", profile.entries[emu->action].key, 2*1000*1000);
+        	gui_popupShow("Toggled", profile.entries[emu->action].key, TTL_POPUP_SHORT);
 			break;
 		case REMAP_TYPE_DISABLED:
 			// Do nothing

@@ -40,7 +40,7 @@ void sysactions_killCurrentApp(){
         return;
         
     if (settings[POP_KILL].v.b)
-        gui_popupShowDanger("Kill", titleid, 2*1000*1000);
+        gui_popupShowDanger("Kill", titleid, TTL_POPUP_SHORT);
     ksceAppMgrKillProcess(processid);
 }
 void brightnessPopup(){
@@ -52,7 +52,7 @@ void brightnessPopup(){
         strcat(message, i * 5 < percentage ? "|" : "-");
     }
 	if (settings[POP_BRIGHTNESS].v.b)
-        gui_popupShow(header, message, 2*1000*1000);
+        gui_popupShow(header, message, TTL_POPUP_SHORT);
 }
 
 void sysactions_brightnessInc(){
@@ -89,12 +89,12 @@ void sysactions_saveBackup(){
     if (fio_exist(src)){
         LOG("save found\n");
         if (fio_copyDir(src, dest) == 0){
-            gui_popupShowSuccess(msg, "Done !", 3*1000*1000);
+            gui_popupShowSuccess(msg, "Done !", TTL_POPUP_LONG);
             return;
         }
     }
 
-    gui_popupShowDanger(msg, "Failed !", 3*1000*1000);
+    gui_popupShowDanger(msg, "Failed !", TTL_POPUP_LONG);
 }
 
 void sysactions_saveRestore(){
@@ -109,12 +109,12 @@ void sysactions_saveRestore(){
     
     if (fio_exist(src)){
         if (fio_copyDir(src, dest) == 0){
-            gui_popupShowSuccess(msg, "Done !", 2*1000*1000);
+            gui_popupShowSuccess(msg, "Done !", TTL_POPUP_SHORT);
             return;
         }
     }
 
-    gui_popupShowDanger(msg, "Failed !", 2*1000*1000);
+    gui_popupShowDanger(msg, "Failed !", TTL_POPUP_SHORT);
 }
 
 void sysactions_saveDelete(){
@@ -127,12 +127,12 @@ void sysactions_saveDelete(){
     
     if (fio_exist(src)){
         if (fio_deletePath(src) == 1){
-            gui_popupShowSuccess(msg, "Done !", 2*1000*1000);
+            gui_popupShowSuccess(msg, "Done !", TTL_POPUP_SHORT);
             return;
         }
     }
 
-    gui_popupShowDanger(msg, "Failed !", 2*1000*1000);
+    gui_popupShowDanger(msg, "Failed !", TTL_POPUP_SHORT);
 }
 
 void sysactions_saveDeleteAll(){
@@ -140,12 +140,12 @@ void sysactions_saveDeleteAll(){
     
     if (fio_exist(PATH_SAVE_BACKUP)){
         if (fio_deletePath(PATH_SAVE_BACKUP) == 1){
-            gui_popupShowSuccess("Clearing backups", "Done !", 2*1000*1000);
+            gui_popupShowSuccess("Clearing backups", "Done !", TTL_POPUP_SHORT);
             return;
         }
     }
 
-    gui_popupShowDanger("Clearing backups", "Failed !", 2*1000*1000);
+    gui_popupShowDanger("Clearing backups", "Failed !", TTL_POPUP_SHORT);
 }
 
 void sysactions_calibrateMotion(){
@@ -165,7 +165,7 @@ void sysactions_calibrateMotion(){
             profile.entries[PR_GY_CALIBRATION_Z].min.i, 
             profile.entries[PR_GY_CALIBRATION_Z].max.i); 
         // void __sceMotionReset();
-        gui_popupShowSuccess("Motion calibration", "Done !", 2*1000*1000);
+        gui_popupShowSuccess("Motion calibration", "Done !", TTL_POPUP_SHORT);
     }
 }
 

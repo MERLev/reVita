@@ -100,14 +100,18 @@ struct Profile createProfile();
 bool profile_save(char* titleId);
 bool profile_load(char* titleId);
 
-void profile_localSave();
-void profile_localLoad();
-void profile_localReset();
-void profile_localDelete();
+void profile_saveLocal();
+void profile_loadLocal();
+void profile_resetLocal();
+void profile_deleteLocal();
 
 void profile_saveAsGlobal();
 void profile_loadFromGlobal();
 void profile_resetGlobal();
+
+void profile_saveAsShared();
+void profile_loadFromShared();
+void profile_deleteShared();
 
 void profile_init();
 void profile_destroy();

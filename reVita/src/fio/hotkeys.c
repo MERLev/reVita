@@ -205,6 +205,16 @@ void setDefHotkeys(){
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START + SCE_CTRL_CIRCLE, 
 		.key = "HOTKEY_MOTION_CALIBRATE"});
+	hotkey_set((ProfileEntry){
+		.id = HOTKEY_PROFILE_LOCAL_RESET,
+		.type = TYPE_UINT32,
+		.def.u = 0, 
+		.key = "HOTKEY_PROFILE_LOCAL_RESET"});
+	hotkey_set((ProfileEntry){
+		.id = HOTKEY_PROFILE_SHARED_LOAD,
+		.type = TYPE_UINT32,
+		.def.u = SCE_CTRL_START + SCE_CTRL_CROSS, 
+		.key = "HOTKEY_PROFILE_SHARED_LOAD"});
 }
 
 void hotkeys_init(){
