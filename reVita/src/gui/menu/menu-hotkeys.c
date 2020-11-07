@@ -35,10 +35,10 @@ void onDraw_hotkeys(uint menuY){
 			gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i); 
 			continue;
 		}
-		 	
+
 		int32_t id = gui_menu->entries[i].dataPE->id;
 		gui_setColor(i == gui_menu->idx, hotkeys_isDef(id));
-		rendererv_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
+		rendererv_drawString(L_2, y += CHA_H, gui_menu->entries[i].name);
 		char str[10];
 		str[0] = '\0';
 		gui_generateBtnComboName(str, hotkeys[id].v.u, 6);
@@ -52,7 +52,6 @@ static struct MenuEntry menu_hotkeys_entries[] = {
 	(MenuEntry){.name = "Open menu", 			.dataPE = &hotkeys[HOTKEY_MENU]},
 	(MenuEntry){.name = "Safe Start", 			.dataPE = &hotkeys[HOTKEY_SAFE_START]},
 	(MenuEntry){.name = "Toggle state", 		.dataPE = &hotkeys[HOTKEY_REMAPS_TOOGLE]},
-	(MenuEntry){.name = "reVita profile", 				.type = HEADER_TYPE},
 	(MenuEntry){.name = "Reset profile",				.dataPE = &hotkeys[HOTKEY_PROFILE_LOCAL_RESET]},
 	(MenuEntry){.name = "Import profile from Shared",	.dataPE = &hotkeys[HOTKEY_PROFILE_SHARED_LOAD]},
 	(MenuEntry){.name = "System", 				.type = HEADER_TYPE},

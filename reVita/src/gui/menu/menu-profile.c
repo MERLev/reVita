@@ -1,5 +1,6 @@
 #include <vitasdkkern.h>
 #include "../../common.h"
+#include "../../main.h"
 #include "../../fio/settings.h"
 #include "../gui.h"
 #include "../renderer.h"
@@ -24,10 +25,12 @@ void onButton_profiles(uint32_t btn){
 			switch (gui_getEntry()->dataUint){
 				case PROFILE_LOCAL_SAVE:   
 					profile_saveLocal(); 
+					isSafeBoot = false;
 					gui_popupShowSuccess("$G Profile saved", profile.titleid, TTL_POPUP_SHORT);
 					break;
 				case PROFILE_LOCAL_LOAD:   
 					profile_loadLocal(); 
+					isSafeBoot = false;
 					gui_popupShowSuccess("$H Profile loaded", profile.titleid, TTL_POPUP_SHORT);
 					break;
 				case PROFILE_LOCAL_RESET:  
@@ -44,6 +47,7 @@ void onButton_profiles(uint32_t btn){
 					break;
 				case PROFILE_GLOBAL_LOAD:  
 					profile_loadFromGlobal();
+					isSafeBoot = false;
 					gui_popupShowSuccess("$H Profile loaded", "from Global", TTL_POPUP_SHORT);
 					break;
 				case PROFILE_GLOBAL_RESET: 
@@ -56,6 +60,7 @@ void onButton_profiles(uint32_t btn){
 					break;
 				case PROFILE_SHARED_LOAD:  
 					profile_loadFromShared(); 
+					isSafeBoot = false;
 					gui_popupShowSuccess("$H Profile loaded", "from Shared", TTL_POPUP_SHORT);
 					break;
 				case PROFILE_SHARED_DELETE:

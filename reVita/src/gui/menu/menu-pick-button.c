@@ -44,10 +44,9 @@ void onDraw_pickButton(uint menuY){
 }
 
 void onDrawHeader_pickButton(){
-	rendererv_drawStringF(L_0, 3, gui_menu->name);
 	char str[21] = "\0";
-	gui_generateBtnComboName(str, *(uint32_t*)gui_menu->dataPtr, 10);
-	gui_drawStringFRight(0, 2, str);
+	gui_generateBtnComboName(str, *(uint32_t*)gui_menu->dataPtr, 12);
+	rendererv_drawStringF(L_0, 3, "%s: %s", gui_menu->name, str);
 }
 
 static struct MenuEntry menu_pick_button_entries[] = {
@@ -71,11 +70,12 @@ static struct MenuEntry menu_pick_button_entries[] = {
 	(MenuEntry){.name = "Vol Down", .icn = ICON_BTN_VOLDOWN, 	.dataUint = SCE_CTRL_VOLDOWN},
 	(MenuEntry){.name = "Power", 	.icn = ICON_BTN_POWER, 		.dataUint = SCE_CTRL_POWER},
 	(MenuEntry){.name = "PS", 		.icn = ICON_BTN_PS, 		.dataUint = SCE_CTRL_PSBUTTON},
-	(MenuEntry){.name = "DS4 Touch",.icn = ICON_BTN_DS4TOUCH, 	.dataUint = SCE_CTRL_TOUCHPAD}};
+	(MenuEntry){.name = "DS4 Touch",.icn = ICON_BTN_DS4TOUCH, 	.dataUint = SCE_CTRL_TOUCHPAD},
+	(MenuEntry){.name = "Headphone",.icn = ICON_HEADPHONES, 	.dataUint = SCE_CTRL_HEADPHONE}};
 static struct Menu menu_pick_button = (Menu){
 	.id = MENU_PICK_BUTTON_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
-	.name = "BUTTONS: ", 
+	.name = "BUTTONS", 
 	.footer = "$SSELECT $XCONTINUE $TCLEAR ALL  $CBACK",
 	.onButton = onButton_pickButton,
 	.onDraw = onDraw_pickButton,

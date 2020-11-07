@@ -170,17 +170,17 @@ void setDefSettings(){
 		.id = SETT_REMAP_ENABLED,
 		.type = TYPE_BOOL,
 		.def.b = true, 
-		.key = "REMAP_ENABLED"});
+		.key = "reVita"});
 	set((ProfileEntry){
 		.id = SETT_AUTOSAVE,
 		.type = TYPE_BOOL,
 		.def.b = true, 
-		.key = "AUTOSAVE"});
+		.key = "Autosave"});
 	set((ProfileEntry){
 		.id = SETT_ANIMATION,
 		.type = TYPE_BOOL,
 		.def.b = true, 
-		.key = "ANIMATION"});
+		.key = "Animation"});
 	// set((ProfileEntry){
 	// 	.id = SETT_DELAY_INIT,
 	// 	.type = TYPE_UINT32,
@@ -194,48 +194,48 @@ void setDefSettings(){
 		.type = TYPE_UINT32,
 		.min.u = 0,
 		.max.u = THEME__NUM - 1,
-		.key = "THEME"});
+		.key = "Theme"});
 
 	set((ProfileEntry){
 		.id = POP_ALL,
 		.type = TYPE_BOOL,
 		.def.b = true, 
-		.key = "POP_ALL"});
+		.key = "All popups"});
 	set((ProfileEntry){
 		.id = POP_SAVE,
 		.type = TYPE_BOOL,
 		.def.b = true, 
-		.key = "POP_SAVE"});
+		.key = "Save profile popup"});
 	set((ProfileEntry){
 		.id = POP_LOAD,
 		.type = TYPE_BOOL,
 		.def.b = false, 
-		.key = "POP_LOAD"});
+		.key = "Load profile popup"});
 	set((ProfileEntry){
 		.id = POP_BRIGHTNESS,
 		.type = TYPE_BOOL,
 		.def.b = true, 
-		.key = "POP_BRIGHTNESS"});
+		.key = "Brightness popup"});
 	set((ProfileEntry){
 		.id = POP_REVITA,
 		.type = TYPE_BOOL,
 		.def.b = true, 
-		.key = "POP_REVITA"});
+		.key = "reVIta state popup"});
 	set((ProfileEntry){
 		.id = POP_READY,
 		.type = TYPE_BOOL,
 		.def.b = true, 
-		.key = "POP_READY"});
+		.key = "reVIta ready popup"});
 	set((ProfileEntry){
 		.id = POP_LOADING,
 		.type = TYPE_BOOL,
 		.def.b = false, 
-		.key = "POP_LOADING"});
+		.key = "reVitaa loading popup"});
 	set((ProfileEntry){
 		.id = POP_KILL,
 		.type = TYPE_BOOL,
 		.def.b = true, 
-		.key = "POP_KILL"});
+		.key = "Kill application popup"});
 }
 
 void settings_init(){
