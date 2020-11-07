@@ -24,7 +24,7 @@ void onDraw_more(uint menuY){
 
 static struct MenuEntry menu_more_entries[] = {
 	(MenuEntry){.name = "Delayed start", 			.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_DELAY_START]},
-	(MenuEntry){.name = "CLear screen on close", 	.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_BLANK_FRAME]}};
+	(MenuEntry){.name = "Clear screen on close", 	.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_BLANK_FRAME]}};
 static struct Menu menu_more = (Menu){
 	.id = MENU_MORE_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,

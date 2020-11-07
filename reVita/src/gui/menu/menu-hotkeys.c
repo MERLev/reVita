@@ -20,6 +20,7 @@ void onButton_hotkeys(uint32_t btn){
 		case SCE_CTRL_START: hotkeys_resetAll(); break;
 		case SCE_CTRL_CIRCLE: 
 			hotkeys_save(); 
+			gui_popupShowSuccess("$G Saving hotkeys", "Done !", TTL_POPUP_SHORT);
 			gui_openMenuPrev();
 			break;
 		default: onButton_generic(btn);break;

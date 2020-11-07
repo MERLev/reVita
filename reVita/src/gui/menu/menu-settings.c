@@ -18,6 +18,11 @@ void onButton_popup(uint32_t btn){
 		case SCE_CTRL_LEFT: profile_dec(&settings[id], 1); break;
 		case SCE_CTRL_SQUARE: settings_reset(id); break;
 		case SCE_CTRL_START: settings_resetAllPopups(); break;
+		case SCE_CTRL_CIRCLE: 
+			settings_save();
+			gui_popupShowSuccess("$G Saving popups", "Done !", TTL_POPUP_SHORT);
+			gui_openMenuParent();
+			break;
 		default: onButton_genericEntries(btn); break;
 	}
 }
@@ -29,6 +34,11 @@ void onButton_settings(uint32_t btn){
 		case SCE_CTRL_LEFT: profile_dec(&settings[id], 1); break;
 		case SCE_CTRL_SQUARE: settings_reset(id); break;
 		case SCE_CTRL_START: settings_resetAll(); break;
+		case SCE_CTRL_CIRCLE: 
+			settings_save();
+			gui_popupShowSuccess("$G Saving settings", "Done !", TTL_POPUP_SHORT);
+			gui_openMenuParent();
+			break;
 		default: onButton_genericEntries(btn); break;
 	}
 	if (id == SETT_THEME || btn == SCE_CTRL_START) 
