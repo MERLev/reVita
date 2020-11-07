@@ -39,7 +39,7 @@ void sysactions_killCurrentApp(){
     if (processid == -1 || processid == shellPid)
         return;
     if (settings[POP_KILL].v.b)
-        gui_popupShowDanger("Application killed", titleid, TTL_POPUP_SHORT);
+        gui_popupShowDanger("$! Application killed", titleid, TTL_POPUP_SHORT);
     ksceAppMgrKillProcess(processid);
 }
 void brightnessPopup(){

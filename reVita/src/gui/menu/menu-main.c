@@ -14,10 +14,13 @@ void onButton_main(uint32_t btn){
 			break;
 		case SCE_CTRL_CIRCLE:
 			gui_close();
-			if (settings[0].v.b && !isSafeBoot){
+			if (settings[SETT_AUTOSAVE].v.b && !isSafeBoot){
 				profile_save(titleid);
 				if (settings[POP_SAVE].v.b)
 					gui_popupShowSuccess("$G Profile saved", titleid, TTL_POPUP_SHORT);
+			}
+			if (settings[SETT_AUTOSAVE].v.b && isSafeBoot){
+				gui_popupShowWarning("$! Safe Mode", "Profile autosaving is disabled.", TTL_POPUP_SHORT);
 			}
 			remap_setup();
 			break;

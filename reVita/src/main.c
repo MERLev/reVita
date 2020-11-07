@@ -154,7 +154,7 @@ void changeActiveApp(char* tId, int pid){
         } else {
             profile_loadFromGlobal();
             strclone(profile.titleid, titleid);
-            gui_popupShowWarning("Safe start", "Global profile used", TTL_POPUP_LONG);
+            gui_popupShowWarning("$! Safe start", "Global profile used", TTL_POPUP_LONG);
         }
 
         remap_resetBuffers();
@@ -208,9 +208,9 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
             sprintf(str, "Loading... %isec", 
                 profile.entries[PR_MO_DELAY_START].v.u - (int)((ksceKernelGetSystemTimeWide() - startTick) / 1000000));
             if (isSafeBoot)
-                gui_popupShowWarning("reVita - Safe Start", str, TTL_POPUP_SHORT);
+                gui_popupShowWarning("$! reVita - Safe Start", str, TTL_POPUP_SHORT);
             else 
-                gui_popupShow("reVita", str, TTL_POPUP_SHORT);
+                gui_popupShow("$o$O reVita", str, TTL_POPUP_SHORT);
         }
 
         if (startTick + profile.entries[PR_MO_DELAY_START].v.u * 1000000 > ksceKernelGetSystemTimeWide())
@@ -220,7 +220,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
         remap_setup();
         isDelayedStartDone = true;
         if (settings[POP_READY].v.b)
-            gui_popupShowSuccess("reVita", "Ready", TTL_POPUP_SHORT);
+            gui_popupShowSuccess("$o$O reVita", "Ready", TTL_POPUP_SHORT);
         LOG("isDelayedStartDone = 1\n");
     }
 
@@ -528,9 +528,9 @@ static int main_thread(SceSize args, void *argp) {
                             FLIP(settings[SETT_REMAP_ENABLED].v.b); 
 	                        if (settings[POP_REVITA].v.b){
                                 if (settings[SETT_REMAP_ENABLED].v.b)
-                                    gui_popupShowSuccess("reVita", "$~$` On", TTL_POPUP_SHORT);
+                                    gui_popupShowSuccess("$o$O reVita", "$~$` On", TTL_POPUP_SHORT);
                                 else
-                                    gui_popupShowDanger("reVita", "$@$# Off", TTL_POPUP_SHORT);
+                                    gui_popupShowDanger("$o$O reVita", "$@$# Off", TTL_POPUP_SHORT);
                             }
                             break;
                         case HOTKEY_RESET_SOFT:     sysactions_softReset();  break;
