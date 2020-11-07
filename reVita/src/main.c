@@ -196,7 +196,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
             gui_popupShowSuccess("reVita", "Ready", 2*1000*1000);
         LOG("isDelayedStartDone = 1\n");
     }
-    
+
     if (!settings[SETT_REMAP_ENABLED].v.b) 
         return ret;
 
@@ -411,9 +411,9 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
     if (streq(titleidLocal, "main"))
         strnclone(titleidLocal, HOME, sizeof(titleidLocal));
     switch (ev) {
-        case 1: //Start
+        case SCE_PROC_START:
             scheduleDelayedStart();
-        case 5: //Resume
+        case SCE_PROC_RESUME:
             if (streq(titleidLocal, "PSPEMUCFW")){
                 isPspemu = true;
                 processid = pid;
@@ -421,8 +421,8 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
             }
             changeActiveApp(titleidLocal, pid);
             break;
-        case 3: //Close
-        case 4: //Suspend
+        case SCE_PROC_CLOSE:
+        case SCE_PROC_SUSPEND:
             if (!streq(titleid, HOME)){
                 isPspemu = false;
                 changeActiveApp(HOME, pid);

@@ -11,6 +11,13 @@ typedef enum SceCtrlButtonsExt {
     SCE_CTRL_R2          = SCE_CTRL_RTRIGGER,
 } SceCtrlButtonsExt;
 
+typedef enum SceProcEvent {
+    SCE_PROC_START      = 1,
+    SCE_PROC_CLOSE      = 3,
+    SCE_PROC_SUSPEND    = 4,
+    SCE_PROC_RESUME     = 5,
+} SceProcEvent;
+
 typedef void* SceClibMspace;
 SceUID ksceKernelSysrootGetShellPid();
 SceBool ksceAppMgrIsExclusiveProcessRunning();

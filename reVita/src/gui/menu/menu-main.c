@@ -67,7 +67,7 @@ static struct Menu menu_main_profile = (Menu){
 
 static struct MenuEntry menu_main_settings_entries[] = {
 	(MenuEntry){.name = "Global", 			.dataUint = MENU_SETT_ID, 			.icn = ICON_MENU_SETTINGS},
-	(MenuEntry){.name = "Popups", 			.dataUint = MENU_POPUP_ID, 			.icn = ICON_MENU_SETTINGS},
+	(MenuEntry){.name = "Popups", 			.dataUint = MENU_POPUP_ID, 			.icn = ICON_POPUP},
 	(MenuEntry){.name = "Hotkeys", 			.dataUint = MENU_HOTKEYS_ID, 		.icn = ICON_CONFIG}};
 static struct Menu menu_main_settings = (Menu){
 	.id = MENU_MAIN_SETTINGS_ID, 
