@@ -66,6 +66,15 @@
   - Yes, you can use Profile -> Profile Management for more options.
 - What is deadband under gyro menu ?
   - Deadband limits gyroscope sensitivity, so smallest movements are ignored to handle shaking hands, and it is enabled by default in most vita games. Disabling it will higly increase sensitivity of gyroscope.
+- I forgot my custom hotkeys to open menu. How do I find it?
+  - Open VitaShell and open the file ux0:data/reVita/HOTKEYS.ini. "Open menu=" has your hotkeys to open the plugin menu.
+- I've set the startup delay too low on a game and now it crashes when launching it. What do I do?
+  - Hold (Start) when launching the game. It starts the plugin in safe mode, with a blank profile. Then load your profile and change the startup delay.
+
+## Fixes for some Apps
+
+- Remapping DS4TouchPad to anything - fixes Adrenaline crash when pressing the DS4TouchPad button with MiniVitaTV.
+- Enabling "Vita as virtual DS4" - fixes Vita inputs for latest versions of Retroarch and also for PSX games via Adrenaline with MiniVitaTV.
 
 ## Known issues
 
