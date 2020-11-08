@@ -34,7 +34,7 @@ void onButton_main_submenu(uint32_t btn){
 }
 
 void onDrawHeader_main(){
-	rendererv_drawStringF(L_0, 3, "      reVita %s by Mer1e", VERSION);
+	rendererv_drawStringF(L_0, 3, "     reVita %s", VERSION);
 	gui_drawStringFRight(0, 2, titleid);
 	if (settings[SETT_REMAP_ENABLED].v.b){
 		rendererv_setColor(theme[COLOR_SUCCESS]);

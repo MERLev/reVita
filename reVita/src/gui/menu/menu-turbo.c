@@ -30,7 +30,7 @@ static struct Menu menu_turbo = (Menu){
 	.id = MENU_TURBO_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$K PROFILE > TURBO", 
-	.footer = 	"$<$>CHANGE $SRESET $;RESET ALL         "
+	.footer = 	"$<$>${$}CHANGE $SRESET $;RESET ALL     "
 				"$CBACK                          $:CLOSE",
 	.onButton = onButton_turbo,
 	.onDraw = onDraw_turbo,

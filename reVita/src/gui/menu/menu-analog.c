@@ -33,7 +33,7 @@ static struct Menu menu_analog = (Menu){
 	.id = MENU_ANALOG_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$u PROFILE > ANALOG STICKS", 
-	.footer = 	"$<$>CHANGE $SRESET $;RESET ALL         "
+	.footer = 	"$<$>${$}CHANGE $SRESET $;RESET ALL     "
 				"$CBACK                          $:CLOSE",
 	.onButton = onButton_analog,
 	.onDraw = onDraw_analog,

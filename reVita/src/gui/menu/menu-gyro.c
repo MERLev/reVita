@@ -89,7 +89,7 @@ static struct Menu menu_gyro = (Menu){
 	.id = MENU_GYRO_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$Q PROFILE > GYROSCOPE", 
-	.footer = 	"$<$>CHANGE $SRESET $;RESET ALL         "
+	.footer = 	"$<$>${$}CHANGE $SRESET $;RESET ALL     "
 				"$CBACK                          $:CLOSE",
 	.onButton = onButton_gyro,
 	.onDraw = onDraw_gyro,

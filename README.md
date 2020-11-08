@@ -14,6 +14,8 @@
   - buttons (combos too)
   - analog sticks, 
   - touch presses and swipes
+- Turbo buttons
+- Sticky butons
 - Trigger system events
   - Reboot
   - Sleep
@@ -22,14 +24,18 @@
   - Kill current application
   - Brightness control (works on PS TV too)
   - Savegames backup/restore
-- swap touchpads
-- display native and emulated touch pointers
-- disable Gyro's deadband for better sensivity
-- virtual DS4 controller
-- improve gyro sensitivity in any game by disabling gyro deadband
-- external controllers support
-- per-game and global profiles
-- themes
+- Swap touchpads
+- Display native and emulated touch pointers
+- Disable Gyro's deadband for better sensivity
+- Virtual DS4 controller
+- External controllers support
+- Per-game (in Adrenaline too) and global profiles
+- Themes
+
+## Firmware compability
+
+- 3.60 
+- 3.65
 
 ## Compability with plugins
 

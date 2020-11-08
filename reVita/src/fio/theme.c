@@ -14,20 +14,20 @@
 #define BUFFER_SIZE_THEME (1000 * sizeof(char)+ 0xfff) & ~0xfff
 
 const char* THEME_COLOR_STR[THEME_COLOR__NUM] = {
-	"COLOR_DEFAULT",
-	"COLOR_HEADER",
-	"COLOR_ACTIVE",
-	"COLOR_DANGER",
-	"COLOR_SUCCESS",
-	"COLOR_CURSOR_DEFAULT",
-	"COLOR_CURSOR_HEADER",
-	"COLOR_CURSOR_ACTIVE",
-	"COLOR_CURSOR_DANGER",
-	"COLOR_BG_HEADER",
-	"COLOR_BG_BODY",
-	"COLOR_TOUCH_FRONT",
-	"COLOR_TOUCH_BOTOM",
-	"COLOR_TOUCH_SHADOW"
+	"Default",
+	"Header",
+	"Active",
+	"Danger",
+	"Success",
+	"CursorDefault",
+	"CursorHeader",
+	"CursorActive",
+	"CursorDanger",
+	"BackgroundHeader",
+	"Background",
+	"FrontTouch",
+	"BackTouch",
+	"TouchShadow"
 };
 enum THEME_COLOR_ID getThemeColorId(char* n){
 	for (int i = 0; i < THEME_COLOR__NUM; i++)

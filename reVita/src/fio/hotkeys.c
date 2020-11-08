@@ -134,17 +134,17 @@ void setDefHotkeys(){
 		.id = HOTKEY_MENU,
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START + SCE_CTRL_SQUARE, 
-		.key = "Open menu"});
+		.key = "OpenMenu"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_SAFE_START,
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START, 
-		.key = "Safe start"});
+		.key = "SafeStart"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_REMAPS_TOOGLE,
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START + SCE_CTRL_TRIANGLE, 
-		.key = "reVita toggle"});
+		.key = "reVitaToggle"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_RESET_SOFT,
 		.type = TYPE_UINT32,
@@ -169,52 +169,52 @@ void setDefHotkeys(){
 		.id = HOTKEY_DISPLAY_OFF,
 		.type = TYPE_UINT32,
 		.def.u = 0, 
-		.key = "Display Off"});
+		.key = "DisplayOff"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_KILL_APP,
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_SELECT + SCE_CTRL_PSBUTTON, 
-		.key = "Kill application"});
+		.key = "KillApplication"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_BRIGHTNESS_INC,
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START + SCE_CTRL_UP,  
-		.key = "Brightness Inc"});
+		.key = "BrightnessInc"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_BRIGHTNESS_DEC,
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START + SCE_CTRL_DOWN,  
-		.key = "Brightness Dec"});
+		.key = "BrightnessDec"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_SAVE_BACKUP,
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START + SCE_CTRL_L1, 
-		.key = "Save backup"});
+		.key = "SaveBackup"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_SAVE_RESTORE,
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START + SCE_CTRL_R1, 
-		.key = "Save restore"});
+		.key = "SaveRestore"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_SAVE_DELETE,
 		.type = TYPE_UINT32,
 		.def.u = 0, 
-		.key = "Save delete"});
+		.key = "SaveDelete"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_MOTION_CALIBRATE,
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START + SCE_CTRL_CIRCLE, 
-		.key = "Gyro calibrate"});
+		.key = "GyroCalibrate"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_PROFILE_LOCAL_RESET,
 		.type = TYPE_UINT32,
 		.def.u = 0, 
-		.key = "Reset profile"});
+		.key = "ResetProfile"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_PROFILE_SHARED_LOAD,
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START + SCE_CTRL_CROSS, 
-		.key = "Import shared profile"});
+		.key = "ImportSharedProfile"});
 }
 
 void hotkeys_init(){

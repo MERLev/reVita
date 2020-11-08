@@ -82,7 +82,8 @@ static struct Menu menu_settings = (Menu){
 	.id = MENU_SETT_ID, 
 	.parent = MENU_MAIN_SETTINGS_ID,
 	.name = "$| SETTINGS > GLOBAL", 
-	.footer = 	"$<$>CHANGE $SRESET $;RESET ALL   $CBACK",
+	.footer = 	"$<$>${$}CHANGE $SRESET $;RESET ALL     "
+				"$CBACK                          $:CLOSE",
 	.onButton = onButton_settings,
 	.onDraw = onDraw_settings,
 	.num = SIZE(menu_settings_entries), 
@@ -102,7 +103,7 @@ static struct Menu menu_popup = (Menu){
 	.id = MENU_POPUP_ID, 
 	.parent = MENU_MAIN_SETTINGS_ID,
 	.name = "$I SETTINGS > POPUPS", 
-	.footer = 	"$<$>CHANGE $SRESET $;RESET ALL         "
+	.footer = 	"$<$>${$}CHANGE $SRESET $;RESET ALL     "
 				"$CBACK                          $:CLOSE",
 	.onButton = onButton_popup,
 	.onDraw = onDraw_settings,

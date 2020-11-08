@@ -55,7 +55,7 @@ static struct Menu menu_controller = (Menu){
 	.id = MENU_CONTROLLER_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$t PROFILE > CONTROLLER", 
-	.footer = 	"$<$>CHANGE $SRESET $;RESET ALL         "
+	.footer = 	"$<$>${$}CHANGE $SRESET $;RESET ALL     "
 				"$CBACK                          $:CLOSE",
 	.onButton = onButton_controller,
 	.onDraw = onDraw_controller,

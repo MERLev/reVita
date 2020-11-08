@@ -631,99 +631,99 @@ void setDefProfile(){
 		.id = PR_TU_SLOW,
 		.type = TYPE_UINT32,
 		.def.u = 500,
-		.min.u = 0,
+		.min.u = 16,
 		.max.u = 5000,
-		.key = "Turbo Slow"});
+		.key = "TurboSlow"});
 	setPE((ProfileEntry){
 		.id = PR_TU_MEDIUM,
 		.type = TYPE_UINT32,
 		.def.u = 150,
-		.min.u = 0,
+		.min.u = 16,
 		.max.u = 5000,
-		.key = "Turbo Medium"});
+		.key = "TurboMedium"});
 	setPE((ProfileEntry){
 		.id = PR_TU_FAST,
 		.type = TYPE_UINT32,
 		.def.u = 50,
-		.min.u = 0,
+		.min.u = 16,
 		.max.u = 5000,
-		.key = "Turbo Fast"});
+		.key = "TurboFast"});
 
 	// Analog
 	setPE((ProfileEntry){
 		.id = PR_AN_MODE_WIDE,
 		.type = TYPE_BOOL,
 		.def.u = 1,
-		.key = "Analogs Wide mode"});
+		.key = "AnalogsWideMode"});
 	setPE((ProfileEntry){
 		.id = PR_AN_LEFT_DEADZONE_X,
 		.type = TYPE_UINT32,
 		.def.u = 30,
 		.min.u = 0,
 		.max.u = 127,
-		.key = "Left Analog deadzone X"});
+		.key = "LeftAnalogDeadzoneX"});
 	setPE((ProfileEntry){
 		.id = PR_AN_LEFT_DEADZONE_Y,
 		.type = TYPE_UINT32,
 		.def.u = 30,
 		.min.u = 0,
 		.max.u = 127,
-		.key = "Left analog deadzone Y"});
+		.key = "LeftAnalogDeadzoneY"});
 	setPE((ProfileEntry){
 		.id = PR_AN_RIGHT_DEADZONE_X,
 		.type = TYPE_UINT32,
 		.def.u = 30,
 		.min.u = 0,
 		.max.u = 127,
-		.key = "Right analog deadzone X"});
+		.key = "RightAnalogDeadzoneX"});
 	setPE((ProfileEntry){
 		.id = PR_AN_RIGHT_DEADZONE_Y,
 		.type = TYPE_UINT32,
 		.def.u = 30,
 		.min.u = 0,
 		.max.u = 127,
-		.key = "Right analog deadzone Y"});
+		.key = "RightAnalogDeadzoneY"});
 
 	// Touch
 	setPE((ProfileEntry){
 		.id = PR_TO_SWAP,
 		.type = TYPE_BOOL,
 		.def.b = false,
-		.key = "Swap touchpads"});
+		.key = "SwapTouchpads"});
 	setPE((ProfileEntry){
 		.id = PR_TO_SWIPE_DURATION,
 		.type = TYPE_UINT32,
 		.def.u = 50,
 		.min.u = 1,
 		.max.u = 1000,
-		.key = "Swipe duration"});
+		.key = "SwipeDuration"});
 	setPE((ProfileEntry){
 		.id = PR_TO_SWIPE_SMART_SENS,
 		.type = TYPE_UINT32,
 		.def.u = 10,
 		.min.u = 1,
 		.max.u =100,
-		.key = "Swipe sensivity"});
+		.key = "SwipeSensivity"});
 	setPE((ProfileEntry){
 		.id = PR_TO_DRAW_POINT,
 		.type = TYPE_BOOL,
 		.def.b = true,
-		.key = "Show emulated touch pointer"});
+		.key = "ShowEmulatedTouchPointer"});
 	setPE((ProfileEntry){
 		.id = PR_TO_DRAW_SWIPE,
 		.type = TYPE_BOOL,
 		.def.b = true,
-		.key = "Show emulated swipe"});
+		.key = "ShowEmulatedSwipe"});
 	setPE((ProfileEntry){
 		.id = PR_TO_DRAW_SMART_SWIPE,
 		.type = TYPE_BOOL,
 		.def.b = true,
-		.key = "Show emulated controlled swipe"});
+		.key = "ShowEmulatedControlledSwipe"});
 	setPE((ProfileEntry){
 		.id = PR_TO_DRAW_NATIVE,
 		.type = TYPE_BOOL,
 		.def.b = false,
-		.key = "Show native touch pointer"});
+		.key = "ShowNativeTouchPointer"});
 
 	// Gyro
 	setPE((ProfileEntry){
@@ -732,103 +732,103 @@ void setDefProfile(){
 		.def.u = 25,
 		.min.u = 1,
 		.max.u = 100,
-		.key = "Gyro sensivity X"});
+		.key = "GyroSensivityX"});
 	setPE((ProfileEntry){
 		.id = PR_GY_SENSITIVITY_Y,
 		.type = TYPE_UINT32,
 		.def.u = 25,
 		.min.u = 1,
 		.max.u = 100,
-		.key = "Gyro sensivity Y"});
+		.key = "GyroSensivityY"});
 	setPE((ProfileEntry){
 		.id = PR_GY_SENSITIVITY_Z,
 		.type = TYPE_UINT32,
 		.def.u = 25,
 		.min.u = 1,
 		.max.u = 100,
-		.key = "Gyro sensivity Z"});
+		.key = "GyroSensivityZ"});
 	setPE((ProfileEntry){
 		.id = PR_GY_DEADZONE_X,
 		.type = TYPE_UINT32,
 		.def.u = 0,
 		.min.u = 0,
 		.max.u = 100,
-		.key = "Gyro deadzone X"});
+		.key = "GyroDeadzoneX"});
 	setPE((ProfileEntry){
 		.id = PR_GY_DEADZONE_Y,
 		.type = TYPE_UINT32,
 		.def.u = 0,
 		.min.u = 0,
 		.max.u = 100,
-		.key = "Gyro deadzone Y"});
+		.key = "GyroDeadzoneY"});
 	setPE((ProfileEntry){
 		.id = PR_GY_DEADZONE_Z,
 		.type = TYPE_UINT32,
 		.def.u = 0,
 		.min.u = 0,
 		.max.u = 100,
-		.key = "Gyro deadzone Z"});
+		.key = "GyroDeadzoneZ"});
 	setPE((ProfileEntry){
 		.id = PR_GY_ANTIDEADZONE_X,
 		.type = TYPE_UINT32,
 		.def.u = 5,
 		.min.u = 0,
 		.max.u = 100,
-		.key = "Gyro antideadzone X"});
+		.key = "GyroAntideadzoneX"});
 	setPE((ProfileEntry){
 		.id = PR_GY_ANTIDEADZONE_Y,
 		.type = TYPE_UINT32,
 		.def.u = 5,
 		.min.u = 0,
 		.max.u = 100,
-		.key = "Gyro antideadzone Y"});
+		.key = "GyroAntideadzoneY"});
 	setPE((ProfileEntry){
 		.id = PR_GY_ANTIDEADZONE_Z,
 		.type = TYPE_UINT32,
 		.def.u = 5,
 		.min.u = 0,
 		.max.u = 100,
-		.key = "Gyro antideadzone Z"});
+		.key = "GyroAntideadzoneZ"});
 	setPE((ProfileEntry){
 		.id = PR_GY_CALIBRATION_X,
 		.type = TYPE_INT32,
 		.def.i = 0,
 		.min.i = -1000,
 		.max.i = 1000,
-		.key = "Gyro calibration X"});
+		.key = "GyroCalibrationX"});
 	setPE((ProfileEntry){
 		.id = PR_GY_CALIBRATION_Y,
 		.type = TYPE_INT32,
 		.def.i = 0,
 		.min.i = -1000,
 		.max.i = 1000,
-		.key = "Gyro calibration Y"});
+		.key = "GyroCalibrationY"});
 	setPE((ProfileEntry){
 		.id = PR_GY_CALIBRATION_Z,
 		.type = TYPE_INT32,
 		.def.i = 0,
 		.min.i = -1000,
 		.max.i = 1000,
-		.key = "Gyro calibration Z"});
+		.key = "GyroCalibrationZ"});
 	setPE((ProfileEntry){
 		.id = PR_GY_DS4_MOTION,
 		.type = TYPE_BOOL,
 		.def.u = 1,
-		.key = "Gyro DS4"});
+		.key = "GyroDS4"});
 	setPE((ProfileEntry){
 		.id = PR_GY_DEADBAND,
 		.type = TYPE_UINT32,
 		.def.u = 2,
 		.min.u = 0,
 		.max.u = 2,
-		.key = "Gyro deadband"});
+		.key = "GyroDeadband"});
 
 	// External controllers
 	setPE((ProfileEntry){
 		.id = PR_CO_SWAP_BUTTONS,
 		.type = TYPE_BOOL,
 		.def.u = false,
-		.key = "Swap side buttons"});
+		.key = "SwapSideButtons"});
 	// setPE((ProfileEntry){
 	// 	.id = PR_CO_FIX_BUTTONS,
 	// 	.type = TYPE_BOOL,
@@ -838,14 +838,14 @@ void setDefProfile(){
 		.id = PR_CO_EMULATE_DS4,
 		.type = TYPE_BOOL,
 		.def.u = false,
-		.key = "Virtual DS4"});
+		.key = "VirtualDS4"});
 
 	// More
 	setPE((ProfileEntry){
 		.id = PR_MO_BLANK_FRAME,
 		.type = TYPE_BOOL,
 		.def.u = 0,
-		.key = "Clear screen"});
+		.key = "ClearScreen"});
 	setPE((ProfileEntry){
 		.id = PR_MO_DELAY_START,
 		.type = TYPE_BOOL,
@@ -853,7 +853,7 @@ void setDefProfile(){
 		.def.u = 10,
 		.min.u = 0,
 		.max.u = 60,
-		.key = "Startup delay"});
+		.key = "StartupDelay"});
 
 	strclone(profile_home.titleid, HOME);
 	memcpy(profile_home.entries, profile.entries, sizeof(ProfileEntry) * PROF__NUM);

@@ -35,7 +35,7 @@ static struct Menu menu_touch = (Menu){
 	.id = MENU_TOUCH_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$F PROFILE > TOUCH", 
-	.footer = 	"$<$>CHANGE $SRESET $;RESET ALL         "
+	.footer = 	"$<$>${$}CHANGE $SRESET $;RESET ALL     "
 				"$CBACK                          $:CLOSE",
 	.onButton = onButton_touch,
 	.onDraw = onDraw_touch,
