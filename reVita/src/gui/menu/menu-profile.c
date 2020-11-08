@@ -46,7 +46,6 @@ void onButton_profiles(uint32_t btn){
 					break;
 				case PROFILE_GLOBAL_LOAD:  
 					profile_loadFromGlobal();
-					isSafeBoot = false;
 					gui_popupShowSuccess("$H Profile loaded", "from Global", TTL_POPUP_SHORT);
 					break;
 				case PROFILE_GLOBAL_RESET: 
@@ -59,7 +58,6 @@ void onButton_profiles(uint32_t btn){
 					break;
 				case PROFILE_SHARED_LOAD:  
 					profile_loadFromShared(); 
-					isSafeBoot = false;
 					gui_popupShowSuccess("$H Profile loaded", "from Shared", TTL_POPUP_SHORT);
 					break;
 				case PROFILE_SHARED_DELETE:

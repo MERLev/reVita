@@ -502,8 +502,8 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, bool* sticky, Sce
 
 		switch (trigger->type){
 			case REMAP_TYPE_BUTTON: 
+				if (!rd.rr->propagate) btn_del(&rd.btnsProp, trigger->param.btn);
 				if (updateStatus(&rd, btn_has(rd.btns, trigger->param.btn))){
-					if (!rd.rr->propagate) btn_del(&rd.btnsProp, trigger->param.btn);
 					addEmu(&rd);
 				}
 				break;
