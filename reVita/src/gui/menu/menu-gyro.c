@@ -7,6 +7,8 @@
 #include "../renderer.h"
 #include "../rendererv.h"
 
+#define COMMAND_TYPE        -4
+
 const char* STR_DEADBAND[3] = {
 	"Disable",
 	"Enable", 
@@ -63,13 +65,9 @@ void onDraw_gyro(uint menuY){
 }
 
 static struct MenuEntry menu_gyro_entries[] = {
+	(MenuEntry){.name = "General", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$t Use DS34Motion", .dataPE = &profile.entries[PR_GY_DS4_MOTION]},
 	(MenuEntry){.name = "$Q Deadband", .dataPE = &profile.entries[PR_GY_DEADBAND]},
-	(MenuEntry){.name = "Calibration", .type = HEADER_TYPE},
-	(MenuEntry){.name = "$E Calibrate now", .type = COMMAND_TYPE, .dataUint = REMAP_SYS_CALIBRATE_MOTION},
-	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_CALIBRATION_X]},
-	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_CALIBRATION_Y]},
-	(MenuEntry){.name = "$E Z Axis", .dataPE = &profile.entries[PR_GY_CALIBRATION_Z]},
 	(MenuEntry){.name = "Sensitivity", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_SENSITIVITY_X]},
 	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_SENSITIVITY_Y]},
@@ -78,10 +76,15 @@ static struct MenuEntry menu_gyro_entries[] = {
 	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_DEADZONE_X]},
 	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_DEADZONE_Y]},
 	(MenuEntry){.name = "$E Z Axis", .dataPE = &profile.entries[PR_GY_DEADZONE_Z]},
-	(MenuEntry){.name = "Anti-Deadzone", .type = HEADER_TYPE},
+	(MenuEntry){.name = "Anti-Deadzone (for $UAnalogs)", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_ANTIDEADZONE_X]},
 	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_ANTIDEADZONE_Y]},
-	(MenuEntry){.name = "$E Z Axis", .dataPE = &profile.entries[PR_GY_ANTIDEADZONE_Z]}};
+	(MenuEntry){.name = "$E Z Axis", .dataPE = &profile.entries[PR_GY_ANTIDEADZONE_Z]},
+	(MenuEntry){.name = "Calibration (for $YFlight/Racing)", .type = HEADER_TYPE},
+	(MenuEntry){.name = "$E Calibrate now", .type = COMMAND_TYPE, .dataUint = REMAP_SYS_CALIBRATE_MOTION},
+	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_CALIBRATION_X]},
+	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_CALIBRATION_Y]},
+	(MenuEntry){.name = "$E Z Axis", .dataPE = &profile.entries[PR_GY_CALIBRATION_Z]}};
 static struct Menu menu_gyro = (Menu){
 	.id = MENU_GYRO_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,

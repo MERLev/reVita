@@ -116,6 +116,7 @@ enum REMAP_ACTION getActionId(char* n){
 enum REMAP_KEY{
 	REMAP_KEY_PROPAGATE = 0,
 	REMAP_KEY_TURBO,
+	REMAP_KEY_STICKY,
 	REMAP_KEY_DISABLED,
 	REMAP_KEY_TRIGGER_ACTION_TYPE,
 	REMAP_KEY_TRIGGER_ACTION,
@@ -133,6 +134,7 @@ enum REMAP_KEY{
 const char* REMAP_KEY_STR[REMAP_KEY__NUM] = {
 	"PROPAGATE",
 	"TURBO",
+	"STICKY",
 	"DISABLED",
 	"TRIGGER_ACTION_TYPE",
 	"TRIGGER_ACTION",
@@ -324,6 +326,7 @@ bool generateINIProfile(Profile* p, char* buff){
 		ini_append(ini, "\n[%s:%i]", SECTION_STR[SECTION_RULE],i);
 		ini_addBool(ini, REMAP_KEY_STR[REMAP_KEY_PROPAGATE], r->propagate);
 		ini_addBool(ini, REMAP_KEY_STR[REMAP_KEY_TURBO], r->turbo);
+		ini_addBool(ini, REMAP_KEY_STR[REMAP_KEY_STICKY], r->sticky);
 		ini_addBool(ini, REMAP_KEY_STR[REMAP_KEY_DISABLED], r->disabled);
 		
 		//Trigger
@@ -415,6 +418,7 @@ bool parseINIProfile(Profile* p, char* buff){
 				switch(getRemapKeyId(ini->name)){
 					case REMAP_KEY_PROPAGATE: rr->propagate = parseBool(ini->val); break;
 					case REMAP_KEY_TURBO: rr->turbo = parseBool(ini->val); break;
+					case REMAP_KEY_STICKY: rr->sticky = parseBool(ini->val); break;
 					case REMAP_KEY_DISABLED:  rr->disabled = parseBool(ini->val); break;
 					case REMAP_KEY_TRIGGER_ACTION_TYPE: 
 						id = getActionTypeId(ini->val);

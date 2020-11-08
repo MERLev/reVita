@@ -30,7 +30,6 @@ void onButton_profiles(uint32_t btn){
 					break;
 				case PROFILE_LOCAL_LOAD:   
 					profile_loadLocal(); 
-					isSafeBoot = false;
 					gui_popupShowSuccess("$H Profile loaded", profile.titleid, TTL_POPUP_SHORT);
 					break;
 				case PROFILE_LOCAL_RESET:  

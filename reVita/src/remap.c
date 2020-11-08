@@ -40,6 +40,7 @@ typedef struct CtrlCache{
 
 // Status of each rule
 enum RULE_STATUS rs[PORTS_NUM][PROC_NUM][REMAP_NUM];
+bool sticky[PORTS_NUM][PROC_NUM][REMAP_NUM];
 TouchPoints2 T_SIZE[SCE_TOUCH_PORT_MAX_NUM];
 
 static TouchPoint 
@@ -102,14 +103,16 @@ struct RemapRule remap_createRemapRule(){
 }
 
 // Update rule status
-bool updateStatus(enum RULE_STATUS* status, bool active){
-	switch (*status){
-		case RS_ACTIVE: if (!active) *status = RS_STOPPED; break;
-		case RS_NONACTIVE: if (active) *status = RS_STARTED; break;
-		case RS_STARTED: *status = active ? RS_ACTIVE : RS_STOPPED; break;
-		case RS_STOPPED: *status = active ? RS_STARTED : RS_NONACTIVE; break;
+bool updateStatus(RuleData* rd, bool active){
+	switch (*rd->status){
+		case RS_ACTIVE: if (!active) *rd->status = RS_STOPPED; break;
+		case RS_NONACTIVE: if (active) *rd->status = RS_STARTED; break;
+		case RS_STARTED: *rd->status = active ? RS_ACTIVE : RS_STOPPED; break;
+		case RS_STOPPED: *rd->status = active ? RS_STARTED : RS_NONACTIVE; break;
 	}
-	return active;
+	if (*rd->status == RS_STARTED && rd->rr->sticky)
+		FLIP(*rd->isSticky);
+	return (!rd->rr->sticky && active) || (rd->rr->sticky && *rd->isSticky);
 }
 
 // Is TouchPoint inside zone
@@ -191,6 +194,7 @@ void removeEmuReportByIdx(EmulatedTouch *et, int idx){
 }
 
 void removeEmuReport(EmulatedTouch *etouch, int port, int ruleIdx){
+	LOG("removeEmuReport()\n");
 	int i = 0;
 	while (i < etouch->num){
 		if (etouch->reports[i].port == port && etouch->reports[i].ruleIdx == ruleIdx){
@@ -245,6 +249,7 @@ void addEmu(RuleData* rd) {
 	switch (emu->type){
 		case REMAP_TYPE_BUTTON: 
 			if (rd->rr->turbo && rd->isTurboTick) break;
+			if (rd->rr->sticky && !rd->isSticky) break;
 			btn_add(&rd->btnsEmu, emu->param.btn);
 			break;
 		case REMAP_TYPE_RIGHT_ANALOG: 
@@ -252,6 +257,7 @@ void addEmu(RuleData* rd) {
 		case REMAP_TYPE_LEFT_ANALOG: 
 		case REMAP_TYPE_LEFT_ANALOG_DIGITAL: 
 			if (rd->rr->turbo && rd->isTurboTick) break;
+			if (rd->rr->sticky && !rd->isSticky) break;
 			;EmulatedStick* stick = (emu->type == REMAP_TYPE_LEFT_ANALOG || emu->type == REMAP_TYPE_LEFT_ANALOG_DIGITAL) ?
 				&rd->analogLeftEmu : &rd->analogRightEmu;
 			switch (emu->action){
@@ -264,8 +270,8 @@ void addEmu(RuleData* rd) {
 			break;
 		case REMAP_TYPE_FRONT_TOUCH_POINT: 
 		case REMAP_TYPE_BACK_TOUCH_POINT:
-			if (rd->port == 1)
-				break;
+			if (rd->port == 1) break;
+			if (rd->rr->sticky && !rd->isSticky) break;
 			;int port = emu->type == REMAP_TYPE_FRONT_TOUCH_POINT ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
 			if (rd->rr->turbo && rd->isTurboTick && emu->action != REMAP_TOUCH_SWIPE 
 					&& emu->action != REMAP_TOUCH_SWIPE_SMART_L && emu->action != REMAP_TOUCH_SWIPE_SMART_R)
@@ -280,7 +286,9 @@ void addEmu(RuleData* rd) {
 				case REMAP_TOUCH_ZONE_BR: 		storeTouchPoint(&et[port], T_BR[port], rd->port, rd->idx); break;
 				case REMAP_TOUCH_CUSTOM:  		storeTouchPoint(&et[port], emu->param.tPoint, rd->port, rd->idx); break;
 				case REMAP_TOUCH_SWIPE:   
-					if (*rd->status == RS_STARTED || (*rd->status == RS_ACTIVE && rd->rr->turbo && rd->isTurboTick)) 
+					if (!rd->rr->sticky && (*rd->status == RS_STARTED || (*rd->status == RS_ACTIVE && rd->rr->turbo && rd->isTurboTick))) 
+						storeTouchSwipe(&et[port], emu->param.tPoints, rd->port, rd->idx); 
+					else if (rd->rr->sticky && (*rd->status == RS_STARTED || (rd->rr->turbo && rd->isTurboTick)))
 						storeTouchSwipe(&et[port], emu->param.tPoints, rd->port, rd->idx); 
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_DPAD:  
@@ -351,12 +359,9 @@ void addEmu(RuleData* rd) {
 			}
 			break;
 		case REMAP_TYPE_SYSACTIONS:
-			if (rd->port == 1)
-				break;
-			if (rd->rr->turbo && rd->isTurboTick)
-				break;
-			if (!rd->rr->turbo && *rd->status != RS_STARTED) 
-				break;
+			if (rd->port == 1) break;
+			if (rd->rr->turbo && rd->isTurboTick) break;
+			if (!rd->rr->turbo && *rd->status != RS_STARTED) break;
 			switch (emu->action){
 				case REMAP_SYS_RESET_SOFT: 		sysactions_softReset(); break;
 				case REMAP_SYS_RESET_COLD: 		sysactions_coldReset(); break;
@@ -374,8 +379,7 @@ void addEmu(RuleData* rd) {
 			}
 			break;
 		case REMAP_TYPE_REMAPSV_ACTIONS:
-			if (rd->port == 1)
-				break;
+			if (rd->port == 1) break;
 			if (*rd->status != RS_STARTED) break;
 			LOG("profile_inc(&profile.entries[%i], 1)\n", emu->action);
 			profile_inc(&profile.entries[emu->action], 1);
@@ -414,13 +418,11 @@ int convertGyroVal(float val, int sensId, int deadId, int antideadId){
 
 void gyroRule(RuleData* rd, float val, int multi, int sign, int sensId, int deadId, int antideadId){
 	if (val * sign > 0){
-		if (updateStatus(rd->status, abs(val * 100) > (int)profile.entries[deadId].v.u)){
+		if (updateStatus(rd, abs(val * 100) > (int)profile.entries[deadId].v.u)){
 			rd->stickposval = convertGyroVal(val * multi * sign, sensId, deadId, antideadId);
 			addEmu(rd);
 		}
 	}
-	if (*rd->status == RS_STOPPED)
-		remEmu(rd);
 }
 
 float calibrate(float val, float add){
@@ -432,7 +434,7 @@ float calibrate(float val, float add){
 	return val;
 }
 
-void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {	
+void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, bool* sticky, int port) {	
 	// Gathering real touch data
 	SceTouchData std[SCE_TOUCH_PORT_MAX_NUM];
 	int retTouch[SCE_TOUCH_PORT_MAX_NUM] = {-1, -1};
@@ -484,53 +486,44 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 		struct RemapAction* trigger = &rd.rr->trigger;
 		rd.stickposval = 127;
 		rd.status = &statuses[i];
+		rd.isSticky = &sticky[i];
 
 		switch (trigger->type){
 			case REMAP_TYPE_BUTTON: 
-				if (updateStatus(rd.status, btn_has(rd.btns, trigger->param.btn))){
+				if (updateStatus(&rd, btn_has(rd.btns, trigger->param.btn))){
 					if (!rd.rr->propagate) btn_del(&rd.btnsProp, trigger->param.btn);
 					addEmu(&rd);
 				}
-				if (*rd.status == RS_STOPPED)
-					remEmu(&rd);
 				break;
 			case REMAP_TYPE_LEFT_ANALOG: 
 				switch(trigger->action){
 					case REMAP_ANALOG_LEFT: 
 						if (!rr->propagate) rd.analogLeftProp.left = 0;
-						if (updateStatus(rd.status, ctrl->lx <= 127 - profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)){
+						if (updateStatus(&rd, ctrl->lx <= 127 - profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)){
 							rd.stickposval = 127 - ctrl->lx;
 							addEmu(&rd);
 						}
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_RIGHT: 
 						if (!rr->propagate) rd.analogLeftProp.right = 0;
-						if (updateStatus(rd.status, ctrl->lx > 127 + profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)){
+						if (updateStatus(&rd, ctrl->lx > 127 + profile.entries[PR_AN_LEFT_DEADZONE_X].v.u)){
 							rd.stickposval = ctrl->lx - 127;
 							addEmu(&rd);
 						}
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_UP: 
 						if (!rr->propagate) rd.analogLeftProp.up = 0;
-						if (updateStatus(rd.status, ctrl->ly <= 127 - profile.entries[PR_AN_LEFT_DEADZONE_Y].v.u)){
+						if (updateStatus(&rd, ctrl->ly <= 127 - profile.entries[PR_AN_LEFT_DEADZONE_Y].v.u)){
 							rd.stickposval = 127 - ctrl->ly;
 							addEmu(&rd);
 						} 
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_DOWN: 
 						if (!rr->propagate) rd.analogLeftProp.down = 0;
-						if (updateStatus(rd.status, ctrl->ly > 127 + profile.entries[PR_AN_LEFT_DEADZONE_Y].v.u)){
+						if (updateStatus(&rd, ctrl->ly > 127 + profile.entries[PR_AN_LEFT_DEADZONE_Y].v.u)){
 							rd.stickposval = ctrl->ly - 127;
 							addEmu(&rd);
 						} 
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
 						break;
 					default: break;
 				}
@@ -539,39 +532,31 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 				switch(trigger->action){
 					case REMAP_ANALOG_LEFT: 
 						if (!rr->propagate) rd.analogRightProp.left = 0;
-						if (updateStatus(rd.status, ctrl->rx <= 127 - profile.entries[PR_AN_RIGHT_DEADZONE_X].v.u)){
+						if (updateStatus(&rd, ctrl->rx <= 127 - profile.entries[PR_AN_RIGHT_DEADZONE_X].v.u)){
 							rd.stickposval = 127 - ctrl->rx;
 							addEmu(&rd);
 						} 
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_RIGHT: 
 						if (!rr->propagate) rd.analogRightProp.right = 0;
-						if (updateStatus(rd.status, ctrl->rx > 127 + profile.entries[PR_AN_RIGHT_DEADZONE_X].v.u)){
+						if (updateStatus(&rd, ctrl->rx > 127 + profile.entries[PR_AN_RIGHT_DEADZONE_X].v.u)){
 							rd.stickposval = ctrl->rx - 127;
 							addEmu(&rd);
 						} 
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_UP: 
 						if (!rr->propagate) rd.analogRightProp.up = 0;
-						if (updateStatus(rd.status, ctrl->ry <= 127 - profile.entries[PR_AN_RIGHT_DEADZONE_Y].v.u)){
+						if (updateStatus(&rd, ctrl->ry <= 127 - profile.entries[PR_AN_RIGHT_DEADZONE_Y].v.u)){
 							rd.stickposval = 127 - ctrl->ry;
 							addEmu(&rd);
 						} 
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
 						break;
 					case REMAP_ANALOG_DOWN: 
 						if (!rr->propagate) rd.analogRightProp.down = 0;
-						if (updateStatus(rd.status, ctrl->ry > 127 + profile.entries[PR_AN_RIGHT_DEADZONE_Y].v.u)){
+						if (updateStatus(&rd, ctrl->ry > 127 + profile.entries[PR_AN_RIGHT_DEADZONE_Y].v.u)){
 							rd.stickposval = ctrl->ry - 127;
 							addEmu(&rd);
 						} 
-						if (*rd.status == RS_STOPPED)
-							remEmu(&rd);
 						break;
 					default: break;
 				}
@@ -604,11 +589,9 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 						found = true;
 					}
 				}
-				if (updateStatus(rd.status, found)) {
+				if (updateStatus(&rd, found)) {
 					addEmu(&rd);
 				} 
-				if (*rd.status == RS_STOPPED)
-					remEmu(&rd);
 				break;
 			case REMAP_TYPE_GYROSCOPE: 
 				if (gyroRet != 0) break;
@@ -674,6 +657,10 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, int port) {
 				}
 				break;
 			default: break;
+		}
+		if ((!rd.rr->sticky && *rd.status == RS_STOPPED) || 
+				(rd.rr->sticky && *rd.status == RS_STARTED && !*rd.isSticky)){
+			remEmu(&rd);
 		}
 	}
 
@@ -800,7 +787,7 @@ void remap_ctrl_updateBuffers(int port, SceCtrlData *ctrl, bool isPositiveLogic,
     }
 
 	// Apply remap
-	applyRemap(&cacheCtrl[port][isShell].buffers[idx], &rs[port][0][0], port);
+	applyRemap(&cacheCtrl[port][isShell].buffers[idx], &rs[port][0][0], &sticky[port][0][0], port);
 
 	// Fix screenshot propagation when sys buttons hack is active
 	if (!isShell)
@@ -977,8 +964,10 @@ void remap_resetBuffers(){
 	for (int i = 0; i < PORTS_NUM; i++){
 		for (int j = 0; j < PROC_NUM; j++){
 			cacheCtrl[i][j].num = 0;
-			for (int k = 0; k < REMAP_NUM; k++)
+			for (int k = 0; k < REMAP_NUM; k++){
 				rs[i][j][k] = RS_NONACTIVE;
+				sticky[i][j][k] = false;
+			}
 		}
 	}
 	for (int i = 0; i < SCE_TOUCH_PORT_MAX_NUM; i++){

@@ -8,6 +8,8 @@
 #include "../rendererv.h"
 #include "../gui.h"
 
+#define NEW_RULE_IDX        -3
+
 struct RemapRule ui_ruleEdited; //Rule currently edited
 int ui_ruleEditedIdx; //Index of Rule currently edited
 
@@ -137,9 +139,15 @@ void onButton_remap(uint32_t btn){
 				gui_menu->onBuild(gui_menu);
 			}
 			break;
-		case SCE_CTRL_SELECT:
+		case SCE_CTRL_R1:
 			if (gui_getEntry()->dataUint != NEW_RULE_IDX){
-				profile.remaps[gui_getEntry()->dataUint].turbo = !profile.remaps[gui_getEntry()->dataUint].turbo;
+				FLIP(profile.remaps[gui_getEntry()->dataUint].turbo);
+				gui_menu->onBuild(gui_menu);
+			}
+			break;
+		case SCE_CTRL_L1:
+			if (gui_getEntry()->dataUint != NEW_RULE_IDX){
+				FLIP(profile.remaps[gui_getEntry()->dataUint].sticky);
 				gui_menu->onBuild(gui_menu);
 			}
 			break;
@@ -288,10 +296,13 @@ void onDraw_remap(uint menuY){
 			}
 			str[0] = '\0';
 			generateRemapActionName(str, &rr->emu);
+			str[30 - len/CHA_W] = '\0';
 			gui_setColorExt(i == gui_menu->idx, true, rr->disabled);
 			rendererv_drawString(L_1 + len + 3*CHA_W, y, str);
 			if (rr->turbo)
 				rendererv_drawString(UI_WIDTH - 4*CHA_W, y, "$M");
+			if (rr->sticky)
+				rendererv_drawString(UI_WIDTH - 6*CHA_W, y, "$m");
 		}
 	}
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx) / (gui_menu->num - 1));
@@ -305,8 +316,8 @@ static struct Menu menu_remap = (Menu){
 	.id = MENU_REMAP_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$X PROFILE > REMAP RULES", 
-	.footer = 	"$XSELECT $SDISABLE $TPROPAGATE $;TURBO "
-				"$:REMOVE                         $CBACK",
+	.footer = 	"$XSELECT $SDISABLE $TPROPAGATE $:REMOVE"
+				"${STICKY $}TURBO                 $CBACK",
 	.onButton = onButton_remap,
 	.onDraw = onDraw_remap,
 	.onBuild = onBuild_remap,
@@ -477,16 +488,16 @@ static struct Menu menu_remap_emu_sysactions = (Menu){
 	.entries = menu_remap_emu_sysactions_entries};
 
 static struct MenuEntry menu_remap_emu_remapsv_entries[] = {
-	(MenuEntry){.name = "Toggle analogs Wide mode", 	.icn = ICON_LS_UP,			.dataUint = PR_AN_MODE_WIDE},
-	(MenuEntry){.name = "Draw emulated Touch Pointer", 	.icn = ICON_TOUCH,			.dataUint = PR_TO_DRAW_POINT},
-	(MenuEntry){.name = "Draw emulated Touch Swipe", 	.icn = ICON_SWIPE,			.dataUint = PR_TO_DRAW_SWIPE},
-	(MenuEntry){.name = "Draw emulated Smart Swipe", 	.icn = ICON_SWIPE,			.dataUint = PR_TO_DRAW_SMART_SWIPE},
-	(MenuEntry){.name = "Draw native Touch", 			.icn = ICON_TOUCH,			.dataUint = PR_TO_DRAW_NATIVE},
-	(MenuEntry){.name = "Swap touchpads", 				.icn = ICON_BT,				.dataUint = PR_TO_SWAP},
-	(MenuEntry){.name = "Swap $[$]<>${$}", 				.icn = ICON_BTN_DS4TOUCH,	.dataUint = PR_CO_SWAP_BUTTONS},
-	(MenuEntry){.name = "Vita as virtual DS4", 			.icn = ICON_BTN_DS4TOUCH,	.dataUint = PR_CO_EMULATE_DS4},
-	(MenuEntry){.name = "Toggle DS4Motion", 			.icn = ICON_GY_ROLLLEFT,	.dataUint = PR_GY_DS4_MOTION},
-	(MenuEntry){.name = "Toggle Deadband", 				.icn = ICON_GY_ROLLRIGHT,	.dataUint = PR_GY_DEADBAND}};
+	(MenuEntry){.name = "Analogs Wide mode", 	.icn = ICON_LS_UP,			.dataUint = PR_AN_MODE_WIDE},
+	(MenuEntry){.name = "Draw Touch", 			.icn = ICON_TOUCH,			.dataUint = PR_TO_DRAW_POINT},
+	(MenuEntry){.name = "Draw Swipe", 			.icn = ICON_SWIPE,			.dataUint = PR_TO_DRAW_SWIPE},
+	(MenuEntry){.name = "Draw Smart Swipe", 	.icn = ICON_SWIPE,			.dataUint = PR_TO_DRAW_SMART_SWIPE},
+	(MenuEntry){.name = "Draw Touch native", 	.icn = ICON_TOUCH,			.dataUint = PR_TO_DRAW_NATIVE},
+	(MenuEntry){.name = "Swap touchpads", 		.icn = ICON_BT,				.dataUint = PR_TO_SWAP},
+	(MenuEntry){.name = "Swap $[$]<>${$}", 		.icn = ICON_BTN_DS4TOUCH,	.dataUint = PR_CO_SWAP_BUTTONS},
+	(MenuEntry){.name = "Virtual DS4", 			.icn = ICON_BTN_DS4TOUCH,	.dataUint = PR_CO_EMULATE_DS4},
+	(MenuEntry){.name = "DS4Motion", 			.icn = ICON_GY_ROLLLEFT,	.dataUint = PR_GY_DS4_MOTION},
+	(MenuEntry){.name = "Deadband", 			.icn = ICON_GY_ROLLRIGHT,	.dataUint = PR_GY_DEADBAND}};
 static struct Menu menu_remap_emu_remapsv = (Menu){
 	.id = MENU_REMAP_EMU_REMAPSV_ID, 
 	.name = "$! REMAPSV2 CONFIG OPTIONS",

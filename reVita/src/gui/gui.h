@@ -15,9 +15,6 @@
 #define L_2    				36
 
 #define HEADER_TYPE         -1
-#define TEXT_IDX            -2
-#define NEW_RULE_IDX        -3
-#define COMMAND_TYPE        -4
 
 #define TTL_POPUP_SHORT		2##000##000
 #define TTL_POPUP_LONG		2##000##000

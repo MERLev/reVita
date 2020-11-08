@@ -98,6 +98,7 @@ typedef struct RemapRule{
 	RemapAction emu;
 	bool propagate;
     bool turbo;
+    bool sticky;
 	bool disabled;
 }Rule;
 
@@ -115,6 +116,7 @@ typedef struct RuleData{
 	bool isTurboTick;
     int port;
     int idx;
+    bool* isSticky;
 }RuleData;
 
 typedef struct EmulatedTouchEvent{
