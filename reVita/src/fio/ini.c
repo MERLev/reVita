@@ -78,6 +78,8 @@ char* ini_nextEntry(INI_READER* ini){
         char key[ENTRY_NAME_SIZE];
         char value[ENTRY_VALUE_SIZE];
         int num = sscanf (ini->_.line, "%[^=]=%s", key, value);
+        //ToDo sscanf seems to be broken, it should work
+        // int num = sscanf (ini->_.line, "%[^=]=%[^;#]", key, value);
         if (num >= 1){
             strcpy(ini->name, key);
             strcpy(ini->val, num == 2 ? value : "");

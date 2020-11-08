@@ -194,7 +194,7 @@ void removeEmuReportByIdx(EmulatedTouch *et, int idx){
 }
 
 void removeEmuReport(EmulatedTouch *etouch, int port, int ruleIdx){
-	LOG("removeEmuReport()\n");
+	
 	int i = 0;
 	while (i < etouch->num){
 		if (etouch->reports[i].port == port && etouch->reports[i].ruleIdx == ruleIdx){
@@ -381,7 +381,6 @@ void addEmu(RuleData* rd) {
 		case REMAP_TYPE_REMAPSV_ACTIONS:
 			if (rd->port == 1) break;
 			if (*rd->status != RS_STARTED) break;
-			LOG("profile_inc(&profile.entries[%i], 1)\n", emu->action);
 			profile_inc(&profile.entries[emu->action], 1);
 			showRemapActionPopup(&profile.entries[emu->action]);
 			break;

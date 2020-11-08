@@ -14,14 +14,6 @@ void onButton_main(uint32_t btn){
 			break;
 		case SCE_CTRL_CIRCLE:
 			gui_close();
-			if (settings[SETT_AUTOSAVE].v.b && !isSafeBoot){
-				profile_save(titleid);
-				if (settings[POP_SAVE].v.b)
-					gui_popupShowSuccess("$G Profile saved", titleid, TTL_POPUP_SHORT);
-			}
-			if (settings[SETT_AUTOSAVE].v.b && isSafeBoot){
-				gui_popupShowWarning("$! Safe Mode", "Profile autosaving is disabled.", TTL_POPUP_SHORT);
-			}
 			remap_setup();
 			break;
 		case SCE_CTRL_SELECT:
@@ -42,7 +34,7 @@ void onButton_main_submenu(uint32_t btn){
 }
 
 void onDrawHeader_main(){
-	rendererv_drawStringF(L_0, 3, "     reVita v.%s", VERSION);
+	rendererv_drawStringF(L_0, 3, "      reVita %s by Mer1e", VERSION);
 	gui_drawStringFRight(0, 2, titleid);
 	if (settings[SETT_REMAP_ENABLED].v.b){
 		rendererv_setColor(theme[COLOR_SUCCESS]);
@@ -65,7 +57,7 @@ static struct Menu menu_main_profile = (Menu){
 	.id = MENU_MAIN_PROFILE_ID, 
 	.parent = MENU_MAIN_ID,
 	.name = "$X PROFILE",
-	.footer = 	"$XSELECT                         $CBACK",
+	.footer = 	"$XSELECT $CBACK                 $:CLOSE",
 	.onButton = onButton_main_submenu,
 	.num = SIZE(menu_main_profile_entries), 
 	.entries = menu_main_profile_entries};
@@ -78,7 +70,7 @@ static struct Menu menu_main_settings = (Menu){
 	.id = MENU_MAIN_SETTINGS_ID, 
 	.parent = MENU_MAIN_ID,
 	.name = "$| SETTINGS",
-	.footer = 	"$XSELECT                         $CBACK",
+	.footer = 	"$XSELECT $CBACK                 $:CLOSE",
 	.onButton = onButton_main_submenu,
 	.num = SIZE(menu_main_settings_entries), 
 	.entries = menu_main_settings_entries};
@@ -90,7 +82,7 @@ static struct Menu menu_main_developer = (Menu){
 	.id = MENU_MAIN_DEVELOPER_ID, 
 	.parent = MENU_MAIN_ID,
 	.name = "$b DEVELOPER",
-	.footer = 	"$XSELECT                         $CBACK",
+	.footer = 	"$XSELECT $CBACK                 $:CLOSE",
 	.onButton = onButton_main_submenu,
 	.num = SIZE(menu_main_developer_entries), 
 	.entries = menu_main_developer_entries};
@@ -104,7 +96,7 @@ static struct MenuEntry menu_main_entries[] = {
 static struct Menu menu_main = (Menu){
 	.id = MENU_MAIN_ID, 
 	.name = "$P MAIN MENU",
-	.footer = 	"$XSELECT $;TOGGLE $CCLOSE      by Mer1e",
+	.footer = 	"$XSELECT $;TOGGLE             $C$:CLOSE",
 	.onButton = onButton_main,
 	.onDrawHeader = onDrawHeader_main,
 	.num = SIZE(menu_main_entries), 

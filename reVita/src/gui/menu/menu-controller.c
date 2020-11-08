@@ -18,7 +18,7 @@ char* getControllerName(int id){
 
 void onButton_controller(uint32_t btn){
 	switch (btn) {
-		case SCE_CTRL_START: profile_resetController(); break;
+		case SCE_CTRL_SELECT: profile_resetController(); break;
 		default: onButton_genericEntries(btn); break;
 	}
 }
@@ -55,7 +55,8 @@ static struct Menu menu_controller = (Menu){
 	.id = MENU_CONTROLLER_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$t PROFILE > CONTROLLER", 
-	.footer = 	"$<$>CHANGE $SRESET $:RESET ALL   $CBACK",
+	.footer = 	"$<$>CHANGE $SRESET $;RESET ALL         "
+				"$CBACK                          $:CLOSE",
 	.onButton = onButton_controller,
 	.onDraw = onDraw_controller,
 	.num = SIZE(menu_controllers_entries), 

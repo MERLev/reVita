@@ -8,7 +8,7 @@
 
 void onButton_analog(uint32_t btn){
 	switch (btn) {
-		case SCE_CTRL_START: profile_resetAnalog(); break;
+		case SCE_CTRL_SELECT: profile_resetAnalog(); break;
 		default: onButton_genericEntries(btn);
 	}
 }
@@ -33,7 +33,8 @@ static struct Menu menu_analog = (Menu){
 	.id = MENU_ANALOG_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$u PROFILE > ANALOG STICKS", 
-	.footer = 	"$<$>CHANGE $SRESET $:RESET ALL   $CBACK",
+	.footer = 	"$<$>CHANGE $SRESET $;RESET ALL         "
+				"$CBACK                          $:CLOSE",
 	.onButton = onButton_analog,
 	.onDraw = onDraw_analog,
 	.num = SIZE(menu_analog_entries), 

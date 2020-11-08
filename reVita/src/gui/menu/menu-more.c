@@ -8,7 +8,7 @@
 
 void onButton_more(uint32_t btn){
 	switch (btn) {
-		case SCE_CTRL_START: profile_resetMore(); break;
+		case SCE_CTRL_SELECT: profile_resetMore(); break;
 		default: onButton_genericEntries(btn);
 	}
 }
@@ -29,7 +29,8 @@ static struct Menu menu_more = (Menu){
 	.id = MENU_MORE_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$| PROFILE > MORE", 
-	.footer = 	"$<$>CHANGE $SRESET $:RESET ALL   $CBACK",
+	.footer = 	"$<$>CHANGE $SRESET $;RESET ALL         "
+				"$CBACK                          $:CLOSE",
 	.onButton = onButton_more,
 	.onDraw = onDraw_more,
 	.num = SIZE(menu_more_entries), 

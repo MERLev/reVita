@@ -151,7 +151,7 @@ void onButton_remap(uint32_t btn){
 				gui_menu->onBuild(gui_menu);
 			}
 			break;
-		case SCE_CTRL_START:
+		case SCE_CTRL_SELECT:
 			if (gui_getEntry()->dataUint != NEW_RULE_IDX){
 				profile_removeRemapRule(gui_getEntry()->dataUint);
 				gui_menu->onBuild(gui_menu);
@@ -288,10 +288,10 @@ void onDraw_remap(uint menuY){
 			int len = strlen(str) * CHA_W;
 			rendererv_drawString(L_1, y += CHA_H, str);
 			if (!rr->disabled){
-				renderer_setColor(theme[COLOR_DEFAULT]);
+				rendererv_setColor(theme[COLOR_DEFAULT]);
 				rendererv_drawString(L_1 + len + CHA_W, y, ">");
 			} else {
-				renderer_setColor(theme[COLOR_DANGER]);
+				rendererv_setColor(theme[COLOR_DANGER]);
 				rendererv_drawString(L_1 + len + CHA_W, y, "X");
 			}
 			str[0] = '\0';
@@ -316,7 +316,7 @@ static struct Menu menu_remap = (Menu){
 	.id = MENU_REMAP_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$X PROFILE > REMAP RULES", 
-	.footer = 	"$XSELECT $SDISABLE $TPROPAGATE $:REMOVE"
+	.footer = 	"$XSELECT $SDISABLE $TPROPAGATE $;REMOVE"
 				"${STICKY $}TURBO                 $CBACK",
 	.onButton = onButton_remap,
 	.onDraw = onDraw_remap,
@@ -335,7 +335,7 @@ static struct Menu menu_remap_trigger_type = (Menu){
 	.id = MENU_REMAP_TRIGGER_TYPE_ID, 
 	.parent = MENU_REMAP_ID,
 	.name = "SELECT TRIGGER", 
-	.footer = 	"$XSELECT                         $CBACK",
+	.footer = 	"$XSELECT                 $CBACK $:CLOSE",
 	.onButton = onButton_remapTriggerType,
 	.num = SIZE(menu_remap_trigger_type_entries),
 	.entries = menu_remap_trigger_type_entries};
@@ -354,7 +354,7 @@ static struct Menu menu_remap_trigger_front_touch = (Menu){
 	.id = MENU_REMAP_TRIGGER_TOUCH_FRONT_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.name = "$F SELECT TOUCH POINT", 
-	.footer = 	"$XSELECT                         $CBACK",
+	.footer = 	"$XSELECT                 $CBACK $:CLOSE",
 	.onButton = onButton_remapTriggerTouch,
 	.num = SIZE(menu_remap_trigger_front_touch_entries),
 	.entries = menu_remap_trigger_front_touch_entries};
@@ -373,7 +373,7 @@ static struct Menu menu_remap_trigger_back_touch = (Menu){
 	.id = MENU_REMAP_TRIGGER_TOUCH_BACK_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.name = "$B SELECT TOUCH POINT", 
-	.footer = 	"$XSELECT                         $CBACK",
+	.footer = 	"$XSELECT                 $CBACK $:CLOSE",
 	.onButton = onButton_remapTriggerTouch,
 	.num = SIZE(menu_remap_trigger_back_touch_entries),
 	.entries = menu_remap_trigger_back_touch_entries};
@@ -397,7 +397,7 @@ static struct Menu menu_remap_trigger_gyro = (Menu){
 	.id = MENU_REMAP_TRIGGER_GYRO_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.name = "$E SELECT GYRO MOVEMENT", 
-	.footer = 	"$XSELECT                         $CBACK",
+	.footer = 	"$XSELECT                 $CBACK $:CLOSE",
 	.onButton = onButton_remapTriggerGyro,
 	.num = SIZE(menu_remap_trigger_gyro_entries),
 	.entries = menu_remap_trigger_gyro_entries};
@@ -417,7 +417,7 @@ static struct Menu menu_remap_emu_type = (Menu){
 	.id = MENU_REMAP_EMU_TYPE_ID, 
 	.parent = MENU_REMAP_ID,
 	.name = "SELECT EMU", 
-	.footer = 	"$XSELECT                         $CBACK",
+	.footer = 	"$XSELECT                 $CBACK $:CLOSE",
 	.onButton = onButton_remapEmuType,
 	.num = SIZE(menu_remap_emu_type_entries), 
 	.entries = menu_remap_emu_type_entries};
@@ -439,7 +439,7 @@ static struct Menu menu_remap_emu_touch_front = (Menu){
 	.id = MENU_REMAP_EMU_TOUCH_FRONT_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
 	.name = "$F SELECT TOUCH POINT", 
-	.footer = 	"$XSELECT                         $CBACK",
+	.footer = 	"$XSELECT                 $CBACK $:CLOSE",
 	.onButton = onButton_remapEmuTouch,
 	.num = SIZE(menu_remap_emu_touch_front_entries),
 	.entries = menu_remap_emu_touch_front_entries};
@@ -461,7 +461,7 @@ static struct Menu menu_remap_emu_touch_back = (Menu){
 	.id = MENU_REMAP_EMU_TOUCH_BACK_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
 	.name = "$B SELECT TOUCH POINT", 
-	.footer = 	"$XSELECT                         $CBACK",
+	.footer = 	"$XSELECT                 $CBACK $:CLOSE",
 	.onButton = onButton_remapEmuTouch,
 	.num = SIZE(menu_remap_emu_touch_back_entries),
 	.entries = menu_remap_emu_touch_back_entries};
@@ -482,7 +482,7 @@ static struct MenuEntry menu_remap_emu_sysactions_entries[] = {
 static struct Menu menu_remap_emu_sysactions = (Menu){
 	.id = MENU_REMAP_EMU_SYSACTIONS_ID, 
 	.name = "$! SYSTEM ACTIONS",
-	.footer = 	"$XSELECT                         $CBACK",
+	.footer = 	"$XSELECT                 $CBACK $:CLOSE",
 	.onButton = onButton_remapEmuActions,
 	.num = SIZE(menu_remap_emu_sysactions_entries),
 	.entries = menu_remap_emu_sysactions_entries};
@@ -501,7 +501,7 @@ static struct MenuEntry menu_remap_emu_remapsv_entries[] = {
 static struct Menu menu_remap_emu_remapsv = (Menu){
 	.id = MENU_REMAP_EMU_REMAPSV_ID, 
 	.name = "$! REMAPSV2 CONFIG OPTIONS",
-	.footer = 	"$XSELECT                         $CBACK",
+	.footer = 	"$XSELECT                 $CBACK $:CLOSE",
 	.onButton = onButton_remapEmuActions,
 	.num = SIZE(menu_remap_emu_remapsv_entries),
 	.entries = menu_remap_emu_remapsv_entries};

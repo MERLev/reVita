@@ -17,7 +17,7 @@ const char* STR_DEADBAND[3] = {
 
 void onButton_gyro(uint32_t btn){
 	switch (btn) {
-		case SCE_CTRL_START: profile_resetGyro(); break;
+		case SCE_CTRL_SELECT: profile_resetGyro(); break;
 		case SCE_CTRL_CROSS:
 			if (gui_getEntry()->type == COMMAND_TYPE 
 					&& gui_getEntry()->dataUint == REMAP_SYS_CALIBRATE_MOTION){
@@ -89,7 +89,8 @@ static struct Menu menu_gyro = (Menu){
 	.id = MENU_GYRO_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$Q PROFILE > GYROSCOPE", 
-	.footer = 	"$<$>CHANGE $SRESET $:RESET ALL   $CBACK",
+	.footer = 	"$<$>CHANGE $SRESET $;RESET ALL         "
+				"$CBACK                          $:CLOSE",
 	.onButton = onButton_gyro,
 	.onDraw = onDraw_gyro,
 	.num = SIZE(menu_gyro_entries), 

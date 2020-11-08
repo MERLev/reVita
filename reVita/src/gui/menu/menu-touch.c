@@ -8,7 +8,7 @@
 
 void onButton_touch(uint32_t btn){
 	switch (btn) {
-		case SCE_CTRL_START: profile_resetTouch(); break;
+		case SCE_CTRL_SELECT: profile_resetTouch(); break;
 		default: onButton_genericEntries(btn);
 	}
 }
@@ -35,7 +35,8 @@ static struct Menu menu_touch = (Menu){
 	.id = MENU_TOUCH_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$F PROFILE > TOUCH", 
-	.footer = 	"$<$>CHANGE $SRESET $:RESET ALL   $CBACK",
+	.footer = 	"$<$>CHANGE $SRESET $;RESET ALL         "
+				"$CBACK                          $:CLOSE",
 	.onButton = onButton_touch,
 	.onDraw = onDraw_touch,
 	.num = SIZE(menu_touch_entries), 

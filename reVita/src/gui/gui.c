@@ -50,6 +50,27 @@ const char* STR_SWITCH[2] = {
 	"$@$#", "$~$`"
 };
 
+enum MENU_ID whitelistedMenus[] = {
+	MENU_MAIN_ID,
+	MENU_MAIN_PROFILE_ID,
+	MENU_MAIN_SETTINGS_ID,
+	MENU_MAIN_DEVELOPER_ID,
+	MENU_ANALOG_ID,
+	MENU_TOUCH_ID,
+	MENU_GYRO_ID,
+	MENU_CONTROLLER_ID,
+	MENU_MORE_ID,
+	MENU_HOKS_ID,
+	MENU_DEBUG_BUTTONS_ID,
+	MENU_SETT_ID,
+	MENU_POPUP_ID,
+	MENU_HOTKEYS_ID,
+	MENU_CREDITS_ID,
+	MENU_PROFILE_ID,
+	MENU_SAVEMANAGER_ID,
+	MENU_REMAP_ID
+};
+
 Menu* menus[MENU_ID__NUM];
 Menu* gui_menu;
 
@@ -68,6 +89,13 @@ static int popupTTL = 0;
 static SceInt64 popupTick = -1;
 static uint32_t popupColor;
 static bool isPopupActive = false;
+
+bool isMenuAllowed(){
+	for (int i = 0; i < SIZE(whitelistedMenus); i++)
+		if (gui_menu->id == whitelistedMenus[i])
+			return true;
+	return false;
+}
 
 struct MenuEntry* gui_getEntry(){
 	return &gui_menu->entries[gui_menu->idx % gui_menu->num];
@@ -394,6 +422,7 @@ void onButton_generic(uint32_t btn){
 		case SCE_CTRL_DOWN: gui_nextEntry(); break;
 		case SCE_CTRL_UP: gui_prevEntry(); break;
 		case SCE_CTRL_CIRCLE: gui_openMenuParent(); break;
+		case SCE_CTRL_START: gui_close(); break;
 	}
 }
 
@@ -543,7 +572,7 @@ void gui_open(const SceDisplayFrameBuf *pParam){
 		return;
 	}
 	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);
-	gui_menu = menus[MENU_MAIN_ID]; //&menu_main;
+	// gui_menu = menus[MENU_MAIN_ID]; //&menu_main;
 	gui_setIdx(0);
 	gui_isOpen = true;
 	tickUIOpen = tickMenuOpen = ksceKernelGetSystemTimeWide();
@@ -558,13 +587,27 @@ void gui_close(){
 	sync();
 	LOGF("gui_close()\n");
 	gui_isBlankFrame = (profile.entries[PR_MO_BLANK_FRAME].v.b);
+	if (!isMenuAllowed())
+		gui_menu = menus[MENU_MAIN_ID];
     ksceKernelUnlockMutex(mutex_gui_uid, 1);
+	
+	// Autosave
+	if (settings[SETT_AUTOSAVE].v.b){
+		if (isSafeBoot){
+			gui_popupShowWarning("$! Safe Mode", "Profile autosaving is disabled.", TTL_POPUP_SHORT);
+		} else {
+			profile_save(titleid);
+			if (settings[POP_SAVE].v.b)
+				gui_popupShowSuccess("$G Profile saved", titleid, TTL_POPUP_SHORT);
+		}
+	}
 }
 
 void gui_init(){
 	memset(&btns, 0, sizeof(btns));
     mutex_gui_uid = ksceKernelCreateMutex("reVita_mutex_gui", 0, 0, NULL);
-	
+	gui_menu = menus[MENU_MAIN_ID]; //&menu_main;
+
     renderer_init();
     rendererv_init(UI_WIDTH, UI_HEIGHT);
 
