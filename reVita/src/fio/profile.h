@@ -10,7 +10,10 @@
 #define REMAP_NUM                   25
 
 enum PROF_ID{
-	PR_AN_LEFT_DEADZONE_X = 0,
+	PR_TU_SLOW = 0,
+	PR_TU_MEDIUM,
+	PR_TU_FAST,
+	PR_AN_LEFT_DEADZONE_X,
 	PR_AN_LEFT_DEADZONE_Y,
 	PR_AN_RIGHT_DEADZONE_X,
 	PR_AN_RIGHT_DEADZONE_Y,
@@ -90,6 +93,7 @@ void profile_removeRemapRule(uint8_t idx);
 void profile_resetRemapRules();
 bool profile_isDef(ProfileEntry* pe);
 void profile_resetEntry(ProfileEntry* entry);
+void profile_resetTurbo();
 void profile_resetAnalog();
 void profile_resetTouch();
 void profile_resetGyro();

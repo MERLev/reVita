@@ -256,6 +256,11 @@ void profile_resetRemapRules(){
 	profile.remapsNum = 0;
 }
 
+void profile_resetTurbo(){
+	profile_resetEntryById(PR_TU_SLOW);
+	profile_resetEntryById(PR_TU_MEDIUM);
+	profile_resetEntryById(PR_TU_FAST);
+}
 void profile_resetAnalog(){
 	profile_resetEntryById(PR_AN_LEFT_DEADZONE_X);
 	profile_resetEntryById(PR_AN_LEFT_DEADZONE_Y);
@@ -325,7 +330,7 @@ bool generateINIProfile(Profile* p, char* buff){
 		ini_addNL(ini);
 		ini_append(ini, "\n[%s:%i]", SECTION_STR[SECTION_RULE],i);
 		ini_addBool(ini, REMAP_KEY_STR[REMAP_KEY_PROPAGATE], r->propagate);
-		ini_addBool(ini, REMAP_KEY_STR[REMAP_KEY_TURBO], r->turbo);
+		ini_addInt(ini, REMAP_KEY_STR[REMAP_KEY_TURBO], r->turbo);
 		ini_addBool(ini, REMAP_KEY_STR[REMAP_KEY_STICKY], r->sticky);
 		ini_addBool(ini, REMAP_KEY_STR[REMAP_KEY_DISABLED], r->disabled);
 		
@@ -417,7 +422,7 @@ bool parseINIProfile(Profile* p, char* buff){
 				struct RemapRule* rr = &p->remaps[ruleId];
 				switch(getRemapKeyId(ini->name)){
 					case REMAP_KEY_PROPAGATE: rr->propagate = parseBool(ini->val); break;
-					case REMAP_KEY_TURBO: rr->turbo = parseBool(ini->val); break;
+					case REMAP_KEY_TURBO: rr->turbo = parseInt(ini->val); break;
 					case REMAP_KEY_STICKY: rr->sticky = parseBool(ini->val); break;
 					case REMAP_KEY_DISABLED:  rr->disabled = parseBool(ini->val); break;
 					case REMAP_KEY_TRIGGER_ACTION_TYPE: 
@@ -568,6 +573,7 @@ void profile_loadLocal(){
 	readProfile(&profile, titleid);
 }
 void profile_resetLocal(){
+	profile_resetTurbo();
 	profile_resetAnalog();
 	profile_resetController();
 	profile_resetGyro();
@@ -620,6 +626,29 @@ void setPE(ProfileEntry entry){
 void setDefProfile(){
 	strclone(profile.titleid, HOME);
 	profile.version = ksceKernelGetSystemTimeWide();
+	// Rapidfire
+	setPE((ProfileEntry){
+		.id = PR_TU_SLOW,
+		.type = TYPE_UINT32,
+		.def.u = 500,
+		.min.u = 0,
+		.max.u = 5000,
+		.key = "Turbo Slow"});
+	setPE((ProfileEntry){
+		.id = PR_TU_MEDIUM,
+		.type = TYPE_UINT32,
+		.def.u = 150,
+		.min.u = 0,
+		.max.u = 5000,
+		.key = "Turbo Medium"});
+	setPE((ProfileEntry){
+		.id = PR_TU_FAST,
+		.type = TYPE_UINT32,
+		.def.u = 50,
+		.min.u = 0,
+		.max.u = 5000,
+		.key = "Turbo Fast"});
+
 	// Analog
 	setPE((ProfileEntry){
 		.id = PR_AN_MODE_WIDE,

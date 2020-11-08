@@ -4,6 +4,7 @@
 void menu_initMain();
 void menu_initAnalog();
 void menu_initTouch();
+void menu_initTurbo();
 void menu_initGyro();
 void menu_initController();
 void menu_initMore();

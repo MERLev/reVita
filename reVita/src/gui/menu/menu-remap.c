@@ -141,7 +141,8 @@ void onButton_remap(uint32_t btn){
 			break;
 		case SCE_CTRL_R1:
 			if (gui_getEntry()->dataUint != NEW_RULE_IDX){
-				FLIP(profile.remaps[gui_getEntry()->dataUint].turbo);
+				profile.remaps[gui_getEntry()->dataUint].turbo =
+					(profile.remaps[gui_getEntry()->dataUint].turbo + 1) % 4;
 				gui_menu->onBuild(gui_menu);
 			}
 			break;
@@ -299,8 +300,12 @@ void onDraw_remap(uint menuY){
 			str[30 - len/CHA_W] = '\0';
 			gui_setColorExt(i == gui_menu->idx, true, rr->disabled);
 			rendererv_drawString(L_1 + len + 3*CHA_W, y, str);
-			if (rr->turbo)
-				rendererv_drawString(UI_WIDTH - 4*CHA_W, y, "$M");
+			switch (rr->turbo){
+				case TURBO_DISABLED: break;
+				case TURBO_SLOW: 	rendererv_drawString(UI_WIDTH - 4*CHA_W, y, "$K"); break;
+				case TURBO_MEDIUM: 	rendererv_drawString(UI_WIDTH - 4*CHA_W, y, "$M"); break;
+				case TURBO_FAST: 	rendererv_drawString(UI_WIDTH - 4*CHA_W, y, "$N"); break;
+			}
 			if (rr->sticky)
 				rendererv_drawString(UI_WIDTH - 6*CHA_W, y, "$m");
 		}

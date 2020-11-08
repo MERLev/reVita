@@ -14,7 +14,6 @@
 #include "gui/gui.h"
 #include "log.h"
 
-#define TURBO_DELAY			        (50*1000)
 #define CACHE_CTRL_SIZE (sizeof(SceCtrlData) * BUFFERS_NUM * PORTS_NUM * PROC_NUM)
 #define CACHE_TOUCH_SIZE (sizeof(SceTouchData) * BUFFERS_NUM * TOUCH_HOOKS_NUM * SCE_TOUCH_PORT_MAX_NUM)
 #define MEM_SIZE ((0xfff + CACHE_CTRL_SIZE + CACHE_TOUCH_SIZE) & ~0xfff)
@@ -41,6 +40,7 @@ typedef struct CtrlCache{
 // Status of each rule
 enum RULE_STATUS rs[PORTS_NUM][PROC_NUM][REMAP_NUM];
 bool sticky[PORTS_NUM][PROC_NUM][REMAP_NUM];
+SceInt64 tickPressed[PORTS_NUM][PROC_NUM][REMAP_NUM];
 TouchPoints2 T_SIZE[SCE_TOUCH_PORT_MAX_NUM];
 
 static TouchPoint 
@@ -110,6 +110,8 @@ bool updateStatus(RuleData* rd, bool active){
 		case RS_STARTED: *rd->status = active ? RS_ACTIVE : RS_STOPPED; break;
 		case RS_STOPPED: *rd->status = active ? RS_STARTED : RS_NONACTIVE; break;
 	}
+	if (*rd->status == RS_STARTED)
+		*rd->tickPressed = ksceKernelGetSystemTimeWide();
 	if (*rd->status == RS_STARTED && rd->rr->sticky)
 		FLIP(*rd->isSticky);
 	return (!rd->rr->sticky && active) || (rd->rr->sticky && *rd->isSticky);
@@ -242,13 +244,24 @@ void showRemapActionPopup(ProfileEntry* pe){
 	}
 }
 
+bool isTurboTickActive(RuleData* rd){
+	int delay = 1000;
+	switch (rd->rr->turbo){
+		case TURBO_DISABLED: break;
+		case TURBO_SLOW: 	delay *= profile.entries[PR_TU_SLOW].v.u; break;
+		case TURBO_MEDIUM: 	delay *= profile.entries[PR_TU_MEDIUM].v.u; break;
+		case TURBO_FAST: 	delay *= profile.entries[PR_TU_FAST].v.u; break;
+	}
+	return (((ksceKernelGetSystemTimeWide() - *rd->tickPressed) % delay) < (delay / 2));	
+}
+
 // Add emulated event from rule
 void addEmu(RuleData* rd) {
 	struct RemapAction* emu = &rd->rr->emu;
 	EmulatedTouchEvent* ete;
 	switch (emu->type){
 		case REMAP_TYPE_BUTTON: 
-			if (rd->rr->turbo && rd->isTurboTick) break;
+			if (rd->rr->turbo > 0 && !isTurboTickActive(rd)) break;
 			if (rd->rr->sticky && !rd->isSticky) break;
 			btn_add(&rd->btnsEmu, emu->param.btn);
 			break;
@@ -256,7 +269,7 @@ void addEmu(RuleData* rd) {
 		case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: 
 		case REMAP_TYPE_LEFT_ANALOG: 
 		case REMAP_TYPE_LEFT_ANALOG_DIGITAL: 
-			if (rd->rr->turbo && rd->isTurboTick) break;
+			if (rd->rr->turbo > 0 && !isTurboTickActive(rd)) break;
 			if (rd->rr->sticky && !rd->isSticky) break;
 			;EmulatedStick* stick = (emu->type == REMAP_TYPE_LEFT_ANALOG || emu->type == REMAP_TYPE_LEFT_ANALOG_DIGITAL) ?
 				&rd->analogLeftEmu : &rd->analogRightEmu;
@@ -273,7 +286,7 @@ void addEmu(RuleData* rd) {
 			if (rd->port == 1) break;
 			if (rd->rr->sticky && !rd->isSticky) break;
 			;int port = emu->type == REMAP_TYPE_FRONT_TOUCH_POINT ? SCE_TOUCH_PORT_FRONT : SCE_TOUCH_PORT_BACK;
-			if (rd->rr->turbo && rd->isTurboTick && emu->action != REMAP_TOUCH_SWIPE 
+			if (rd->rr->turbo > 0 && !isTurboTickActive(rd) && emu->action != REMAP_TOUCH_SWIPE 
 					&& emu->action != REMAP_TOUCH_SWIPE_SMART_L && emu->action != REMAP_TOUCH_SWIPE_SMART_R)
 				break;
 			switch (emu->action){
@@ -286,9 +299,9 @@ void addEmu(RuleData* rd) {
 				case REMAP_TOUCH_ZONE_BR: 		storeTouchPoint(&et[port], T_BR[port], rd->port, rd->idx); break;
 				case REMAP_TOUCH_CUSTOM:  		storeTouchPoint(&et[port], emu->param.tPoint, rd->port, rd->idx); break;
 				case REMAP_TOUCH_SWIPE:   
-					if (!rd->rr->sticky && (*rd->status == RS_STARTED || (*rd->status == RS_ACTIVE && rd->rr->turbo && rd->isTurboTick))) 
+					if (!rd->rr->sticky && (*rd->status == RS_STARTED || (*rd->status == RS_ACTIVE && rd->rr->turbo > 0 && !isTurboTickActive(rd)))) 
 						storeTouchSwipe(&et[port], emu->param.tPoints, rd->port, rd->idx); 
-					else if (rd->rr->sticky && (*rd->status == RS_STARTED || (rd->rr->turbo && rd->isTurboTick)))
+					else if (rd->rr->sticky && (*rd->status == RS_STARTED || (rd->rr->turbo > 0 && !isTurboTickActive(rd))))
 						storeTouchSwipe(&et[port], emu->param.tPoints, rd->port, rd->idx); 
 					break;
 				case REMAP_TOUCH_SWIPE_SMART_DPAD:  
@@ -360,8 +373,8 @@ void addEmu(RuleData* rd) {
 			break;
 		case REMAP_TYPE_SYSACTIONS:
 			if (rd->port == 1) break;
-			if (rd->rr->turbo && rd->isTurboTick) break;
-			if (!rd->rr->turbo && *rd->status != RS_STARTED) break;
+			if (rd->rr->turbo > 0 && !isTurboTickActive(rd)) break;
+			if (rd->rr->turbo == 0 && *rd->status != RS_STARTED) break;
 			switch (emu->action){
 				case REMAP_SYS_RESET_SOFT: 		sysactions_softReset(); break;
 				case REMAP_SYS_RESET_COLD: 		sysactions_coldReset(); break;
@@ -433,7 +446,7 @@ float calibrate(float val, float add){
 	return val;
 }
 
-void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, bool* sticky, int port) {	
+void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, bool* sticky, SceInt64* tickPressed, int port) {	
 	// Gathering real touch data
 	SceTouchData std[SCE_TOUCH_PORT_MAX_NUM];
 	int retTouch[SCE_TOUCH_PORT_MAX_NUM] = {-1, -1};
@@ -458,7 +471,6 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, bool* sticky, int
 
 	// Create RuleData
 	RuleData rd;
-	rd.isTurboTick = (ksceKernelGetSystemTimeWide() % TURBO_DELAY) < (TURBO_DELAY / 2);
 	rd.btns = ctrl->buttons;
 	rd.btnsProp = ctrl->buttons;
 	rd.btnsEmu = 0;
@@ -486,6 +498,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, bool* sticky, int
 		rd.stickposval = 127;
 		rd.status = &statuses[i];
 		rd.isSticky = &sticky[i];
+		rd.tickPressed = &tickPressed[i];
 
 		switch (trigger->type){
 			case REMAP_TYPE_BUTTON: 
@@ -786,7 +799,8 @@ void remap_ctrl_updateBuffers(int port, SceCtrlData *ctrl, bool isPositiveLogic,
     }
 
 	// Apply remap
-	applyRemap(&cacheCtrl[port][isShell].buffers[idx], &rs[port][0][0], &sticky[port][0][0], port);
+	applyRemap(&cacheCtrl[port][isShell].buffers[idx], 
+		&rs[port][0][0], &sticky[port][isShell][0], &tickPressed[port][isShell][0], port);
 
 	// Fix screenshot propagation when sys buttons hack is active
 	if (!isShell)

@@ -73,6 +73,13 @@ enum REMAP_ACTION{
     REMAP_ACTION_NUM
 };
 
+enum TURBO_MODE{
+    TURBO_DISABLED = 0,
+    TURBO_SLOW,
+    TURBO_MEDIUM,
+    TURBO_FAST
+};
+
 typedef struct TouchPoint{
 	uint16_t x, y;
 }TouchPoint;
@@ -97,7 +104,7 @@ typedef struct RemapRule{
 	RemapAction trigger;
 	RemapAction emu;
 	bool propagate;
-    bool turbo;
+    enum TURBO_MODE turbo;
     bool sticky;
 	bool disabled;
 }Rule;
@@ -113,7 +120,8 @@ typedef struct RuleData{
 	EmulatedStick analogLeftEmu, analogRightEmu, analogLeftProp, analogRightProp;
 	uint8_t stickposval;
 	enum RULE_STATUS* status;
-	bool isTurboTick;
+	// bool isTurboTick;
+    SceInt64* tickPressed;
     int port;
     int idx;
     bool* isSticky;

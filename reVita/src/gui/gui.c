@@ -57,6 +57,7 @@ enum MENU_ID whitelistedMenus[] = {
 	MENU_MAIN_DEVELOPER_ID,
 	MENU_ANALOG_ID,
 	MENU_TOUCH_ID,
+	MENU_TURBO_ID,
 	MENU_GYRO_ID,
 	MENU_CONTROLLER_ID,
 	MENU_MORE_ID,
@@ -614,6 +615,7 @@ void gui_init(){
 	menu_initMain();
 	menu_initAnalog();
 	menu_initTouch();
+	menu_initTurbo();
 	menu_initGyro();
 	menu_initController();
 	menu_initMore();

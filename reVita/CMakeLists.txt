@@ -40,6 +40,7 @@ add_executable(${PROJECT_NAME}
   src/gui/menu/menu-main.c
   src/gui/menu/menu-analog.c
   src/gui/menu/menu-touch.c
+  src/gui/menu/menu-turbo.c
   src/gui/menu/menu-gyro.c
   src/gui/menu/menu-controller.c
   src/gui/menu/menu-more.c
