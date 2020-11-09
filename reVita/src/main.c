@@ -33,7 +33,7 @@
 #define TRIGGERS_NONEXT 0
 
 #define INTERNAL                    (666*666)
-#define PSVS_FRAMEBUF_HOOK_MAGIC    0x7183015
+#define THREAD_MAIN_DELAY           (16##666)
 
 #define WHITELIST_NUM 18
 static char* whitelistNPXS[WHITELIST_NUM] = {
@@ -382,11 +382,6 @@ int ksceCtrlGetControllerPortInfo_patched(SceCtrlPortInfo* info){
 int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplayFrameBuf *pParam, int sync) {
     used_funcs[ksceDisplaySetFrameBufInternal_id] = 1;
 
-    if (sync == PSVS_FRAMEBUF_HOOK_MAGIC) {
-        sync = 1;
-        goto DISPLAY_HOOK_RET;
-    }
-
     if (head != ksceDisplayGetPrimaryHead() || !pParam || !pParam->base)
         goto DISPLAY_HOOK_RET;
 
@@ -400,14 +395,6 @@ int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplay
         goto DISPLAY_HOOK_RET;
 
     gui_draw(pParam);
-    
-    if (sync && gui_isOpen && !isCallShell()){
-        
-        ksceKernelUnlockMutex(g_mutex_framebuf_uid, 1);
-        int ret = TAI_CONTINUE(int, refs[ksceDisplaySetFrameBufInternal_id], head, index, pParam, 0);
-        ret = ksceDisplaySetFrameBufInternal(head, index, pParam, PSVS_FRAMEBUF_HOOK_MAGIC);
-        return ret;
-    }
 
     ksceKernelUnlockMutex(g_mutex_framebuf_uid, 1);
 
@@ -489,12 +476,19 @@ int ksceRegMgrSetKeyInt_patched(char *category, char *name, int buf){
 
 static int main_thread(SceSize args, void *argp) {
     uint32_t oldBtns = 0;
+
     while (thread_run) {
-        // Set shell pid
-        if (shellPid < 0){
-            processid = shellPid = ksceKernelSysrootGetShellPid();
-            ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
-            remap_resetBuffers();
+        if (shellPid <= 0){
+            int pid = ksceKernelSysrootGetShellPid();
+            if (pid > 0){
+                processid = shellPid = pid;
+                LOG("pid: %08X\n", shellPid);
+                remap_resetBuffers();
+                remap_setup();
+            } else {
+                ksceKernelDelayThread(THREAD_MAIN_DELAY);
+                continue;
+            }
         }
 
         // Update PSM title
@@ -561,7 +555,7 @@ static int main_thread(SceSize args, void *argp) {
 
         oldBtns = ctrl.buttons;
 
-        ksceKernelDelayThread(16666);
+        ksceKernelDelayThread(THREAD_MAIN_DELAY);
     }
     return 0;
 }
