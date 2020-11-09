@@ -203,7 +203,7 @@ static struct Menu menu_pick_touch_point = (Menu){
 	.id = MENU_PICK_TOUCH_POINT_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
 	.name = "$i SELECT TOUCH POINT", 
-	.footer = 	"$U$uCHANGE $<$>CHANGE ${$}FASTER       ",
+	.footer = 	"$U$uCHANGE $<$>CHANGE ${$}FASTER       "
 				"$CBACK                          $:CLOSE", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchPoint,
@@ -221,7 +221,7 @@ static struct Menu menu_pick_touch_zone = (Menu){
 	.id = MENU_PICK_TOUCH_ZONE_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.name = "$i SELECT TOUCH ZONE", 
-	.footer = 	"$U$uCHANGE $<$>CHANGE ${$}FASTER       ",
+	.footer = 	"$U$uCHANGE $<$>CHANGE ${$}FASTER       "
 				"$CBACK                          $:CLOSE", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchZone,
@@ -239,7 +239,7 @@ static struct Menu menu_pick_touch_swipe = (Menu){
 	.id = MENU_PICK_TOUCH_SWIPE_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.name = "$j SELECT SWIPE POINTS", 
-	.footer = 	"$U$uCHANGE $<$>CHANGE ${$}FASTER       ",
+	.footer = 	"$U$uCHANGE $<$>CHANGE ${$}FASTER       "
 				"$CBACK                          $:CLOSE", 
 	.onInput = onInput_touchPicker,
 	.onButton = onButton_pickTouchZone,

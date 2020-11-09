@@ -246,22 +246,62 @@ void drawIndent(){
 	rendererv_setColor(theme[COLOR_HEADER]);   
 }
 
+bool menuHasHeaders(Menu* m){
+	for (int i = 0; i < m->num; i++)
+		if (m->entries[i].type == HEADER_TYPE)
+			return true;
+	return false;
+}
+
 void onDraw_generic(uint32_t menuY){
     int y = menuY;
+	bool hasHeaders = menuHasHeaders(gui_menu);
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
 		MenuEntry* me = &gui_menu->entries[i];
-		if (gui_menu->entries[i].type == HEADER_TYPE)
+		y += CHA_H;
+
+		// Draw header
+		if (me->type == HEADER_TYPE){
 			rendererv_setColor(theme[COLOR_HEADER]);
-		else
-			gui_setColor(i == gui_menu->idx, 1);
-		if (me->icn == ICON_NULL){
-			rendererv_drawString(L_1, y += CHA_H, me->name);
-		} else {
-			rendererv_drawCharIcon(me->icn, L_1, y += CHA_H);
-			rendererv_drawString(L_1 + CHA_W*3, y, me->name);
+			if (me->icn != ICON_NULL)
+				rendererv_drawCharIcon(me->icn, L_1, y);
+			rendererv_drawString(L_1 + CHA_W*(me->icn != ICON_NULL ? 3 : 0), y, me->name);
+			continue;
 		}
+
+		// // Draw Profile Entry
+		if (me->dataPE != NULL){
+			// LOG("PE: %08X\n", (unsigned int)me->dataPE);
+			ProfileEntry* pe = me->dataPE;
+			gui_setColor(gui_menu->idx == i, profile_isDef(pe));
+			if (me->icn != ICON_NULL)
+				rendererv_drawCharIcon(me->icn, L_1 + hasHeaders * CHA_W, y);
+			rendererv_drawString(L_1 + CHA_W*(me->icn != ICON_NULL ? 3 : 0) + hasHeaders * CHA_W, y, me->name);
+
+			switch (pe->type){
+				case TYPE_BOOL:
+					gui_drawBoolFRight(0, y, pe->v.b);
+					break;
+				case TYPE_INT32:
+					gui_drawStringFRight(0, y, "%i", pe->v.i);
+					break;
+				case TYPE_UINT32:
+					gui_drawStringFRight(0, y, "%u", pe->v.u);
+					break;
+				default: break;
+			}
+			continue;
+		}
+
+		// Draw generic
+		gui_setColor(i == gui_menu->idx, 1);
+		if (me->icn != ICON_NULL)
+			rendererv_drawCharIcon(me->icn, L_1 + hasHeaders * CHA_W, y);
+		rendererv_drawString(L_1 + CHA_W*(me->icn != ICON_NULL ? 3 : 0) + hasHeaders * CHA_W, y, me->name);
 	}
+
+	// Draw scrollbar
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx)/(gui_menu->num-1));
 }
 
@@ -309,9 +349,10 @@ void drawEmulatedPointersForPanel(uint32_t panel){
 }
 
 void drawBody() {
-	rendererv_drawRectangle(0, HEADER_HEIGHT, UI_WIDTH, UI_HEIGHT -  2 * HEADER_HEIGHT, theme[COLOR_BG_BODY]);//BG
+	rendererv_drawRectangle(0, HEADER_HEIGHT, UI_WIDTH, UI_HEIGHT -  2 * HEADER_HEIGHT, theme[COLOR_BG_BODY]);
 	if (!gui_menu->noIndent)
 		drawIndent();
+
 	//Draw menu
 	uint32_t menuY = HEADER_HEIGHT - CHA_H / 2;
 	gui_lines = ((float)(UI_HEIGHT - 2 * HEADER_HEIGHT)) / CHA_H - 1;
@@ -320,10 +361,6 @@ void drawBody() {
         gui_menu->onDraw(menuY);
     else
         onDraw_generic(menuY);
-}
-
-//Draw directly to FB to overlay over everything else;
-void drawDirectlyToFB(){
 }
 
 void drawBlankPopup(){

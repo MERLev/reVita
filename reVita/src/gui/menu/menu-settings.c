@@ -49,6 +49,7 @@ void onButton_settings(uint32_t btn){
 
 void onDraw_settings(uint menuY){
     int y = menuY;
+	int l = gui_menu->id == MENU_SETT_ID ? 0 : CHA_W;
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {		
 		
@@ -61,11 +62,12 @@ void onDraw_settings(uint menuY){
 		switch (id){
 			case SETT_THEME:
 				gui_setColor(i == gui_menu->idx, settings_isDef(id));
-				rendererv_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
+				rendererv_drawCharIcon(gui_menu->entries[i].icn, L_1+l, y += CHA_H);
+				rendererv_drawString(L_1 + l + CHA_W*3, y, gui_menu->entries[i].name);
 				gui_drawStringFRight(0, y, "%s", STR_THEME[settings[id].v.u]);
 				break;
 			default: 
-				gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i);
+				gui_drawEntry(L_1+l, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i);
 				break;
 		}
 	}
@@ -73,11 +75,10 @@ void onDraw_settings(uint menuY){
 }
 
 static struct MenuEntry menu_settings_entries[] = {
-	(MenuEntry){.name = "Plugin enabled", 			.dataPE = &settings[SETT_REMAP_ENABLED]},
-	(MenuEntry){.name = "Save profile on close", 	.dataPE = &settings[SETT_AUTOSAVE]},
-	(MenuEntry){.name = "Animation", 				.dataPE = &settings[SETT_ANIMATION]},
-	// (MenuEntry){.name = "Startup delay", 		.dataPE = &settings[SETT_DELAY_INIT]},
-	(MenuEntry){.name = "Theme", 					.dataPE = &settings[SETT_THEME]}};
+	(MenuEntry){.name = "Plugin enabled", 			.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_REMAP_ENABLED]},
+	(MenuEntry){.name = "Save profile on close", 	.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_AUTOSAVE]},
+	(MenuEntry){.name = "Animation", 				.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_ANIMATION]},
+	(MenuEntry){.name = "Theme", 					.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_THEME]}};
 static struct Menu menu_settings = (Menu){
 	.id = MENU_SETT_ID, 
 	.parent = MENU_MAIN_SETTINGS_ID,
@@ -90,6 +91,7 @@ static struct Menu menu_settings = (Menu){
 	.entries = menu_settings_entries};
 
 static struct MenuEntry menu_popup_entries[] = {
+	(MenuEntry){.name = "General", 			.type = HEADER_TYPE},
 	(MenuEntry){.name = "Allow popups", 	.dataPE = &settings[POP_ALL]},
 	(MenuEntry){.name = "Toggle individual popups", 	.type = HEADER_TYPE},
 	(MenuEntry){.name = "Toggle RemaPSV2", 	.dataPE = &settings[POP_REVITA]},

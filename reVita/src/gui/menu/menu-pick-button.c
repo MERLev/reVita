@@ -76,7 +76,7 @@ static struct Menu menu_pick_button = (Menu){
 	.id = MENU_PICK_BUTTON_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
 	.name = "BUTTONS", 
-	.footer = 	"$SSELECT $XCONTINUE $TCLEAR ALL        ",
+	.footer = 	"$SSELECT $XCONTINUE $TCLEAR ALL        "
 				"$CBACK                          $:CLOSE",
 	.onButton = onButton_pickButton,
 	.onDraw = onDraw_pickButton,

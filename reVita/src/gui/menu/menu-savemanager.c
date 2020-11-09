@@ -42,7 +42,7 @@ void onDraw_savemanager(uint menuY){
 			}
 		} else {
 			gui_setColor(i == gui_menu->idx, 1);
-			rendererv_drawString(L_1, y += CHA_H, gui_menu->entries[i].name);
+			rendererv_drawString(L_1+CHA_W, y += CHA_H, gui_menu->entries[i].name);
 		}
 	}
 }
