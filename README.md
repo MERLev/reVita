@@ -102,6 +102,7 @@ Thanks to evryone who helped me along the way :
 - W0lfwang for testing.
 - TheIronUniverse for testing.
 - mantixero for testing it in PS4link.
+- MightySashiman for testing.
 - Kiiro Yakumo for testing it in PS4Link.
 - Nino1026 for testing.
 - [Vita Nuova](https://t.co/3Efi3PGwK5?amp=1) communinity for all the help and support I got there.

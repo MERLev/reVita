@@ -525,6 +525,7 @@ void gui_onInput(SceCtrlData *ctrl) {
 }
 
 void ui_fixIdx(Menu* m, int idx){
+	if (m->entries == NULL) return;
 	for (int i = 0; i < m->num; i++)
 		if(m->entries[(idx + i) % m->num].type != HEADER_TYPE){
 			m->idx = (idx + i) % m->num;
