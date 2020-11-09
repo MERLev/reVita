@@ -75,7 +75,7 @@
 - I forgot my custom hotkeys to open menu. How do I find it?
   - Open VitaShell and open the file ux0:data/reVita/HOTKEYS.ini. "Open menu=" has your hotkeys to open the plugin menu.
 - I've set the startup delay too low on a game and now it crashes when launching it. What do I do?
-  - Hold (Start) when launching the game. It starts the plugin in safe mode, with a blank profile. Then load your profile and change the startup delay.
+  - Hold (Start) when launching the game. It starts the plugin in safe mode, with a blank profile. Then load your profile, change the startup delay and save profile in profile manager.
 
 ## Fixes for some Apps
 

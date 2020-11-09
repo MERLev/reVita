@@ -9,7 +9,7 @@
 
 #define COMMAND_TYPE        -4
 
-const char* STR_DEADBAND[3] = {
+char* STR_DEADBAND[3] = {
 	"Disable",
 	"Enable", 
 	"Game default" 
@@ -33,41 +33,10 @@ void onButton_gyro(uint32_t btn){
 	}
 }
 
-void onDraw_gyro(uint menuY){
-    int y = menuY;
-	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {		
-		
-		if (gui_menu->entries[i].type == HEADER_TYPE){
-			gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i); 
-			continue;
-		}
-
-		if (gui_menu->entries[i].type == COMMAND_TYPE){
-			if (gui_menu->entries[i].dataUint == REMAP_SYS_CALIBRATE_MOTION){
-				gui_setColor(i == gui_menu->idx, true);
-				rendererv_drawString(L_1 + CHA_W, y += CHA_H, gui_menu->entries[i].name);
-				continue;
-			}
-		}
-
-		ProfileEntry* pe = gui_menu->entries[i].dataPE;
-		switch(pe->id){
-			case PR_GY_DEADBAND:
-				gui_setColor(i == gui_menu->idx, profile_isDef(pe));
-				rendererv_drawString(L_1 + CHA_W, y += CHA_H, gui_menu->entries[i].name);
-				gui_drawStringFRight(0, y, "%s", STR_DEADBAND[pe->v.u]);
-				break;
-			default: gui_drawEntry(L_1 + CHA_W, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i); break;
-		}
-	}
-	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx)/(gui_menu->num-1));
-}
-
 static struct MenuEntry menu_gyro_entries[] = {
 	(MenuEntry){.name = "General", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$t Use DS34Motion", .dataPE = &profile.entries[PR_GY_DS4_MOTION]},
-	(MenuEntry){.name = "$Q Deadband", .dataPE = &profile.entries[PR_GY_DEADBAND]},
+	(MenuEntry){.name = "$Q Deadband", .dataPE = &profile.entries[PR_GY_DEADBAND], .dataPEStr = STR_DEADBAND},
 	(MenuEntry){.name = "Sensitivity", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_SENSITIVITY_X]},
 	(MenuEntry){.name = "$w Y Axis", .dataPE = &profile.entries[PR_GY_SENSITIVITY_Y]},
@@ -92,7 +61,6 @@ static struct Menu menu_gyro = (Menu){
 	.footer = 	"$<$>${$}CHANGE $SRESET $;RESET ALL     "
 				"$CBACK                          $:CLOSE",
 	.onButton = onButton_gyro,
-	.onDraw = onDraw_gyro,
 	.num = SIZE(menu_gyro_entries), 
 	.entries = menu_gyro_entries};
 

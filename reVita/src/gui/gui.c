@@ -270,26 +270,26 @@ void onDraw_generic(uint32_t menuY){
 			continue;
 		}
 
-		// // Draw Profile Entry
+		// Draw Profile Entry
 		if (me->dataPE != NULL){
-			// LOG("PE: %08X\n", (unsigned int)me->dataPE);
 			ProfileEntry* pe = me->dataPE;
 			gui_setColor(gui_menu->idx == i, profile_isDef(pe));
 			if (me->icn != ICON_NULL)
 				rendererv_drawCharIcon(me->icn, L_1 + hasHeaders * CHA_W, y);
 			rendererv_drawString(L_1 + CHA_W*(me->icn != ICON_NULL ? 3 : 0) + hasHeaders * CHA_W, y, me->name);
 
-			switch (pe->type){
-				case TYPE_BOOL:
-					gui_drawBoolFRight(0, y, pe->v.b);
-					break;
-				case TYPE_INT32:
-					gui_drawStringFRight(0, y, "%i", pe->v.i);
-					break;
-				case TYPE_UINT32:
-					gui_drawStringFRight(0, y, "%u", pe->v.u);
-					break;
-				default: break;
+			if (me->dataPEStr == NULL){
+				switch (pe->type){
+					case TYPE_BOOL: 	gui_drawBoolFRight(0, y, pe->v.b); break;
+					case TYPE_INT32: 	gui_drawStringFRight(0, y, "%i", pe->v.i); break;
+					case TYPE_UINT32: 	gui_drawStringFRight(0, y, "%u", pe->v.u); break;
+				}
+			} else {
+				switch (pe->type){
+					case TYPE_BOOL: 	gui_drawStringFRight(0, y, "%s", me->dataPEStr[pe->v.b]); break;
+					case TYPE_INT32: 	gui_drawStringFRight(0, y, "%s", me->dataPEStr[pe->v.i]); break;
+					case TYPE_UINT32: 	gui_drawStringFRight(0, y, "%s", me->dataPEStr[pe->v.u]); break;
+				}
 			}
 			continue;
 		}

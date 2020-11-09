@@ -23,6 +23,9 @@ void onButton_popup(uint32_t btn){
 			gui_popupShowSuccess("$G Saving popups", "Done !", TTL_POPUP_SHORT);
 			gui_openMenuParent();
 			break;
+		case SCE_CTRL_START: 
+			settings_save();
+			gui_popupShowSuccess("$G Saving popups", "Done !", TTL_POPUP_SHORT);
 		default: onButton_genericEntries(btn); break;
 	}
 }
@@ -35,50 +38,26 @@ void onButton_settings(uint32_t btn){
 		case SCE_CTRL_SQUARE: settings_reset(id); break;
 		case SCE_CTRL_SELECT: 
 			settings_resetAll(); 
-			if (id == SETT_THEME) 
-				theme_load(settings[SETT_THEME].v.u);
 			break;
 		case SCE_CTRL_CIRCLE: 
 			settings_save();
 			gui_popupShowSuccess("$G Saving settings", "Done !", TTL_POPUP_SHORT);
 			gui_openMenuParent();
 			break;
+		case SCE_CTRL_START: 
+			settings_save();
+			gui_popupShowSuccess("$G Saving settings", "Done !", TTL_POPUP_SHORT);
 		default: onButton_genericEntries(btn); break;
 	}
+	if (id == SETT_THEME || btn == SCE_CTRL_SELECT) 
+		theme_load(settings[SETT_THEME].v.u);
 }
 
-void onDraw_settings(uint menuY){
-    int y = menuY;
-	int l = gui_menu->id == MENU_SETT_ID ? 0 : CHA_W;
-	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {		
-		
-		if (gui_menu->entries[i].type == HEADER_TYPE){
-			gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i); 
-			continue;
-		}
-
-		int32_t id = gui_menu->entries[i].dataPE->id;
-		switch (id){
-			case SETT_THEME:
-				gui_setColor(i == gui_menu->idx, settings_isDef(id));
-				rendererv_drawCharIcon(gui_menu->entries[i].icn, L_1+l, y += CHA_H);
-				rendererv_drawString(L_1 + l + CHA_W*3, y, gui_menu->entries[i].name);
-				gui_drawStringFRight(0, y, "%s", STR_THEME[settings[id].v.u]);
-				break;
-			default: 
-				gui_drawEntry(L_1+l, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i);
-				break;
-		}
-	}
-	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx) / (gui_menu->num-1));
-}
-
-static struct MenuEntry menu_settings_entries[] = {
+struct MenuEntry menu_settings_entries[] = {
 	(MenuEntry){.name = "Plugin enabled", 			.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_REMAP_ENABLED]},
 	(MenuEntry){.name = "Save profile on close", 	.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_AUTOSAVE]},
 	(MenuEntry){.name = "Animation", 				.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_ANIMATION]},
-	(MenuEntry){.name = "Theme", 					.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_THEME]}};
+	(MenuEntry){.name = "Theme", 					.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_THEME], .dataPEStr = STR_THEME}};
 static struct Menu menu_settings = (Menu){
 	.id = MENU_SETT_ID, 
 	.parent = MENU_MAIN_SETTINGS_ID,
@@ -86,7 +65,6 @@ static struct Menu menu_settings = (Menu){
 	.footer = 	"$<$>${$}CHANGE $SRESET $;RESET ALL     "
 				"$CBACK                          $:CLOSE",
 	.onButton = onButton_settings,
-	.onDraw = onDraw_settings,
 	.num = SIZE(menu_settings_entries), 
 	.entries = menu_settings_entries};
 
@@ -108,7 +86,6 @@ static struct Menu menu_popup = (Menu){
 	.footer = 	"$<$>${$}CHANGE $SRESET $;RESET ALL     "
 				"$CBACK                          $:CLOSE",
 	.onButton = onButton_popup,
-	.onDraw = onDraw_settings,
 	.num = SIZE(menu_popup_entries), 
 	.entries = menu_popup_entries};
 

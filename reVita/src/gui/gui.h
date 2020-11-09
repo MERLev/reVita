@@ -96,9 +96,11 @@ typedef struct MenuEntry{
 	char* name;
 	int32_t type;
 	ICON_ID icn;
+
 	int32_t dataInt;
 	uint32_t dataUint;
 	ProfileEntry* dataPE;
+	char** dataPEStr;
 } MenuEntry;
 
 extern uint8_t gui_isOpen;

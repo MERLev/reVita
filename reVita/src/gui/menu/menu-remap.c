@@ -322,7 +322,7 @@ static struct Menu menu_remap = (Menu){
 	.parent = MENU_MAIN_PROFILE_ID,
 	.name = "$X PROFILE > REMAP RULES", 
 	.footer = 	"$XSELECT $SDISABLE $TPROPAGATE $;REMOVE"
-				"${STICKY $}TURBO                 $CBACK",
+				"${STICKY $}TURBO         $CBACK $:CLOSE",
 	.onButton = onButton_remap,
 	.onDraw = onDraw_remap,
 	.onBuild = onBuild_remap,

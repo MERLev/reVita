@@ -59,7 +59,7 @@ void onDrawFB_pickTouchSwipe(){
 	drawTouchSwipe(panel, &ra->param.tPoints); 
 }
 
-//Set custom touch point xy using LS + RS
+// Set custom touch point xy using LS and RS
 void analogTouchPicker(TouchPoint* tp, SceCtrlData *ctrl, int port, int isLeftAnalog){
 	int multi = 1 + btn_has(ctrl->buttons, SCE_CTRL_L1)  + btn_has(ctrl->buttons, SCE_CTRL_R1);
 	int shiftX = ((float)((isLeftAnalog ? ctrl->lx : ctrl->rx) - 127));
@@ -70,7 +70,8 @@ void analogTouchPicker(TouchPoint* tp, SceCtrlData *ctrl, int port, int isLeftAn
 	if (abs(shiftY) > ANALOG_DEADZONE_PICKER)
 		tp->y = clamp(tp->y + shiftY * multi / 8, size.a.y, size.b.y);
 }
-//Set custom touch point xy using touch
+
+// Set custom touch point xy using touch
 void touchPicker(TouchPoint* tp, SceTouchPortType port, int num){
 	SceTouchData std;
 	int ret = ksceTouchPeek_internal(port, &std, 1);
