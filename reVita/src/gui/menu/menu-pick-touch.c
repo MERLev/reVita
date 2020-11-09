@@ -9,6 +9,7 @@
 #include "../gui.h"
 #include "../renderer.h"
 #include "../rendererv.h"
+#include "menu.h"
 #include "../../log.h"
 
 #define ANALOG_DEADZONE_PICKER	30

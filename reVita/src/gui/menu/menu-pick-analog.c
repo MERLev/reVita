@@ -3,8 +3,7 @@
 #include "../../common.h"
 #include "../../fio/settings.h"
 #include "../gui.h"
-#include "../renderer.h"
-#include "../rendererv.h"
+#include "menu.h"
 
 void onButton_pickAnalog(uint32_t btn){
 	enum REMAP_ACTION* actn = gui_menu->dataPtr;

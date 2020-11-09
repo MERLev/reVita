@@ -6,6 +6,7 @@
 #include "../gui.h"
 #include "../renderer.h"
 #include "../rendererv.h"
+#include "menu.h"
 
 void onButton_touch(uint32_t btn){
 	switch (btn) {

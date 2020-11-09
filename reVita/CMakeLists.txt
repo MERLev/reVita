@@ -37,6 +37,7 @@ add_executable(${PROJECT_NAME}
   src/gui/renderer.c
   src/gui/rendererv.c
   src/gui/gui.c
+  src/gui/menu/menu.c
   src/gui/menu/menu-main.c
   src/gui/menu/menu-analog.c
   src/gui/menu/menu-touch.c

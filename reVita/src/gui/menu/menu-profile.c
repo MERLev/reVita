@@ -3,8 +3,8 @@
 #include "../../main.h"
 #include "../../fio/settings.h"
 #include "../gui.h"
-#include "../renderer.h"
 #include "../rendererv.h"
+#include "menu.h"
 
 enum PROFILE_ACTIONS{
 	PROFILE_GLOBAL_SAVE = 0,

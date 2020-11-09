@@ -118,7 +118,6 @@ extern const char* STR_BTN_S[HW_BUTTONS_NUM];
 extern const char* STR_YN[2];
 extern const char* STR_SWITCH[2];
 
-void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus);
 void gui_drawTouchPointer(uint32_t panel, TouchPoint* tp);
 void gui_drawTouchPointerN(uint32_t panel, TouchPoint* tp, char* str);
 void gui_generateBtnComboName(char* str, uint32_t btns, int max);
@@ -145,9 +144,7 @@ void gui_nextEntry();
 void gui_prevEntry();
 void gui_setIdx(int i);
 
-void onDraw_generic(uint32_t menuY);
-void gui_onInput(SceCtrlData *ctrl);
-void onButton_null(uint32_t btn);
+void gui_input(SceCtrlData *ctrl);
 void gui_draw(const SceDisplayFrameBuf *pParam);
 void gui_open();
 void gui_close();
@@ -157,9 +154,6 @@ void gui_popupShowSuccess(char* header, char* message, uint ttl);
 void gui_popupShowWarning(char* header, char* message, uint ttl);
 void gui_popupShowDanger(char* header, char* message, uint ttl);
 void gui_popupHide();
-
-void onButton_generic(uint32_t btn);
-void onButton_genericEntries(uint32_t btn);
 
 void gui_init();
 void gui_destroy();

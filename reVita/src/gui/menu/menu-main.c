@@ -5,6 +5,7 @@
 #include "../../fio/theme.h"
 #include "../gui.h"
 #include "../rendererv.h"
+#include "menu.h"
 
 void onButton_main(uint32_t btn){
 	switch (btn) {

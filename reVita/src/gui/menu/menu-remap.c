@@ -7,6 +7,7 @@
 #include "../renderer.h"
 #include "../rendererv.h"
 #include "../gui.h"
+#include "menu.h"
 
 #define NEW_RULE_IDX        -3
 

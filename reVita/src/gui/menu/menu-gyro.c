@@ -4,8 +4,7 @@
 #include "../../sysactions.h"
 #include "../../fio/settings.h"
 #include "../gui.h"
-#include "../renderer.h"
-#include "../rendererv.h"
+#include "menu.h"
 
 #define COMMAND_TYPE        -4
 

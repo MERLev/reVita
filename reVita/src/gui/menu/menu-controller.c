@@ -6,6 +6,7 @@
 #include "../gui.h"
 #include "../renderer.h"
 #include "../rendererv.h"
+#include "menu.h"
 
 char* getControllerName(int id){
 	if 		(id == 	SCE_CTRL_TYPE_UNPAIRED) return "Unpaired";

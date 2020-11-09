@@ -161,11 +161,6 @@ void gui_drawStringFRight(int x, int y, const char *format, ...){
 
 	rendererv_drawString(UI_WIDTH - (strlen(str) + 2) * CHA_W - x, y, str);
 }
-void gui_drawBoolFRight(int x, int y, bool b){
-	b = b % 2;
-	rendererv_setColor(theme[b ? COLOR_SUCCESS : COLOR_DANGER]);
-	gui_drawStringFRight(0, y, STR_SWITCH[b]);
-}
 void gui_drawScroll(int8_t up, int8_t down){
 	rendererv_setColor(theme[COLOR_HEADER]);
 	if (up)
@@ -182,36 +177,6 @@ void gui_drawFullScroll(int8_t up, int8_t down, float pos){
 }
 void gui_drawEditPointer(uint16_t x, uint16_t y){
 	rendererv_drawImage(x, y, ICN_ARROW_X, ICN_ARROW_Y, (ticker % 32 < 16) ? ICN_ARROW_LEFT : ICN_ARROW_RIGHT);
-}
-void gui_drawEntry(uint8_t x, uint8_t y, MenuEntry* me, bool focus){
-	if (me == NULL) return;
-	focus = focus % 2;
-	if (me->type == HEADER_TYPE){
-		rendererv_setColor(theme[COLOR_HEADER]);
-		rendererv_drawString(x, y, me->name);
-		return;
-	}
-	if (me->dataPE == NULL) return;
-	ProfileEntry* pe = me->dataPE;
-	gui_setColor(focus, profile_isDef(pe));
-	if (me->icn == ICON_NULL){
-		rendererv_drawString(x, y, me->name);
-	} else {
-		rendererv_drawCharIcon(me->icn, x, y);
-		rendererv_drawString(x + CHA_W*3, y, me->name);
-	}
-	switch (pe->type){
-		case TYPE_BOOL:
-			gui_drawBoolFRight(0, y, pe->v.b);
-			break;
-		case TYPE_INT32:
-			gui_drawStringFRight(0, y, "%i", pe->v.i);
-			break;
-		case TYPE_UINT32:
-			gui_drawStringFRight(0, y, "%u", pe->v.u);
-			break;
-		default: break;
-	}
 }
 void drawHeader(){
 	rendererv_drawRectangle(0, 0, UI_WIDTH, HEADER_HEIGHT - 1, theme[COLOR_BG_HEADER]);//BG
@@ -244,81 +209,6 @@ void drawIndent(){
 		+ HEADER_HEIGHT + CHA_H / 2;
 	rendererv_drawRectangle(L_1 - 5, y - 1, UI_WIDTH - 2 * L_1 + 4, CHA_H + 2, theme[COLOR_BG_HEADER]);//BG
 	rendererv_setColor(theme[COLOR_HEADER]);   
-}
-
-bool menuHasHeaders(Menu* m){
-	for (int i = 0; i < m->num; i++)
-		if (m->entries[i].type == HEADER_TYPE)
-			return true;
-	return false;
-}
-
-void onDraw_generic(uint32_t menuY){
-	int x = 0;
-    int y = menuY;
-	bool hasHeaders = menuHasHeaders(gui_menu);
-	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
-		MenuEntry* me = &gui_menu->entries[i];
-		x = L_1 + CHA_W*(me->icn != ICON_NULL ? 3 : 0);
-		y += CHA_H;
-
-		// Draw header
-		if (me->type == HEADER_TYPE){
-			rendererv_setColor(theme[COLOR_HEADER]);
-			if (me->icn != ICON_NULL)
-				rendererv_drawCharIcon(me->icn, L_1, y);
-			rendererv_drawString(x, y, me->name);
-			continue;
-		}
-
-		// Draw Profile Entry
-		if (me->dataPE != NULL){
-			ProfileEntry* pe = me->dataPE;
-			gui_setColor(gui_menu->idx == i, profile_isDef(pe));
-			if (me->icn != ICON_NULL)
-				rendererv_drawCharIcon(me->icn, L_1 + hasHeaders * CHA_W, y);
-			rendererv_drawString(x + hasHeaders * CHA_W, y, me->name);
-
-			if (me->dataPEStr == NULL){
-				switch (pe->type){
-					case TYPE_BOOL: 	gui_drawBoolFRight(0, y, pe->v.b); break;
-					case TYPE_INT32: 	gui_drawStringFRight(0, y, "%i", pe->v.i); break;
-					case TYPE_UINT32: 	gui_drawStringFRight(0, y, "%u", pe->v.u); break;
-				}
-			} else {
-				switch (pe->type){
-					case TYPE_BOOL: 	gui_drawStringFRight(0, y, "%s", me->dataPEStr[pe->v.b]); break;
-					case TYPE_INT32: 	gui_drawStringFRight(0, y, "%s", me->dataPEStr[pe->v.i]); break;
-					case TYPE_UINT32: 	gui_drawStringFRight(0, y, "%s", me->dataPEStr[pe->v.u]); break;
-				}
-			}
-			continue;
-		}
-
-		// Draw Buttons
-		if (me->dataPEButton != NULL){
-			int32_t id = me->dataPEButton->id;
-			gui_setColor(i == gui_menu->idx, hotkeys_isDef(id));
-			if (me->icn != ICON_NULL)
-				rendererv_drawCharIcon(me->icn, L_1 + hasHeaders * CHA_W, y);
-			rendererv_drawString(x + hasHeaders * CHA_W, y, me->name);
-			char str[10];
-			str[0] = '\0';
-			gui_generateBtnComboName(str, hotkeys[id].v.u, 6);
-			gui_drawStringFRight(0, y, str);
-			continue;
-		}
-
-		// Draw generic
-		gui_setColor(i == gui_menu->idx, 1);
-		if (me->icn != ICON_NULL)
-			rendererv_drawCharIcon(me->icn, L_1 + hasHeaders * CHA_W, y);
-		rendererv_drawString(x + hasHeaders * CHA_W, y, me->name);
-	}
-
-	// Draw scrollbar
-	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx)/(gui_menu->num-1));
 }
 
 void gui_drawTouchPointer(uint32_t panel, TouchPoint* tp){
@@ -467,31 +357,7 @@ void gui_updateEmulatedTouch(SceTouchPortType panel, EmulatedTouch etouch, SceTo
 	td[panel] = pData;
 }
 
-void onButton_null(uint32_t btn){
-	//Do nothing
-}
-
-void onButton_generic(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_DOWN: gui_nextEntry(); break;
-		case SCE_CTRL_UP: gui_prevEntry(); break;
-		case SCE_CTRL_CIRCLE: gui_openMenuParent(); break;
-		case SCE_CTRL_START: gui_close(); break;
-	}
-}
-
-void onButton_genericEntries(uint32_t btn){
-	switch (btn) {
-		case SCE_CTRL_LEFT: profile_dec(gui_getEntry()->dataPE, 1); break;
-		case SCE_CTRL_RIGHT: profile_inc(gui_getEntry()->dataPE, 1); break;
-		case SCE_CTRL_L1: profile_dec(gui_getEntry()->dataPE, 10); break;
-		case SCE_CTRL_R1: profile_inc(gui_getEntry()->dataPE, 10); break;
-		case SCE_CTRL_SQUARE: profile_resetEntry(gui_getEntry()->dataPE); break;
-		default: onButton_generic(btn); break;
-	}
-}
-
-void gui_onInput(SceCtrlData *ctrl) {
+void gui_input(SceCtrlData *ctrl) {
 	if (tickUIOpen + TIME_MUTE_KEYS > ksceKernelGetSystemTimeWide())
 		return; // Menu trigger hotkey should not trigger any menu actions on menu open
 	

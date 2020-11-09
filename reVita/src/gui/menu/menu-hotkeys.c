@@ -3,8 +3,7 @@
 #include "../../fio/hotkeys.h"
 #include "../../fio/theme.h"
 #include "../gui.h"
-#include "../renderer.h"
-#include "../rendererv.h"
+#include "menu.h"
 
 void onButton_hotkeys(uint32_t btn){
 	int8_t id = gui_getEntry()->dataPEButton->id;

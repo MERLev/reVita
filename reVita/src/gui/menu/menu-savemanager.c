@@ -6,6 +6,7 @@
 #include "../gui.h"
 #include "../renderer.h"
 #include "../rendererv.h"
+#include "menu.h"
 
 enum SAVEMANAGER_ACTIONS{
 	SAVEMANAGER_BACKUP = 0,

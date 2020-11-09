@@ -5,6 +5,7 @@
 #include "../gui.h"
 #include "../renderer.h"
 #include "../rendererv.h"
+#include "menu.h"
 
 void onButton_pickButton(uint32_t btn){
 	uint32_t* btnP = gui_menu->dataPtr;

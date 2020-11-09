@@ -8,6 +8,7 @@
 #include "../gui.h"
 #include "../renderer.h"
 #include "../rendererv.h"
+#include "menu.h"
 
 const char* getBtnName(uint32_t btn){
 	static char str[3];

@@ -3,8 +3,7 @@
 #include "../../common.h"
 #include "../../fio/settings.h"
 #include "../gui.h"
-#include "../renderer.h"
-#include "../rendererv.h"
+#include "menu.h"
 
 void onButton_turbo(uint32_t btn){
 	switch (btn) {

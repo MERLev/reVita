@@ -503,7 +503,7 @@ static int main_thread(SceSize args, void *argp) {
         }
 
         if (gui_isOpen) {
-            gui_onInput(&ctrl);
+            gui_input(&ctrl);
         }
 
         if (!gui_isOpen){

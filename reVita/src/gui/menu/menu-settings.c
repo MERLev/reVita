@@ -3,8 +3,7 @@
 #include "../../fio/settings.h"
 #include "../../fio/theme.h"
 #include "../gui.h"
-#include "../renderer.h"
-#include "../rendererv.h"
+#include "menu.h"
 
 char* STR_THEME[THEME__NUM] = {
 	"DARK",
