@@ -23,14 +23,12 @@ int isDsmotionRunning = 0;
 
 // Thread to send SceMotionState to kernel plugin
 static int motion_thread(SceSize args, void *argp) {
-	SceULong64 timestamp = 0;
     while (thread_motion_run) {
 		SceMotionState motionstate;
     	int ret = sceMotionGetState(&motionstate);
 		if (isDsmotionRunning && profile.entries[PR_GY_DS4_MOTION].v.b)
     		dsMotionGetState(&motionstate);
-		if (ret >= 0 && timestamp != motionstate.hostTimestamp){
-			timestamp = motionstate.hostTimestamp;
+		if (ret >= 0){
 			if (reVita_setSceMotionState(&motionstate, ret))
 				sceMotionReset();
 		}
