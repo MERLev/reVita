@@ -254,11 +254,13 @@ bool menuHasHeaders(Menu* m){
 }
 
 void onDraw_generic(uint32_t menuY){
+	int x = 0;
     int y = menuY;
 	bool hasHeaders = menuHasHeaders(gui_menu);
 	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET);
 	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
 		MenuEntry* me = &gui_menu->entries[i];
+		x = L_1 + CHA_W*(me->icn != ICON_NULL ? 3 : 0);
 		y += CHA_H;
 
 		// Draw header
@@ -266,7 +268,7 @@ void onDraw_generic(uint32_t menuY){
 			rendererv_setColor(theme[COLOR_HEADER]);
 			if (me->icn != ICON_NULL)
 				rendererv_drawCharIcon(me->icn, L_1, y);
-			rendererv_drawString(L_1 + CHA_W*(me->icn != ICON_NULL ? 3 : 0), y, me->name);
+			rendererv_drawString(x, y, me->name);
 			continue;
 		}
 
@@ -276,7 +278,7 @@ void onDraw_generic(uint32_t menuY){
 			gui_setColor(gui_menu->idx == i, profile_isDef(pe));
 			if (me->icn != ICON_NULL)
 				rendererv_drawCharIcon(me->icn, L_1 + hasHeaders * CHA_W, y);
-			rendererv_drawString(L_1 + CHA_W*(me->icn != ICON_NULL ? 3 : 0) + hasHeaders * CHA_W, y, me->name);
+			rendererv_drawString(x + hasHeaders * CHA_W, y, me->name);
 
 			if (me->dataPEStr == NULL){
 				switch (pe->type){
@@ -294,11 +296,25 @@ void onDraw_generic(uint32_t menuY){
 			continue;
 		}
 
+		// Draw Buttons
+		if (me->dataPEButton != NULL){
+			int32_t id = me->dataPEButton->id;
+			gui_setColor(i == gui_menu->idx, hotkeys_isDef(id));
+			if (me->icn != ICON_NULL)
+				rendererv_drawCharIcon(me->icn, L_1 + hasHeaders * CHA_W, y);
+			rendererv_drawString(x + hasHeaders * CHA_W, y, me->name);
+			char str[10];
+			str[0] = '\0';
+			gui_generateBtnComboName(str, hotkeys[id].v.u, 6);
+			gui_drawStringFRight(0, y, str);
+			continue;
+		}
+
 		// Draw generic
 		gui_setColor(i == gui_menu->idx, 1);
 		if (me->icn != ICON_NULL)
 			rendererv_drawCharIcon(me->icn, L_1 + hasHeaders * CHA_W, y);
-		rendererv_drawString(L_1 + CHA_W*(me->icn != ICON_NULL ? 3 : 0) + hasHeaders * CHA_W, y, me->name);
+		rendererv_drawString(x + hasHeaders * CHA_W, y, me->name);
 	}
 
 	// Draw scrollbar
@@ -376,11 +392,11 @@ void drawPopup(){
 	renderer_setColor(theme[COLOR_BG_HEADER]);
 	renderer_drawRectangle(
 		CHA_W, CHA_H, 
-		CHA_W * (max(strlen(popupHeader), strlen(popupMessage)) + 1), CHA_H * 3 + 1);
+		CHA_W * (max(strlen(popupHeader), strlen(popupMessage)) + 2), CHA_H * 3 + 1);
 	renderer_setColor(popupColor);
 	renderer_drawStringF(CHA_W * 1.5, CHA_H * 1.5, popupHeader);
 	renderer_setColor(theme[COLOR_DEFAULT]);
-	renderer_drawStringF(CHA_W * 1.5, CHA_H * 2.5 + 1, popupMessage);
+	renderer_drawStringF(CHA_W * 1.5, CHA_H * 2.5 + 2, popupMessage);
 }
 
 void updatePopup(){

@@ -32,14 +32,11 @@ void onDraw_controller(uint menuY){
 		rendererv_drawString(L_1, y+= CHA_H, "Error getting controllers info");
 		return;
 	}
-	
-	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num , gui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {		
-		gui_drawEntry(L_1, y+= CHA_H, &gui_menu->entries[i], gui_menu->idx == i);
-	}
+
+	onDraw_generic(y);
 
 	//Ports stats
-	y+=CHA_H;
+	y+=CHA_H * 3;
 	rendererv_setColor(theme[COLOR_HEADER]);
 	rendererv_drawString(L_1, y+= CHA_H, "Detected controllers:");
 	for (int i = 0; i < 5; i++){

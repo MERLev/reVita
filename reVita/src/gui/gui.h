@@ -100,6 +100,7 @@ typedef struct MenuEntry{
 	int32_t dataInt;
 	uint32_t dataUint;
 	ProfileEntry* dataPE;
+	ProfileEntry* dataPEButton;
 	char** dataPEStr;
 } MenuEntry;
 
@@ -144,6 +145,7 @@ void gui_nextEntry();
 void gui_prevEntry();
 void gui_setIdx(int i);
 
+void onDraw_generic(uint32_t menuY);
 void gui_onInput(SceCtrlData *ctrl);
 void onButton_null(uint32_t btn);
 void gui_draw(const SceDisplayFrameBuf *pParam);
