@@ -30,30 +30,17 @@ void onButton_savemanager(uint32_t btn){
 	}
 }
 
-void onDraw_savemanager(uint menuY){
-    int y = menuY;
-	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
-		if (gui_menu->entries[i].type == HEADER_TYPE){
-				gui_setColorHeader(gui_menu->idx == i);
-			if (i == 0){
-				rendererv_drawStringF(L_1, y+=CHA_H, titleid);
-			} else {
-				rendererv_drawString(L_1, y+=CHA_H, gui_menu->entries[i].name);
-			}
-		} else {
-			gui_setColor(i == gui_menu->idx, 1);
-			rendererv_drawString(L_1+CHA_W, y += CHA_H, gui_menu->entries[i].name);
-		}
-	}
+void onDrawEntry_saveName(int x, int y, MenuEntry* me, bool isSelected, bool hasHeaders){
+    gui_setColorHeader(isSelected);
+	rendererv_drawStringF(L_1, y, profile.titleid);
 }
 
 static struct MenuEntry menu_savemanager_entries[] = {
-	(MenuEntry){.name = "", 					.type = HEADER_TYPE},
+	(MenuEntry){.name = "", 						.type = HEADER_TYPE, .onDraw = onDrawEntry_saveName},
 	(MenuEntry){.name = "$G Backup", 				.dataUint = SAVEMANAGER_BACKUP},
 	(MenuEntry){.name = "$H Restore", 				.dataUint = SAVEMANAGER_RESTORE},
 	(MenuEntry){.name = "$J Remove Backup", 		.dataUint = SAVEMANAGER_CLEAR},
-	(MenuEntry){.name = "More", 				.type = HEADER_TYPE},
+	(MenuEntry){.name = "More", 					.type = HEADER_TYPE},
 	(MenuEntry){.name = "$J Remove All Backups", 	.dataUint = SAVEMANAGER_CLEAR_ALL}};
 static struct Menu menu_savemanager = (Menu){
 	.id = MENU_SAVEMANAGER_ID, 
@@ -61,7 +48,6 @@ static struct Menu menu_savemanager = (Menu){
 	.name = "$/ SAVE MANAGER", 
 	.footer = 	"$XSELECT                 $CBACK $:CLOSE",
 	.onButton = onButton_savemanager,
-	.onDraw = onDraw_savemanager,
 	.num = SIZE(menu_savemanager_entries), 
 	.entries = menu_savemanager_entries};
 

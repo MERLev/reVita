@@ -64,14 +64,15 @@ bool onDrawEntry_profileEntry(int x, int y, MenuEntry* me, bool isSelected, bool
 
 bool onDrawEntry_button(int x, int y, MenuEntry* me, bool isSelected, bool hasHeaders){
     if (me->dataPEButton != NULL){
-        int32_t id = me->dataPEButton->id;
-        gui_setColor(isSelected, hotkeys_isDef(id));
+        ProfileEntry* pe = me->dataPEButton;
+        gui_setColor(isSelected, profile_isDef(pe));
         if (me->icn != ICON_NULL)
             rendererv_drawCharIcon(me->icn, L_1 + hasHeaders * CHA_W, y);
         rendererv_drawString(x + hasHeaders * CHA_W, y, me->name);
+
         char str[10];
         str[0] = '\0';
-        gui_generateBtnComboName(str, hotkeys[id].v.u, 6);
+        gui_generateBtnComboName(str, pe->v.u, 6);
         gui_drawStringFRight(0, y, str);
         return true;
     }
@@ -79,6 +80,11 @@ bool onDrawEntry_button(int x, int y, MenuEntry* me, bool isSelected, bool hasHe
 }
 
 void onDrawEntry_generic(int x, int y, MenuEntry* me, bool isSelected, bool hasHeaders){
+    if (me->onDraw != NULL){
+        me->onDraw(x, y, me, isSelected, hasHeaders);
+        return;
+    }
+
     if (onDrawEntry_header(x, y, me, isSelected, hasHeaders))
         return;
 

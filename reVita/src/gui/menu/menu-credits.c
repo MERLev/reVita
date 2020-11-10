@@ -55,7 +55,7 @@ static struct Menu menu_credits = (Menu){
 	.footer = 	"$CBACK                          $:CLOSE",
 	.noIndent = true,
 	.onDraw = onDraw_credits,
-	.num = 26};
+	.num = 28};
 
 void menu_initCredits(){
 	gui_registerMenu(&menu_credits);

@@ -60,6 +60,8 @@
 };
 
 struct Menu;
+struct MenuEntry;
+
 typedef void (*onButtonF)(uint32_t btn);
 typedef void (*onInputF)(SceCtrlData *ctrl);
 typedef void (*onDrawF)(uint32_t menuY);
@@ -92,10 +94,13 @@ typedef struct Menu{
 		void* dataPtr;
 	};
 }Menu;
+
+typedef void (*onDrawEntryF)(int x, int y, struct MenuEntry* me, bool isSelected, bool hasHeaders);
 typedef struct MenuEntry{
 	char* name;
 	int32_t type;
 	ICON_ID icn;
+	onDrawEntryF onDraw;
 
 	int32_t dataInt;
 	uint32_t dataUint;
@@ -112,6 +117,7 @@ extern Menu* menus[MENU_ID__NUM];
 extern struct RemapRule ui_ruleEdited; //Rule currently edited
 extern int ui_ruleEditedIdx;
 extern int64_t tickUIOpen;
+extern int64_t tickUIClose;
 extern int64_t tickMenuOpen;
 
 extern const char* STR_BTN_S[HW_BUTTONS_NUM];

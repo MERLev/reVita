@@ -6,16 +6,16 @@
 #include "menu.h"
 
 void onButton_hotkeys(uint32_t btn){
-	int8_t id = gui_getEntry()->dataPEButton->id;
+	ProfileEntry* pe = gui_getEntry()->dataPEButton;
 	switch (btn) {
 		case SCE_CTRL_CROSS:
 			gui_openMenuSmartPtr(MENU_PICK_BUTTON_ID, 
-				gui_menu->id, gui_menu->id, &hotkeys[id].v.u); 
+				gui_menu->id, gui_menu->id, &pe->v.u); 
 			break;		
 		case SCE_CTRL_TRIANGLE:
 			gui_getEntry()->dataPEButton->v.u = 0;
 			break;
-		case SCE_CTRL_SQUARE: hotkeys_reset(id); break;
+		case SCE_CTRL_SQUARE: hotkeys_reset(pe->id); break;
 		case SCE_CTRL_SELECT: hotkeys_resetAll(); break;
 		case SCE_CTRL_CIRCLE: 
 			hotkeys_save(); 

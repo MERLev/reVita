@@ -17,11 +17,10 @@
 #define DELAY_LONGPRESS   	(400##000)	// 0.400 sec
 #define DELAY_REPEAT   		 (60##000)	// 0.070 sec
 #define DELAY_FOOTER   	 (2##500##000)	// 2     sec
-#define TIME_MUTE_KEYS   	(500##000)	// 0.5   sec
+#define TIME_MUTE_KEYS   	(333##000)	// 0.333 sec
 
 typedef struct BtnInfo{
 	uint32_t btn;
-	// uint8_t btnId;
 	bool isPressed;
 	bool isLongPressed;
 	int64_t tickOnPress;
@@ -77,6 +76,7 @@ Menu* gui_menu;
 
 SceUID mem_uid;
 int64_t tickUIOpen = 0;
+int64_t tickUIClose = 0;
 int64_t tickMenuOpen = 0;
 uint8_t gui_isOpen = false;
 uint8_t gui_isBlankFrame = false;
@@ -493,7 +493,6 @@ void gui_open(const SceDisplayFrameBuf *pParam){
 		return;
 	}
 	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);
-	// gui_menu = menus[MENU_MAIN_ID]; //&menu_main;
 	gui_setIdx(0);
 	gui_isOpen = true;
 	tickUIOpen = tickMenuOpen = ksceKernelGetSystemTimeWide();
@@ -504,6 +503,7 @@ void gui_close(){
 	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);
 	rendererv_freeVirtualFB();
 	gui_isOpen = false;
+	tickUIClose = ksceKernelGetSystemTimeWide();
 	profile.version = ksceKernelGetSystemTimeWide();
 	sync();
 	LOGF("gui_close()\n");

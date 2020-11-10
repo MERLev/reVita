@@ -34,6 +34,7 @@
 
 #define INTERNAL                    (666*666)
 #define THREAD_MAIN_DELAY           (16##666)
+#define GUI_CLOSE_DELAY            (250##000)
 
 #define WHITELIST_NUM 18
 static char* whitelistNPXS[WHITELIST_NUM] = {
@@ -193,9 +194,11 @@ int nullButtons_kernel(SceCtrlData *bufs, SceUInt32 nBufs, bool isPositiveLogic)
 
 int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPositiveLogic, int isExt){ 
     int ret = nBufs;
+
     if (ret < 1 || ret > BUFFERS_NUM) 
         return ret;
-    if (gui_isOpen) {
+
+    if (gui_isOpen || tickUIClose + GUI_CLOSE_DELAY > ksceKernelGetSystemTimeWide()) {
         if (isKernelSpace)
             return nullButtons_kernel(ctrl, nBufs, isPositiveLogic);
         else
@@ -252,6 +255,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
         }
     }
     ksceKernelUnlockMutex(mutexCtrlHook[port], 1);
+    
     return ret;
 }
 

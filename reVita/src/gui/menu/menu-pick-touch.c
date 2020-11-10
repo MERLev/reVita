@@ -14,6 +14,13 @@
 
 #define ANALOG_DEADZONE_PICKER	30
 
+enum POINT_COORD{
+	POINT_1_X = 0,
+	POINT_1_Y,
+	POINT_2_X,
+	POINT_2_Y,
+};
+
 void drawTouchZone(uint32_t panel, TouchPoints2* tz){
 	renderer_setColor(panel ? theme[COLOR_TOUCH_BOTTOM] : theme[COLOR_TOUCH_FRONT]);
 	TouchPoints2 size = T_SIZE[panel];
@@ -116,14 +123,14 @@ void onButton_pickTouchPoint(uint32_t btn){
 			gui_openMenuNext();
 		case SCE_CTRL_RIGHT:
 			switch (gui_getEntry()->dataUint){
-				case 0: ra->param.tPoint.x = min(ra->param.tPoint.x + 1, size.b.x); break;
-				case 1: ra->param.tPoint.y = min(ra->param.tPoint.y + 1, size.b.y); break;
+				case POINT_1_X: ra->param.tPoint.x = min(ra->param.tPoint.x + 1, size.b.x); break;
+				case POINT_1_Y: ra->param.tPoint.y = min(ra->param.tPoint.y + 1, size.b.y); break;
 			}
 			break;
 		case SCE_CTRL_LEFT:
 			switch (gui_getEntry()->dataUint){
-				case 0: ra->param.tPoint.x = max(ra->param.tPoint.x - 1, size.a.x); break;
-				case 1: ra->param.tPoint.y = max(ra->param.tPoint.y - 1, size.a.y); break;
+				case POINT_1_X: ra->param.tPoint.x = max(ra->param.tPoint.x - 1, size.a.x); break;
+				case POINT_1_Y: ra->param.tPoint.y = max(ra->param.tPoint.y - 1, size.a.y); break;
 			}
 			break;
 		case SCE_CTRL_CIRCLE: gui_openMenuPrev();
@@ -146,18 +153,18 @@ void onButton_pickTouchZone(uint32_t btn){
 			gui_openMenuNext();
 		case SCE_CTRL_RIGHT:
 			switch (gui_getEntry()->dataUint){
-				case 0: ra->param.tPoints.a.x = min(ra->param.tPoints.a.x + 1, size.b.x); break;
-				case 1: ra->param.tPoints.a.y = min(ra->param.tPoints.a.y + 1, size.b.y); break;
-				case 2: ra->param.tPoints.b.x = min(ra->param.tPoints.b.x + 1, size.b.x); break;
-				case 3: ra->param.tPoints.b.y = min(ra->param.tPoints.b.y + 1, size.b.y); break;
+				case POINT_1_X: ra->param.tPoints.a.x = min(ra->param.tPoints.a.x + 1, size.b.x); break;
+				case POINT_1_Y: ra->param.tPoints.a.y = min(ra->param.tPoints.a.y + 1, size.b.y); break;
+				case POINT_2_X: ra->param.tPoints.b.x = min(ra->param.tPoints.b.x + 1, size.b.x); break;
+				case POINT_2_Y: ra->param.tPoints.b.y = min(ra->param.tPoints.b.y + 1, size.b.y); break;
 			}
 			break;
 		case SCE_CTRL_LEFT:
 			switch (gui_getEntry()->dataUint){
-				case 0: ra->param.tPoints.a.x = max(ra->param.tPoints.a.x - 1, size.a.x); break;
-				case 1: ra->param.tPoints.a.y = max(ra->param.tPoints.a.y - 1, size.a.y); break;
-				case 2: ra->param.tPoints.b.x = max(ra->param.tPoints.b.x - 1, size.a.x); break;
-				case 3: ra->param.tPoints.b.y = max(ra->param.tPoints.b.y - 1, size.a.y); break;
+				case POINT_1_X: ra->param.tPoints.a.x = max(ra->param.tPoints.a.x - 1, size.a.x); break;
+				case POINT_1_Y: ra->param.tPoints.a.y = max(ra->param.tPoints.a.y - 1, size.a.y); break;
+				case POINT_2_X: ra->param.tPoints.b.x = max(ra->param.tPoints.b.x - 1, size.a.x); break;
+				case POINT_2_Y: ra->param.tPoints.b.y = max(ra->param.tPoints.b.y - 1, size.a.y); break;
 			}
 			break;
 		case SCE_CTRL_CIRCLE: gui_openMenuPrev();
@@ -187,10 +194,10 @@ void onDraw_pickTouchZone(uint menuY){
 		int32_t id = gui_menu->entries[i].dataUint;
 		int coord = 0;
 		switch (id){
-			case 0: coord = ra->param.tPoints.a.x; break;
-			case 1: coord = ra->param.tPoints.a.y; break;
-			case 2: coord = ra->param.tPoints.b.x; break;
-			case 3: coord = ra->param.tPoints.b.y; break;}
+			case POINT_1_X: coord = ra->param.tPoints.a.x; break;
+			case POINT_1_Y: coord = ra->param.tPoints.a.y; break;
+			case POINT_2_X: coord = ra->param.tPoints.b.x; break;
+			case POINT_2_Y: coord = ra->param.tPoints.b.y; break;}
 		gui_setColor(i == gui_menu->idx, 1);
 		rendererv_drawStringF(L_2, y += CHA_H, gui_menu->entries[i].name);
 		gui_drawStringFRight(0, y, "%hu", coord);
@@ -199,8 +206,8 @@ void onDraw_pickTouchZone(uint menuY){
 }
 
 static struct MenuEntry menu_pick_touch_point_entries[] = {
-	(MenuEntry){.name = "Point x", .dataUint = 0},
-	(MenuEntry){.name = "      y", .dataUint = 1}};
+	(MenuEntry){.name = "Point x", .dataUint = POINT_1_X},
+	(MenuEntry){.name = "      y", .dataUint = POINT_1_Y}};
 static struct Menu menu_pick_touch_point = (Menu){
 	.id = MENU_PICK_TOUCH_POINT_ID, 
 	.parent = MENU_REMAP_EMU_TYPE_ID,
@@ -215,10 +222,10 @@ static struct Menu menu_pick_touch_point = (Menu){
 	.entries = menu_pick_touch_point_entries};
 
 static struct MenuEntry menu_pick_touch_zone_entries[] = {
-	(MenuEntry){.name = "Point 1 x", .dataUint = 0},
-	(MenuEntry){.name = "        y", .dataUint = 1},
-	(MenuEntry){.name = "Point 2 x", .dataUint = 2},
-	(MenuEntry){.name = "        y", .dataUint = 3}};
+	(MenuEntry){.name = "Point 1 x", .dataUint = POINT_1_X},
+	(MenuEntry){.name = "        y", .dataUint = POINT_1_Y},
+	(MenuEntry){.name = "Point 2 x", .dataUint = POINT_2_X},
+	(MenuEntry){.name = "        y", .dataUint = POINT_2_Y}};
 static struct Menu menu_pick_touch_zone = (Menu){
 	.id = MENU_PICK_TOUCH_ZONE_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,
@@ -233,10 +240,10 @@ static struct Menu menu_pick_touch_zone = (Menu){
 	.entries = menu_pick_touch_zone_entries};
 
 static struct MenuEntry menu_pick_touch_swipe_entries[] = {
-	(MenuEntry){.name = "Start Point x", .dataUint = 0},
-	(MenuEntry){.name = "            y", .dataUint = 1},
-	(MenuEntry){.name = "End   Point x", .dataUint = 2},
-	(MenuEntry){.name = "            y", .dataUint = 3}};
+	(MenuEntry){.name = "Start Point x", .dataUint = POINT_1_X},
+	(MenuEntry){.name = "            y", .dataUint = POINT_1_Y},
+	(MenuEntry){.name = "End   Point x", .dataUint = POINT_2_X},
+	(MenuEntry){.name = "            y", .dataUint = POINT_2_Y}};
 static struct Menu menu_pick_touch_swipe = (Menu){
 	.id = MENU_PICK_TOUCH_SWIPE_ID, 
 	.parent = MENU_REMAP_TRIGGER_TYPE_ID,

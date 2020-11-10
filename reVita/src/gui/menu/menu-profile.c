@@ -71,27 +71,13 @@ void onButton_profiles(uint32_t btn){
 	}
 }
 
-void onDraw_profiles(uint menuY){
-    int y = menuY;
-	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET);
-	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
-		if (gui_menu->entries[i].type == HEADER_TYPE){
-				gui_setColorHeader(gui_menu->idx == i);
-			if (i == 0){
-				rendererv_drawStringF(L_1, y+=CHA_H, "%s [%s]", 
-					gui_menu->entries[i].name, profile.titleid);
-			} else {
-				rendererv_drawString(L_1, y+=CHA_H, gui_menu->entries[i].name);
-			}
-		} else {
-			gui_setColor(i == gui_menu->idx, 1);
-			rendererv_drawString(L_2, y += CHA_H, gui_menu->entries[i].name);
-		}
-	}
+void onDrawEntry_profileName(int x, int y, MenuEntry* me, bool isSelected, bool hasHeaders){
+    gui_setColorHeader(isSelected);
+	rendererv_drawStringF(L_1, y, "%s [%s]", me->name, profile.titleid);
 }
 
 static struct MenuEntry menu_profiles_entries[] = {
-	(MenuEntry){.name = "Local", .type = HEADER_TYPE},
+	(MenuEntry){.name = "Local", .type = HEADER_TYPE, .onDraw = onDrawEntry_profileName},
 	(MenuEntry){.name = "$G Save", .dataUint = PROFILE_LOCAL_SAVE},
 	(MenuEntry){.name = "$H Load", .dataUint = PROFILE_LOCAL_LOAD},
 	(MenuEntry){.name = "$J Reset", .dataUint = PROFILE_LOCAL_RESET},
@@ -110,7 +96,6 @@ static struct Menu menu_profiles = (Menu){
 	.name = "$/ PROFILE > MANAGE PROFILES", 
 	.footer = 	"$XSELECT                 $CBACK $:CLOSE",
 	.onButton = onButton_profiles,
-	.onDraw = onDraw_profiles,
 	.num = SIZE(menu_profiles_entries), 
 	.entries = menu_profiles_entries};
 

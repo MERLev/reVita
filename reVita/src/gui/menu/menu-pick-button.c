@@ -31,17 +31,10 @@ void onButton_pickButton(uint32_t btn){
 	}
 }
 
-void onDraw_pickButton(uint menuY){
-    int y = menuY;
-	int ii = gui_calcStartingIndex(gui_menu->idx, gui_menu->num, gui_lines, BOTTOM_OFFSET);
-	uint32_t btns = *(uint32_t*)gui_menu->dataPtr;
-	for (int i = ii; i < min(ii + gui_lines, gui_menu->num); i++) {
-		MenuEntry* me = &gui_menu->entries[i];
-		gui_setColor(i == gui_menu->idx, !btn_has(btns, me->dataUint));
-		rendererv_drawCharIcon(me->icn, L_1, y += CHA_H);
-		rendererv_drawString(L_1 + 3*CHA_W, y, me->name);
-	}
-	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, ((float)gui_menu->idx)/(gui_menu->num-1));
+void onDrawEntry_pickButton(int x, int y, MenuEntry* me, bool isSelected, bool hasHeaders){
+    gui_setColor(isSelected, !btn_has(*(uint32_t*)gui_menu->dataPtr, me->dataUint));
+	rendererv_drawCharIcon(me->icn, L_1 + hasHeaders * CHA_W, y);
+	rendererv_drawString(L_1 + 3*CHA_W + hasHeaders * CHA_W, y, me->name);
 }
 
 void onDrawHeader_pickButton(){
@@ -80,11 +73,13 @@ static struct Menu menu_pick_button = (Menu){
 	.footer = 	"$SSELECT $XCONTINUE $TCLEAR ALL        "
 				"$CBACK                          $:CLOSE",
 	.onButton = onButton_pickButton,
-	.onDraw = onDraw_pickButton,
 	.onDrawHeader = onDrawHeader_pickButton,
 	.num = SIZE(menu_pick_button_entries), 
 	.entries = menu_pick_button_entries};
 
 void menu_initPickButton(){
+	for (int i = 0; i < menu_pick_button.num; i++)
+		menu_pick_button.entries[i].onDraw = onDrawEntry_pickButton;
+
 	gui_registerMenu(&menu_pick_button);
 }
