@@ -179,6 +179,11 @@ void setDefSettings(){
 		.def.b = true, 
 		.key = "Animation"});
 	set((ProfileEntry){
+		.id = SETT_NONINTRUSIVE_HOTKEYS,
+		.type = TYPE_BOOL,
+		.def.b = false, 
+		.key = "NonIntrusiveHotkeys"});
+	set((ProfileEntry){
 		.id = SETT_THEME,
 		.def.u = THEME_DARK, 
 		.type = TYPE_UINT32,

@@ -17,7 +17,7 @@
 #define DELAY_LONGPRESS   	(400##000)	// 0.400 sec
 #define DELAY_REPEAT   		 (60##000)	// 0.070 sec
 #define DELAY_FOOTER   	 (2##500##000)	// 2     sec
-#define TIME_MUTE_KEYS   	(333##000)	// 0.333 sec
+#define TIME_MUTE_KEYS   (1##000##000)	// 0.333 sec
 
 typedef struct BtnInfo{
 	uint32_t btn;
@@ -359,7 +359,8 @@ void gui_updateEmulatedTouch(SceTouchPortType panel, EmulatedTouch etouch, SceTo
 
 void gui_input(SceCtrlData *ctrl) {
 	if (tickUIOpen + TIME_MUTE_KEYS > ksceKernelGetSystemTimeWide())
-		return; // Menu trigger hotkey should not trigger any menu actions on menu open
+		btn_del(&ctrl->buttons, hotkeys[HOTKEY_MENU].v.u);
+		// return; // Menu trigger hotkey should not trigger any menu actions on menu open
 	
 	ksceKernelLockMutex(mutex_gui_uid, 1, NULL);
 	

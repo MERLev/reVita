@@ -9,6 +9,8 @@
 #include "revita.h"
 #include "remap.h"
 #include "fio/profile.h"
+#include "fio/settings.h"
+#include "fio/hotkeys.h"
 #include "common.h"
 #include "sysactions.h"
 #include "gui/gui.h"
@@ -502,7 +504,8 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, bool* sticky, Sce
 
 		switch (trigger->type){
 			case REMAP_TYPE_BUTTON: 
-				if (!rd.rr->propagate) btn_del(&rd.btnsProp, trigger->param.btn);
+				if (!rd.rr->propagate && btn_has(rd.btns, trigger->param.btn)) 
+					btn_del(&rd.btnsProp, trigger->param.btn);
 				if (updateStatus(&rd, btn_has(rd.btns, trigger->param.btn))){
 					addEmu(&rd);
 				}
@@ -761,6 +764,15 @@ void fixScreenshotPropagation(SceCtrlData *ctrl){
 		btn_del(&ctrl->buttons, SCE_CTRL_START);
 }
 
+void removeHotkeys(SceCtrlData *ctrl){
+	for (int i = 0; i < HOTKEY__NUM; i++){
+		if (i == HOTKEY_SAFE_START)
+			continue;
+		if (btn_has(ctrl->buttons, hotkeys[i].v.u))
+			btn_del(&ctrl->buttons, hotkeys[i].v.u);
+	}
+}
+
 void remap_ctrl_updateBuffers(int port, SceCtrlData *ctrl, bool isPositiveLogic, bool isExt) {
 	// Check if call is from Shell
 	int isShell = isCallShell();
@@ -797,6 +809,10 @@ void remap_ctrl_updateBuffers(int port, SceCtrlData *ctrl, bool isPositiveLogic,
 			cacheCtrl[port][isShell].buffers[idx].buttons |= scd_ext.buttons;
 		}
     }
+
+	// Remove non-intrusive hotkeys
+	if (!settings[SETT_NONINTRUSIVE_HOTKEYS].v.b)
+		removeHotkeys(&cacheCtrl[port][isShell].buffers[idx]);
 
 	// Apply remap
 	applyRemap(&cacheCtrl[port][isShell].buffers[idx], 

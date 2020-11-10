@@ -178,12 +178,12 @@ void setDefHotkeys(){
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_BRIGHTNESS_INC,
 		.type = TYPE_UINT32,
-		.def.u = SCE_CTRL_START + SCE_CTRL_UP,  
+		.def.u = SCE_CTRL_START + SCE_CTRL_VOLUP,  
 		.key = "BrightnessInc"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_BRIGHTNESS_DEC,
 		.type = TYPE_UINT32,
-		.def.u = SCE_CTRL_START + SCE_CTRL_DOWN,  
+		.def.u = SCE_CTRL_START + SCE_CTRL_VOLDOWN,  
 		.key = "BrightnessDec"});
 	hotkey_set((ProfileEntry){
 		.id = HOTKEY_SAVE_BACKUP,
