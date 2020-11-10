@@ -100,9 +100,9 @@ Thanks to evryone who helped me along the way :
 - [Princess-of-Sleeping](https://github.com/Princess-of-Sleeping) for help with reversing.
 - Derpy (Cassie) for testing.
 - W0lfwang for testing.
-- TheIronUniverse for testing.
+- [TheIronUniverse](https://github.com/TheIronUniverse) for testing.
 - mantixero for testing it in PS4link.
-- MightySashiman for testing.
+- [MightySashiman](https://github.com/mightysashiman) for testing.
 - Kiiro Yakumo for testing it in PS4Link.
 - Nino1026 for testing.
 - [Vita Nuova](https://t.co/3Efi3PGwK5?amp=1) communinity for all the help and support I got there.
