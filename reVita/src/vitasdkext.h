@@ -19,6 +19,8 @@ typedef enum SceProcEvent {
 } SceProcEvent;
 
 typedef void* SceClibMspace;
+int ksceSblACMgrIsPspEmu(SceUID pid);
+int ksceSblACMgrIsSceShell(SceUID pid);
 SceUID ksceKernelSysrootGetShellPid();
 SceBool ksceAppMgrIsExclusiveProcessRunning();
 
@@ -39,9 +41,6 @@ int ksceTouchReadRegion(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs, in
 
 int ksceKernelGetModuleInfo(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
 SceUID ksceKernelGetProcessMainModule(SceUID pid);
-
-int ksceLcdGetBrightness();
-int ksceLcdSetBrightness(int level);
 
 void vitasdkext_init();
 void vitasdkext_destroy();

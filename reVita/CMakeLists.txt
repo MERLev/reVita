@@ -69,6 +69,7 @@ target_link_libraries(${PROJECT_NAME}
   SceSysmemForKernel_stub
   SceSysrootForDriver_stub.a
   SceSysrootForKernel_stub
+  SceSblACMgrForDriver_stub
   SceAppMgrForDriver_stub
   SceIofilemgrForDriver_stub
   SceCtrlForDriver_stub

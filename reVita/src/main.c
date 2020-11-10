@@ -35,6 +35,8 @@
 #define INTERNAL                    (666*666)
 #define THREAD_MAIN_DELAY           (16##666)
 #define GUI_CLOSE_DELAY            (250##000)
+// #define PSVS_FRAMEBUF_HOOK_MAGIC    0x7183015
+#define THE_FLOW_MAGIC              0x6183015
 
 #define WHITELIST_NUM 18
 static char* whitelistNPXS[WHITELIST_NUM] = {
@@ -57,6 +59,14 @@ static char* whitelistNPXS[WHITELIST_NUM] = {
     "NPXS10094",    // Parental Controls
     "NPXS10095"     // Panoramic Camera
 };
+
+typedef enum APP_TYPE{
+    APP_SHELL = 0,
+    APP_SYSTEM,
+    APP_GAME,
+    APP_PSPEMU,
+    APP_BLACKLISTED
+} APP_TYPE;
 
 #define HOOK_EXPORT(module, libnid, funcnid, name) \
     hooks[name##_id] = taiHookFunctionExportForKernel(\
@@ -95,6 +105,7 @@ bool isPspemu = false;
 bool isPSTV = false;
 bool isPSTVTouchEmulation = false;
 bool isSafeBoot = false;
+enum APP_TYPE appType = APP_SHELL;
 
 bool used_funcs[HOOKS_NUM];
 bool ds34vitaRunning;
@@ -159,7 +170,8 @@ void changeActiveApp(char* tId, int pid){
         }
 
         remap_resetBuffers();
-        gui_close();
+        if (gui_isOpen)
+            gui_close();
     }
 }
 
@@ -255,7 +267,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
         }
     }
     ksceKernelUnlockMutex(mutexCtrlHook[port], 1);
-    
+
     return ret;
 }
 
@@ -386,19 +398,34 @@ int ksceCtrlGetControllerPortInfo_patched(SceCtrlPortInfo* info){
 int ksceDisplaySetFrameBufInternal_patched(int head, int index, const SceDisplayFrameBuf *pParam, int sync) {
     used_funcs[ksceDisplaySetFrameBufInternal_id] = 1;
 
+    if (sync == THE_FLOW_MAGIC) {
+        sync = 1;
+        goto DISPLAY_HOOK_RET;
+    }
+
     if (head != ksceDisplayGetPrimaryHead() || !pParam || !pParam->base)
         goto DISPLAY_HOOK_RET;
 
-    if (!index && isCallShell())
+    // if (!index && isCallShell())
+    if (!index && appType == APP_SHELL)
         goto DISPLAY_HOOK_RET; // Do not draw on i0 in SceShell
 
-    if (index && ksceAppMgrIsExclusiveProcessRunning())
+    if (index && (ksceAppMgrIsExclusiveProcessRunning() || appType == APP_GAME))
         goto DISPLAY_HOOK_RET; // Do not draw over SceShell overlay
     
     if (ksceKernelLockMutex(g_mutex_framebuf_uid, 1, NULL) < 0)
         goto DISPLAY_HOOK_RET;
 
     gui_draw(pParam);
+
+    if (gui_isOpen && profile.entries[PR_MO_NO_FLICKER].v.b && sync && appType != APP_SHELL && appType != APP_SYSTEM) {
+        // update now to fix flicker when vblank period is missed
+        ksceKernelUnlockMutex(g_mutex_framebuf_uid, 1);
+
+        int ret = TAI_CONTINUE(int, refs[ksceDisplaySetFrameBufInternal_id], head, index, pParam, 0);
+        ret = ksceDisplaySetFrameBufInternal(head, index, pParam, THE_FLOW_MAGIC);
+        return ret;
+    }
 
     ksceKernelUnlockMutex(g_mutex_framebuf_uid, 1);
 
@@ -417,6 +444,25 @@ bool isAppAllowed(char* tId){
     return true;
 }
 
+static APP_TYPE getAppType(int pid, char *titleid) {
+    APP_TYPE app = APP_BLACKLISTED;
+
+    if (ksceSblACMgrIsPspEmu(pid)) {
+        app = APP_PSPEMU;
+    } else if (strStartsWith(titleid, "NPXS")) {
+        if (isAppAllowed(titleid))
+            app = APP_SYSTEM;
+        else 
+            app = APP_BLACKLISTED;
+    } else if (streq(titleid, HOME)) {
+        app = APP_SHELL;
+    } else {
+        app = APP_GAME;
+    }
+
+    return app;
+}
+
 int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, int *a5, int a6) {
     used_funcs[ksceKernelInvokeProcEventHandler_id] = 1;
     char titleidLocal[sizeof(titleid)];
@@ -432,7 +478,8 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
         case SCE_PROC_START:
             scheduleDelayedStart();
         case SCE_PROC_RESUME:
-            if (streq(titleidLocal, "PSPEMUCFW")){
+            appType = getAppType(pid, titleidLocal);
+            if (appType == APP_PSPEMU){
                 isPspemu = true;
                 processid = pid;
                 break;
@@ -442,6 +489,7 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
         case SCE_PROC_CLOSE:
         case SCE_PROC_SUSPEND:
             if (!streq(titleid, HOME)){
+                appType = APP_SHELL;
                 isPspemu = false;
                 changeActiveApp(HOME, pid);
                 processid = shellPid;
@@ -455,6 +503,14 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
     ksceKernelUnlockMutex(mutex_procevent_uid, 1);
 
 PROCEVENT_EXIT:
+    switch (appType){
+        case APP_SHELL: LOG ("--------\n APP TYPE: SHELL\n---------\n"); break;
+        case APP_SYSTEM: LOG ("--------\n APP TYPE: SYSTEM\n---------\n"); break;
+        case APP_GAME: LOG ("--------\n APP TYPE: GAME\n---------\n"); break;
+        case APP_PSPEMU: LOG ("--------\n APP TYPE: PSPEMU\n---------\n"); break;
+        case APP_BLACKLISTED: LOG ("--------\n APP TYPE: BLACKLISTED\n---------\n"); break;
+    }
+    
     return TAI_CONTINUE(int, refs[ksceKernelInvokeProcEventHandler_id], pid, ev, a3, a4, a5, a6);
 }
 

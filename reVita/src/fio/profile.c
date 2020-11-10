@@ -844,8 +844,13 @@ void setDefProfile(){
 	setPE((ProfileEntry){
 		.id = PR_MO_BLANK_FRAME,
 		.type = TYPE_BOOL,
-		.def.u = 0,
+		.def.u = false,
 		.key = "ClearScreen"});
+	setPE((ProfileEntry){
+		.id = PR_MO_NO_FLICKER,
+		.type = TYPE_BOOL,
+		.def.u = true,
+		.key = "NoFLicker"});
 	setPE((ProfileEntry){
 		.id = PR_MO_DELAY_START,
 		.type = TYPE_BOOL,

@@ -47,8 +47,8 @@
 
 ## Compability with Apps
 
-- Not compatible with most system apps and some of the homebrew.
 - Adrenaline - to get UI working, you need to change **Adrenaline Settings -> Graphics Filtering** to anything else **except** original.
+- In some of hombrews and PSP/PS1 games GUI wan't work - use **Shared profile** method for them. [[How To]](https://github.com/MERLev/remaPSV2#known-issues).
 
 ## Installation
 
@@ -78,14 +78,43 @@
   - Hold (Start) when launching the game. It starts the plugin in safe mode, with a blank profile. Then load your profile, change the startup delay and save profile in profile manager.
 
 ## Fixes for some Apps
-
-- Remapping DS4TouchPad to anything - fixes Adrenaline crash when pressing the DS4TouchPad button with MiniVitaTV.
-- Enabling "Vita as virtual DS4" - fixes Vita inputs for latest versions of Retroarch and also for PSX games via Adrenaline with MiniVitaTV.
-
+- MiniVitaTV
+  - Adrenaline
+    - Fix Adrenaline crash when pressing the DS4 TouchPad button - Remap DS4 TouchPad to anything.
+    - Fix Vita inputs on PSX games - Enable "Vita as virtual DS4".
+  - Retroarch
+    - Fix Vita inputs on latest versions of Retroarch- Enable **"Vita as virtual DS4"**.
+    
 ## Known issues
 
 - Menu not opening in Adrenaline
   - Change **Adrenaline Settings -> Graphics Filtering** to anything else **except** original.
+- Menu not opening
+  - Minimise app
+  - Setup config you need while on LiveArea
+  - Save it as Shared profile (Profile > Profile management > Save as Shared)
+  - Go back to the game
+  - Press **START**+**CROSS**(configurable under Settings > Hotkeys) to import Shared profile.
+
+## Build
+- Make install **[ds34vita](https://github.com/MERLev/ds34vita)**.
+- Make install **[DS34Motion](https://github.com/MERLev/DS34Motion)**
+- Make install kernel module
+	```
+  cd reVita
+	mkdir build
+	cd build
+	cmake ..
+	make install
+	```
+- Make motion module
+	```
+  cd reVitaMotion
+	mkdir build
+	cd build
+	cmake ..
+	make
+	```
 
 ## Credits
 
