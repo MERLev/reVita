@@ -42,15 +42,15 @@ void onButton_profiles(uint32_t btn){
 					break;
 				case PROFILE_GLOBAL_SAVE:  
 					profile_saveAsGlobal();
-					gui_popupShowSuccess("$G Profile saved", "as Global", TTL_POPUP_SHORT); 
+					gui_popupShowSuccess("$G Profile saved", "as Global default", TTL_POPUP_SHORT); 
 					break;
 				case PROFILE_GLOBAL_LOAD:  
 					profile_loadFromGlobal();
-					gui_popupShowSuccess("$H Profile loaded", "from Global", TTL_POPUP_SHORT);
+					gui_popupShowSuccess("$H Profile loaded", "from Global default", TTL_POPUP_SHORT);
 					break;
 				case PROFILE_GLOBAL_RESET: 
 					profile_resetGlobal();
-					gui_popupShowSuccess("$J Profile reset", "Global", TTL_POPUP_SHORT); 
+					gui_popupShowSuccess("$J Profile reset", "Global default", TTL_POPUP_SHORT); 
 					break;
 				case PROFILE_SHARED_SAVE:  
 					profile_saveAsShared();
@@ -82,10 +82,10 @@ static struct MenuEntry menu_profiles_entries[] = {
 	(MenuEntry){.name = "$H Load", .dataUint = PROFILE_LOCAL_LOAD},
 	(MenuEntry){.name = "$J Reset", .dataUint = PROFILE_LOCAL_RESET},
 	(MenuEntry){.name = "$J Delete", .dataUint = PROFILE_LOCAL_DELETE},
-	(MenuEntry){.name = "Global", .type = HEADER_TYPE},
-	(MenuEntry){.name = "$G Save as global", .dataUint = PROFILE_GLOBAL_SAVE},
-	(MenuEntry){.name = "$H Load from global", .dataUint = PROFILE_GLOBAL_LOAD},
-	(MenuEntry){.name = "$J Reset global", .dataUint = PROFILE_GLOBAL_RESET},
+	(MenuEntry){.name = "Global default", .type = HEADER_TYPE},
+	(MenuEntry){.name = "$G Save as global default", .dataUint = PROFILE_GLOBAL_SAVE},
+	(MenuEntry){.name = "$H Load from global default", .dataUint = PROFILE_GLOBAL_LOAD},
+	(MenuEntry){.name = "$J Reset global default", .dataUint = PROFILE_GLOBAL_RESET},
 	(MenuEntry){.name = "Shared", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$G Save as shared", .dataUint = PROFILE_SHARED_SAVE},
 	(MenuEntry){.name = "$H Load from shared", .dataUint = PROFILE_SHARED_LOAD},

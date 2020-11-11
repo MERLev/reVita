@@ -100,21 +100,21 @@
 - Make install **[ds34vita](https://github.com/MERLev/ds34vita)**.
 - Make install **[DS34Motion](https://github.com/MERLev/DS34Motion)**
 - Make install kernel module
-	```
-  cd reVita
-	mkdir build
-	cd build
-	cmake ..
-	make install
-	```
+```bash
+cd reVita
+mkdir build
+cd build
+cmake ..
+make install
+```
 - Make motion module
-	```
-  cd reVitaMotion
-	mkdir build
-	cd build
-	cmake ..
-	make
-	```
+```bash
+cd reVitaMotion
+mkdir build
+cd build
+cmake ..
+make
+```
 
 ## Credits
 
