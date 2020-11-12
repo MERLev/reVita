@@ -31,6 +31,7 @@
 - External controllers support
 - Per-game (in Adrenaline too) and global profiles
 - Themes
+- and more
 
 ## Firmware compability
 
@@ -48,7 +49,7 @@
 ## Compability with Apps
 
 - Adrenaline - to get UI working, you need to change **Adrenaline Settings -> Graphics Filtering** to anything else **except** original.
-- In some of hombrews and PSP/PS1 games GUI wan't work - use **Shared profile** method for them. [[How To]](https://github.com/MERLev/remaPSV2#known-issues).
+- In some of hombrews and PSP/PS1 games GUI won't work - use **Shared profile** method for them. [[How To]](https://github.com/MERLev/reVita#known-issues).
 
 ## Installation
 

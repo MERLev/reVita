@@ -711,7 +711,7 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, bool* sticky, Sce
 		if (rd.analogLeftProp.up 	< profile.entries[PR_AN_LEFT_DEADZONE_Y].v.u) rd.analogLeftProp.up = 0;
 		if (rd.analogLeftProp.down 	< profile.entries[PR_AN_LEFT_DEADZONE_Y].v.u) rd.analogLeftProp.down = 0;
 	}
-	if (profile.entries[PR_AN_LEFT_DEADZONE].v.b 
+	if (profile.entries[PR_AN_RIGHT_DEADZONE].v.b 
 			|| (profile.entries[PR_GY_ANALOG_DEADZONE].v.b && rd.gyroAnalogDeadzones[RS])){
 		if (rd.analogRightProp.left < profile.entries[PR_AN_RIGHT_DEADZONE_X].v.u) rd.analogRightProp.left = 0;
 		if (rd.analogRightProp.right< profile.entries[PR_AN_RIGHT_DEADZONE_X].v.u) rd.analogRightProp.right = 0;
