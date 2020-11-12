@@ -53,7 +53,7 @@ static struct MenuEntry menu_main_profile_entries[] = {
 	(MenuEntry){.name = "Gyroscope", 		.dataUint = MENU_GYRO_ID, 			.icn = ICON_GY_ROLLLEFT},
 	(MenuEntry){.name = "Controller",		.dataUint = MENU_CONTROLLER_ID, 	.icn = ICON_BTN_DS4TOUCH},
 	(MenuEntry){.name = "Turbo", 			.dataUint = MENU_TURBO_ID, 			.icn = ICON_TURBO_SLOW},
-	(MenuEntry){.name = "Compability",		.dataUint = MENU_MORE_ID, 			.icn = ICON_CONFIG},
+	(MenuEntry){.name = "Compatibility",		.dataUint = MENU_MORE_ID, 			.icn = ICON_CONFIG},
 	(MenuEntry){.name = "Manage Profiles", 	.dataUint = MENU_PROFILE_ID, 		.icn = ICON_MENU_STORAGE}};
 static struct Menu menu_main_profile = (Menu){
 	.id = MENU_MAIN_PROFILE_ID, 

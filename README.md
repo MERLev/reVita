@@ -33,17 +33,17 @@
 - Themes
 - and more
 
-## Firmware compability
+## Firmware compatibility
 
 - 3.60 
 - 3.65
 
 ## Compatibility with plugins
 
-- **[MiniVitaTV](https://github.com/TheOfficialFloW/MiniVitaTV)** - full compability.
-- **[ds34vita](https://github.com/MERLev/ds34vita)** - full compability. Should be installed **after** reVita in tai config.
-- **[ds4touch](https://github.com/MERLev/ds4Touch)** - full compability. Should be installed **after** reVita in tai config.
-- **[ds3vita](https://github.com/xerpi/ds3vita)** and **[ds4vita](https://github.com/xerpi/ds4vita)** - partial compability, use **[ds34vita](https://github.com/MERLev/ds34vita)** instead to get full support.
+- **[MiniVitaTV](https://github.com/TheOfficialFloW/MiniVitaTV)** - full compatibility.
+- **[ds34vita](https://github.com/MERLev/ds34vita)** - full compatibility. Should be installed **after** reVita in tai config.
+- **[ds4touch](https://github.com/MERLev/ds4Touch)** - full compatibility. Should be installed **after** reVita in tai config.
+- **[ds3vita](https://github.com/xerpi/ds3vita)** and **[ds4vita](https://github.com/xerpi/ds4vita)** - partial compatibility, use **[ds34vita](https://github.com/MERLev/ds34vita)** instead to get full support.
 - **[DSMotion](https://github.com/OperationNT414C/DSMotion)** - not compatible, use **[DS34Motion](https://github.com/MERLev/DS34Motion)** instead to get full support.
 
 ## Compatibility with Apps

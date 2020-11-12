@@ -262,8 +262,10 @@ void profile_resetTurbo(){
 	profile_resetEntryById(PR_TU_FAST);
 }
 void profile_resetAnalog(){
+	profile_resetEntryById(PR_AN_LEFT_DEADZONE);
 	profile_resetEntryById(PR_AN_LEFT_DEADZONE_X);
 	profile_resetEntryById(PR_AN_LEFT_DEADZONE_Y);
+	profile_resetEntryById(PR_AN_RIGHT_DEADZONE);
 	profile_resetEntryById(PR_AN_RIGHT_DEADZONE_X);
 	profile_resetEntryById(PR_AN_RIGHT_DEADZONE_Y);
 	profile_resetEntryById(PR_AN_MODE_WIDE);
@@ -292,13 +294,16 @@ void profile_resetGyro() {
 	profile_resetEntryById(PR_GY_CALIBRATION_Z);
 	profile_resetEntryById(PR_GY_DS4_MOTION);
 	profile_resetEntryById(PR_GY_DEADBAND);
+	profile_resetEntryById(PR_GY_ANALOG_DEADZONE);
 }
 void profile_resetController(){
 	profile_resetEntryById(PR_CO_SWAP_BUTTONS);
 	profile_resetEntryById(PR_CO_EMULATE_DS4);
 }
 void profile_resetMore(){
+	profile_resetEntryById(PR_MO_SYS_BUTTONS);
 	profile_resetEntryById(PR_MO_BLANK_FRAME);
+	profile_resetEntryById(PR_MO_NO_FLICKER);
 	profile_resetEntryById(PR_MO_DELAY_START);
 }
 bool generateINIProfile(Profile* p, char* buff){
@@ -855,7 +860,7 @@ void setDefProfile(){
 		.def.u = false,
 		.key = "VirtualDS4"});
 
-	// Compability
+	// Compatibility
 	setPE((ProfileEntry){
 		.id = PR_MO_BLANK_FRAME,
 		.type = TYPE_BOOL,
