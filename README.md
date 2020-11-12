@@ -40,9 +40,9 @@
 
 ## Compability with plugins
 
-- **[MiniVitaTV](https://github.com/TheOfficialFloW/MiniVitaTV)** - full compability
-- **[ds34vita](https://github.com/MERLev/ds34vita)** - full compability
-- **[ds4touch](https://github.com/MERLev/ds4Touch)** - full compability
+- **[MiniVitaTV](https://github.com/TheOfficialFloW/MiniVitaTV)** - full compability.
+- **[ds34vita](https://github.com/MERLev/ds34vita)** - full compability. Should be installed **after** reVita in tai config.
+- **[ds4touch](https://github.com/MERLev/ds4Touch)** - full compability. Should be installed **after** reVita in tai config.
 - **[ds3vita](https://github.com/xerpi/ds3vita)** and **[ds4vita](https://github.com/xerpi/ds4vita)** - partial compability, use **[ds34vita](https://github.com/MERLev/ds34vita)** instead to get full support.
 - **[DSMotion](https://github.com/OperationNT414C/DSMotion)** - not compatible, use **[DS34Motion](https://github.com/MERLev/DS34Motion)** instead to get full support.
 
@@ -54,7 +54,7 @@
 ## Installation
 
 - Copy **ioplus.skprx** to **ur0:/tai** folder, add **ioplus.skprx** into your **ur0:/config.ini** config file under ***KERNEL*** section.
-- Copy **reVita.skprx** to **ur0:/tai** folder, add **reVita.skprx** into your **ur0:/config.ini** config file under ***KERNEL*** section.
+- Copy **reVita.skprx** to **ur0:/tai** folder, add **reVita.skprx** into your **ur0:/config.ini** config file under ***KERNEL*** section. Should be installed **before** ***ds34vita***/***ds4touch*** in tai config.
 - [Optional, to get Gyro support] Copy **reVitaMotion.suprx** to **ur0:/tai** folder, add **reVitaMotion.suprx** into your **ur0:/config.ini** config file under ***MAIN*** section.
 
 ## Usage
