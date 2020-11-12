@@ -38,7 +38,7 @@
 - 3.60 
 - 3.65
 
-## Compability with plugins
+## Compatibility with plugins
 
 - **[MiniVitaTV](https://github.com/TheOfficialFloW/MiniVitaTV)** - full compability
 - **[ds34vita](https://github.com/MERLev/ds34vita)** - full compability
@@ -46,7 +46,7 @@
 - **[ds3vita](https://github.com/xerpi/ds3vita)** and **[ds4vita](https://github.com/xerpi/ds4vita)** - partial compability, use **[ds34vita](https://github.com/MERLev/ds34vita)** instead to get full support.
 - **[DSMotion](https://github.com/OperationNT414C/DSMotion)** - not compatible, use **[DS34Motion](https://github.com/MERLev/DS34Motion)** instead to get full support.
 
-## Compability with Apps
+## Compatibility with Apps
 
 - Adrenaline - to get UI working, you need to change **Adrenaline Settings -> Graphics Filtering** to anything else **except** original.
 - In some of hombrews and PSP/PS1 games GUI won't work - use **Shared profile** method for them. [[How To]](https://github.com/MERLev/reVita#known-issues).

@@ -855,12 +855,17 @@ void setDefProfile(){
 		.def.u = false,
 		.key = "VirtualDS4"});
 
-	// More
+	// Compability
 	setPE((ProfileEntry){
 		.id = PR_MO_BLANK_FRAME,
 		.type = TYPE_BOOL,
 		.def.u = false,
 		.key = "ClearScreen"});
+	setPE((ProfileEntry){
+		.id = PR_MO_SYS_BUTTONS,
+		.type = TYPE_BOOL,
+		.def.u = false,
+		.key = "SystemButtons"});
 	setPE((ProfileEntry){
 		.id = PR_MO_NO_FLICKER,
 		.type = TYPE_BOOL,

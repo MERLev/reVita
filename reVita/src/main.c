@@ -502,13 +502,6 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
     ksceKernelUnlockMutex(mutex_procevent_uid, 1);
 
 PROCEVENT_EXIT:
-    switch (appType){
-        case APP_SHELL: LOG ("--------\n APP TYPE: SHELL\n---------\n"); break;
-        case APP_SYSTEM: LOG ("--------\n APP TYPE: SYSTEM\n---------\n"); break;
-        case APP_GAME: LOG ("--------\n APP TYPE: GAME\n---------\n"); break;
-        case APP_PSPEMU: LOG ("--------\n APP TYPE: PSPEMU\n---------\n"); break;
-        case APP_BLACKLISTED: LOG ("--------\n APP TYPE: BLACKLISTED\n---------\n"); break;
-    }
     
     return TAI_CONTINUE(int, refs[ksceKernelInvokeProcEventHandler_id], pid, ev, a3, a4, a5, a6);
 }
@@ -518,8 +511,8 @@ SceUID ksceKernelGetProcessId_patched(void){
     int ret = TAI_CONTINUE(SceUID, refs[ksceKernelGetProcessId_id]);
     if (shellPid > 0 
             && isDelayedStartDone 
-            && settings[SETT_REMAP_ENABLED].v.b//) 
-            && !isPspemu)
+            && settings[SETT_REMAP_ENABLED].v.b
+            && profile.entries[PR_MO_SYS_BUTTONS].v.b)
         return shellPid;
     return ret;
 }

@@ -13,9 +13,10 @@ void onButton_more(uint32_t btn){
 }
 
 static struct MenuEntry menu_more_entries[] = {
-	(MenuEntry){.name = "Delayed start", 			.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_DELAY_START]},
-	(MenuEntry){.name = "Prevent flicker", 			.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_NO_FLICKER]},
-	(MenuEntry){.name = "Clear screen on close", 	.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_BLANK_FRAME]}};
+	(MenuEntry){.name = "Hack to enable System buttons",.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_SYS_BUTTONS]},
+	(MenuEntry){.name = "Delayed start", 				.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_DELAY_START]},
+	(MenuEntry){.name = "Prevent flicker", 				.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_NO_FLICKER]},
+	(MenuEntry){.name = "Clear screen on close", 		.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_BLANK_FRAME]}};
 static struct Menu menu_more = (Menu){
 	.id = MENU_MORE_ID, 
 	.parent = MENU_MAIN_PROFILE_ID,
