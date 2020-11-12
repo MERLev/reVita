@@ -4,8 +4,6 @@
 #include "img/icons-font.h"
 #include "../fio/profile.h"
 
-#define VERSION				"0.1"
-
 #define UI_WIDTH            480
 #define UI_HEIGHT           272
 #define HEADER_HEIGHT		(CHA_H + 6)

@@ -19,8 +19,8 @@ static struct MenuEntry menu_analog_entries[] = {
 	(MenuEntry){.name = "Analog wide mode", .icn = ICON_LS_UP,  .dataPE = &profile.entries[PR_AN_MODE_WIDE]},
 	(MenuEntry){.name = "Deadzone", .type = HEADER_TYPE},
 	(MenuEntry){.name = "Left Analog", .icn = ICON_LS_UP,  .dataPE = &profile.entries[PR_AN_LEFT_DEADZONE]},
-	(MenuEntry){.name = "Left  Analog - X Axis", .icn = ICON_LS_LEFT,  .dataPE = &profile.entries[PR_AN_LEFT_DEADZONE_X]},
-	(MenuEntry){.name = "Left  Analog - Y Axis", .icn = ICON_LS_UP,.dataPE = &profile.entries[PR_AN_LEFT_DEADZONE_Y]},
+	(MenuEntry){.name = "Left Analog - X Axis", .icn = ICON_LS_LEFT,  .dataPE = &profile.entries[PR_AN_LEFT_DEADZONE_X]},
+	(MenuEntry){.name = "Left Analog - Y Axis", .icn = ICON_LS_UP,.dataPE = &profile.entries[PR_AN_LEFT_DEADZONE_Y]},
 	(MenuEntry){.name = "Right Analog", .icn = ICON_RS_UP,  .dataPE = &profile.entries[PR_AN_RIGHT_DEADZONE]},
 	(MenuEntry){.name = "Right Analog - X Axis", .icn = ICON_RS_LEFT,  .dataPE = &profile.entries[PR_AN_RIGHT_DEADZONE_X]},
 	(MenuEntry){.name = "Right Analog - Y Axis", .icn = ICON_RS_UP,.dataPE = &profile.entries[PR_AN_RIGHT_DEADZONE_Y]}};

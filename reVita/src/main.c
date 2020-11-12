@@ -35,7 +35,6 @@
 #define INTERNAL                    (666*666)
 #define THREAD_MAIN_DELAY           (16##666)
 #define GUI_CLOSE_DELAY            (250##000)
-// #define PSVS_FRAMEBUF_HOOK_MAGIC    0x7183015
 #define THE_FLOW_MAGIC              0x6183015
 
 #define WHITELIST_NUM 18

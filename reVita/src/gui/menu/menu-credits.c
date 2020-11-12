@@ -1,4 +1,5 @@
 #include <vitasdkkern.h>
+#include "../../main.h"
 #include "../../common.h"
 #include "../../fio/settings.h"
 #include "../../fio/theme.h"
@@ -8,7 +9,7 @@
 
 static char* credits[] = {
 	"reVita           author:$?Mer1e     ",
-	" v.1.0           tester:$?bosshunter",
+	"                 tester:$?bosshunter",
 	"",
 	"based on remaPSV by $?Rinnegatamante",
 	"",
@@ -43,6 +44,8 @@ void onDraw_credits(uint menuY){
 	for (int i = ii; i < min(gui_menu->num, ii + gui_lines); i++) {	
 		rendererv_setColor(theme[COLOR_DEFAULT]);
 		rendererv_drawString(L_1, y += CHA_H, credits[i]);
+		if (i == 1)
+			rendererv_drawStringF(L_1, y, " v.%s", VERSION);
 	}
 	gui_drawFullScroll(ii > 0, ii + gui_lines < gui_menu->num, 
 			((float)gui_menu->idx)/(gui_menu->num - (gui_lines - 1) - 1));
