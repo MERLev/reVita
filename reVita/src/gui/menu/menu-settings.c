@@ -56,7 +56,7 @@ struct MenuEntry menu_settings_entries[] = {
 	(MenuEntry){.name = "Plugin enabled", 			.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_REMAP_ENABLED]},
 	(MenuEntry){.name = "Save profile on close", 	.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_AUTOSAVE]},
 	(MenuEntry){.name = "Animation", 				.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_ANIMATION]},
-	(MenuEntry){.name = "Propagative hotkeys", 		.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_NONINTRUSIVE_HOTKEYS]},
+	(MenuEntry){.name = "Propagate hotkeys", 		.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_NONINTRUSIVE_HOTKEYS]},
 	(MenuEntry){.name = "Theme", 					.icn = ICON_MENU_SETTINGS,  .dataPE = &settings[SETT_THEME], .dataPEStr = STR_THEME}};
 static struct Menu menu_settings = (Menu){
 	.id = MENU_SETT_ID, 

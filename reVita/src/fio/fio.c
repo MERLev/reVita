@@ -17,7 +17,6 @@ char *save_blacklist[] = {
     "sce_pfs/",
     "sce_sys/safemem.dat",
     "sce_sys/keystone",
-    // "sce_sys/param.sfo",
     "sce_sys/sealedkey",
     NULL,
 };

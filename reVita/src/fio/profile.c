@@ -656,6 +656,16 @@ void setDefProfile(){
 		.def.u = 1,
 		.key = "AnalogsWideMode"});
 	setPE((ProfileEntry){
+		.id = PR_AN_LEFT_DEADZONE,
+		.type = TYPE_BOOL,
+		.def.u = 0,
+		.key = "LeftAnalogDeadzone"});
+	setPE((ProfileEntry){
+		.id = PR_AN_RIGHT_DEADZONE,
+		.type = TYPE_BOOL,
+		.def.u = 0,
+		.key = "LeftAnalogDeadzone"});
+	setPE((ProfileEntry){
 		.id = PR_AN_LEFT_DEADZONE_X,
 		.type = TYPE_UINT32,
 		.def.u = 20,
