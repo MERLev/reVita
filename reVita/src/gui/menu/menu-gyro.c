@@ -35,6 +35,7 @@ void onButton_gyro(uint32_t btn){
 static struct MenuEntry menu_gyro_entries[] = {
 	(MenuEntry){.name = "General", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$t Use DS34Motion", .dataPE = &profile.entries[PR_GY_DS4_MOTION]},
+	(MenuEntry){.name = "$u Auto Analog deadzone", .dataPE = &profile.entries[PR_GY_ANALOG_DEADZONE]},
 	(MenuEntry){.name = "$Q Deadband", .dataPE = &profile.entries[PR_GY_DEADBAND], .dataPEStr = STR_DEADBAND},
 	(MenuEntry){.name = "Sensitivity", .type = HEADER_TYPE},
 	(MenuEntry){.name = "$q X Axis", .dataPE = &profile.entries[PR_GY_SENSITIVITY_X]},

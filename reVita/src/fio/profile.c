@@ -658,28 +658,28 @@ void setDefProfile(){
 	setPE((ProfileEntry){
 		.id = PR_AN_LEFT_DEADZONE_X,
 		.type = TYPE_UINT32,
-		.def.u = 30,
+		.def.u = 20,
 		.min.u = 0,
 		.max.u = 127,
 		.key = "LeftAnalogDeadzoneX"});
 	setPE((ProfileEntry){
 		.id = PR_AN_LEFT_DEADZONE_Y,
 		.type = TYPE_UINT32,
-		.def.u = 30,
+		.def.u = 20,
 		.min.u = 0,
 		.max.u = 127,
 		.key = "LeftAnalogDeadzoneY"});
 	setPE((ProfileEntry){
 		.id = PR_AN_RIGHT_DEADZONE_X,
 		.type = TYPE_UINT32,
-		.def.u = 30,
+		.def.u = 20,
 		.min.u = 0,
 		.max.u = 127,
 		.key = "RightAnalogDeadzoneX"});
 	setPE((ProfileEntry){
 		.id = PR_AN_RIGHT_DEADZONE_Y,
 		.type = TYPE_UINT32,
-		.def.u = 30,
+		.def.u = 20,
 		.min.u = 0,
 		.max.u = 127,
 		.key = "RightAnalogDeadzoneY"});
@@ -727,6 +727,23 @@ void setDefProfile(){
 
 	// Gyro
 	setPE((ProfileEntry){
+		.id = PR_GY_DS4_MOTION,
+		.type = TYPE_BOOL,
+		.def.b = true,
+		.key = "GyroDS4"});
+	setPE((ProfileEntry){
+		.id = PR_GY_ANALOG_DEADZONE,
+		.type = TYPE_BOOL,
+		.def.b = true,
+		.key = "GyroToAnalogDeadzone"});
+	setPE((ProfileEntry){
+		.id = PR_GY_DEADBAND,
+		.type = TYPE_UINT32,
+		.def.u = 2,
+		.min.u = 0,
+		.max.u = 2,
+		.key = "GyroDeadband"});
+	setPE((ProfileEntry){
 		.id = PR_GY_SENSITIVITY_X,
 		.type = TYPE_UINT32,
 		.def.u = 25,
@@ -771,21 +788,21 @@ void setDefProfile(){
 	setPE((ProfileEntry){
 		.id = PR_GY_ANTIDEADZONE_X,
 		.type = TYPE_UINT32,
-		.def.u = 5,
+		.def.u = 20,
 		.min.u = 0,
 		.max.u = 100,
 		.key = "GyroAntideadzoneX"});
 	setPE((ProfileEntry){
 		.id = PR_GY_ANTIDEADZONE_Y,
 		.type = TYPE_UINT32,
-		.def.u = 5,
+		.def.u = 20,
 		.min.u = 0,
 		.max.u = 100,
 		.key = "GyroAntideadzoneY"});
 	setPE((ProfileEntry){
 		.id = PR_GY_ANTIDEADZONE_Z,
 		.type = TYPE_UINT32,
-		.def.u = 5,
+		.def.u = 20,
 		.min.u = 0,
 		.max.u = 100,
 		.key = "GyroAntideadzoneZ"});
@@ -810,18 +827,6 @@ void setDefProfile(){
 		.min.i = -1000,
 		.max.i = 1000,
 		.key = "GyroCalibrationZ"});
-	setPE((ProfileEntry){
-		.id = PR_GY_DS4_MOTION,
-		.type = TYPE_BOOL,
-		.def.u = 1,
-		.key = "GyroDS4"});
-	setPE((ProfileEntry){
-		.id = PR_GY_DEADBAND,
-		.type = TYPE_UINT32,
-		.def.u = 2,
-		.min.u = 0,
-		.max.u = 2,
-		.key = "GyroDeadband"});
 
 	// External controllers
 	setPE((ProfileEntry){

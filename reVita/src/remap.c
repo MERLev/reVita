@@ -422,21 +422,25 @@ void remEmu(RuleData* rd) {
 
 int convertGyroVal(float val, int sensId, int deadId, int antideadId){
 	// Scale
-	int scaledVal = clamp(val * 127 * profile.entries[sensId].v.u / 100, 0, 127);
+	int scaledVal = clamp(val * 128 * profile.entries[sensId].v.u / 100, 0, 127);
+	LOG("scaled val: %i\n", scaledVal);
 
 	// Apply Deadzone and Anti-Deadzone
-	return 127 * profile.entries[antideadId].v.u / 100 
-		+ ((float)scaledVal - 127 * profile.entries[deadId].v.u / 100) 
-		* (100 - profile.entries[antideadId].v.u) / (100 - profile.entries[deadId].v.u);
+	return (float)128 * profile.entries[antideadId].v.u / 100 
+		+ ((float)scaledVal - (float)128 * profile.entries[deadId].v.u / 100) 
+			* (100 - (float)profile.entries[antideadId].v.u) 
+			/ (100 - (float)profile.entries[deadId].v.u);
 }
 
 void gyroRule(RuleData* rd, float val, int multi, int sign, int sensId, int deadId, int antideadId){
 	if (val * sign > 0){
 		if (updateStatus(rd, abs(val * 100) > (int)profile.entries[deadId].v.u)){
 			rd->stickposval = convertGyroVal(val * multi * sign, sensId, deadId, antideadId);
+			LOG(" converted val: %i\n", convertGyroVal(val * multi * sign, sensId, deadId, antideadId));
 			addEmu(rd);
 		}
 	}
+	rd->gyroAnalogDeadzones[rd->rr->emu.type != REMAP_TYPE_LEFT_ANALOG] = true;
 }
 
 float calibrate(float val, float add){
@@ -464,7 +468,6 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, bool* sticky, Sce
 	int gyroRet = -1;
 	if (port <= 1) // Motion should be used only by Player 1
 		gyroRet = revita_sceMotionGetState(&sms);
-
 	if (gyroRet >= 0){
 		sms.rotationMatrix.x.z = calibrate(sms.rotationMatrix.x.z, (float)(profile.entries[PR_GY_CALIBRATION_X].v.i) / 1000);
 		sms.rotationMatrix.y.z = calibrate(sms.rotationMatrix.y.z, (float)(profile.entries[PR_GY_CALIBRATION_Y].v.i) / 1000);
@@ -478,6 +481,8 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, bool* sticky, Sce
 	rd.btnsEmu = 0;
 	rd.ctrl = ctrl;
 	rd.port = port;
+	rd.gyroAnalogDeadzones[0] =
+	rd.gyroAnalogDeadzones[1] = false;
 
 	// Set sticks def values
 	rd.analogLeftEmu = rd.analogRightEmu = rd.analogLeftProp = rd.analogRightProp = (EmulatedStick){0, 0, 0, 0};
@@ -697,6 +702,20 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, bool* sticky, Sce
 	btn_add(&rd.btnsEmu, rd.btnsProp);
 	ctrl->buttons = rd.btnsEmu;
 
+	// Apply deadzone to analogs if gyro->analog remaps are active
+	if (profile.entries[PR_GY_ANALOG_DEADZONE].v.b && rd.gyroAnalogDeadzones[0]){
+		if (rd.analogLeftProp.left 	< profile.entries[PR_AN_LEFT_DEADZONE_X].v.u) rd.analogLeftProp.left = 0;
+		if (rd.analogLeftProp.right < profile.entries[PR_AN_LEFT_DEADZONE_X].v.u) rd.analogLeftProp.right = 0;
+		if (rd.analogLeftProp.up 	< profile.entries[PR_AN_LEFT_DEADZONE_Y].v.u) rd.analogLeftProp.up = 0;
+		if (rd.analogLeftProp.down 	< profile.entries[PR_AN_LEFT_DEADZONE_Y].v.u) rd.analogLeftProp.down = 0;
+	}
+	if (profile.entries[PR_GY_ANALOG_DEADZONE].v.b && rd.gyroAnalogDeadzones[1]){
+		if (rd.analogRightProp.left < profile.entries[PR_AN_RIGHT_DEADZONE_X].v.u) rd.analogRightProp.left = 0;
+		if (rd.analogRightProp.right< profile.entries[PR_AN_RIGHT_DEADZONE_X].v.u) rd.analogRightProp.right = 0;
+		if (rd.analogRightProp.up 	< profile.entries[PR_AN_RIGHT_DEADZONE_Y].v.u) rd.analogRightProp.up = 0;
+		if (rd.analogRightProp.down < profile.entries[PR_AN_RIGHT_DEADZONE_Y].v.u) rd.analogRightProp.down = 0;
+	}
+
 	// Restoring propagated values for analog sticks
 	rd.analogLeftEmu.left += rd.analogLeftProp.left;
 	rd.analogLeftEmu.right += rd.analogLeftProp.right;
@@ -708,10 +727,10 @@ void applyRemap(SceCtrlData *ctrl, enum RULE_STATUS* statuses, bool* sticky, Sce
 	rd.analogRightEmu.down += rd.analogRightProp.down;
 
 	// Storing remap for analog axises
-	ctrl->lx = clamp(127  + rd.analogLeftEmu.right- rd.analogLeftEmu.left, 0, 255);
-	ctrl->ly = clamp(127 + rd.analogLeftEmu.down - rd.analogLeftEmu.up, 0, 255);
-	ctrl->rx = clamp(127 + rd.analogRightEmu.right - rd.analogRightEmu.left, 0, 255);
-	ctrl->ry = clamp(127 + rd.analogRightEmu.down - rd.analogRightEmu.up, 0, 255);
+	ctrl->lx = clamp(127 + rd.analogLeftEmu.right 	- rd.analogLeftEmu.left, 	0, 255);
+	ctrl->ly = clamp(127 + rd.analogLeftEmu.down 	- rd.analogLeftEmu.up, 		0, 255);
+	ctrl->rx = clamp(127 + rd.analogRightEmu.right 	- rd.analogRightEmu.left, 	0, 255);
+	ctrl->ry = clamp(127 + rd.analogRightEmu.down 	- rd.analogRightEmu.up, 	0, 255);
 
 	// Telling that new emulated touch buffer is ready to be taken
 	for (int i = 0; i < TOUCH_HOOKS_NUM; i++)

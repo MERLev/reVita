@@ -125,6 +125,7 @@ typedef struct RuleData{
     int port;
     int idx;
     bool* isSticky;
+    bool gyroAnalogDeadzones[2];
 }RuleData;
 
 typedef struct EmulatedTouchEvent{
