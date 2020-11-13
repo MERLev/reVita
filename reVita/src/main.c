@@ -64,6 +64,7 @@ typedef enum APP_TYPE{
     APP_SYSTEM,
     APP_GAME,
     APP_PSPEMU,
+    APP_PSPEMU_ABM,
     APP_BLACKLISTED
 } APP_TYPE;
 
@@ -100,7 +101,6 @@ char titleid[32] = "";
 int processid = -1;
 SceUID shellPid = -1;
 SceUID kernelPid = -1;
-bool isPspemu = false;
 bool isPSTV = false;
 bool isPSTVTouchEmulation = false;
 bool isSafeBoot = false;
@@ -181,7 +181,7 @@ static void updatePspemuTitle() {
 
     if (streq(id, ""))
         strclone(id, "XMB");
-    if (isPspemu && !streq(titleid, id))
+    if (appType == APP_PSPEMU && !streq(titleid, id))
         changeActiveApp(id, processid);
 }
 
@@ -447,7 +447,10 @@ static APP_TYPE getAppType(int pid, char *titleid) {
     APP_TYPE app = APP_BLACKLISTED;
 
     if (ksceSblACMgrIsPspEmu(pid)) {
-        app = APP_PSPEMU;
+        if (streq(titleid, "PSPEMUCFW"))
+            app = APP_PSPEMU;
+        else
+            app = APP_PSPEMU_ABM;
     } else if (strStartsWith(titleid, "NPXS")) {
         if (isAppAllowed(titleid))
             app = APP_SYSTEM;
@@ -479,7 +482,6 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
         case SCE_PROC_RESUME:
             appType = getAppType(pid, titleidLocal);
             if (appType == APP_PSPEMU){
-                isPspemu = true;
                 processid = pid;
                 break;
             }
@@ -489,7 +491,6 @@ int ksceKernelInvokeProcEventHandler_patched(int pid, int ev, int a3, int a4, in
         case SCE_PROC_SUSPEND:
             if (!streq(titleid, HOME)){
                 appType = APP_SHELL;
-                isPspemu = false;
                 changeActiveApp(HOME, pid);
                 processid = shellPid;
                 isDelayedStartDone = true;
@@ -543,8 +544,8 @@ static int main_thread(SceSize args, void *argp) {
             }
         }
 
-        // Update PSM title
-        if (isPspemu) 
+        // Update Adrenaline titleid
+        if (appType == APP_PSPEMU) 
             updatePspemuTitle();
 
         SceCtrlData ctrl;
