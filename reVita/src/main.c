@@ -216,7 +216,7 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
             return nullButtons_user(ctrl, nBufs, isPositiveLogic);
     }
 
-    if (!isDelayedStartDone){
+    if (!isDelayedStartDone && isCallActive()){
         if (settings[POP_LOADING].v.b){
             char str[20];
             sprintf(str, "Loading... %isec", 

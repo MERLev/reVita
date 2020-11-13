@@ -1123,7 +1123,6 @@ void remap_setup(){
 	
 	// Detecting touch panels size
 	SceTouchPanelInfo pi;
-	
 	for (int port = 0; port < SCE_TOUCH_PORT_MAX_NUM; port++){
 		if (ksceTouchGetPanelInfo(port, &pi) == 0){
 			T_SIZE[port].a.x = pi.minAaX;
