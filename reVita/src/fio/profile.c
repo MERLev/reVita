@@ -669,7 +669,7 @@ void setDefProfile(){
 		.id = PR_AN_RIGHT_DEADZONE,
 		.type = TYPE_BOOL,
 		.def.u = 0,
-		.key = "LeftAnalogDeadzone"});
+		.key = "RightAnalogDeadzone"});
 	setPE((ProfileEntry){
 		.id = PR_AN_LEFT_DEADZONE_X,
 		.type = TYPE_UINT32,
