@@ -223,26 +223,21 @@ void cleanEmuReports(EmulatedTouch *et){
 }
 
 void showRemapActionPopup(ProfileEntry* pe){
-	char header[20];
-	sprintf(header, "Toggle %s", pe->key);
 	switch (pe->id){
 		case PR_GY_DEADBAND:
 			;char* strDeadband[] = {"$@$# Forced Off", "$~$` Forced On", "Game default"};
-			gui_popupShow(header, strDeadband[pe->v.u], TTL_POPUP_SHORT);
+			gui_popupShow(pe->key, strDeadband[pe->v.u], TTL_POPUP_SHORT);
 			break;
 		default: 
 			switch (pe->type){
 				case TYPE_BOOL:
-					if (pe->v.b)
-						gui_popupShowSuccess(header, "$~$` On", TTL_POPUP_SHORT);
-					else
-						gui_popupShowDanger(header, "$@$# Off", TTL_POPUP_SHORT);
+					gui_popupShowSuccess(pe->key, pe->v.b ? "$~$` On" : "$@$# Off", TTL_POPUP_SHORT);
 					break;
 				case TYPE_INT32:
 				case TYPE_UINT32:
 					;char msg[20];
 					sprintf(msg, "%i", pe->v.i);
-					gui_popupShowSuccess(header, "$~$` On", TTL_POPUP_SHORT);
+					gui_popupShowSuccess(pe->key, msg, TTL_POPUP_SHORT);
 					break;
 			}
 			break;
@@ -270,10 +265,11 @@ void addEmu(RuleData* rd) {
 			if (rd->rr->sticky && !rd->isSticky) break;
 			btn_add(&rd->btnsEmu, emu->param.btn);
 			break;
-		case REMAP_TYPE_RIGHT_ANALOG: 
-		case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: 
-		case REMAP_TYPE_LEFT_ANALOG: 
 		case REMAP_TYPE_LEFT_ANALOG_DIGITAL: 
+		case REMAP_TYPE_RIGHT_ANALOG_DIGITAL: 
+			rd->stickposval = 127;
+		case REMAP_TYPE_RIGHT_ANALOG: 
+		case REMAP_TYPE_LEFT_ANALOG: 
 			if (rd->rr->turbo > 0 && !isTurboTickActive(rd)) break;
 			if (rd->rr->sticky && !rd->isSticky) break;
 			;EmulatedStick* stick = (emu->type == REMAP_TYPE_LEFT_ANALOG || emu->type == REMAP_TYPE_LEFT_ANALOG_DIGITAL) ?
@@ -1109,13 +1105,22 @@ void initTouchParams(){
 
 void remap_setup(){
 	// Enabling analogs sampling 
-	if (profile.entries[PR_AN_MODE_WIDE].v.b){
+	
+	int mode;
+    ksceCtrlGetSamplingMode(&mode);
+	if (mode == SCE_CTRL_MODE_DIGITAL)
 		ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
-		ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
-	} else {
-		ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
-		ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
-	}
+    ksceCtrlGetSamplingModeExt(&mode);
+	if (mode == SCE_CTRL_MODE_DIGITAL)
+		ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+
+	// if (profile.entries[PR_AN_MODE_WIDE].v.b){
+	// 	ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+	// 	ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG_WIDE);
+	// } else {
+	// 	ksceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
+	// 	ksceCtrlSetSamplingModeExt(SCE_CTRL_MODE_ANALOG);
+	// }
 	
 	// Enabling both touch panels sampling
 	ksceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);

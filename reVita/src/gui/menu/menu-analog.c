@@ -15,8 +15,8 @@ void onButton_analog(uint32_t btn){
 }
 
 static struct MenuEntry menu_analog_entries[] = {
-	(MenuEntry){.name = "General", .type = HEADER_TYPE},
-	(MenuEntry){.name = "Analog wide mode", .icn = ICON_LS_UP,  .dataPE = &profile.entries[PR_AN_MODE_WIDE]},
+	// (MenuEntry){.name = "General", .type = HEADER_TYPE},
+	// (MenuEntry){.name = "Analog wide mode", .icn = ICON_LS_UP,  .dataPE = &profile.entries[PR_AN_MODE_WIDE]},
 	(MenuEntry){.name = "Deadzone", .type = HEADER_TYPE},
 	(MenuEntry){.name = "Left Analog", .icn = ICON_LS_UP,  .dataPE = &profile.entries[PR_AN_LEFT_DEADZONE]},
 	(MenuEntry){.name = "Left Analog - X Axis", .icn = ICON_LS_LEFT,  .dataPE = &profile.entries[PR_AN_LEFT_DEADZONE_X]},

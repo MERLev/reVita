@@ -284,9 +284,9 @@ void drawPopup(){
 		CHA_W, CHA_H, 
 		CHA_W * (max(strlen(popupHeader), strlen(popupMessage)) + 2), CHA_H * 3 + 1);
 	renderer_setColor(popupColor);
-	renderer_drawStringF(CHA_W * 1.5, CHA_H * 1.5, popupHeader);
+	renderer_drawStringF(CHA_W * 1.5, CHA_H * 1.5 - 1, popupHeader);
 	renderer_setColor(theme[COLOR_DEFAULT]);
-	renderer_drawStringF(CHA_W * 1.5, CHA_H * 2.5 + 2, popupMessage);
+	renderer_drawStringF(CHA_W * 1.5, CHA_H * 2.5 + 3, popupMessage);
 }
 
 void updatePopup(){

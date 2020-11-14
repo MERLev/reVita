@@ -30,6 +30,7 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
 int ksceCtrlPeekBufferPositive2(int port, SceCtrlData *ctrl, int nBufs);
 int ksceCtrlPeekBufferPositiveExt(int port, SceCtrlData *ctrl, int nBufs);
 int ksceCtrlPeekBufferPositiveExt2(int port, SceCtrlData *ctrl, int nBufs);
+int ksceCtrlGetSamplingModeExt(int *pMode);
 int ksceCtrlSetSamplingModeExt(int mode);
 
 int ksceTouchPeek(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs);

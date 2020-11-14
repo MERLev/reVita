@@ -494,7 +494,7 @@ static struct Menu menu_remap_emu_sysactions = (Menu){
 	.entries = menu_remap_emu_sysactions_entries};
 
 static struct MenuEntry menu_remap_emu_remapsv_entries[] = {
-	(MenuEntry){.name = "Analogs Wide mode", 	.icn = ICON_LS_UP,			.dataUint = PR_AN_MODE_WIDE},
+	// (MenuEntry){.name = "Analogs Wide mode", 	.icn = ICON_LS_UP,			.dataUint = PR_AN_MODE_WIDE},
 	(MenuEntry){.name = "Draw Touch", 			.icn = ICON_TOUCH,			.dataUint = PR_TO_DRAW_POINT},
 	(MenuEntry){.name = "Draw Swipe", 			.icn = ICON_SWIPE,			.dataUint = PR_TO_DRAW_SWIPE},
 	(MenuEntry){.name = "Draw Smart Swipe", 	.icn = ICON_SWIPE,			.dataUint = PR_TO_DRAW_SMART_SWIPE},

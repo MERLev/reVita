@@ -49,6 +49,11 @@ int ksceCtrlSetSamplingModeExt(int mode){
     return _ksceCtrlSetSamplingModeExt(mode);
 }
 
+int (*_ksceCtrlGetSamplingModeExt)(int* mode);
+int ksceCtrlGetSamplingModeExt(int* mode){
+    return _ksceCtrlGetSamplingModeExt(mode);
+}
+
 int (*_ksceCtrlPeekBufferPositive2)(int port, SceCtrlData *ctrl, int nBufs);
 int ksceCtrlPeekBufferPositive2(int port, SceCtrlData *ctrl, int nBufs){
     return _ksceCtrlPeekBufferPositive2(port, ctrl, nBufs);
@@ -69,6 +74,7 @@ void vitasdkext_init(){
     IMPORT_OFFSET(SceCtrl, 0x3928, ksceCtrlPeekBufferPositiveExt);
     IMPORT_OFFSET(SceCtrl, 0x4B48, ksceCtrlPeekBufferPositiveExt2);
     IMPORT_OFFSET(SceCtrl, 0x2B98, ksceCtrlSetSamplingModeExt);
+    IMPORT_OFFSET(SceCtrl, 0x2CF0, ksceCtrlGetSamplingModeExt);
 
     IMPORT2(SceKernelModulemgr, 0xC445FA63, 0x20A27FA9, 0x92C9FFC2, 0x679F5144, ksceKernelGetProcessMainModule);
     IMPORT2(SceKernelModulemgr, 0xC445FA63, 0xD269F915, 0x92C9FFC2, 0xDAA90093, ksceKernelGetModuleInfo);
