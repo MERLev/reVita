@@ -91,6 +91,7 @@ void generateRemapActionName(char* str, struct RemapAction* ra){
 				case REMAP_SYS_KILL: 			strcat(str, "Kill App"); break;
 				case REMAP_SYS_BRIGHTNESS_INC: 	strcat(str, "Brightness +"); break;
 				case REMAP_SYS_BRIGHTNESS_DEC: 	strcat(str, "Brightness -"); break;
+				case REMAP_SYS_TOGGLE_SECONDARY:strcat(str, "Toggle secondary profile"); break;
 				case REMAP_SYS_SAVE_BACKUP: 	strcat(str, "Savegame backup"); break;
 				case REMAP_SYS_SAVE_RESTORE: 	strcat(str, "Savegame restore"); break;
 				case REMAP_SYS_SAVE_DELETE: 	strcat(str, "Savegame delete backup"); break;
@@ -473,18 +474,19 @@ static struct Menu menu_remap_emu_touch_back = (Menu){
 	.entries = menu_remap_emu_touch_back_entries};
 
 static struct MenuEntry menu_remap_emu_sysactions_entries[] = {
-	(MenuEntry){.name = "Soft reset", 			.dataUint = REMAP_SYS_RESET_SOFT},
-	(MenuEntry){.name = "Reboot", 				.dataUint = REMAP_SYS_RESET_COLD},
-	(MenuEntry){.name = "Power Off", 			.dataUint = REMAP_SYS_STANDBY},
-	(MenuEntry){.name = "Suspend", 				.dataUint = REMAP_SYS_SUSPEND},
-	(MenuEntry){.name = "Display Off", 			.dataUint = REMAP_SYS_DISPLAY_OFF},
-	(MenuEntry){.name = "Kill App", 			.dataUint = REMAP_SYS_KILL},
-	(MenuEntry){.name = "Brightness +", 		.dataUint = REMAP_SYS_BRIGHTNESS_INC},
-	(MenuEntry){.name = "Brightness -", 		.dataUint = REMAP_SYS_BRIGHTNESS_DEC},
-	(MenuEntry){.name = "Savegame backup", 		.dataUint = REMAP_SYS_SAVE_BACKUP},
-	(MenuEntry){.name = "Savegame restore", 	.dataUint = REMAP_SYS_SAVE_RESTORE},
-	(MenuEntry){.name = "Savegame delete backup", .dataUint = REMAP_SYS_SAVE_DELETE},
-	(MenuEntry){.name = "Calibrate motion", 	.dataUint = REMAP_SYS_CALIBRATE_MOTION}};
+	(MenuEntry){.name = "Soft reset", 					.dataUint = REMAP_SYS_RESET_SOFT},
+	(MenuEntry){.name = "Reboot", 						.dataUint = REMAP_SYS_RESET_COLD},
+	(MenuEntry){.name = "Power Off", 					.dataUint = REMAP_SYS_STANDBY},
+	(MenuEntry){.name = "Suspend", 						.dataUint = REMAP_SYS_SUSPEND},
+	(MenuEntry){.name = "Display Off",					.dataUint = REMAP_SYS_DISPLAY_OFF},
+	(MenuEntry){.name = "Kill App", 					.dataUint = REMAP_SYS_KILL},
+	(MenuEntry){.name = "Brightness +", 				.dataUint = REMAP_SYS_BRIGHTNESS_INC},
+	(MenuEntry){.name = "Brightness -", 				.dataUint = REMAP_SYS_BRIGHTNESS_DEC},
+	(MenuEntry){.name = "Toggle secondary profile", 	.dataUint = REMAP_SYS_TOGGLE_SECONDARY},
+	(MenuEntry){.name = "Savegame backup", 				.dataUint = REMAP_SYS_SAVE_BACKUP},
+	(MenuEntry){.name = "Savegame restore", 			.dataUint = REMAP_SYS_SAVE_RESTORE},
+	(MenuEntry){.name = "Savegame delete backup", 		.dataUint = REMAP_SYS_SAVE_DELETE},
+	(MenuEntry){.name = "Calibrate motion", 			.dataUint = REMAP_SYS_CALIBRATE_MOTION}};
 static struct Menu menu_remap_emu_sysactions = (Menu){
 	.id = MENU_REMAP_EMU_SYSACTIONS_ID, 
 	.name = "$! SYSTEM ACTIONS",

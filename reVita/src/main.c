@@ -601,6 +601,7 @@ static int main_thread(SceSize args, void *argp) {
                             profile_saveLocal();
 					        gui_popupShowSuccess("$H Profile imoprted", "from Shared", TTL_POPUP_SHORT);
                             break;
+                        case HOTKEY_PROFILE_TOGGLE_SECONDARY: sysactions_toggleSecondary(); break;
                     }
                 }
             }

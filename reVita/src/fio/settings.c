@@ -55,6 +55,7 @@ bool generateINISettings(char* buff){
 			case SETT_REMAP_ENABLED:
 			case POP_SAVE:
 			case POP_LOAD:
+			case POP_SECONDARY:
 			case POP_BRIGHTNESS:
 			case POP_READY:
 			case POP_LOADING:
@@ -86,6 +87,7 @@ bool parseINISettings(char* buff){
 			case SETT_REMAP_ENABLED:
 			case POP_SAVE:
 			case POP_LOAD:
+			case POP_SECONDARY:
 			case POP_BRIGHTNESS:
 			case POP_READY:
 			case POP_LOADING:
@@ -206,6 +208,11 @@ void setDefSettings(){
 		.type = TYPE_BOOL,
 		.def.b = false, 
 		.key = "LoadProfilePopup"});
+	set((ProfileEntry){
+		.id = POP_SECONDARY,
+		.type = TYPE_BOOL,
+		.def.b = false, 
+		.key = "ToggleSecondaryProfile"});
 	set((ProfileEntry){
 		.id = POP_BRIGHTNESS,
 		.type = TYPE_BOOL,

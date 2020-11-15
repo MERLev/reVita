@@ -20,6 +20,8 @@ void sysactions_saveDeleteAll();
 
 void sysactions_calibrateMotion();
 
+void sysactions_toggleSecondary();
+
 void sysactions_init();
 
 #endif

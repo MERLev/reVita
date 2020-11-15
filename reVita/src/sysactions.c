@@ -73,8 +73,12 @@ void sysactions_brightnessDec(){
 }
 
 void sysactions_saveBackup(){
+
+    char title[32];
+    sprintf(title, removeSecondarySuffix(titleid));
+
     char msg[64];
-	sprintf(msg, "$G Backuping save for %s", titleid);
+	sprintf(msg, "$G Backuping save for %s", title);
     gui_popupShow(msg, "Please, wait ...", 0);
 
 	//Create dir if not exists
@@ -82,8 +86,8 @@ void sysactions_saveBackup(){
 
     char src[64];
     char dest[64];
-	sprintf(src, "%s/%s", PATH_SAVE, titleid);
-	sprintf(dest, "%s/%s", PATH_SAVE_BACKUP, titleid);
+	sprintf(src, "%s/%s", PATH_SAVE, title);
+	sprintf(dest, "%s/%s", PATH_SAVE_BACKUP, title);
     
     if (fio_exist(src)){
         LOG("save found\n");
@@ -97,14 +101,18 @@ void sysactions_saveBackup(){
 }
 
 void sysactions_saveRestore(){
+
+    char title[32];
+    sprintf(title, removeSecondarySuffix(titleid));
+
     char msg[64];
-	sprintf(msg, "$H Restoring save for %s", titleid);
+	sprintf(msg, "$H Restoring save for %s", title);
     gui_popupShow(msg, "Please, wait ...", 0);
 
     char src[64];
     char dest[64];
-	sprintf(src, "%s/%s", PATH_SAVE_BACKUP, titleid);
-	sprintf(dest, "%s/%s", PATH_SAVE, titleid);
+	sprintf(src, "%s/%s", PATH_SAVE_BACKUP, title);
+	sprintf(dest, "%s/%s", PATH_SAVE, title);
     
     if (fio_exist(src)){
         if (fio_copyDir(src, dest) == 0){
@@ -117,12 +125,16 @@ void sysactions_saveRestore(){
 }
 
 void sysactions_saveDelete(){
+
+    char title[32];
+    sprintf(title, removeSecondarySuffix(titleid));
+    
     char msg[64];
-	sprintf(msg, "$J Removing backup for %s", titleid);
+	sprintf(msg, "$J Removing backup for %s", title);
     gui_popupShow(msg, "Please, wait ...", 0);
 
     char src[64];
-	sprintf(src, "%s/%s", PATH_SAVE_BACKUP, titleid);
+	sprintf(src, "%s/%s", PATH_SAVE_BACKUP, title);
     
     if (fio_exist(src)){
         if (fio_deletePath(src) == 1){
@@ -166,6 +178,21 @@ void sysactions_calibrateMotion(){
         // void __sceMotionReset();
         gui_popupShowSuccess("$Q Motion calibration", "Done !", TTL_POPUP_SHORT);
     }
+}
+
+void sysactions_toggleSecondary(){
+
+    bool secondary = strEndsWith(titleid, SECONDARY_PROFILE_SUFFIX);
+
+    if (secondary)
+        titleid[strlen(titleid) - strlen(SECONDARY_PROFILE_SUFFIX)] = 0;
+    else
+        sprintf(titleid, "%s%s", titleid, SECONDARY_PROFILE_SUFFIX);
+
+    profile_load(titleid);
+    
+    if (settings[POP_SECONDARY].v.b)
+        gui_popupShowSuccess("Secondary profile", secondary ? "$@$# Off" : "$~$` On", TTL_POPUP_SHORT);
 }
 
 void sysactions_init(){

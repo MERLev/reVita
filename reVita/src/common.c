@@ -1,6 +1,7 @@
 #include <vitasdkkern.h>
 #include <stdbool.h>
 #include <string.h>
+#include "common.h"
 
 #define HBASE 16
 
@@ -72,6 +73,17 @@ bool streq(char* str1, char* str2){
 bool strStartsWith(char* s, char* p){
 	return strncmp(s, p, strlen(p)) == 0;
 }
+
+bool strEndsWith(char* s, char* p)
+{
+    size_t ls = strlen(s);
+    size_t lp = strlen(p);
+    if (ls >= lp) {
+        return (0 == memcmp(p, s + (ls - lp), lp));
+    }
+    return false;
+}
+
 bool streqall(char *first, char* second, ...){
     int ret = true;
 	va_list argp;
@@ -119,3 +131,9 @@ int floorSqrt(int x) {
     } 
     return i - 1; 
 } 
+
+char* removeSecondarySuffix(char* titleid) {
+	if (strEndsWith(titleid, SECONDARY_PROFILE_SUFFIX))
+		titleid[strlen(titleid) - strlen(SECONDARY_PROFILE_SUFFIX)] = 0;
+	return titleid;
+}

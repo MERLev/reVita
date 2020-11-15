@@ -1,4 +1,5 @@
 #include <vitasdkkern.h>
+#include <stdio.h>
 #include "../../common.h"
 #include "../../main.h"
 #include "../../sysactions.h"
@@ -32,7 +33,11 @@ void onButton_savemanager(uint32_t btn){
 
 void onDrawEntry_saveName(int x, int y, MenuEntry* me, bool isSelected, bool hasHeaders){
     gui_setColorHeader(isSelected);
-	rendererv_drawStringF(L_1, y, titleid);
+
+	char title[32];
+    sprintf(title, removeSecondarySuffix(titleid));
+
+	rendererv_drawStringF(L_1, y, title);
 }
 
 static struct MenuEntry menu_savemanager_entries[] = {
