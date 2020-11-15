@@ -183,13 +183,15 @@ void sysactions_calibrateMotion(){
 void sysactions_toggleSecondary(){
 
     bool secondary = strEndsWith(titleid, SECONDARY_PROFILE_SUFFIX);
+    char profile_to_load[64];
+    sprintf(profile_to_load, titleid);
 
     if (secondary)
-        titleid[strlen(titleid) - strlen(SECONDARY_PROFILE_SUFFIX)] = 0;
+        profile_to_load[strlen(profile_to_load) - strlen(SECONDARY_PROFILE_SUFFIX)] = 0;
     else
-        sprintf(titleid, "%s%s", titleid, SECONDARY_PROFILE_SUFFIX);
+        sprintf(profile_to_load, "%s%s", titleid, SECONDARY_PROFILE_SUFFIX);
 
-    profile_load(titleid);
+    profile_load(profile_to_load);
     
     if (settings[POP_SECONDARY].v.b)
         gui_popupShowSuccess("Secondary profile", secondary ? "$@$# Off" : "$~$` On", TTL_POPUP_SHORT);
