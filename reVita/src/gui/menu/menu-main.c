@@ -1,5 +1,6 @@
 #include <vitasdkkern.h>
 #include "../../main.h"
+#include "../../sysactions.h"
 #include "../../common.h"
 #include "../../fio/settings.h"
 #include "../../fio/theme.h"
@@ -34,9 +35,18 @@ void onButton_main_submenu(uint32_t btn){
 	}
 }
 
+void onButton_main_profile(uint32_t btn){
+	switch (btn) {
+		case SCE_CTRL_SELECT:
+			sysactions_toggleSecondary();
+			break;
+		default: onButton_main_submenu(btn);
+	}
+}
+
 void onDrawHeader_main(){
 	rendererv_drawStringF(L_0, 3, "     reVita %s", VERSION);
-	gui_drawStringFRight(0, 2, secondaryProfileLoaded ? "%s (sec)" : titleid, titleid);
+	gui_drawStringFRight(0, 2, isSecondaryProfileLoaded ? "%s (sec)" : titleid, titleid);
 	if (settings[SETT_REMAP_ENABLED].v.b){
 		rendererv_setColor(theme[COLOR_SUCCESS]);
 		rendererv_drawStringF(L_0, 3, "$~$`", VERSION);
@@ -44,6 +54,11 @@ void onDrawHeader_main(){
 		rendererv_setColor(theme[COLOR_DANGER]);
 		rendererv_drawStringF(L_0, 3, "$@$#", VERSION);
 	}
+}
+
+void onDrawHeader_main_profile(){
+	rendererv_drawString(L_0, 3, gui_menu->name);
+	gui_drawStringFRight(0, 2, isSecondaryProfileLoaded ? "%s (sec)" : "%s", titleid);
 }
 
 static struct MenuEntry menu_main_profile_entries[] = {
@@ -59,8 +74,9 @@ static struct Menu menu_main_profile = (Menu){
 	.id = MENU_MAIN_PROFILE_ID, 
 	.parent = MENU_MAIN_ID,
 	.name = "$X PROFILE",
-	.footer = 	"$XSELECT $CBACK                 $:CLOSE",
-	.onButton = onButton_main_submenu,
+	.footer = 	"$XSELECT $CBACK $;SECONDARY     $:CLOSE",
+	.onButton = onButton_main_profile,
+	.onDrawHeader = onDrawHeader_main_profile,
 	.num = SIZE(menu_main_profile_entries), 
 	.entries = menu_main_profile_entries};
 

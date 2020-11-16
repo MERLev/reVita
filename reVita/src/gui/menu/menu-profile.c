@@ -73,7 +73,7 @@ void onButton_profiles(uint32_t btn){
 
 void onDrawEntry_profileName(int x, int y, MenuEntry* me, bool isSelected, bool hasHeaders){
     gui_setColorHeader(isSelected);
-	rendererv_drawStringF(L_1, y, "%s [%s]", me->name, titleid);
+	rendererv_drawStringF(L_1, y, "%s [%s]%s", me->name, titleid, isSecondaryProfileLoaded ? " (sec)" : "");
 }
 
 static struct MenuEntry menu_profiles_entries[] = {

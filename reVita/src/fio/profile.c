@@ -556,7 +556,7 @@ bool profile_load(char* titleId) {
 
 	char profile_to_load[32];
 
-	if (secondaryProfileLoaded)
+	if (isSecondaryProfileLoaded)
 		sprintf(profile_to_load, "%s%s", titleId, SECONDARY_PROFILE_SUFFIX);
 	else
 		sprintf(profile_to_load, "%s", titleId);
@@ -575,7 +575,7 @@ bool profile_load(char* titleId) {
 		return true;
 	}
 
-	if (secondaryProfileLoaded) {			// If secondary profile requested but it is not saved - use the current profile
+	if (isSecondaryProfileLoaded) {			// If secondary profile requested but it is not saved - use the current profile
 		return true;
 	}
 

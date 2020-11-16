@@ -520,12 +520,12 @@ void gui_close(){
 		} else {
 
 			char profile_to_save[64];
-			sprintf(profile_to_save, secondaryProfileLoaded ? "%s%s" : "%s", titleid, SECONDARY_PROFILE_SUFFIX);
+			sprintf(profile_to_save, isSecondaryProfileLoaded ? "%s%s" : "%s", titleid, SECONDARY_PROFILE_SUFFIX);
 			
 			profile_save(profile_to_save);
 			if (settings[POP_SAVE].v.b) {
 				char pop_message[64];
-				sprintf(pop_message, secondaryProfileLoaded ? "%s (secondary)" : "%s", titleid);
+				sprintf(pop_message, isSecondaryProfileLoaded ? "%s (secondary)" : "%s", titleid);
 				gui_popupShowSuccess("$G Profile saved", pop_message, TTL_POPUP_SHORT);
 			}
 		}

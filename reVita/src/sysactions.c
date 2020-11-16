@@ -173,11 +173,11 @@ void sysactions_calibrateMotion(){
 
 void sysactions_toggleSecondary(){
     
-    secondaryProfileLoaded = !secondaryProfileLoaded;
+    isSecondaryProfileLoaded = !isSecondaryProfileLoaded;
 
     profile_load(titleid);
     if (settings[POP_SECONDARY].v.b)
-        gui_popupShowSuccess("Secondary profile", secondaryProfileLoaded ? "$~$` On" : "$@$# Off", TTL_POPUP_SHORT);
+        gui_popupShowSuccess("Secondary profile", isSecondaryProfileLoaded ? "$~$` On" : "$@$# Off", TTL_POPUP_SHORT);
 }
 
 void sysactions_init(){
