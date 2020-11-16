@@ -122,6 +122,7 @@ make
 Thanks to evryone who helped me along the way :
 - [bosshunter](https://github.com/bosshunter), for doing most of the testing and supplying me with ideas.
 - [Rinnegatamante](https://github.com/Rinnegatamante), [remaPSV](https://github.com/Rinnegatamante/remaPSV) author, for various help provided.
+- [spectreseven1138](https://github.com/spectreseven1138), for secondary profile implementation
 - [S1ngyy](https://github.com/S1ngyy), for providing code for analogs/gyro support
 - [pablojrl123](https://github.com/pablojrl123), for customizable buttons activation code.
 - [Bythos](https://github.com/bythos14), for help with reversing, fixing libk and other general stuff.

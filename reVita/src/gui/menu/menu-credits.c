@@ -16,6 +16,7 @@ static char* credits[] = {
 	"Thanks to ",
 	" $?Rinnegatamante, remaPSV author",
 	" $?S1ngyy, for analogs/gyro support",
+	" $?spectreseven1138, for sec. profile",
 	" $?pablojrl123, for menu buttons code",
 	" $?Bythos, for various help",
 	" $?teakhanirons for various help",
@@ -58,7 +59,7 @@ static struct Menu menu_credits = (Menu){
 	.footer = 	"$CBACK                          $:CLOSE",
 	.noIndent = true,
 	.onDraw = onDraw_credits,
-	.num = 28};
+	.num = 29};
 
 void menu_initCredits(){
 	gui_registerMenu(&menu_credits);
