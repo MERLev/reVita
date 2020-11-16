@@ -519,12 +519,15 @@ void gui_close(){
 			gui_popupShowWarning("$! Safe Mode", "Profile autosaving is disabled.", TTL_POPUP_SHORT);
 		} else {
 
-			char profile_to_load[64];
-			sprintf(profile_to_load, secondaryProfileLoaded ? "%s (secondary)" : "%s", titleid);
+			char profile_to_save[64];
+			sprintf(profile_to_save, secondaryProfileLoaded ? "%s%s" : "%s", titleid, SECONDARY_PROFILE_SUFFIX);
 			
-			profile_save(profile_to_load);
-			if (settings[POP_SAVE].v.b)
-				gui_popupShowSuccess("$G Profile saved", profile_to_load, TTL_POPUP_SHORT);
+			profile_save(profile_to_save);
+			if (settings[POP_SAVE].v.b) {
+				char pop_message[64];
+				sprintf(pop_message, secondaryProfileLoaded ? "%s (secondary)" : "%s", titleid);
+				gui_popupShowSuccess("$G Profile saved", pop_message, TTL_POPUP_SHORT);
+			}
 		}
 	}
 }
