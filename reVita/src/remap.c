@@ -389,6 +389,7 @@ void addEmu(RuleData* rd) {
 				case REMAP_SYS_SAVE_RESTORE: 	sysactions_saveBackup(); break;
 				case REMAP_SYS_SAVE_DELETE: 	sysactions_saveDelete(); break;
 				case REMAP_SYS_CALIBRATE_MOTION:sysactions_calibrateMotion(); break;
+				case REMAP_SYS_TOGGLE_SECONDARY:sysactions_toggleSecondary(); break;
 				default: break;
 			}
 			break;

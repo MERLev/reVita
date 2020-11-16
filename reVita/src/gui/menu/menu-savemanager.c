@@ -32,6 +32,7 @@ void onButton_savemanager(uint32_t btn){
 
 void onDrawEntry_saveName(int x, int y, MenuEntry* me, bool isSelected, bool hasHeaders){
     gui_setColorHeader(isSelected);
+
 	rendererv_drawStringF(L_1, y, titleid);
 }
 

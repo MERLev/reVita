@@ -33,6 +33,7 @@ static struct MenuEntry menu_hotkeys_entries[] = {
 	(MenuEntry){.name = "Toggle state", 		.dataPEButton = &hotkeys[HOTKEY_REMAPS_TOOGLE]},
 	(MenuEntry){.name = "Reset profile",				.dataPEButton = &hotkeys[HOTKEY_PROFILE_LOCAL_RESET]},
 	(MenuEntry){.name = "Import profile from Shared",	.dataPEButton = &hotkeys[HOTKEY_PROFILE_SHARED_LOAD]},
+	(MenuEntry){.name = "Toggle secondary profile",		.dataPEButton = &hotkeys[HOTKEY_PROFILE_TOGGLE_SECONDARY]},
 	(MenuEntry){.name = "System", 				.type = HEADER_TYPE},
 	(MenuEntry){.name = "Soft reset", 			.dataPEButton = &hotkeys[HOTKEY_RESET_SOFT]},
 	(MenuEntry){.name = "Reboot", 				.dataPEButton = &hotkeys[HOTKEY_RESET_COLD]},

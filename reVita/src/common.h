@@ -21,6 +21,8 @@
 #define STREQALL(...) streqall(__VA_ARGS__, NULL)
 #define STREQANY(...) streqany(__VA_ARGS__, NULL)
 
+#define SECONDARY_PROFILE_SUFFIX "-SECONDARY"
+
 char* ullx(uint64_t val);
 int32_t clamp(int32_t value, int32_t mini, int32_t maxi);
 int32_t clampSmart(int32_t val, int32_t min, int32_t max);
@@ -35,6 +37,7 @@ bool streq(char* str1, char* str2);
 bool streqall(char *first, char* second, ...);
 bool streqany(char *first, ...);
 bool strStartsWith(char* s, char* p);
+bool strEndsWith(char* s, char* p);
 
 int floorSqrt(int x);
 #endif

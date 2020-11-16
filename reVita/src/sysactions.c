@@ -73,6 +73,7 @@ void sysactions_brightnessDec(){
 }
 
 void sysactions_saveBackup(){
+
     char msg[64];
 	sprintf(msg, "$G Backuping save for %s", titleid);
     gui_popupShow(msg, "Please, wait ...", 0);
@@ -97,6 +98,7 @@ void sysactions_saveBackup(){
 }
 
 void sysactions_saveRestore(){
+
     char msg[64];
 	sprintf(msg, "$H Restoring save for %s", titleid);
     gui_popupShow(msg, "Please, wait ...", 0);
@@ -117,6 +119,7 @@ void sysactions_saveRestore(){
 }
 
 void sysactions_saveDelete(){
+
     char msg[64];
 	sprintf(msg, "$J Removing backup for %s", titleid);
     gui_popupShow(msg, "Please, wait ...", 0);
@@ -166,6 +169,15 @@ void sysactions_calibrateMotion(){
         // void __sceMotionReset();
         gui_popupShowSuccess("$Q Motion calibration", "Done !", TTL_POPUP_SHORT);
     }
+}
+
+void sysactions_toggleSecondary(){
+    
+    secondaryProfileLoaded = !secondaryProfileLoaded;
+
+    profile_load(titleid);
+    if (settings[POP_SECONDARY].v.b)
+        gui_popupShowSuccess("Secondary profile", secondaryProfileLoaded ? "$~$` On" : "$@$# Off", TTL_POPUP_SHORT);
 }
 
 void sysactions_init(){

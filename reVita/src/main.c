@@ -98,6 +98,7 @@ static SceUID thread_uid = -1;
 static bool   thread_run = true;
 
 char titleid[32] = "";
+bool secondaryProfileLoaded = false;
 int processid = -1;
 SceUID shellPid = -1;
 SceUID kernelPid = -1;
@@ -151,6 +152,7 @@ void scheduleDelayedStart(){
 void changeActiveApp(char* tId, int pid){
     if (!streq(titleid, tId)) {
         strnclone(titleid, tId, sizeof(titleid));
+        secondaryProfileLoaded = false;
         processid = pid;
         for (int i = 0; i < HOOKS_NUM; i++)
             used_funcs[i] = false;
@@ -601,6 +603,7 @@ static int main_thread(SceSize args, void *argp) {
                             profile_saveLocal();
 					        gui_popupShowSuccess("$H Profile imoprted", "from Shared", TTL_POPUP_SHORT);
                             break;
+                        case HOTKEY_PROFILE_TOGGLE_SECONDARY: sysactions_toggleSecondary(); break;
                     }
                 }
             }

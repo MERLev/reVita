@@ -215,6 +215,11 @@ void setDefHotkeys(){
 		.type = TYPE_UINT32,
 		.def.u = SCE_CTRL_START + SCE_CTRL_CROSS, 
 		.key = "ImportSharedProfile"});
+	hotkey_set((ProfileEntry){
+		.id = HOTKEY_PROFILE_TOGGLE_SECONDARY,
+		.type = TYPE_UINT32,
+		.def.u = 0, 
+		.key = "ToggleSecondary"});
 }
 
 void hotkeys_init(){
