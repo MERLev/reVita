@@ -1,5 +1,4 @@
 #include <vitasdkkern.h>
-#include <stdio.h>
 #include "../../common.h"
 #include "../../main.h"
 #include "../../sysactions.h"
