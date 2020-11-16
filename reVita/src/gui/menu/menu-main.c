@@ -1,4 +1,5 @@
 #include <vitasdkkern.h>
+#include <stdio.h>
 #include "../../main.h"
 #include "../../common.h"
 #include "../../fio/settings.h"
@@ -36,7 +37,7 @@ void onButton_main_submenu(uint32_t btn){
 
 void onDrawHeader_main(){
 	rendererv_drawStringF(L_0, 3, "     reVita %s", VERSION);
-	gui_drawStringFRight(0, 2, titleid);
+	gui_drawStringFRight(0, 2, secondaryProfileLoaded ? "%s (sec)" : titleid, titleid);
 	if (settings[SETT_REMAP_ENABLED].v.b){
 		rendererv_setColor(theme[COLOR_SUCCESS]);
 		rendererv_drawStringF(L_0, 3, "$~$`", VERSION);

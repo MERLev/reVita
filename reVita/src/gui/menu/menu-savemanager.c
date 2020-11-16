@@ -34,10 +34,7 @@ void onButton_savemanager(uint32_t btn){
 void onDrawEntry_saveName(int x, int y, MenuEntry* me, bool isSelected, bool hasHeaders){
     gui_setColorHeader(isSelected);
 
-	char title[32];
-    sprintf(title, removeSecondarySuffix(titleid));
-
-	rendererv_drawStringF(L_1, y, title);
+	rendererv_drawStringF(L_1, y, titleid);
 }
 
 static struct MenuEntry menu_savemanager_entries[] = {

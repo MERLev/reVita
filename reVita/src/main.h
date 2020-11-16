@@ -47,6 +47,7 @@ enum H_ID{
 #define CTRL_HOOKS_NUM 				16
 
 extern char titleid[32];
+extern bool secondaryProfileLoaded;
 extern int processid;
 extern bool isPspemu;
 extern bool isPSTV;

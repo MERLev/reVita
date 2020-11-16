@@ -549,21 +549,33 @@ ERROR: //Free allocated memory
 }
 
 bool profile_save(char* titleId) {
-    LOG("profile_save('%s')\n", titleid);
+    LOG("profile_save('%s')\n", titleId);
 	return writeProfile(&profile, titleId);
 }
 bool profile_load(char* titleId) {
-    LOG("profile_load('%s')\n", titleid);
+
+	char profile_to_load[32];
+
+	if (secondaryProfileLoaded)
+		sprintf(profile_to_load, "%s%s", titleId, SECONDARY_PROFILE_SUFFIX);
+	else
+		sprintf(profile_to_load, "%s", titleId);
+
+    LOG("profile_load('%s')\n", profile_to_load);
 	if (strcmp(profile.titleid, HOME) == 0){  //If used home profile previously
 		clone(&profile_home, &profile);       //copy it back to its cache
 	}
 	
-	if (strcmp(titleid, HOME) == 0){          //If home profile requested
+	if (strcmp(profile_to_load, HOME) == 0){          //If home profile requested
 		clone(&profile, &profile_home);		  //Restore it from cache
 		return true;
 	}
 
-	if (readProfile(&profile, titleId)){
+	if (readProfile(&profile, profile_to_load)){
+		return true;
+	}
+
+	if (secondaryProfileLoaded) {			// If secondary profile requested but it is not saved - use the current profile
 		return true;
 	}
 

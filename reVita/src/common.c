@@ -131,9 +131,3 @@ int floorSqrt(int x) {
     } 
     return i - 1; 
 } 
-
-char* removeSecondarySuffix(char* titleid) {
-	if (strEndsWith(titleid, SECONDARY_PROFILE_SUFFIX))
-		titleid[strlen(titleid) - strlen(SECONDARY_PROFILE_SUFFIX)] = 0;
-	return titleid;
-}

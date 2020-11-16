@@ -39,7 +39,5 @@ bool streqany(char *first, ...);
 bool strStartsWith(char* s, char* p);
 bool strEndsWith(char* s, char* p);
 
-char* removeSecondarySuffix(char* titleid);
-
 int floorSqrt(int x);
 #endif
