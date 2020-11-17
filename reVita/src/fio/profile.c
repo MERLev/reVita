@@ -889,6 +889,13 @@ void setDefProfile(){
 		.def.u = true,
 		.key = "NoFLicker"});
 	setPE((ProfileEntry){
+		.id = PR_MO_MAIN_BUTTON,
+		.type = TYPE_UINT32,
+		.def.u = 2,
+		.min.u = 0,
+		.max.u = 2,
+		.key = "MainButton"});
+	setPE((ProfileEntry){
 		.id = PR_MO_DELAY_START,
 		.type = TYPE_BOOL,
 		.type = TYPE_UINT32,

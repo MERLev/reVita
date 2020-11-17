@@ -529,6 +529,16 @@ int ksceRegMgrSetKeyInt_patched(char *category, char *name, int buf){
 	return ret;
 }
 
+int ksceRegMgrGetKeyInt_patched(char *category, char *name, int *buf){
+    int ret = TAI_CONTINUE(int, refs[ksceRegMgrGetKeyInt_id], category, name, buf);
+	if (settings[SETT_REMAP_ENABLED].v.b 
+            && profile.entries[PR_MO_MAIN_BUTTON].v.u != 2 
+            && streq(category, "/CONFIG/SYSTEM") 
+            && streq(name, "button_assign"))
+		*buf = profile.entries[PR_MO_MAIN_BUTTON].v.u;
+	return ret;
+}
+
 static int main_thread(SceSize args, void *argp) {
     uint32_t oldBtns = 0;
 
@@ -723,6 +733,7 @@ int module_start(SceSize argc, const void *args) {
 	HOOK_EXPORT(SceDisplay,    0x9FED47AC,      0x16466675, ksceDisplaySetFrameBufInternal);
 	HOOK_IMPORT(SceProcessmgr, 0x887F19D0,      0x414CC813, ksceKernelInvokeProcEventHandler);
 	HOOK_EXPORT(SceRegistryMgr, 0xB2223AEB, 0xD72EA399, ksceRegMgrSetKeyInt);
+	HOOK_EXPORT(SceRegistryMgr, 0xB2223AEB, 0x16DDF3DC, ksceRegMgrGetKeyInt);
 
     // Create threads
     thread_uid = ksceKernelCreateThread("reVita_thread", main_thread, 0x3C, 0x3000, 0, 0x10000, 0);
