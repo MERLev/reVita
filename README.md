@@ -96,7 +96,7 @@
   - Save it as Shared profile (Profile > Profile management > Save as Shared)
   - Go back to the game
   - Press **START**+**CROSS**(configurable under Settings > Hotkeys) to import Shared profile.
-
+- "Buy more RAM" error popup on menu open - means there is not enough RAM for plugin to initialise it's menu. Seems to be caused by usage of other heavy plugins, especially ucdc and PSVShell.
 ## Build
 - Make install **[ds34vita](https://github.com/MERLev/ds34vita)**.
 - Make install **[DS34Motion](https://github.com/MERLev/DS34Motion)**
