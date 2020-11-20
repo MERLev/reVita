@@ -20,6 +20,7 @@ void onButton_more(uint32_t btn){
 
 static struct MenuEntry menu_more_entries[] = {
 	(MenuEntry){.name = "Enable System buttons (hack)", .icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_SYS_BUTTONS]},
+	(MenuEntry){.name = "Limit buffers to 1 (hack)", 	.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_LIMIT_BUFFERS]},
 	(MenuEntry){.name = "Enter/Cancel keys",			.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_MAIN_BUTTON], .dataPEStr = STR_MAIN_BUTTON},
 	(MenuEntry){.name = "Delayed start", 				.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_DELAY_START]},
 	(MenuEntry){.name = "Prevent flicker", 				.icn = ICON_CONFIG, .dataPE = &profile.entries[PR_MO_NO_FLICKER]},

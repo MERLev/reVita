@@ -302,6 +302,8 @@ void profile_resetController(){
 }
 void profile_resetMore(){
 	profile_resetEntryById(PR_MO_SYS_BUTTONS);
+	profile_resetEntryById(PR_MO_LIMIT_BUFFERS);
+	profile_resetEntryById(PR_MO_MAIN_BUTTON);
 	profile_resetEntryById(PR_MO_BLANK_FRAME);
 	profile_resetEntryById(PR_MO_NO_FLICKER);
 	profile_resetEntryById(PR_MO_DELAY_START);
@@ -883,6 +885,11 @@ void setDefProfile(){
 		.type = TYPE_BOOL,
 		.def.u = false,
 		.key = "SystemButtons"});
+	setPE((ProfileEntry){
+		.id = PR_MO_LIMIT_BUFFERS,
+		.type = TYPE_BOOL,
+		.def.u = false,
+		.key = "LimitBuffers1"});
 	setPE((ProfileEntry){
 		.id = PR_MO_NO_FLICKER,
 		.type = TYPE_BOOL,

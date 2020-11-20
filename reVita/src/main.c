@@ -280,6 +280,8 @@ int onInput(int port, SceCtrlData *ctrl, int nBufs, int isKernelSpace, int isPos
             return TAI_CONTINUE(int, refs[name##_id], port, ctrl, nBufs); \
 		int ret = TAI_CONTINUE(int, refs[name##_id], \
             (port == 1 && profile.entries[PR_CO_EMULATE_DS4].v.b) ? 0 : port, ctrl, nBufs); \
+        if (ret > 0 && profile.entries[PR_MO_LIMIT_BUFFERS].v.b) \
+            ret = 1; \
         used_funcs[name##_id] = true; \
         return onInput(port, ctrl, ret, (space), (logic), (triggers));\
     }
