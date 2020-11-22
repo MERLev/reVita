@@ -74,9 +74,9 @@ Want to use DS3 / DS4 ? Check this page [here](../../wiki/External-Controllers) 
 
 ## Installation
 
-- Copy **[ioplus.skprx](https://github.com/MERLev/reVita/releases/download/1.0/ioplus.skprx)** to **ur0:/tai** folder, add **ioplus.skprx** into your **ur0:/config.ini** config file under ***KERNEL*** section.
-- Copy **reVita.skprx** to **ur0:/tai** folder, add **reVita.skprx** into your **ur0:/config.ini** config file under ***KERNEL*** section. Should be installed **before** ***ds34vita***/***ds4touch*** in tai config.
-- [Optional, to get Gyro support] Copy **reVitaMotion.suprx** to **ur0:/tai** folder, add **reVitaMotion.suprx** into your **ur0:/config.ini** config file under ***MAIN*** section.
+- Copy **[ioplus.skprx](https://github.com/MERLev/reVita/releases/download/1.0/ioplus.skprx)** to **ur0:/tai** folder, add **ioplus.skprx** into your **ur0:/config.txt** config file under ***KERNEL*** section.
+- Copy **reVita.skprx** to **ur0:/tai** folder, add **reVita.skprx** into your **ur0:/config.txt** config file under ***KERNEL*** section. Should be installed **before** ***ds34vita***/***ds4touch*** in tai config.
+- [Optional, to get Gyro support] Copy **reVitaMotion.suprx** to **ur0:/tai** folder, add **reVitaMotion.suprx** into your **ur0:/config.txt** config file under ***MAIN*** section.
 
 ## Usage
 
