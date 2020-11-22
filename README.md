@@ -59,6 +59,8 @@
 
 ### Compatibility with plugins
 
+Want to use DS3 / DS4 ? Check this page [here](../../wiki/External-Controllers) for more details.
+
 - **[MiniVitaTV](https://github.com/TheOfficialFloW/MiniVitaTV)** - full compatibility.
 - **[ds34vita](https://github.com/MERLev/ds34vita)** - full compatibility. Should be installed **after** reVita in tai config.
 - **[ds4touch](https://github.com/MERLev/ds4Touch)** - full compatibility. Should be installed **after** reVita in tai config.
