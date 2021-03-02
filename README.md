@@ -1,5 +1,7 @@
-# reVita v.1.0 | [Wiki](../../wiki)
+# reVita v.1.0 | [Wiki](../../wiki) | [PS TV Configs](https://github.com/DerpyBubblez/reVita-Configs)
 **reVita** is a plugin for PS Vita / PS TV, which allows you to remap inputs and trigger different actions. It is a continuation of [Rinnegatamante](https://github.com/Rinnegatamante)'s **[remaPSV](https://github.com/Rinnegatamante/remaPSV)**, which was fully rewritten as a kernel plugin.
+
+[Here](https://github.com/DerpyBubblez/reVita-Configs) you can find ready to use [PS TV Configs](https://github.com/DerpyBubblez/reVita-Configs) by [Derpy](https://github.com/DerpyBubblez)
 
 ![Image](/include/screenshot.png)
 
