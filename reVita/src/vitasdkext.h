@@ -7,6 +7,7 @@
 
 typedef enum SceCtrlButtonsExt {
     SCE_CTRL_TOUCHPAD    = 0x04000000,             //!< Dualshock 4 Touchpad button
+	SCE_CTRL_MIC		 = 0x08000000,             //!< DualSense mic button
     SCE_CTRL_L2          = SCE_CTRL_LTRIGGER,
     SCE_CTRL_R2          = SCE_CTRL_RTRIGGER,
 } SceCtrlButtonsExt;

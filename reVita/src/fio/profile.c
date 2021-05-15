@@ -177,6 +177,7 @@ const char*  HW_BUTTONS_STR[HW_BUTTONS_NUM] = {
 	"POWER", 
 	"PS",
 	"TOUCHPAD",
+	"DS_MIC",
 	"HEADPHONE"
 };
 int getButtonId(char* n){

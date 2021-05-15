@@ -48,3 +48,5 @@ Temporary Items
 
 build/*
 .vscode/*
+reVita/build/*
+reVitaMotion/build/*

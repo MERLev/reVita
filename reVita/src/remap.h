@@ -145,7 +145,7 @@ typedef struct EmulatedTouch{
 	uint8_t num;
 }EmulatedTouch;
 
-#define HW_BUTTONS_NUM    22 // Supported physical buttons num
+#define HW_BUTTONS_NUM    23 // Supported physical buttons num
 extern const uint32_t HW_BUTTONS[HW_BUTTONS_NUM];
 extern TouchPoints2 T_SIZE[SCE_TOUCH_PORT_MAX_NUM];
 

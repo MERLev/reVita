@@ -65,6 +65,7 @@ static struct MenuEntry menu_pick_button_entries[] = {
 	(MenuEntry){.name = "Power", 	.icn = ICON_BTN_POWER, 		.dataUint = SCE_CTRL_POWER},
 	(MenuEntry){.name = "PS", 		.icn = ICON_BTN_PS, 		.dataUint = SCE_CTRL_PSBUTTON},
 	(MenuEntry){.name = "DS4 Touch",.icn = ICON_BTN_DS4TOUCH, 	.dataUint = SCE_CTRL_TOUCHPAD},
+	(MenuEntry){.name = "DS5 Mic",	.icn = ICON_MIC, 			.dataUint = SCE_CTRL_MIC},
 	(MenuEntry){.name = "Headphone",.icn = ICON_HEADPHONES, 	.dataUint = SCE_CTRL_HEADPHONE}};
 static struct Menu menu_pick_button = (Menu){
 	.id = MENU_PICK_BUTTON_ID, 

@@ -40,7 +40,7 @@ const char* STR_BTN_S[HW_BUTTONS_NUM] = {
 	"$:", "$;", 
 	"${", "$}", "$,", "$.", "$(", "$)", 
 	"$+", "$-", "$p", "$P", 
-	"$t", "$h"
+	"$t", "$y", "$h" 
 };
 const char* STR_YN[2] = {
 	"No", "Yes"
