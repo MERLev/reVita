@@ -121,6 +121,8 @@ Want to use DS3 / DS4 ? Check this page [here](../../wiki/External-Controllers) 
   - Go back to the game
   - Press **START**+**CROSS**(configurable under Settings > Hotkeys) to import Shared profile.
 - "Buy more RAM" error popup on menu open - means there is not enough RAM for plugin to initialise it's menu. Seems to be caused by usage of other heavy plugins, especially ucdc and PSVShell.
+- Crash, when closing the menu
+  - update reVita and ds34vita to latest versions (from github) 
 ## Build
 - Make install **[ds34vita](https://github.com/MERLev/ds34vita)**.
 - Make install **[DS34Motion](https://github.com/MERLev/DS34Motion)**
